@@ -12,7 +12,7 @@ categories = ["multimedia::audio", "gui"]
 publish = false
 
 [dependencies]
-eframe = "0.37"
+eframe = { version = "0.37", default-features = false, features = ["accesskit", "clipboard", "default_fonts", "glow", "links", "system_fonts", "wayland", "web_screen_reader", "x11"] }
 image = { version = "0.25", default-features = false, features = ["png", "jpeg", "gif", "webp", "ico"] }
 ureq = { version = "2", features = ["json", "native-certs"] }
 roxmltree = "0.21"
