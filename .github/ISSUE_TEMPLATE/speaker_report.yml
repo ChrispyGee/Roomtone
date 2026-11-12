@@ -1,0 +1,44 @@
+name: Speaker report
+description: Tell us what works (or doesn't) on your speakers
+labels: [speaker-report]
+body:
+  - type: markdown
+    attributes:
+      value: |
+        Some features are only verified with the demo system (see docs/ROADMAP.md), so reports from real speakers help a lot. Please leave out room names, addresses and account details.
+  - type: dropdown
+    id: system
+    attributes:
+      label: System
+      options: [S1, S2, Both (two systems)]
+    validations:
+      required: true
+  - type: textarea
+    id: models
+    attributes:
+      label: Models and software versions
+      placeholder: "e.g. 2 small smart speakers (S2, 16.4), 1 soundbar (S2, 16.4)"
+    validations:
+      required: true
+  - type: checkboxes
+    id: tried
+    attributes:
+      label: What you tried
+      options:
+        - label: Finding speakers and live status
+        - label: Grouping and saved groups
+        - label: Streaming service sign-in, browse, search
+        - label: Streaming service playback (and the account-number fix)
+        - label: Play along between S1 and S2
+        - label: Check for updates
+        - label: Installing an update
+        - label: Line-in / TV input
+        - label: Alarms
+        - label: Assistant link (MCP)
+  - type: textarea
+    id: results
+    attributes:
+      label: Results
+      description: What worked, what didn't, and anything surprising.
+    validations:
+      required: true

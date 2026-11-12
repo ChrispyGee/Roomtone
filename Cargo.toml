@@ -1,0 +1,34 @@
+[package]
+name = "roomtone"
+version = "0.5.0"
+edition = "2021"
+description = "A modern controller for S1 and S2 wireless speaker systems, with a headless mode and an MCP server for AI assistants"
+license = "MIT OR Apache-2.0"
+readme = "README.md"
+repository = "https://github.com/ChrispyGee/Roomtone"
+homepage = "https://github.com/ChrispyGee/Roomtone"
+keywords = ["speakers", "upnp", "egui", "mcp", "music"]
+categories = ["multimedia::audio", "gui"]
+publish = false
+
+[dependencies]
+eframe = "0.31"
+image = { version = "0.25", default-features = false, features = ["png", "jpeg", "gif", "webp", "ico"] }
+ureq = { version = "2", features = ["json", "native-certs"] }
+roxmltree = "0.20"
+serde = { version = "1", features = ["derive"] }
+serde_json = "1"
+lofty = "0.22"
+rfd = "0.15"
+winit = "0.30"
+
+[target.'cfg(target_os = "macos")'.dependencies]
+objc2 = "0.6"
+objc2-foundation = { version = "0.3", features = ["NSString", "NSDictionary", "NSData", "NSAttributedString"] }
+objc2-app-kit = { version = "0.3", features = ["NSApplication", "NSResponder", "NSRunningApplication", "NSImage", "NSMenu", "NSMenuItem", "NSColor", "NSFont", "NSFontDescriptor", "NSAttributedString", "NSParagraphStyle", "NSText", "NSWindow", "NSGraphics", "NSView", "NSBitmapImageRep", "NSImageRep"] }
+
+[profile.dev]
+opt-level = 1
+
+[profile.dev.package."*"]
+opt-level = 2

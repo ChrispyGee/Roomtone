@@ -1,0 +1,537 @@
+# Roomtone — nl. One "English<TAB>translation" pair per line; untranslated phrases show in English.
+1 hour	1 uur
+1 room	1 ruimte
+1 song	1 nummer
+1. Open the sign-in page and log in to your account.	1. Open de aanmeldpagina en log in op je account.
+15 minutes	15 minuten
+2 hours	2 uur
+2. If the page asks for a code, enter:	2. Als de pagina om een code vraagt, voer in:
+30 minutes	30 minuten
+45 minutes	45 minuten
+A ready-made setup to paste into an assistant's MCP settings	Een kant-en-klare configuratie om in de MCP-instellingen van een assistent te plakken
+About	Over
+About this speaker	Over deze speaker
+Access key	Toegangssleutel
+Access key copied	Toegangssleutel gekopieerd
+Account	Account
+Active	Actief
+Add	Toevoegen
+Add a music folder	Muziekmap toevoegen
+Add a speaker by address	Speaker toevoegen via adres
+Add a station or stream	Zender of stream toevoegen
+Add any internet radio stream by its address, or save stations from the directory below.	Voeg een internetradiostream toe via het adres, of bewaar zenders uit de gids hieronder.
+Add folder	Map toevoegen
+Add folders of music from this Mac, an external drive or a mounted network share.	Voeg muziekmappen toe van deze Mac, een externe schijf of een gekoppelde netwerkshare.
+Add songs, albums or playlists from your music.	Voeg nummers, albums of afspeellijsten uit je muziek toe.
+Add station	Zender toevoegen
+Add to Favorites	Toevoegen aan favorieten
+Add to end of queue	Achteraan de wachtrij
+Add to queue	Toevoegen aan wachtrij
+Added to queue: {title}	Toegevoegd aan wachtrij: {title}
+Added “{title}” to Favorites	‘{title}’ toegevoegd aan favorieten
+Added “{title}” to My stations	‘{title}’ toegevoegd aan Mijn zenders
+Address	Adres
+Alarms	Wekkers
+Album	Album
+Album Artists	Albumartiesten
+Albums	Albums
+Albums, artists and folders from this computer, podcast shows and archive recordings can't be stored on the speakers, so they're kept here.	Albums, artiesten en mappen van deze computer, podcastshows en archiefopnamen kunnen niet op de speakers worden bewaard, dus die blijven hier.
+Albums, artists and songs	Albums, artiesten en nummers
+All	Alles
+All genres	Alle genres
+All rooms	Alle ruimtes
+All songs	Alle nummers
+All your music	Al je muziek
+Allow other computers	Andere computers toestaan
+Any episode	Elke aflevering
+App language	App-taal
+Apple only lets the speaker maker's own app sign in. Save Apple Music albums, playlists and stations to Favorites there and they play here.	Apple laat alleen de app van de speakerfabrikant aanmelden. Bewaar daar Apple Music-albums, -afspeellijsten en -zenders als favoriet en ze spelen hier.
+Apps that start the link themselves (such as desktop assistants) run Roomtone with --mcp. Others connect to the web address with the access key.	Apps die de koppeling zelf starten (zoals desktopassistenten) starten Roomtone met --mcp. Andere maken verbinding met het webadres en de toegangssleutel.
+Artist	Artiest
+Artist A–Z	Artiest A–Z
+Artist · everywhere	Artiest · overal
+Artists	Artiesten
+Artists, albums, songs, stations, podcasts…	Artiesten, albums, nummers, zenders, podcasts…
+Asking the service for a sign-in page…	Aanmeldpagina opvragen bij de dienst…
+Assistant link (MCP)	Assistentkoppeling (MCP)
+Assistants can change things	Assistenten mogen dingen wijzigen
+Assistants on other computers in your home can connect with the access key.	Assistenten op andere computers in huis kunnen verbinden met de toegangssleutel.
+Assistants that support MCP can see your rooms and what's playing.	Assistenten met MCP-ondersteuning zien je ruimtes en wat er speelt.
+Assistants using the old key will need the new one	Assistenten met de oude sleutel hebben dan de nieuwe nodig
+Automatic	Automatisch
+Automatic follows your computer's language.	Automatisch volgt de taal van je computer.
+Available now	Nu beschikbaar
+Bass	Lage tonen
+Best match	Beste overeenkomst
+Boosts bass and treble at low volume	Versterkt lage en hoge tonen bij laag volume
+Browse	Bladeren
+Browse by album artist	Op albumartiest
+Browse by composer	Op componist
+Browse by performer	Op uitvoerende
+Browse by style	Op stijl
+Browse playlists, albums, artists and more	Blader door afspeellijsten, albums, artiesten en meer
+Cancel	Annuleren
+Chime	Belsignaal
+Choose a room	Kies een ruimte
+Choose at least two rooms.	Kies minstens twee ruimtes.
+Clear	Wissen
+Clear queue	Wachtrij wissen
+Close	Sluiten
+Composers	Componisten
+Connect	Verbinden
+Connect Spotify, Amazon Music, Deezer, TIDAL or Qobuz, then browse them here.	Verbind Spotify, Amazon Music, Deezer, TIDAL of Qobuz en blader er hier doorheen.
+Connect an assistant	Een assistent verbinden
+Connect {service}	{service} verbinden
+Connected	Verbonden
+Connected to 1 speaker	Verbonden met 1 speaker
+Connected to {n} speakers	Verbonden met {n} speakers
+Connected · 1 speaker	Verbonden · 1 speaker
+Connected · {n} speakers	Verbonden · {n} speakers
+Connecting a service needs your speakers on the network	Voor het verbinden van een dienst moeten je speakers op het netwerk zijn
+Connecting a streaming service needs your speakers on the network. Anything you've saved to Favorites from these services plays here today.	Voor het verbinden van een streamingdienst moeten je speakers op het netwerk zijn. Alles wat je uit deze diensten als favoriet hebt bewaard, speelt hier nu al.
+Connection	Verbinding
+Controls speakers directly on your home network. Works with both S1 (firmware 11.x) and S2 systems; the two can't be grouped together, so each appears as its own system on the left. Music services play through the favorites and playlists you've saved; signing in to new services needs the speaker maker's own app.	Bedient speakers direct op je thuisnetwerk. Werkt met S1- (firmware 11.x) en S2-systemen; die kunnen niet samen gegroepeerd worden, dus elk verschijnt links als eigen systeem. Muziekdiensten spelen via je bewaarde favorieten en afspeellijsten; aanmelden bij nieuwe diensten gaat met de app van de speakerfabrikant.
+Copy access key	Toegangssleutel kopiëren
+Copy setup	Configuratie kopiëren
+Copy web address	Webadres kopiëren
+Couldn't load this right now. Check the internet connection and try again.	Kon dit nu niet laden. Controleer de internetverbinding en probeer het opnieuw.
+Couldn't open port {port}: {error}	Kon poort {port} niet openen: {error}
+Couldn't read your speakers ({error}). Showing a demo system.	Kon je speakers niet uitlezen ({error}). Er wordt een demosysteem getoond.
+Couldn't save settings: {error}	Kon de instellingen niet bewaren: {error}
+Crossfade	Crossfade
+Current firmware	Huidige firmware
+Default order	Standaardvolgorde
+Delete	Verwijderen
+Deleted group “{name}”	Groep ‘{name}’ verwijderd
+Demo	Demo
+Demo system	Demosysteem
+Disconnect	Ontkoppelen
+Done	Klaar
+Drag or type to set the time	Sleep of typ om de tijd in te stellen
+Edit	Bewerken
+Edit alarm	Wekker bewerken
+Edit group	Groep bewerken
+Edit station	Zender bewerken
+Episodes	Afleveringen
+Every album in your library	Elk album in je bibliotheek
+Every day	Elke dag
+Every music source you've set up, in one place	Elke muziekbron die je hebt ingesteld, op één plek
+Everything	Alles
+Explore every screen with made-up rooms and music.	Verken elk scherm met verzonnen ruimtes en muziek.
+Favorite	Favoriet
+Favorites	Favorieten
+Favorites live on your speakers, so every controller and room shares them. Use ⋯ or right-click on any of these and choose Add to Favorites:	Favorieten staan op je speakers, dus elke bediening en ruimte deelt ze. Gebruik ⋯ of rechtsklik op een van deze en kies Toevoegen aan favorieten:
+Favorites only	Alleen favorieten
+Filter this list	Deze lijst filteren
+Find a station by name	Zender zoeken op naam
+Find speakers	Speakers zoeken
+Folder	Map
+Folders	Mappen
+Found 1 more speaker	1 extra speaker gevonden
+Found {n} more speakers	{n} extra speakers gevonden
+Free live concerts, old recordings and public-domain music	Gratis liveconcerten, oude opnamen en rechtenvrije muziek
+Fri	Vr
+From this computer	Van deze computer
+From your folders	Uit je mappen
+Genre	Genre
+Genres	Genres
+Google only lets the speaker maker's own app sign in. Save YouTube Music items to Favorites there and they play here.	Google laat alleen de app van de speakerfabrikant aanmelden. Bewaar daar YouTube Music-items als favoriet en ze spelen hier.
+Group	Groeperen
+Group all	Alles groeperen
+Group rooms	Ruimtes groeperen
+Group these rooms now	Deze ruimtes nu groeperen
+Grouped	Gegroepeerd
+Grouped rooms	Gegroepeerde ruimtes
+Groups	Groepen
+Hi-res streaming	Hi-res streaming
+High-quality streaming	Streaming in hoge kwaliteit
+Home	Start
+IP address	IP-adres
+If your network blocks discovery, type a speaker's IP address (find it in your router).	Als je netwerk het zoeken blokkeert, typ dan het IP-adres van een speaker (te vinden in je router).
+Imported Playlists	Geïmporteerde afspeellijsten
+In Favorites	In favorieten
+Independent artists and mixes	Onafhankelijke artiesten en mixen
+Internet Archive	Internet Archive
+Item	Item
+Keep these rooms as a named group	Deze ruimtes als benoemde groep bewaren
+Kept in this app	Bewaard in deze app
+LIVE	LIVE
+LOADING	LADEN
+Language	Taal
+Legacy firmware 11.x	Oudere firmware 11.x
+Let AI assistants use Roomtone	AI-assistenten Roomtone laten gebruiken
+Line-In	Line-in
+Line-In & TV	Line-in & tv
+Live	Live
+Longest first	Langste eerst
+Looking for speakers on your network	Speakers zoeken op je netwerk
+Looking for speakers on your network…	Speakers zoeken op je netwerk…
+Looking for speakers…	Speakers zoeken…
+Lost contact with your speakers. Reconnecting…	Contact met je speakers verloren. Opnieuw verbinden…
+Loudness	Loudness
+Makes dialogue clearer	Maakt dialogen duidelijker
+Model	Model
+Mon	Ma
+More from your system	Meer uit je systeem
+Most popular	Populairst
+Music	Muziek
+Music Library	Muziekbibliotheek
+Music Services	Muziekdiensten
+Music folders on this Mac, or drives and network shares mounted on it	Muziekmappen op deze Mac, of schijven en netwerkshares die eraan gekoppeld zijn
+Music shared on your speakers' system and folders on this computer	Muziek gedeeld op het systeem van je speakers en mappen op deze computer
+My favourite station	Mijn favoriete zender
+My playlist	Mijn afspeellijst
+My stations	Mijn zenders
+NOW PLAYING	NU AAN HET SPELEN
+Name	Naam
+New alarm	Nieuwe wekker
+New group	Nieuwe groep
+New key	Nieuwe sleutel
+Night sound	Nachtgeluid
+No alarms yet.	Nog geen wekkers.
+No favorites yet. Add stations, albums, playlists or songs from anywhere in the app with ⋯ › Add to Favorites.	Nog geen favorieten. Voeg zenders, albums, afspeellijsten of nummers overal in de app toe met ⋯ › Toevoegen aan favorieten.
+No folders from this computer yet. Add one in Music Library.	Nog geen mappen van deze computer. Voeg er een toe in Muziekbibliotheek.
+No folders yet. Use Add folder to choose music on this computer.	Nog geen mappen. Gebruik Map toevoegen om muziek op deze computer te kiezen.
+No other speakers answered the search. Keeping the ones you have.	Geen andere speakers reageerden op de zoekopdracht. Je huidige speakers blijven.
+No playlists yet. Save the queue as a playlist to create one.	Nog geen afspeellijsten. Bewaar de wachtrij als afspeellijst om er een te maken.
+No rooms in that group	Geen ruimtes in die groep
+No speakers answered, so you're exploring made-up rooms.	Er reageerden geen speakers, dus je verkent verzonnen ruimtes.
+No speakers found	Geen speakers gevonden
+No speakers found on this network. Showing a demo system.	Geen speakers gevonden op dit netwerk. Er wordt een demosysteem getoond.
+No speakers yet.	Nog geen speakers.
+No stations found.	Geen zenders gevonden.
+No streaming services connected yet.	Nog geen streamingdiensten verbonden.
+None of your speakers look like they have a line-in or TV connection.	Geen van je speakers lijkt een line-in- of tv-aansluiting te hebben.
+Not answering	Reageert niet
+Not answering at its last known address	Reageert niet op het laatst bekende adres
+Not checked yet	Nog niet gecontroleerd
+Not offered on this system	Niet aangeboden op dit systeem
+Not reachable	Niet bereikbaar
+Not responding	Reageert niet
+Nothing here yet.	Hier staat nog niets.
+Nothing matched “{query}” with these filters.	Niets komt overeen met ‘{query}’ met deze filters.
+Nothing playing	Er speelt niets
+Nothing playing yet	Er speelt nog niets
+Nothing to play by {artist}	Niets af te spelen van {artist}
+Now Playing	Nu aan het spelen
+Now playing	Nu aan het spelen
+Off	Uit
+On macOS, allow Local Network access for this app in System Settings › Privacy & Security if no speakers appear.	Sta op macOS toegang tot het lokale netwerk toe voor deze app in Systeeminstellingen › Privacy en beveiliging als er geen speakers verschijnen.
+On this computer	Op deze computer
+On your speakers	Op je speakers
+On your system	Op je systeem
+Once	Eenmalig
+Open	Openen
+Open demo	Demo openen
+Open player	Speler openen
+Open sign-in page	Aanmeldpagina openen
+Optional, e.g. Jazz	Optioneel, bijv. Jazz
+Other	Overig
+PAUSED	GEPAUZEERD
+Paste the stream's web address. Playlist links (.pls, .m3u) are followed automatically.	Plak het webadres van de stream. Afspeellijstlinks (.pls, .m3u) worden automatisch gevolgd.
+Pause all	Alles pauzeren
+Pick a room first	Kies eerst een ruimte
+Pick a room on the right	Kies rechts een ruimte
+Pick a room to see its queue.	Kies een ruimte om de wachtrij te zien.
+Pick a room to start listening	Kies een ruimte om te gaan luisteren
+Pick something from your favorites below	Kies iets uit je favorieten hieronder
+Pick the rooms that play together, and give them a name.	Kies de ruimtes die samen spelen en geef ze een naam.
+Play	Afspelen
+Play a connected source in {room}	Een aangesloten bron afspelen in {room}
+Play for	Speelduur
+Play next	Hierna afspelen
+Play, pause, change volume, edit the queue and group rooms. Off: they can only look.	Afspelen, pauzeren, volume wijzigen, de wachtrij bewerken en ruimtes groeperen. Uit: ze kunnen alleen kijken.
+Playing in {room}	Speelt in {room}
+Playing next: {title}	Hierna: {title}
+Playing source	Speelt de bron
+Playing {title}	{title} wordt afgespeeld
+Playlist	Afspeellijst
+Playlist files found in your library	Afspeellijstbestanden gevonden in je bibliotheek
+Playlists	Afspeellijsten
+Playlists saved on your system	Afspeellijsten bewaard op je systeem
+Playlists saved on your system and from connected services	Afspeellijsten van je systeem en van verbonden diensten
+Podcast	Podcast
+Podcast episodes	Podcastafleveringen
+Podcast shows and Internet Archive recordings	Podcastshows en opnamen van Internet Archive
+Podcasts	Podcasts
+Port	Poort
+Press Return to search	Druk op Return om te zoeken
+Queue	Wachtrij
+READY	GEREED
+Radio	Radio
+Radio directory	Radiogids
+Radio directory, My stations, and stations saved on your system	Radiogids, Mijn zenders en zenders bewaard op je systeem
+Radio stations	Radiozenders
+Ready at {address}	Klaar op {address}
+Recently played	Recent afgespeeld
+Reconnect	Opnieuw verbinden
+Reconnected to your speakers	Opnieuw verbonden met je speakers
+Reconnecting to your speakers…	Opnieuw verbinden met je speakers…
+Reconnecting…	Opnieuw verbinden…
+Remove folder	Map verwijderen
+Remove from Favorites	Verwijderen uit favorieten
+Remove from My stations	Verwijderen uit Mijn zenders
+Remove from queue	Verwijderen uit wachtrij
+Removed “{title}” from Favorites	‘{title}’ verwijderd uit favorieten
+Rename	Hernoemen
+Rename room	Ruimte hernoemen
+Repeat	Herhalen
+Replace queue	Wachtrij vervangen
+Rescan	Opnieuw scannen
+Responding	Reageert
+Responding · last reply {n} s ago	Reageert · laatste antwoord {n} s geleden
+Room	Ruimte
+Rooms	Ruimtes
+Rooms play together with {lead}.	Ruimtes spelen samen met {lead}.
+Roomtone	Roomtone
+S1 and S2 systems are both found automatically.	S1- en S2-systemen worden allebei automatisch gevonden.
+SYSTEMS	SYSTEMEN
+Sat	Za
+Save	Bewaren
+Save & group now	Bewaren & nu groeperen
+Save as group	Bewaren als groep
+Save as playlist	Bewaren als afspeellijst
+Save queue as playlist	Wachtrij bewaren als afspeellijst
+Save sets of rooms you often play together, like “Downstairs” or “Party”.	Bewaar ruimtes die vaak samen spelen, zoals ‘Benedenverdieping’ of ‘Feest’.
+Save to My stations	Bewaren in Mijn zenders
+Saved group “{name}”	Groep ‘{name}’ bewaard
+Saved on your system	Bewaard op je systeem
+Saved playlist “{title}”	Afspeellijst ‘{title}’ bewaard
+Scanning your folders…	Je mappen worden gescand…
+Search	Zoeken
+Search again	Opnieuw zoeken
+Search any public podcast, subscribe and play episodes	Zoek elke openbare podcast, abonneer je en speel afleveringen af
+Search network again	Netwerk opnieuw doorzoeken
+Searches this network for S1 and S2 speakers.	Doorzoekt dit netwerk naar S1- en S2-speakers.
+Searching {sources}…	Zoeken in {sources}…
+See all	Alles bekijken
+See everything by {artist}	Alles van {artist} bekijken
+Select all	Alles selecteren
+Settings	Instellingen
+Setup copied	Configuratie gekopieerd
+Shared folders on your network	Gedeelde mappen op je netwerk
+Shared with every room and controller.	Gedeeld met elke ruimte en bediening.
+Show	Tonen
+Show all {n} {kind}	Alle {n} {kind} tonen
+Show your speakers and their status	Toon je speakers en hun status
+Showing {shown} of {total}	{shown} van {total} getoond
+Shuffle	Shuffle
+Sign in on each service's own web page. Your speakers play the music with the account already added to your system in the speaker maker's app, so add it there first if you haven't.	Meld je aan op de eigen webpagina van elke dienst. Je speakers spelen de muziek met het account dat al in de app van de speakerfabrikant aan je systeem is toegevoegd; voeg het daar eerst toe als je dat nog niet hebt gedaan.
+Sign-in didn't complete: {error}	Aanmelden niet voltooid: {error}
+Sign-in timed out. Try again when you're ready.	Aanmelden is verlopen. Probeer het opnieuw wanneer je klaar bent.
+Sleep in {time}	Slaapt over {time}
+Sleep timer	Slaaptimer
+Sleep timer off	Slaaptimer uit
+Sleep timer set for {n} minutes	Slaaptimer ingesteld op {n} minuten
+Softens loud moments for late-night TV	Verzacht harde momenten voor tv laat op de avond
+Software version	Softwareversie
+Some speakers from last time aren't answering yet. Still looking…	Sommige speakers van vorige keer reageren nog niet. We blijven zoeken…
+Song	Nummer
+Songs	Nummers
+Songs, albums and mixes	Nummers, albums en mixen
+Songs, albums, artists and folders (songs play while this app is open)	Nummers, albums, artiesten en mappen (nummers spelen zolang deze app open is)
+Songs, albums, playlists and Flow	Nummers, albums, afspeellijsten en Flow
+Songs, albums, playlists and podcasts	Nummers, albums, afspeellijsten en podcasts
+Songs, albums, playlists and radio	Nummers, albums, afspeellijsten en radio
+Songs, albums, playlists and stations	Nummers, albums, afspeellijsten en zenders
+Sound	Geluid
+SoundCloud only lets the speaker maker's own app sign in. Save SoundCloud items to Favorites there and they play here.	SoundCloud laat alleen de app van de speakerfabrikant aanmelden. Bewaar daar SoundCloud-items als favoriet en ze spelen hier.
+Sources	Bronnen
+Sources are guessed from each speaker's model; a speaker without that socket will refuse to play it.	Bronnen worden afgeleid uit het model van elke speaker; een speaker zonder die aansluiting weigert het af te spelen.
+Speaker	Speaker
+Speaker ID	Speaker-ID
+Speakers are checked every few seconds while the app is open.	Speakers worden om de paar seconden gecontroleerd zolang de app open is.
+Speakers not responding	Speakers reageren niet
+Speech enhancement	Spraakverbetering
+Starting…	Starten…
+Station	Zender
+Stations	Zenders
+Stations, playlists and albums you've saved	Zenders, afspeellijsten en albums die je hebt bewaard
+Status light	Statuslampje
+Streaming service	Streamingdienst
+Streaming services	Streamingdiensten
+Subscribe	Abonneren
+Subscribed	Geabonneerd
+Subscribed to “{title}”	Geabonneerd op ‘{title}’
+Sun	Zo
+Switch sources on or off. Free ones work now; the big streaming services are on the way.	Zet bronnen aan of uit. Gratis bronnen werken nu al; de grote streamingdiensten komen eraan.
+System	Systeem
+System folders unavailable: {error}	Systeemmappen niet beschikbaar: {error}
+System library	Systeembibliotheek
+System library and this computer	Systeembibliotheek en deze computer
+Systems, rooms and connection	Systemen, ruimtes en verbinding
+TV	Tv
+Tens of thousands of free internet radio stations from a community directory	Tienduizenden gratis internetradiozenders uit een communitygids
+That room	Die ruimte
+That speaker	Die speaker
+The address should start with http:// or https://	Het adres moet beginnen met http:// of https://
+The light on the speaker	Het lampje op de speaker
+The queue is empty	De wachtrij is leeg
+The radio directory is switched off in Music Services.	De radiogids staat uit in Muziekdiensten.
+The speakers are taking a while to answer; try again in a moment.	De speakers doen er lang over om te antwoorden; probeer het zo opnieuw.
+The star in the player bar, the Now Playing page and the Home card	De ster in de spelerbalk, de pagina Nu aan het spelen en de kaart op Start
+There's already a group with that name.	Er is al een groep met die naam.
+These are made-up demo rooms; no speakers answered on this network.	Dit zijn verzonnen demoruimtes; er reageerden geen speakers op dit netwerk.
+Things the speakers can't store themselves (albums, artists and folders from this computer, podcast shows, archive recordings) are kept as favorites in this app. Not possible: Line-In/TV and the queue itself (save it as a playlist instead).	Wat de speakers zelf niet kunnen bewaren (albums, artiesten en mappen van deze computer, podcastshows, archiefopnamen) wordt in deze app als favoriet bewaard. Niet mogelijk: line-in/tv en de wachtrij zelf (bewaar die als afspeellijst).
+This computer	Deze computer
+This computer plays your folders to the speakers from {address}	Deze computer speelt je mappen naar de speakers vanaf {address}
+This computer's folders couldn't be read.	De mappen van deze computer konden niet worden gelezen.
+Thu	Do
+Tip: find new podcasts and Internet Archive recordings with Search.	Tip: vind nieuwe podcasts en opnamen van Internet Archive met Zoeken.
+Title A–Z	Titel A–Z
+Treble	Hoge tonen
+Tue	Di
+Types	Soorten
+Ungroup	Groep opheffen
+Unknown room	Onbekende ruimte
+Unsubscribe	Abonnement opzeggen
+Up next	Hierna
+Volume	Volume
+Waiting for you to approve on the service's page…	Wachten op je goedkeuring op de pagina van de dienst…
+Wake up to music in any room	Word wakker met muziek in elke ruimte
+Web address	Webadres
+Web address copied	Webadres gekopieerd
+Wed	Wo
+Weekdays	Werkdagen
+Weekends	Weekenden
+What can be a favorite?	Wat kan een favoriet zijn?
+What's playing	Wat er speelt
+Which of your system's accounts for this service plays the music. Change it if songs won't start.	Welk account van je systeem de muziek van deze dienst afspeelt. Wijzig het als nummers niet starten.
+Whole shows and recordings, as well as single episodes and tracks	Hele shows en opnamen, en ook losse afleveringen en nummers
+Your favorites	Je favorieten
+Your folders	Je mappen
+Your music library	Je muziekbibliotheek
+Your playlists	Je afspeellijsten
+Your podcasts	Je podcasts
+Your speakers	Je speakers
+Your speakers aren't answering. Check they're on and on the same network, then choose Reconnect.	Je speakers reageren niet. Controleer of ze aan staan en op hetzelfde netwerk zitten, en kies dan Opnieuw verbinden.
+Your speakers don't offer that service	Je speakers bieden die dienst niet aan
+Your speakers play them straight from this computer while the app is open.	Je speakers spelen ze direct vanaf deze computer zolang de app open is.
+Your stations, saved favorites and a free worldwide directory	Je zenders, bewaarde favorieten en een gratis wereldwijde gids
+Your system's library and the folders on this computer, together.	De bibliotheek van je systeem en de mappen op deze computer, samen.
+Your system's library couldn't be read right now.	De bibliotheek van je systeem kon nu niet worden gelezen.
+Your system's music library, and connected streaming services	De muziekbibliotheek van je systeem en verbonden streamingdiensten
+current	huidig
+e.g. Downstairs	bijv. Benedenverdieping
+http://stream.example.com/live.mp3	http://stream.example.com/live.mp3
+legacy	ouder
+nothing playing	er speelt niets
+version {version}	versie {version}
+{answering} of {n} speakers responding	{answering} van {n} speakers reageren
+{kind} · kept in this app	{kind} · bewaard in deze app
+{n} added	{n} toegevoegd
+{n} minutes	{n} minuten
+{n} playing	{n} spelen
+{n} rooms	{n} ruimtes
+{n} songs	{n} nummers
+{program} · volume {volume} · {minutes} min	{program} · volume {volume} · {minutes} min
+{service} connected	{service} verbonden
+{service} couldn't start a sign-in: {error}	{service} kon geen aanmelding starten: {error}
+{service} is connected. Find it in Music Services and in Search.	{service} is verbonden. Je vindt het bij Muziekdiensten en in Zoeken.
+{source} couldn't be reached right now.	{source} is nu niet bereikbaar.
+{system} speakers can only be grouped with rooms in the same system.	{system}-speakers kunnen alleen met ruimtes in hetzelfde systeem worden gegroepeerd.
+{system} system	{system}-systeem
+{system} system {n}	{system}-systeem {n}
+{what} isn't available right now	{what} is nu niet beschikbaar
+“{title}” can't be a favorite	‘{title}’ kan geen favoriet zijn
+“{title}” has nothing playable	‘{title}’ bevat niets om af te spelen
+▶  Play now	▶  Nu afspelen
+▶  Play this	▶  Dit afspelen
+★  Remove from Favorites	★  Verwijderen uit favorieten
+☆  Add to Favorites	☆  Toevoegen aan favorieten
+1 playing	1 speelt
+Browsing failed: {error}	Bladeren mislukt: {error}
+Browsing works (1 section)	Bladeren werkt (1 onderdeel)
+Browsing works ({n} sections)	Bladeren werkt ({n} onderdelen)
+Check	Controleren
+Checking…	Controleren…
+Free sources work straight away. Streaming services: sign in once, then browse, search and play them here.	Gratis bronnen werken meteen. Streamingdiensten: meld je één keer aan en blader, zoek en speel ze daarna hier af.
+Not connected	Niet verbonden
+Play along from your other system	Meespelen vanuit je andere systeem
+Plays along with {room}	Speelt mee met {room}
+Ready to connect	Klaar om te verbinden
+S1 and S2 speakers can't join one group, so these play the same music started at the same moment. They can drift up to a second or two apart.	S1- en S2-speakers kunnen niet in één groep, dus deze spelen dezelfde muziek, op hetzelfde moment gestart. Ze kunnen tot een seconde of twee uit elkaar lopen.
+That room isn't available right now	Die ruimte is nu niet beschikbaar
+Those rooms are in the same system; group them instead.	Die ruimtes zitten in hetzelfde systeem; groepeer ze in plaats daarvan.
+Tries browsing, searching and finding the right account, without playing anything	Probeert bladeren, zoeken en het juiste account te vinden, zonder iets af te spelen
+account {n} (a guess: save one of its songs or playlists to Favorites in the speaker maker's app to confirm)	account {n} (een schatting: bewaar een nummer of afspeellijst ervan als favoriet in de app van de speakerfabrikant om het te bevestigen)
+plays with account {n} (found on your system)	speelt met account {n} (gevonden op je systeem)
+search failed: {error}	zoeken mislukt: {error}
+search works (1 result)	zoeken werkt (1 resultaat)
+search works ({n} results)	zoeken werkt ({n} resultaten)
+{room} now plays along with {lead}	{room} speelt nu mee met {lead}
+{service} didn't start. In Music Services, try another account number (now {n}).	{service} startte niet. Probeer bij Muziekdiensten een ander accountnummer (nu {n}).
+{service} plays with account {n} on this system; saved.	{service} speelt met account {n} op dit systeem; bewaard.
+{service} wouldn't play this ({error}). Check the account is added to your system in the speaker maker's app.	{service} kon dit niet afspelen ({error}). Controleer of het account in de app van de speakerfabrikant aan je systeem is toegevoegd.
+1 saved favorite	1 bewaarde favoriet
+In the speaker maker's app, save {service} albums, playlists, songs or stations to Favorites (or press ☆ in the player here while one is playing). They show up here, in Favorites and in Search, and play from this app.	Bewaar in de app van de speakerfabrikant albums, afspeellijsten, nummers of zenders van {service} als favoriet (of druk hier in de speler op ☆ terwijl er een speelt). Ze verschijnen dan hier, bij Favorieten en in Zoeken, en spelen vanuit deze app.
+No {service} favorites yet.	Nog geen favorieten van {service}.
+Your favorites (1)	Je favorieten (1)
+Your favorites ({n})	Je favorieten ({n})
+{n} saved favorites	{n} bewaarde favorieten
+{service} favorites	{service}-favorieten
+How to connect on {platform}	Zo verbind je op {platform}
+Desktop assistants: choose Copy setup and paste it into their MCP settings file, for example:	Desktopassistenten: kies Configuratie kopiëren en plak die in hun MCP-instellingenbestand, bijvoorbeeld:
+Claude Code, in a terminal:	Claude Code, in een terminal:
+Assistants that connect to a web address: keep the app open, or run this in a terminal:	Assistenten die met een webadres verbinden: laat de app open, of voer dit uit in een terminal:
+Then connect to this address with the access key as a Bearer header:	Verbind daarna met dit adres en de toegangssleutel als Bearer-header:
+The full guide for this computer, including starting automatically in the background:	De volledige handleiding voor deze computer, ook voor automatisch starten op de achtergrond:
+Copy	Kopiëren
+Copied	Gekopieerd
+A modern controller for S1 and S2 speaker systems	Een moderne bediening voor S1- en S2-speakersystemen
+Assistant link (MCP): AI assistants can see and control your speakers, switched on or off in Settings	Assistentkoppeling (MCP): AI-assistenten zien en bedienen je speakers, aan of uit te zetten in Instellingen
+Built with Rust and the open-source libraries egui/eframe, winit, ureq, roxmltree, serde, image, lofty and rfd.	Gemaakt met Rust en de opensourcebibliotheken egui/eframe, winit, ureq, roxmltree, serde, image, lofty en rfd.
+Every option, in a terminal:	Alle opties, in een terminal:
+Favorites from Apple Music, YouTube Music and SoundCloud in Music Library and Search	Favorieten van Apple Music, YouTube Music en SoundCloud in Muziekbibliotheek en Zoeken
+Free music directories: Radio Browser (radio-browser.info), the Apple Podcasts directory search and the Internet Archive (archive.org).	Gratis muziekgidsen: Radio Browser (radio-browser.info), de zoekfunctie van de Apple Podcasts-gids en het Internet Archive (archive.org).
+Help	Help
+In English, German, French, Spanish, Italian and Dutch	In het Engels, Duits, Frans, Spaans, Italiaans en Nederlands
+Music from this computer	Muziek van deze computer
+Not started	Niet gestart
+On	Aan
+On at {address}	Aan op {address}
+Play along: rooms in an S1 and an S2 system play the same music together	Meespelen: ruimtes in een S1- en een S2-systeem spelen samen dezelfde muziek
+Roomtone is an independent app. It isn't made or endorsed by the speaker maker or by any music service; their names belong to their owners.	Roomtone is een onafhankelijke app. Hij is niet gemaakt of goedgekeurd door de speakerfabrikant of door een muziekdienst; hun namen zijn van hun eigenaars.
+Roomtone talks to your speakers directly on your home network, with no account of its own. S1 (firmware 11.x) and S2 systems each appear as their own system on the left: they can't share a group, but rooms can play along across them. Streaming services play through your system's own accounts.	Roomtone praat rechtstreeks met je speakers op je thuisnetwerk, zonder eigen account. S1- (firmware 11.x) en S2-systemen verschijnen links elk als eigen systeem: ze kunnen geen groep delen, maar ruimtes kunnen over systemen heen meespelen. Streamingdiensten spelen via de accounts van je systeem.
+Running without a window and connecting assistants:	Zonder venster draaien en assistenten verbinden:
+Runs without a window too, for home servers and assistants	Draait ook zonder venster, voor thuisservers en assistenten
+Settings folder	Map met instellingen
+Streaming services: a Check button, and the right account is found by itself	Streamingdiensten: een Controleren-knop, en het juiste account wordt vanzelf gevonden
+Systems	Systemen
+Thanks to	Met dank aan
+Version {version}	Versie {version}
+What's new in this version	Nieuw in deze versie
+look only	alleen kijken
+software {version}	software {version}
+About Roomtone	Over Roomtone
+Hide Roomtone	Verberg Roomtone
+Hide Others	Verberg andere
+Show All	Toon alles
+Quit Roomtone	Stop Roomtone
+Services	Voorzieningen
+Check for updates	Zoeken naar updates
+Check for updates first.	Zoek eerst naar updates.
+Couldn't check: {error}	Kon niet controleren: {error}
+Every speaker in this system downloads version {version} and restarts. Music stops for a few minutes. Keep the speakers plugged in until they're back.	Elke speaker in dit systeem downloadt versie {version} en start opnieuw op. De muziek stopt een paar minuten. Laat de speakers aangesloten tot ze terug zijn.
+Installing {version}: speakers restart one by one	{version} wordt geïnstalleerd: speakers starten een voor een opnieuw op
+Sending the update to speaker {n} of {total}…	Update wordt naar speaker {n} van {total} gestuurd…
+Software updates	Software-updates
+Some speakers didn't take the update: {rooms}	Sommige speakers namen de update niet aan: {rooms}
+That system isn't available right now	Dat systeem is nu niet beschikbaar
+That update is for the other kind of system, so it wasn't installed.	Die update is voor het andere soort systeem, dus hij is niet geïnstalleerd.
+This is an S1 update, so your speakers stay on S1.	Dit is een S1-update, dus je speakers blijven op S1.
+Up to date	Bijgewerkt
+Update all speakers	Alle speakers bijwerken
+Update now	Nu bijwerken
+Update started. Speakers download it and restart one by one; they're back in about 10 minutes.	Update gestart. De speakers downloaden hem en starten een voor een opnieuw op; over ongeveer 10 minuten zijn ze terug.
+Update your {system} system?	Je {system}-systeem bijwerken?
+Updates come from the speakers' own update service. S1 systems only get S1 updates here; moving to S2 isn't possible from this app.	Updates komen van de updatedienst van de speakers. S1-systemen krijgen hier alleen S1-updates; overstappen naar S2 kan niet met deze app.
+Version {version} is available	Versie {version} is beschikbaar
+Software updates for each system, with S1 kept on S1	Software-updates voor elk systeem, waarbij S1 op S1 blijft
+A new app icon and a filled-in About box	Een nieuw app-pictogram en een ingevuld Over-venster
+Step-by-step help for running without a window and connecting assistants on your computer	Stapsgewijze hulp om zonder venster te draaien en assistenten op je computer te verbinden
+Open source: free to use, change and share under the MIT or Apache-2.0 licence	Open source: vrij te gebruiken, aan te passen en te delen onder de MIT- of Apache-2.0-licentie
+Open source: the code, issues and new versions are on GitHub.	Open source: de code, meldingen en nieuwe versies staan op GitHub.
+Open project page	Projectpagina openen
+Report a problem	Een probleem melden
+Latest version	Nieuwste versie

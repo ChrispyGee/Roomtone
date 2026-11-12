@@ -1,0 +1,537 @@
+# Roomtone — fr. One "English<TAB>translation" pair per line; untranslated phrases show in English.
+1 hour	1 heure
+1 room	1 pièce
+1 song	1 morceau
+1. Open the sign-in page and log in to your account.	1. Ouvrez la page de connexion et connectez-vous à votre compte.
+15 minutes	15 minutes
+2 hours	2 heures
+2. If the page asks for a code, enter:	2. Si la page demande un code, saisissez :
+30 minutes	30 minutes
+45 minutes	45 minutes
+A ready-made setup to paste into an assistant's MCP settings	Une configuration prête à coller dans les réglages MCP d'un assistant
+About	À propos
+About this speaker	À propos de cette enceinte
+Access key	Clé d'accès
+Access key copied	Clé d'accès copiée
+Account	Compte
+Active	Actif
+Add	Ajouter
+Add a music folder	Ajouter un dossier de musique
+Add a speaker by address	Ajouter une enceinte par adresse
+Add a station or stream	Ajouter une station ou un flux
+Add any internet radio stream by its address, or save stations from the directory below.	Ajoutez n'importe quel flux de radio Internet par son adresse, ou enregistrez des stations depuis l'annuaire ci-dessous.
+Add folder	Ajouter un dossier
+Add folders of music from this Mac, an external drive or a mounted network share.	Ajoutez des dossiers de musique de ce Mac, d'un disque externe ou d'un partage réseau monté.
+Add songs, albums or playlists from your music.	Ajoutez des morceaux, albums ou playlists de votre musique.
+Add station	Ajouter une station
+Add to Favorites	Ajouter aux favoris
+Add to end of queue	Ajouter en fin de file
+Add to queue	Ajouter à la file
+Added to queue: {title}	Ajouté à la file : {title}
+Added “{title}” to Favorites	« {title} » ajouté aux favoris
+Added “{title}” to My stations	« {title} » ajouté à Mes stations
+Address	Adresse
+Alarms	Réveils
+Album	Album
+Album Artists	Artistes d'album
+Albums	Albums
+Albums, artists and folders from this computer, podcast shows and archive recordings can't be stored on the speakers, so they're kept here.	Les albums, artistes et dossiers de cet ordinateur, les émissions de podcast et les enregistrements d'archives ne peuvent pas être stockés sur les enceintes ; ils sont donc gardés ici.
+Albums, artists and songs	Albums, artistes et morceaux
+All	Tout
+All genres	Tous les genres
+All rooms	Toutes les pièces
+All songs	Tous les morceaux
+All your music	Toute votre musique
+Allow other computers	Autoriser d'autres ordinateurs
+Any episode	N'importe quel épisode
+App language	Langue de l'app
+Apple only lets the speaker maker's own app sign in. Save Apple Music albums, playlists and stations to Favorites there and they play here.	Apple ne permet la connexion qu'à l'app du fabricant des enceintes. Enregistrez-y des albums, playlists et stations Apple Music en favoris et ils seront lus ici.
+Apps that start the link themselves (such as desktop assistants) run Roomtone with --mcp. Others connect to the web address with the access key.	Les apps qui démarrent le lien elles-mêmes (comme les assistants de bureau) lancent Roomtone avec --mcp. Les autres se connectent à l'adresse web avec la clé d'accès.
+Artist	Artiste
+Artist A–Z	Artiste A–Z
+Artist · everywhere	Artiste · partout
+Artists	Artistes
+Artists, albums, songs, stations, podcasts…	Artistes, albums, morceaux, stations, podcasts…
+Asking the service for a sign-in page…	Demande d'une page de connexion au service…
+Assistant link (MCP)	Lien assistant (MCP)
+Assistants can change things	Les assistants peuvent modifier
+Assistants on other computers in your home can connect with the access key.	Les assistants sur d'autres ordinateurs de votre domicile peuvent se connecter avec la clé d'accès.
+Assistants that support MCP can see your rooms and what's playing.	Les assistants compatibles MCP voient vos pièces et ce qui est en lecture.
+Assistants using the old key will need the new one	Les assistants utilisant l'ancienne clé auront besoin de la nouvelle
+Automatic	Automatique
+Automatic follows your computer's language.	Automatique suit la langue de votre ordinateur.
+Available now	Disponible maintenant
+Bass	Graves
+Best match	Meilleure correspondance
+Boosts bass and treble at low volume	Renforce graves et aigus à faible volume
+Browse	Parcourir
+Browse by album artist	Par artiste d'album
+Browse by composer	Par compositeur
+Browse by performer	Par interprète
+Browse by style	Par style
+Browse playlists, albums, artists and more	Parcourir playlists, albums, artistes et plus
+Cancel	Annuler
+Chime	Carillon
+Choose a room	Choisir une pièce
+Choose at least two rooms.	Choisissez au moins deux pièces.
+Clear	Effacer
+Clear queue	Vider la file
+Close	Fermer
+Composers	Compositeurs
+Connect	Connecter
+Connect Spotify, Amazon Music, Deezer, TIDAL or Qobuz, then browse them here.	Connectez Spotify, Amazon Music, Deezer, TIDAL ou Qobuz, puis parcourez-les ici.
+Connect an assistant	Connecter un assistant
+Connect {service}	Connecter {service}
+Connected	Connecté
+Connected to 1 speaker	Connecté à 1 enceinte
+Connected to {n} speakers	Connecté à {n} enceintes
+Connected · 1 speaker	Connecté · 1 enceinte
+Connected · {n} speakers	Connecté · {n} enceintes
+Connecting a service needs your speakers on the network	Connecter un service nécessite vos enceintes sur le réseau
+Connecting a streaming service needs your speakers on the network. Anything you've saved to Favorites from these services plays here today.	Connecter un service de streaming nécessite vos enceintes sur le réseau. Tout ce que vous avez enregistré en favori depuis ces services est déjà lisible ici.
+Connection	Connexion
+Controls speakers directly on your home network. Works with both S1 (firmware 11.x) and S2 systems; the two can't be grouped together, so each appears as its own system on the left. Music services play through the favorites and playlists you've saved; signing in to new services needs the speaker maker's own app.	Contrôle les enceintes directement sur votre réseau domestique. Fonctionne avec les systèmes S1 (firmware 11.x) et S2 ; les deux ne peuvent pas être groupés, chacun apparaît donc comme un système distinct à gauche. Les services musicaux passent par les favoris et playlists enregistrés ; se connecter à de nouveaux services nécessite l'app du fabricant des enceintes.
+Copy access key	Copier la clé d'accès
+Copy setup	Copier la configuration
+Copy web address	Copier l'adresse web
+Couldn't load this right now. Check the internet connection and try again.	Chargement impossible pour le moment. Vérifiez la connexion Internet et réessayez.
+Couldn't open port {port}: {error}	Impossible d'ouvrir le port {port} : {error}
+Couldn't read your speakers ({error}). Showing a demo system.	Impossible de lire vos enceintes ({error}). Affichage d'un système de démo.
+Couldn't save settings: {error}	Impossible d'enregistrer les réglages : {error}
+Crossfade	Fondu enchaîné
+Current firmware	Firmware actuel
+Default order	Ordre par défaut
+Delete	Supprimer
+Deleted group “{name}”	Groupe « {name} » supprimé
+Demo	Démo
+Demo system	Système de démo
+Disconnect	Déconnecter
+Done	Terminé
+Drag or type to set the time	Faites glisser ou tapez pour régler l'heure
+Edit	Modifier
+Edit alarm	Modifier le réveil
+Edit group	Modifier le groupe
+Edit station	Modifier la station
+Episodes	Épisodes
+Every album in your library	Chaque album de votre bibliothèque
+Every day	Tous les jours
+Every music source you've set up, in one place	Toutes vos sources de musique, au même endroit
+Everything	Tout
+Explore every screen with made-up rooms and music.	Explorez chaque écran avec des pièces et de la musique fictives.
+Favorite	Favori
+Favorites	Favoris
+Favorites live on your speakers, so every controller and room shares them. Use ⋯ or right-click on any of these and choose Add to Favorites:	Les favoris sont stockés sur vos enceintes : toutes les télécommandes et pièces les partagent. Utilisez ⋯ ou un clic droit sur l'un de ces éléments et choisissez Ajouter aux favoris :
+Favorites only	Favoris uniquement
+Filter this list	Filtrer cette liste
+Find a station by name	Trouver une station par nom
+Find speakers	Rechercher des enceintes
+Folder	Dossier
+Folders	Dossiers
+Found 1 more speaker	1 enceinte de plus trouvée
+Found {n} more speakers	{n} enceintes de plus trouvées
+Free live concerts, old recordings and public-domain music	Concerts live gratuits, anciens enregistrements et musique du domaine public
+Fri	Ven
+From this computer	De cet ordinateur
+From your folders	De vos dossiers
+Genre	Genre
+Genres	Genres
+Google only lets the speaker maker's own app sign in. Save YouTube Music items to Favorites there and they play here.	Google ne permet la connexion qu'à l'app du fabricant des enceintes. Enregistrez-y des éléments YouTube Music en favoris et ils seront lus ici.
+Group	Grouper
+Group all	Tout grouper
+Group rooms	Grouper des pièces
+Group these rooms now	Grouper ces pièces maintenant
+Grouped	Groupé
+Grouped rooms	Pièces groupées
+Groups	Groupes
+Hi-res streaming	Streaming haute résolution
+High-quality streaming	Streaming haute qualité
+Home	Accueil
+IP address	Adresse IP
+If your network blocks discovery, type a speaker's IP address (find it in your router).	Si votre réseau bloque la détection, saisissez l'adresse IP d'une enceinte (visible dans votre routeur).
+Imported Playlists	Playlists importées
+In Favorites	Dans les favoris
+Independent artists and mixes	Artistes indépendants et mixes
+Internet Archive	Internet Archive
+Item	Élément
+Keep these rooms as a named group	Garder ces pièces comme groupe nommé
+Kept in this app	Gardé dans cette app
+LIVE	DIRECT
+LOADING	CHARGEMENT
+Language	Langue
+Legacy firmware 11.x	Ancien firmware 11.x
+Let AI assistants use Roomtone	Autoriser les assistants IA à utiliser Roomtone
+Line-In	Entrée ligne
+Line-In & TV	Entrée ligne et TV
+Live	Direct
+Longest first	Les plus longs d'abord
+Looking for speakers on your network	Recherche d'enceintes sur votre réseau
+Looking for speakers on your network…	Recherche d'enceintes sur votre réseau…
+Looking for speakers…	Recherche d'enceintes…
+Lost contact with your speakers. Reconnecting…	Contact perdu avec vos enceintes. Reconnexion…
+Loudness	Loudness
+Makes dialogue clearer	Rend les dialogues plus clairs
+Model	Modèle
+Mon	Lun
+More from your system	Plus de votre système
+Most popular	Les plus populaires
+Music	Musique
+Music Library	Bibliothèque musicale
+Music Services	Services musicaux
+Music folders on this Mac, or drives and network shares mounted on it	Dossiers de musique sur ce Mac, ou disques et partages réseau montés dessus
+Music shared on your speakers' system and folders on this computer	Musique partagée sur le système de vos enceintes et dossiers de cet ordinateur
+My favourite station	Ma station préférée
+My playlist	Ma playlist
+My stations	Mes stations
+NOW PLAYING	EN LECTURE
+Name	Nom
+New alarm	Nouveau réveil
+New group	Nouveau groupe
+New key	Nouvelle clé
+Night sound	Son de nuit
+No alarms yet.	Aucun réveil pour l'instant.
+No favorites yet. Add stations, albums, playlists or songs from anywhere in the app with ⋯ › Add to Favorites.	Pas encore de favoris. Ajoutez des stations, albums, playlists ou morceaux depuis n'importe où dans l'app avec ⋯ › Ajouter aux favoris.
+No folders from this computer yet. Add one in Music Library.	Pas encore de dossiers de cet ordinateur. Ajoutez-en un dans Bibliothèque musicale.
+No folders yet. Use Add folder to choose music on this computer.	Pas encore de dossiers. Utilisez Ajouter un dossier pour choisir de la musique sur cet ordinateur.
+No other speakers answered the search. Keeping the ones you have.	Aucune autre enceinte n'a répondu. Les enceintes actuelles sont conservées.
+No playlists yet. Save the queue as a playlist to create one.	Pas encore de playlists. Enregistrez la file comme playlist pour en créer une.
+No rooms in that group	Aucune pièce dans ce groupe
+No speakers answered, so you're exploring made-up rooms.	Aucune enceinte n'a répondu : vous explorez des pièces fictives.
+No speakers found	Aucune enceinte trouvée
+No speakers found on this network. Showing a demo system.	Aucune enceinte trouvée sur ce réseau. Affichage d'un système de démo.
+No speakers yet.	Pas encore d'enceintes.
+No stations found.	Aucune station trouvée.
+No streaming services connected yet.	Aucun service de streaming connecté pour l'instant.
+None of your speakers look like they have a line-in or TV connection.	Aucune de vos enceintes ne semble avoir d'entrée ligne ou de connexion TV.
+Not answering	Ne répond pas
+Not answering at its last known address	Ne répond pas à sa dernière adresse connue
+Not checked yet	Pas encore vérifiée
+Not offered on this system	Non proposé sur ce système
+Not reachable	Injoignable
+Not responding	Ne répond pas
+Nothing here yet.	Rien ici pour l'instant.
+Nothing matched “{query}” with these filters.	Rien ne correspond à « {query} » avec ces filtres.
+Nothing playing	Rien en lecture
+Nothing playing yet	Rien en lecture pour l'instant
+Nothing to play by {artist}	Rien à lire de {artist}
+Now Playing	En lecture
+Now playing	En lecture
+Off	Désactivé
+On macOS, allow Local Network access for this app in System Settings › Privacy & Security if no speakers appear.	Sous macOS, autorisez l'accès au réseau local pour cette app dans Réglages Système › Confidentialité et sécurité si aucune enceinte n'apparaît.
+On this computer	Sur cet ordinateur
+On your speakers	Sur vos enceintes
+On your system	Sur votre système
+Once	Une fois
+Open	Ouvrir
+Open demo	Ouvrir la démo
+Open player	Ouvrir le lecteur
+Open sign-in page	Ouvrir la page de connexion
+Optional, e.g. Jazz	Facultatif, ex. Jazz
+Other	Autre
+PAUSED	EN PAUSE
+Paste the stream's web address. Playlist links (.pls, .m3u) are followed automatically.	Collez l'adresse web du flux. Les liens de playlist (.pls, .m3u) sont suivis automatiquement.
+Pause all	Tout mettre en pause
+Pick a room first	Choisissez d'abord une pièce
+Pick a room on the right	Choisissez une pièce à droite
+Pick a room to see its queue.	Choisissez une pièce pour voir sa file.
+Pick a room to start listening	Choisissez une pièce pour commencer l'écoute
+Pick something from your favorites below	Choisissez parmi vos favoris ci-dessous
+Pick the rooms that play together, and give them a name.	Choisissez les pièces qui jouent ensemble et donnez-leur un nom.
+Play	Lire
+Play a connected source in {room}	Lire une source connectée dans {room}
+Play for	Lire pendant
+Play next	Lire ensuite
+Play, pause, change volume, edit the queue and group rooms. Off: they can only look.	Lire, mettre en pause, changer le volume, modifier la file et grouper des pièces. Désactivé : ils peuvent seulement regarder.
+Playing in {room}	En lecture dans {room}
+Playing next: {title}	Ensuite : {title}
+Playing source	Source de lecture
+Playing {title}	Lecture de {title}
+Playlist	Playlist
+Playlist files found in your library	Fichiers de playlist trouvés dans votre bibliothèque
+Playlists	Playlists
+Playlists saved on your system	Playlists enregistrées sur votre système
+Playlists saved on your system and from connected services	Playlists de votre système et des services connectés
+Podcast	Podcast
+Podcast episodes	Épisodes de podcast
+Podcast shows and Internet Archive recordings	Émissions de podcast et enregistrements d'Internet Archive
+Podcasts	Podcasts
+Port	Port
+Press Return to search	Appuyez sur Entrée pour rechercher
+Queue	File d'attente
+READY	PRÊT
+Radio	Radio
+Radio directory	Annuaire radio
+Radio directory, My stations, and stations saved on your system	Annuaire radio, Mes stations et stations enregistrées sur votre système
+Radio stations	Stations de radio
+Ready at {address}	Prêt à {address}
+Recently played	Écoutés récemment
+Reconnect	Reconnecter
+Reconnected to your speakers	Reconnecté à vos enceintes
+Reconnecting to your speakers…	Reconnexion à vos enceintes…
+Reconnecting…	Reconnexion…
+Remove folder	Retirer le dossier
+Remove from Favorites	Retirer des favoris
+Remove from My stations	Retirer de Mes stations
+Remove from queue	Retirer de la file
+Removed “{title}” from Favorites	« {title} » retiré des favoris
+Rename	Renommer
+Rename room	Renommer la pièce
+Repeat	Répéter
+Replace queue	Remplacer la file
+Rescan	Réanalyser
+Responding	Répond
+Responding · last reply {n} s ago	Répond · dernière réponse il y a {n} s
+Room	Pièce
+Rooms	Pièces
+Rooms play together with {lead}.	Les pièces jouent avec {lead}.
+Roomtone	Roomtone
+S1 and S2 systems are both found automatically.	Les systèmes S1 et S2 sont tous deux détectés automatiquement.
+SYSTEMS	SYSTÈMES
+Sat	Sam
+Save	Enregistrer
+Save & group now	Enregistrer et grouper
+Save as group	Enregistrer comme groupe
+Save as playlist	Enregistrer comme playlist
+Save queue as playlist	Enregistrer la file comme playlist
+Save sets of rooms you often play together, like “Downstairs” or “Party”.	Enregistrez les pièces qui jouent souvent ensemble, comme « Rez-de-chaussée » ou « Fête ».
+Save to My stations	Enregistrer dans Mes stations
+Saved group “{name}”	Groupe « {name} » enregistré
+Saved on your system	Enregistré sur votre système
+Saved playlist “{title}”	Playlist « {title} » enregistrée
+Scanning your folders…	Analyse de vos dossiers…
+Search	Rechercher
+Search again	Rechercher à nouveau
+Search any public podcast, subscribe and play episodes	Recherchez n'importe quel podcast public, abonnez-vous et écoutez les épisodes
+Search network again	Rechercher à nouveau sur le réseau
+Searches this network for S1 and S2 speakers.	Recherche les enceintes S1 et S2 sur ce réseau.
+Searching {sources}…	Recherche dans {sources}…
+See all	Tout voir
+See everything by {artist}	Tout voir de {artist}
+Select all	Tout sélectionner
+Settings	Réglages
+Setup copied	Configuration copiée
+Shared folders on your network	Dossiers partagés sur votre réseau
+Shared with every room and controller.	Partagé avec chaque pièce et télécommande.
+Show	Afficher
+Show all {n} {kind}	Afficher les {n} {kind}
+Show your speakers and their status	Afficher vos enceintes et leur état
+Showing {shown} of {total}	{shown} sur {total} affichés
+Shuffle	Aléatoire
+Sign in on each service's own web page. Your speakers play the music with the account already added to your system in the speaker maker's app, so add it there first if you haven't.	Connectez-vous sur la page web de chaque service. Vos enceintes lisent la musique avec le compte déjà ajouté à votre système dans l'app du fabricant ; ajoutez-le d'abord là-bas si ce n'est pas fait.
+Sign-in didn't complete: {error}	Connexion inachevée : {error}
+Sign-in timed out. Try again when you're ready.	Délai de connexion dépassé. Réessayez quand vous êtes prêt.
+Sleep in {time}	Arrêt dans {time}
+Sleep timer	Minuterie de sommeil
+Sleep timer off	Minuterie désactivée
+Sleep timer set for {n} minutes	Minuterie réglée sur {n} minutes
+Softens loud moments for late-night TV	Adoucit les moments forts pour la TV tard le soir
+Software version	Version du logiciel
+Some speakers from last time aren't answering yet. Still looking…	Certaines enceintes de la dernière fois ne répondent pas encore. Recherche en cours…
+Song	Morceau
+Songs	Morceaux
+Songs, albums and mixes	Morceaux, albums et mixes
+Songs, albums, artists and folders (songs play while this app is open)	Morceaux, albums, artistes et dossiers (lus tant que cette app est ouverte)
+Songs, albums, playlists and Flow	Morceaux, albums, playlists et Flow
+Songs, albums, playlists and podcasts	Morceaux, albums, playlists et podcasts
+Songs, albums, playlists and radio	Morceaux, albums, playlists et radio
+Songs, albums, playlists and stations	Morceaux, albums, playlists et stations
+Sound	Son
+SoundCloud only lets the speaker maker's own app sign in. Save SoundCloud items to Favorites there and they play here.	SoundCloud ne permet la connexion qu'à l'app du fabricant des enceintes. Enregistrez-y des éléments SoundCloud en favoris et ils seront lus ici.
+Sources	Sources
+Sources are guessed from each speaker's model; a speaker without that socket will refuse to play it.	Les sources sont déduites du modèle de chaque enceinte ; une enceinte sans cette prise refusera de la lire.
+Speaker	Enceinte
+Speaker ID	ID de l'enceinte
+Speakers are checked every few seconds while the app is open.	Les enceintes sont vérifiées toutes les quelques secondes tant que l'app est ouverte.
+Speakers not responding	Les enceintes ne répondent pas
+Speech enhancement	Amélioration des dialogues
+Starting…	Démarrage…
+Station	Station
+Stations	Stations
+Stations, playlists and albums you've saved	Stations, playlists et albums que vous avez enregistrés
+Status light	Voyant d'état
+Streaming service	Service de streaming
+Streaming services	Services de streaming
+Subscribe	S'abonner
+Subscribed	Abonné
+Subscribed to “{title}”	Abonné à « {title} »
+Sun	Dim
+Switch sources on or off. Free ones work now; the big streaming services are on the way.	Activez ou désactivez les sources. Les gratuites fonctionnent déjà ; les grands services de streaming arrivent.
+System	Système
+System folders unavailable: {error}	Dossiers du système indisponibles : {error}
+System library	Bibliothèque du système
+System library and this computer	Bibliothèque du système et cet ordinateur
+Systems, rooms and connection	Systèmes, pièces et connexion
+TV	TV
+Tens of thousands of free internet radio stations from a community directory	Des dizaines de milliers de radios Internet gratuites issues d'un annuaire communautaire
+That room	Cette pièce
+That speaker	Cette enceinte
+The address should start with http:// or https://	L'adresse doit commencer par http:// ou https://
+The light on the speaker	Le voyant de l'enceinte
+The queue is empty	La file est vide
+The radio directory is switched off in Music Services.	L'annuaire radio est désactivé dans Services musicaux.
+The speakers are taking a while to answer; try again in a moment.	Les enceintes mettent du temps à répondre ; réessayez dans un instant.
+The star in the player bar, the Now Playing page and the Home card	L'étoile de la barre de lecture, la page En lecture et la carte d'accueil
+There's already a group with that name.	Un groupe porte déjà ce nom.
+These are made-up demo rooms; no speakers answered on this network.	Ce sont des pièces de démo fictives ; aucune enceinte n'a répondu sur ce réseau.
+Things the speakers can't store themselves (albums, artists and folders from this computer, podcast shows, archive recordings) are kept as favorites in this app. Not possible: Line-In/TV and the queue itself (save it as a playlist instead).	Ce que les enceintes ne peuvent pas stocker (albums, artistes et dossiers de cet ordinateur, émissions de podcast, enregistrements d'archives) est gardé en favori dans cette app. Impossible : entrée ligne/TV et la file elle-même (enregistrez-la plutôt comme playlist).
+This computer	Cet ordinateur
+This computer plays your folders to the speakers from {address}	Cet ordinateur diffuse vos dossiers vers les enceintes depuis {address}
+This computer's folders couldn't be read.	Les dossiers de cet ordinateur n'ont pas pu être lus.
+Thu	Jeu
+Tip: find new podcasts and Internet Archive recordings with Search.	Astuce : trouvez de nouveaux podcasts et enregistrements d'Internet Archive avec Rechercher.
+Title A–Z	Titre A–Z
+Treble	Aigus
+Tue	Mar
+Types	Types
+Ungroup	Dégrouper
+Unknown room	Pièce inconnue
+Unsubscribe	Se désabonner
+Up next	À suivre
+Volume	Volume
+Waiting for you to approve on the service's page…	En attente de votre validation sur la page du service…
+Wake up to music in any room	Réveillez-vous en musique dans n'importe quelle pièce
+Web address	Adresse web
+Web address copied	Adresse web copiée
+Wed	Mer
+Weekdays	En semaine
+Weekends	Le week-end
+What can be a favorite?	Que peut-on mettre en favori ?
+What's playing	En cours de lecture
+Which of your system's accounts for this service plays the music. Change it if songs won't start.	Le compte de votre système qui lit la musique pour ce service. Changez-le si les morceaux ne démarrent pas.
+Whole shows and recordings, as well as single episodes and tracks	Émissions et enregistrements entiers, ainsi que des épisodes et morceaux seuls
+Your favorites	Vos favoris
+Your folders	Vos dossiers
+Your music library	Votre bibliothèque musicale
+Your playlists	Vos playlists
+Your podcasts	Vos podcasts
+Your speakers	Vos enceintes
+Your speakers aren't answering. Check they're on and on the same network, then choose Reconnect.	Vos enceintes ne répondent pas. Vérifiez qu'elles sont allumées et sur le même réseau, puis choisissez Reconnecter.
+Your speakers don't offer that service	Vos enceintes ne proposent pas ce service
+Your speakers play them straight from this computer while the app is open.	Vos enceintes les lisent directement depuis cet ordinateur tant que l'app est ouverte.
+Your stations, saved favorites and a free worldwide directory	Vos stations, vos favoris et un annuaire mondial gratuit
+Your system's library and the folders on this computer, together.	La bibliothèque de votre système et les dossiers de cet ordinateur, ensemble.
+Your system's library couldn't be read right now.	La bibliothèque de votre système n'a pas pu être lue pour le moment.
+Your system's music library, and connected streaming services	La bibliothèque musicale de votre système et les services de streaming connectés
+current	actuel
+e.g. Downstairs	ex. Rez-de-chaussée
+http://stream.example.com/live.mp3	http://stream.example.com/live.mp3
+legacy	ancien
+nothing playing	rien en lecture
+version {version}	version {version}
+{answering} of {n} speakers responding	{answering} enceintes sur {n} répondent
+{kind} · kept in this app	{kind} · gardé dans cette app
+{n} added	{n} ajoutés
+{n} minutes	{n} minutes
+{n} playing	{n} en lecture
+{n} rooms	{n} pièces
+{n} songs	{n} morceaux
+{program} · volume {volume} · {minutes} min	{program} · volume {volume} · {minutes} min
+{service} connected	{service} connecté
+{service} couldn't start a sign-in: {error}	{service} n'a pas pu lancer de connexion : {error}
+{service} is connected. Find it in Music Services and in Search.	{service} est connecté. Retrouvez-le dans Services musicaux et dans Rechercher.
+{source} couldn't be reached right now.	{source} est injoignable pour le moment.
+{system} speakers can only be grouped with rooms in the same system.	Les enceintes {system} ne peuvent être groupées qu'avec des pièces du même système.
+{system} system	Système {system}
+{system} system {n}	Système {system} {n}
+{what} isn't available right now	{what} n'est pas disponible pour le moment
+“{title}” can't be a favorite	« {title} » ne peut pas être un favori
+“{title}” has nothing playable	« {title} » ne contient rien de lisible
+▶  Play now	▶  Lire maintenant
+▶  Play this	▶  Lire ceci
+★  Remove from Favorites	★  Retirer des favoris
+☆  Add to Favorites	☆  Ajouter aux favoris
+1 playing	1 en lecture
+Browsing failed: {error}	Échec de la navigation : {error}
+Browsing works (1 section)	La navigation fonctionne (1 rubrique)
+Browsing works ({n} sections)	La navigation fonctionne ({n} rubriques)
+Check	Vérifier
+Checking…	Vérification…
+Free sources work straight away. Streaming services: sign in once, then browse, search and play them here.	Les sources gratuites fonctionnent tout de suite. Services de streaming : connectez-vous une fois, puis parcourez, recherchez et écoutez-les ici.
+Not connected	Non connecté
+Play along from your other system	Jouer avec votre autre système
+Plays along with {room}	Joue avec {room}
+Ready to connect	Prêt à connecter
+S1 and S2 speakers can't join one group, so these play the same music started at the same moment. They can drift up to a second or two apart.	Les enceintes S1 et S2 ne peuvent pas rejoindre un même groupe ; celles-ci jouent donc la même musique lancée au même moment. Un décalage d'une à deux secondes est possible.
+That room isn't available right now	Cette pièce n'est pas disponible pour le moment
+Those rooms are in the same system; group them instead.	Ces pièces sont dans le même système ; groupez-les plutôt.
+Tries browsing, searching and finding the right account, without playing anything	Essaie la navigation, la recherche et le bon compte, sans rien lire
+account {n} (a guess: save one of its songs or playlists to Favorites in the speaker maker's app to confirm)	compte {n} (estimé : enregistrez un de ses morceaux ou playlists en favori dans l'app du fabricant pour confirmer)
+plays with account {n} (found on your system)	lit avec le compte {n} (trouvé sur votre système)
+search failed: {error}	échec de la recherche : {error}
+search works (1 result)	la recherche fonctionne (1 résultat)
+search works ({n} results)	la recherche fonctionne ({n} résultats)
+{room} now plays along with {lead}	{room} joue maintenant avec {lead}
+{service} didn't start. In Music Services, try another account number (now {n}).	{service} n'a pas démarré. Dans Services musicaux, essayez un autre numéro de compte (actuellement {n}).
+{service} plays with account {n} on this system; saved.	{service} lit avec le compte {n} sur ce système ; enregistré.
+{service} wouldn't play this ({error}). Check the account is added to your system in the speaker maker's app.	{service} n'a pas pu lire ceci ({error}). Vérifiez que le compte est ajouté à votre système dans l'app du fabricant des enceintes.
+1 saved favorite	1 favori enregistré
+In the speaker maker's app, save {service} albums, playlists, songs or stations to Favorites (or press ☆ in the player here while one is playing). They show up here, in Favorites and in Search, and play from this app.	Dans l'app du fabricant des enceintes, enregistrez des albums, playlists, morceaux ou stations {service} en favoris (ou appuyez sur ☆ dans le lecteur ici pendant la lecture). Ils apparaissent ici, dans Favoris et dans Rechercher, et se lisent depuis cette app.
+No {service} favorites yet.	Pas encore de favoris {service}.
+Your favorites (1)	Vos favoris (1)
+Your favorites ({n})	Vos favoris ({n})
+{n} saved favorites	{n} favoris enregistrés
+{service} favorites	Favoris {service}
+How to connect on {platform}	Comment se connecter sous {platform}
+Desktop assistants: choose Copy setup and paste it into their MCP settings file, for example:	Assistants de bureau : choisissez Copier la configuration et collez-la dans leur fichier de réglages MCP, par exemple :
+Claude Code, in a terminal:	Claude Code, dans un terminal :
+Assistants that connect to a web address: keep the app open, or run this in a terminal:	Assistants qui se connectent à une adresse web : gardez l'app ouverte, ou lancez ceci dans un terminal :
+Then connect to this address with the access key as a Bearer header:	Connectez-vous ensuite à cette adresse avec la clé d'accès en en-tête Bearer :
+The full guide for this computer, including starting automatically in the background:	Le guide complet pour cet ordinateur, y compris le démarrage automatique en arrière-plan :
+Copy	Copier
+Copied	Copié
+A modern controller for S1 and S2 speaker systems	Une télécommande moderne pour les systèmes d'enceintes S1 et S2
+Assistant link (MCP): AI assistants can see and control your speakers, switched on or off in Settings	Lien assistant (MCP) : les assistants IA voient et contrôlent vos enceintes, activable ou non dans Réglages
+Built with Rust and the open-source libraries egui/eframe, winit, ureq, roxmltree, serde, image, lofty and rfd.	Conçu avec Rust et les bibliothèques open source egui/eframe, winit, ureq, roxmltree, serde, image, lofty et rfd.
+Every option, in a terminal:	Toutes les options, dans un terminal :
+Favorites from Apple Music, YouTube Music and SoundCloud in Music Library and Search	Les favoris Apple Music, YouTube Music et SoundCloud dans Bibliothèque musicale et Rechercher
+Free music directories: Radio Browser (radio-browser.info), the Apple Podcasts directory search and the Internet Archive (archive.org).	Annuaires musicaux gratuits : Radio Browser (radio-browser.info), la recherche de l'annuaire Apple Podcasts et l'Internet Archive (archive.org).
+Help	Aide
+In English, German, French, Spanish, Italian and Dutch	En anglais, allemand, français, espagnol, italien et néerlandais
+Music from this computer	Musique de cet ordinateur
+Not started	Non démarré
+On	Activé
+On at {address}	Activé sur {address}
+Play along: rooms in an S1 and an S2 system play the same music together	Jouer ensemble : des pièces d'un système S1 et d'un système S2 jouent la même musique ensemble
+Roomtone is an independent app. It isn't made or endorsed by the speaker maker or by any music service; their names belong to their owners.	Roomtone est une app indépendante. Elle n'est ni conçue ni approuvée par le fabricant des enceintes ni par un service musical ; leurs noms appartiennent à leurs propriétaires.
+Roomtone talks to your speakers directly on your home network, with no account of its own. S1 (firmware 11.x) and S2 systems each appear as their own system on the left: they can't share a group, but rooms can play along across them. Streaming services play through your system's own accounts.	Roomtone communique directement avec vos enceintes sur votre réseau domestique, sans compte propre. Les systèmes S1 (firmware 11.x) et S2 apparaissent chacun comme un système distinct à gauche : ils ne peuvent pas partager un groupe, mais des pièces peuvent jouer ensemble d'un système à l'autre. Les services de streaming passent par les comptes de votre système.
+Running without a window and connecting assistants:	Fonctionner sans fenêtre et connecter des assistants :
+Runs without a window too, for home servers and assistants	Fonctionne aussi sans fenêtre, pour les serveurs domestiques et les assistants
+Settings folder	Dossier des réglages
+Streaming services: a Check button, and the right account is found by itself	Services de streaming : un bouton Vérifier, et le bon compte est trouvé tout seul
+Systems	Systèmes
+Thanks to	Merci à
+Version {version}	Version {version}
+What's new in this version	Nouveautés de cette version
+look only	lecture seule
+software {version}	logiciel {version}
+About Roomtone	À propos de Roomtone
+Hide Roomtone	Masquer Roomtone
+Hide Others	Masquer les autres
+Show All	Tout afficher
+Quit Roomtone	Quitter Roomtone
+Services	Services
+Check for updates	Rechercher des mises à jour
+Check for updates first.	Recherchez d'abord des mises à jour.
+Couldn't check: {error}	Vérification impossible : {error}
+Every speaker in this system downloads version {version} and restarts. Music stops for a few minutes. Keep the speakers plugged in until they're back.	Chaque enceinte de ce système télécharge la version {version} et redémarre. La musique s'arrête quelques minutes. Laissez les enceintes branchées jusqu'à leur retour.
+Installing {version}: speakers restart one by one	Installation de {version} : les enceintes redémarrent l'une après l'autre
+Sending the update to speaker {n} of {total}…	Envoi de la mise à jour à l'enceinte {n} sur {total}…
+Software updates	Mises à jour logicielles
+Some speakers didn't take the update: {rooms}	Certaines enceintes n'ont pas accepté la mise à jour : {rooms}
+That system isn't available right now	Ce système n'est pas disponible pour le moment
+That update is for the other kind of system, so it wasn't installed.	Cette mise à jour est destinée à l'autre type de système ; elle n'a donc pas été installée.
+This is an S1 update, so your speakers stay on S1.	C'est une mise à jour S1 : vos enceintes restent en S1.
+Up to date	À jour
+Update all speakers	Mettre à jour toutes les enceintes
+Update now	Mettre à jour
+Update started. Speakers download it and restart one by one; they're back in about 10 minutes.	Mise à jour lancée. Les enceintes la téléchargent et redémarrent l'une après l'autre ; elles reviennent dans 10 minutes environ.
+Update your {system} system?	Mettre à jour votre système {system} ?
+Updates come from the speakers' own update service. S1 systems only get S1 updates here; moving to S2 isn't possible from this app.	Les mises à jour viennent du service de mise à jour des enceintes. Les systèmes S1 ne reçoivent ici que des mises à jour S1 ; passer en S2 n'est pas possible depuis cette app.
+Version {version} is available	La version {version} est disponible
+Software updates for each system, with S1 kept on S1	Mises à jour logicielles pour chaque système, S1 restant en S1
+A new app icon and a filled-in About box	Une nouvelle icône et une fenêtre À propos complète
+Step-by-step help for running without a window and connecting assistants on your computer	Une aide pas à pas pour fonctionner sans fenêtre et connecter des assistants sur votre ordinateur
+Open source: free to use, change and share under the MIT or Apache-2.0 licence	Open source : libre d'utiliser, modifier et partager sous licence MIT ou Apache-2.0
+Open source: the code, issues and new versions are on GitHub.	Open source : le code, les signalements et les nouvelles versions sont sur GitHub.
+Open project page	Ouvrir la page du projet
+Report a problem	Signaler un problème
+Latest version	Dernière version

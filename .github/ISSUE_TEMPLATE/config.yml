@@ -1,0 +1,8 @@
+blank_issues_enabled: false
+contact_links:
+  - name: Security problem
+    url: https://github.com/ChrispyGee/Roomtone/security/advisories/new
+    about: Please report security issues privately (repository Security tab › Report a vulnerability), not as an issue.
+  - name: Questions and ideas
+    url: https://github.com/ChrispyGee/Roomtone/discussions
+    about: Ask a question or talk an idea through before opening an issue.

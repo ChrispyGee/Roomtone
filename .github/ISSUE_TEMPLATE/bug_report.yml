@@ -1,0 +1,55 @@
+name: Bug report
+description: Something doesn't work as described in SPEC.md
+labels: [bug]
+body:
+  - type: textarea
+    id: what
+    attributes:
+      label: What happened?
+      description: And what did you expect instead?
+    validations:
+      required: true
+  - type: textarea
+    id: steps
+    attributes:
+      label: Steps to reproduce
+      placeholder: |
+        1. Open Settings
+        2. ...
+    validations:
+      required: true
+  - type: input
+    id: version
+    attributes:
+      label: Roomtone version
+      description: Shown in Settings › About, or with `roomtone --help`
+    validations:
+      required: true
+  - type: dropdown
+    id: platform
+    attributes:
+      label: Platform
+      options: [macOS, Windows, Linux]
+    validations:
+      required: true
+  - type: dropdown
+    id: system
+    attributes:
+      label: Speaker system
+      multiple: true
+      options: [S1, S2, Demo system only, Not speaker-related]
+  - type: textarea
+    id: speakers
+    attributes:
+      label: Speaker models and software versions
+      description: Settings › About lists the software versions. Please leave out room names and IP addresses.
+  - type: dropdown
+    id: where
+    attributes:
+      label: Where did it happen?
+      options: [In the window, Headless (--headless), Assistant link (MCP), Command line]
+  - type: textarea
+    id: logs
+    attributes:
+      label: Logs or screenshots
+      description: Remove room names, addresses, household ids, tokens and access keys first.
