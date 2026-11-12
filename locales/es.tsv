@@ -535,3 +535,6 @@ Open source: the code, issues and new versions are on GitHub.	Código abierto: e
 Open project page	Abrir la página del proyecto
 Report a problem	Informar de un problema
 Latest version	Última versión
+Refreshed to the latest interface toolkit, with the same look and layout	Actualizado al último kit de interfaz, con el mismo aspecto y diseño
+Fixes a Windows build problem and a warning on Windows and Linux	Corrige un problema de compilación en Windows y un aviso en Windows y Linux
+The project page and Report a problem are linked from Settings › About	La página del proyecto y «Informar de un problema» están enlazadas en Ajustes › Acerca de

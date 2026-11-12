@@ -535,3 +535,6 @@ Open source: the code, issues and new versions are on GitHub.	Open source: codic
 Open project page	Apri la pagina del progetto
 Report a problem	Segnala un problema
 Latest version	Ultima versione
+Refreshed to the latest interface toolkit, with the same look and layout	Aggiornato all’ultimo toolkit dell’interfaccia, con lo stesso aspetto e la stessa disposizione
+Fixes a Windows build problem and a warning on Windows and Linux	Corregge un problema di compilazione su Windows e un avviso su Windows e Linux
+The project page and Report a problem are linked from Settings › About	La pagina del progetto e «Segnala un problema» sono collegate in Impostazioni › Informazioni
