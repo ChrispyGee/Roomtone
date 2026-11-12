@@ -54,7 +54,9 @@ After pushing, Dependabot closes its own pull requests when the same update is a
 2. Pick the version ([Semantic Versioning](https://semver.org/)): bump `version` in `Cargo.toml` and run `cargo build`, so `Cargo.lock` updates.
 3. In `CHANGELOG.md`, move *Unreleased* items under a new `## [x.y.z] — YYYY-MM-DD` heading.
 4. Update the version in the title of `SPEC.md`, and the "What's new in this version" list in Settings › About (`src/ui/pages.rs`, `about_card`), translated.
-5. Commit, tag and push: `git tag vX.Y.Z && git push --tags`.
-6. Build on each platform: `cargo build --release`; the program is `target/release/roomtone` (`roomtone.exe` on Windows). Attach the files to a GitHub release, with the changelog section as notes.
+5. Commit the version change through a pull request, wait for CI, and merge it.
+6. Tag the merge commit and push the tag: `git tag vX.Y.Z && git push origin vX.Y.Z`.
+7. The *Release* workflow (`.github/workflows/release.yml`) builds macOS (Apple silicon), Windows and Linux programs, zips them with the README and licences, and creates the GitHub release with that version's `CHANGELOG.md` section as notes. It fails if the changelog has no section for the tag.
+8. To build by hand instead: `cargo build --release`; the program is `target/release/roomtone` (`roomtone.exe` on Windows).
 
-Packaged installers (a macOS `.app`/`.dmg`, a Windows installer, Linux AppImage/Flatpak) and release builds from CI are on the [roadmap](ROADMAP.md).
+Packaged installers (a macOS `.app`/`.dmg`, a Windows installer, Linux AppImage/Flatpak) and signed builds are on the [roadmap](ROADMAP.md).

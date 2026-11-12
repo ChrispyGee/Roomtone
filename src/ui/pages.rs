@@ -1950,11 +1950,9 @@ impl App {
             ui.add_space(6.0);
             ui.label(RichText::new(t!("What's new in this version")).color(TEXT).strong());
             for line in [
-                t!("Software updates for each system, with S1 kept on S1"),
-                t!("Favorites from Apple Music, YouTube Music and SoundCloud in Music Library and Search"),
-                t!("A new app icon and a filled-in About box"),
-                t!("Step-by-step help for running without a window and connecting assistants on your computer"),
-                t!("Open source: free to use, change and share under the MIT or Apache-2.0 licence"),
+                t!("Refreshed to the latest interface toolkit, with the same look and layout"),
+                t!("Fixes a Windows build problem and a warning on Windows and Linux"),
+                t!("The project page and Report a problem are linked from Settings › About"),
             ] {
                 ui.horizontal_wrapped(|ui| {
                     ui.label(RichText::new("•").color(ACCENT));

@@ -30,7 +30,7 @@ These work on the demo system but haven't been confirmed on real hardware. Repor
 
 Roughly in order of value. Discuss in an issue before starting the big ones.
 
-1. **Packaging**: a signed macOS `.app`/`.dmg` (gives a proper bundle name and Local Network prompt text), a Windows installer, and Linux AppImage/Flatpak. Release builds from CI.
+1. **Packaging**: a signed macOS `.app`/`.dmg` (gives a proper bundle name and Local Network prompt text), a Windows installer, and Linux AppImage/Flatpak. (Plain release builds from CI already attach to each GitHub release.)
 2. **Speaker-side events** (UPnP `SUBSCRIBE`) instead of polling, for instant updates and less network traffic.
 3. **Saved play-along links**, and play along for more than two systems.
 4. **More languages**: see "Adding a language" in [CONTRIBUTING.md](../CONTRIBUTING.md).

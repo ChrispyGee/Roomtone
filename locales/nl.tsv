@@ -535,3 +535,6 @@ Open source: the code, issues and new versions are on GitHub.	Open source: de co
 Open project page	Projectpagina openen
 Report a problem	Een probleem melden
 Latest version	Nieuwste versie
+Refreshed to the latest interface toolkit, with the same look and layout	Bijgewerkt naar de nieuwste interfacetoolkit, met hetzelfde uiterlijk en dezelfde indeling
+Fixes a Windows build problem and a warning on Windows and Linux	Verhelpt een buildprobleem op Windows en een waarschuwing op Windows en Linux
+The project page and Report a problem are linked from Settings › About	De projectpagina en „Probleem melden“ staan als link in Instellingen › Over

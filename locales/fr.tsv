@@ -535,3 +535,6 @@ Open source: the code, issues and new versions are on GitHub.	Open source : le c
 Open project page	Ouvrir la page du projet
 Report a problem	Signaler un problème
 Latest version	Dernière version
+Refreshed to the latest interface toolkit, with the same look and layout	Mis à jour vers la dernière boîte à outils d’interface, avec le même aspect et la même disposition
+Fixes a Windows build problem and a warning on Windows and Linux	Corrige un problème de compilation sous Windows et un avertissement sous Windows et Linux
+The project page and Report a problem are linked from Settings › About	La page du projet et « Signaler un problème » sont liées dans Réglages › À propos

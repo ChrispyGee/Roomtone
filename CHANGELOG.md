@@ -4,7 +4,10 @@ All notable changes to Roomtone. The format follows [Keep a Changelog](https://k
 
 ## [Unreleased]
 
+## [0.5.1] — 2026-11-12
+
 ### Fixed
+- **Windows build**: eframe 0.37 defaults to the wgpu renderer, whose DirectX 12 backend doesn't compile on Windows (wgpu-hal needs `windows` 0.62, the latest gpu-allocator uses 0.58). Roomtone now uses eframe's glow renderer, as before the upgrade, which drops the wgpu dependencies.
 - An unused-function warning on Windows and Linux (the icon-to-PNG helper is only used by the macOS About box).
 
 ### Added
