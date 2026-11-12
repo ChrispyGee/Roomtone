@@ -121,4 +121,4 @@ When testing the assistant link, point `HOME` (on Windows, `APPDATA`) at a scrat
 
 ## Continuous integration
 
-`.github/workflows/ci.yml` runs on every push and pull request, on macOS, Windows and Linux: build, `cargo test` and `cargo clippy`, plus (on Linux) `cargo fmt --check` and `cargo doc`. Dependabot (`.github/dependabot.yml`) proposes dependency and Actions updates weekly.
+`.github/workflows/ci.yml` runs on every push and pull request, on macOS, Windows and Linux: build, `cargo test` and `cargo clippy -D warnings`, plus (on Linux) `cargo fmt --check` and `cargo doc`. Dependabot (`.github/dependabot.yml`) proposes dependency and Actions updates weekly.

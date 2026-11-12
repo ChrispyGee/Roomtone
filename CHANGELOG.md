@@ -4,10 +4,15 @@ All notable changes to Roomtone. The format follows [Keep a Changelog](https://k
 
 ## [Unreleased]
 
+### Fixed
+- An unused-function warning on Windows and Linux (the icon-to-PNG helper is only used by the macOS About box).
+
 ### Added
 - The project's home is <https://github.com/ChrispyGee/Roomtone>: linked from Settings › About (source code, report a problem), the macOS About box, `--help`, the README and Cargo.toml.
 
 ### Changed
+- Dependencies: lofty 0.25, rfd 0.18 and roxmltree 0.21 (from Dependabot #3, #4, #5); GitHub Actions checkout v7 (#1).
+- CI: `cargo clippy -D warnings` must now pass on Windows and Linux too.
 - `.gitignore` also keeps out the app's own data files (`config.json`, `speakers.json`, `songs.json`), `.env` files and key files; CONTRIBUTING has a privacy check; RELEASING explains keeping your commit email private.
 
 ## [0.5.0] — 2026-11-12

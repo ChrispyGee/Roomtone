@@ -34,7 +34,8 @@ pub fn icon_rgba(size: u32) -> Vec<u8> {
     out
 }
 
-/// The icon as PNG bytes.
+/// The icon as PNG bytes (for the macOS About box).
+#[cfg_attr(not(target_os = "macos"), allow(dead_code))]
 pub fn icon_png(size: u32) -> Vec<u8> {
     let mut png = Vec::new();
     let img = image::RgbaImage::from_raw(size, size, icon_rgba(size)).unwrap_or_default();

@@ -21,7 +21,7 @@ jobs:
       matrix:
         os: [ubuntu-latest, macos-latest, windows-latest]
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v7
 
       - uses: dtolnay/rust-toolchain@stable
         with:
@@ -42,13 +42,7 @@ jobs:
       - name: Test (includes the translation check)
         run: cargo test --locked
 
-      - name: Clippy (macOS, must be clean)
-        if: runner.os == 'macOS'
-        run: cargo clippy --locked --all-targets -- -D warnings
-
-      - name: Clippy (Windows and Linux, report only for now)
-        if: runner.os != 'macOS'
-        continue-on-error: true
+      - name: Clippy
         run: cargo clippy --locked --all-targets -- -D warnings
 
       - name: Formatting

@@ -27,6 +27,27 @@ For maintainers.
    - **Issues › Labels**: make sure `bug`, `enhancement` and `speaker-report` exist (the issue forms use them).
 5. Check the README badges and links work once the first CI run has finished.
 
+## Uploading later changes
+
+From this folder (the one with `Cargo.toml`):
+
+```sh
+git status                       # see what changed; nothing from shots/ or target/ should be listed
+git add -A
+git commit -m "Short description of the change"
+git push
+```
+
+**Keep the login out of the remote address.** If `git remote -v` shows something like `https://oauth2:gho_…@github.com/…`, a GitHub token is stored in plain text in `.git/config`. Replace it, let the GitHub CLI handle the login, and revoke the old token on GitHub (Settings › Applications › Authorized OAuth Apps, or Settings › Developer settings › Personal access tokens):
+
+```sh
+git remote set-url origin https://github.com/ChrispyGee/Roomtone.git
+gh auth login        # once, if the GitHub CLI isn't signed in yet
+gh auth setup-git    # git then uses the GitHub CLI's login
+```
+
+After pushing, Dependabot closes its own pull requests when the same update is already on `main`.
+
 ## Making a release
 
 1. Make sure `main` is green in CI.

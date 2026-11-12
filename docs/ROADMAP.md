@@ -22,6 +22,10 @@ These work on the demo system but haven't been confirmed on real hardware. Repor
 - "Automatic" language on Windows reads only environment variables.
 - Translations need native-speaker review (de, fr, es, it, nl).
 
+## Maintenance
+
+- **Upgrade egui/eframe** from 0.31 to the current release (Dependabot #2: 0.37). It doesn't build as is: egui changed several APIs between these versions (panels, frames, rounding, modals, viewport options). Do it in one focused pull request, then compare `--screenshot` pictures of every page before and after.
+
 ## Ideas
 
 Roughly in order of value. Discuss in an issue before starting the big ones.
