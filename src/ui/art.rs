@@ -161,5 +161,5 @@ fn gradient(seed: &str) -> ColorImage {
             px.push(Color32::from_rgb(mix(0), mix(1), mix(2)));
         }
     }
-    ColorImage { size: [n, n], pixels: px }
+    ColorImage::new([n, n], px)
 }

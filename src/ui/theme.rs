@@ -39,7 +39,9 @@ pub fn apply(ctx: &egui::Context) {
     }
     ctx.set_fonts(fonts);
 
-    let mut style = (*ctx.style()).clone();
+    // The design is dark whatever the computer is set to.
+    ctx.set_theme(egui::Theme::Dark);
+    let mut style = (*ctx.global_style()).clone();
     style.text_styles = [
         (TextStyle::Heading, FontId::new(26.0, FontFamily::Proportional)),
         (TextStyle::Body, FontId::new(14.0, FontFamily::Proportional)),
@@ -84,5 +86,5 @@ pub fn apply(ctx: &egui::Context) {
     v.widgets.active.weak_bg_fill = ACCENT;
     v.widgets.active.fg_stroke = Stroke::new(1.0_f32, Color32::BLACK);
     v.widgets.open.weak_bg_fill = SURFACE_HOVER;
-    ctx.set_style(style);
+    ctx.set_global_style(style);
 }

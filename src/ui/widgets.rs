@@ -335,7 +335,7 @@ pub fn pill(ui: &mut Ui, icon: Option<Icon>, text: &str, primary: bool) -> Respo
 /// A slim slider with a knob that appears on hover. `value` is 0..=1.
 pub fn slider(ui: &mut Ui, id: impl std::hash::Hash, value: &mut f32, width: f32, color: Color32) -> (Response, bool) {
     let (rect, resp) = ui.allocate_exact_size(vec2(width, 20.0), Sense::click_and_drag());
-    let _ = ui.id().with(id);
+    let _ = id;
     let mut changed = false;
     if let Some(p) = resp.interact_pointer_pos() {
         if resp.dragged() || resp.clicked() || resp.is_pointer_button_down_on() {
@@ -387,7 +387,7 @@ pub fn segmented(ui: &mut Ui, options: &[&str], selected: usize, width: f32) -> 
     let mut picked = None;
     for (i, label) in options.iter().enumerate() {
         let r = Rect::from_min_size(pos2(rect.min.x + w * i as f32, rect.min.y), vec2(w, rect.height())).shrink(3.0);
-        let resp = ui.interact(r, ui.id().with(("seg", label)), Sense::click());
+        let resp = ui.interact(r, ui.scope_id().with(("seg", label)), Sense::click());
         if i == selected {
             ui.painter().rect_filled(r, 13.0, SURFACE_HOVER);
         } else if resp.hovered() {
@@ -429,7 +429,7 @@ pub fn chip(ui: &mut Ui, text: &str, color: Color32) -> Response {
 pub fn clipped_label(ui: &mut Ui, text: &str, size: f32, color: Color32, width: f32, strong: bool) -> Response {
     let mut job = egui::text::LayoutJob::single_section(text.to_string(), egui::TextFormat { font_id: egui::FontId::proportional(size), color, ..Default::default() });
     job.wrap = egui::text::TextWrapping { max_width: width, max_rows: 1, break_anywhere: true, overflow_character: Some('…') };
-    let galley = ui.fonts(|f| f.layout_job(job));
+    let galley = ui.painter().layout_job(job);
     let (rect, resp) = ui.allocate_exact_size(vec2(width.min(galley.size().x.max(1.0)), galley.size().y), Sense::hover());
     ui.painter().galley(rect.min, galley.clone(), color);
     if strong {

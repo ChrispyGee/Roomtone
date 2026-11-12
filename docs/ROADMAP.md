@@ -24,7 +24,7 @@ These work on the demo system but haven't been confirmed on real hardware. Repor
 
 ## Maintenance
 
-- **Upgrade egui/eframe** from 0.31 to the current release (Dependabot #2: 0.37). It doesn't build as is: egui changed several APIs between these versions (panels, frames, rounding, modals, viewport options). Do it in one focused pull request, then compare `--screenshot` pictures of every page before and after.
+- After an egui upgrade, compare `--screenshot` pictures of every page before and after (`--view home`, `search`, `favorites`, `library`, `radio`, `services`, `inputs`, `alarms`, `settings`, `nowplaying`, and `ROOMTONE_TEST_EDITOR=1` for the group editor). Pop-up menus (⋯ on a row, Sleep timer) and the file picker need a look by hand.
 
 ## Ideas
 

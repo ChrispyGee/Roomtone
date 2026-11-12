@@ -269,7 +269,7 @@ impl App {
         paint_art(ui, &mut self.art, art_r, item.art.as_deref(), seed_of(item), 14.0);
         let play_c = art_r.right_bottom() - vec2(30.0, 30.0);
         let play_r = Rect::from_center_size(play_c, vec2(42.0, 42.0));
-        let play = ui.interact(play_r, ui.id().with(("tile_play", salt.0, salt.1)), Sense::click());
+        let play = ui.interact(play_r, ui.scope_id().with(("tile_play", salt.0, salt.1)), Sense::click());
         if hovered || play.hovered() {
             ui.painter().circle_filled(play_c, if play.hovered() { 22.0 } else { 20.0 }, ACCENT);
             paint_icon(ui.painter(), Rect::from_center_size(play_c + vec2(1.0, 0.0), vec2(18.0, 18.0)), Icon::Play, Color32::BLACK);
@@ -299,7 +299,7 @@ impl App {
         let w = ui.available_width();
         let (rect, resp) = ui.allocate_exact_size(vec2(w, 58.0), Sense::click());
         let dots_r = Rect::from_center_size(pos2(rect.max.x - 24.0, rect.center().y), vec2(30.0, 30.0));
-        let dots = ui.interact(dots_r, ui.id().with(("row_dots", salt.0, salt.1)), Sense::click());
+        let dots = ui.interact(dots_r, ui.scope_id().with(("row_dots", salt.0, salt.1)), Sense::click());
         let hovered = resp.hovered() || dots.hovered();
         if hovered {
             ui.painter().rect_filled(rect, 12.0, SURFACE);
@@ -333,11 +333,7 @@ impl App {
         } else if item.duration > 0.0 {
             ui.painter().text(pos2(rect.max.x - 48.0, rect.center().y), egui::Align2::RIGHT_CENTER, fmt_time(item.duration), egui::FontId::proportional(12.5), TEXT_FAINT);
         }
-        let popup_id = ui.id().with(("row_menu", salt.0, salt.1));
-        if dots.clicked() {
-            ui.memory_mut(|m| m.toggle_popup(popup_id));
-        }
-        egui::popup::popup_below_widget(ui, popup_id, &dots, egui::PopupCloseBehavior::CloseOnClick, |ui| {
+        egui::Popup::menu(&dots).close_behavior(egui::PopupCloseBehavior::CloseOnClick).show(|ui| {
             ui.set_min_width(180.0);
             self.item_menu(ui, item, gid);
         });
@@ -669,7 +665,7 @@ impl App {
                     ui.horizontal(|ui| {
                         let (r, _) = ui.allocate_exact_size(vec2(15.0, 15.0), Sense::hover());
                         paint_icon(ui.painter(), r, Icon::Filter, TEXT_DIM);
-                        ui.add(egui::TextEdit::singleline(&mut self.list_filter).hint_text(t!("Filter this list")).frame(false).desired_width(200.0));
+                        ui.add(egui::TextEdit::singleline(&mut self.list_filter).hint_text(t!("Filter this list")).frame(egui::Frame::NONE).desired_width(200.0));
                     });
                 });
                 egui::ComboBox::from_id_salt(("sort", key)).width(150.0).selected_text(sorts[self.list_sort]).show_ui(ui, |ui| {
@@ -933,7 +929,7 @@ impl App {
                 let edit = ui.add(
                     egui::TextEdit::singleline(&mut self.search)
                         .hint_text(t!("Artists, albums, songs, stations, podcasts…"))
-                        .frame(false)
+                        .frame(egui::Frame::NONE)
                         .font(egui::FontId::proportional(16.0))
                         .desired_width(f32::INFINITY),
                 );
@@ -1166,7 +1162,7 @@ impl App {
                 ui.horizontal(|ui| {
                     let (r, _) = ui.allocate_exact_size(vec2(15.0, 15.0), Sense::hover());
                     paint_icon(ui.painter(), r, Icon::Search, TEXT_DIM);
-                    let e = ui.add(egui::TextEdit::singleline(&mut self.radio_search).hint_text(t!("Find a station by name")).frame(false).desired_width(260.0));
+                    let e = ui.add(egui::TextEdit::singleline(&mut self.radio_search).hint_text(t!("Find a station by name")).frame(egui::Frame::NONE).desired_width(260.0));
                     if e.lost_focus() && ui.input(|i| i.key_pressed(egui::Key::Enter)) && !self.radio_search.trim().is_empty() {
                         self.radio_searched = self.radio_search.trim().to_string();
                         self.out.push(Cmd::Search(self.radio_searched.clone()));
@@ -1443,7 +1439,7 @@ impl App {
                 let artist = clipped_label(ui, &g.now.artist, 17.0, TEXT_DIM, cw, false);
                 if !g.now.artist.is_empty() && !g.now.is_stream {
                     let artist = ui
-                        .interact(artist.rect, ui.id().with("np_artist"), Sense::click())
+                        .interact(artist.rect, ui.scope_id().with("np_artist"), Sense::click())
                         .on_hover_cursor(egui::CursorIcon::PointingHand)
                         .on_hover_text(t!("See everything by {artist}", artist = g.now.artist));
                     if artist.clicked() {
@@ -1511,11 +1507,7 @@ impl App {
                         _ => t!("Sleep timer").to_string(),
                     };
                     let resp = pill(ui, Some(Icon::Moon), &sleep_label, sleep_on);
-                    let pid = ui.id().with("sleep_menu");
-                    if resp.clicked() {
-                        ui.memory_mut(|m| m.toggle_popup(pid));
-                    }
-                    egui::popup::popup_below_widget(ui, pid, &resp, egui::PopupCloseBehavior::CloseOnClick, |ui| {
+                    egui::Popup::menu(&resp).close_behavior(egui::PopupCloseBehavior::CloseOnClick).show(|ui| {
                         ui.set_min_width(140.0);
                         for (label, mins) in [
                             (t!("Off"), None),

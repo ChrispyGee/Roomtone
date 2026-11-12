@@ -81,6 +81,8 @@ pub struct App {
     group_preset: Option<(Option<String>, crate::config::SavedGroup)>,
     /// Short notes to show once the shared state is free again.
     notes: Vec<String>,
+    /// Set once the `--screenshot` picture has been saved.
+    shot_saved: std::sync::Arc<std::sync::atomic::AtomicBool>,
     /// For each group playing along with one in another system: "S1 · Office".
     along: HashMap<String, String>,
     /// A software update waiting for the person to confirm: (household id, system, version).
@@ -173,6 +175,7 @@ impl App {
             app_favs: Default::default(),
             notes: vec![],
             along: HashMap::new(),
+            shot_saved: Default::default(),
             update_confirm: None,
             group_preset: open_new_group
                 .then(|| (None, crate::config::SavedGroup { name: "Downstairs".into(), household: "demo-s2".into(), rooms: vec!["D-LIVING".into(), "D-KITCHEN".into()] })),
@@ -251,23 +254,22 @@ impl App {
             self.backend.send(Cmd::Reconnect);
         }
         if self.frame == at {
-            ctx.send_viewport_cmd(egui::ViewportCommand::Screenshot(Default::default()));
+            let (done, save_to, repaint) = (self.shot_saved.clone(), path.clone(), ctx.clone());
+            let callback = egui::ScreenshotCallback::new(move |img| {
+                if let Some(dir) = save_to.parent() {
+                    let _ = std::fs::create_dir_all(dir);
+                }
+                let [w, h] = img.size;
+                match image::save_buffer(&save_to, img.as_raw(), w as u32, h as u32, image::ExtendedColorType::Rgba8) {
+                    Ok(()) => eprintln!("Saved screenshot to {}", save_to.display()),
+                    Err(e) => eprintln!("Couldn't save screenshot: {e}"),
+                }
+                done.store(true, std::sync::atomic::Ordering::SeqCst);
+                repaint.request_repaint();
+            });
+            ctx.send_viewport_cmd(egui::ViewportCommand::Screenshot(callback));
         }
-        let image = ctx.input(|i| {
-            i.raw.events.iter().find_map(|e| match e {
-                egui::Event::Screenshot { image, .. } => Some(image.clone()),
-                _ => None,
-            })
-        });
-        if let Some(img) = image {
-            if let Some(dir) = path.parent() {
-                let _ = std::fs::create_dir_all(dir);
-            }
-            let [w, h] = img.size;
-            match image::save_buffer(&path, img.as_raw(), w as u32, h as u32, image::ExtendedColorType::Rgba8) {
-                Ok(()) => eprintln!("Saved screenshot to {}", path.display()),
-                Err(e) => eprintln!("Couldn't save screenshot: {e}"),
-            }
+        if self.shot_saved.load(std::sync::atomic::Ordering::SeqCst) {
             ctx.send_viewport_cmd(egui::ViewportCommand::Close);
         }
         if self.frame > at + 900 {
@@ -276,28 +278,29 @@ impl App {
         }
     }
 
-    fn draw(&mut self, ctx: &egui::Context, s: &AppState) {
+    fn draw(&mut self, root: &mut egui::Ui, s: &AppState) {
+        let ctx = &root.ctx().clone();
         let household = s.household();
         let group = s.selected_group.as_ref().and_then(|g| s.find_group(g));
 
-        egui::SidePanel::left("sidebar")
-            .exact_width(232.0)
+        egui::Panel::left("sidebar")
+            .exact_size(232.0)
             .resizable(false)
             .frame(egui::Frame::new().fill(SIDEBAR).inner_margin(egui::Margin { left: 16, right: 16, top: 22, bottom: 16 }))
-            .show(ctx, |ui| self.sidebar(ui, s));
+            .show(root, |ui| self.sidebar(ui, s));
 
-        egui::TopBottomPanel::bottom("nowbar")
-            .exact_height(92.0)
+        egui::Panel::bottom("nowbar")
+            .exact_size(92.0)
             .frame(egui::Frame::new().fill(SIDEBAR).stroke(Stroke::new(1.0_f32, LINE)).inner_margin(egui::Margin { left: 18, right: 22, top: 12, bottom: 12 }))
-            .show(ctx, |ui| self.now_bar(ui, s, group));
+            .show(root, |ui| self.now_bar(ui, s, group));
 
-        egui::SidePanel::right("rooms")
-            .exact_width(340.0)
+        egui::Panel::right("rooms")
+            .exact_size(340.0)
             .resizable(false)
             .frame(egui::Frame::new().fill(BG).inner_margin(egui::Margin { left: 8, right: 18, top: 22, bottom: 12 }))
-            .show(ctx, |ui| self.right_panel(ui, s));
+            .show(root, |ui| self.right_panel(ui, s));
 
-        egui::CentralPanel::default().frame(egui::Frame::new().fill(BG).inner_margin(egui::Margin { left: 30, right: 22, top: 22, bottom: 0 })).show(ctx, |ui| {
+        egui::CentralPanel::default().frame(egui::Frame::new().fill(BG).inner_margin(egui::Margin { left: 30, right: 22, top: 22, bottom: 0 })).show(root, |ui| {
             if household.is_none() {
                 self.searching_page(ui, s);
                 return;
@@ -533,7 +536,7 @@ impl App {
             });
         });
         let rect = resp.response.rect;
-        let card = ui.interact(rect, ui.id().with(("card", &g.id)), Sense::hover());
+        let card = ui.interact(rect, ui.scope_id().with(("card", &g.id)), Sense::hover());
         if !inner_hot && card.hovered() {
             ui.ctx().set_cursor_icon(egui::CursorIcon::PointingHand);
             if ui.input(|i| i.pointer.primary_clicked()) {
@@ -597,7 +600,7 @@ impl App {
                     let mut x = rect.max.x - 30.0;
                     for (icon, action) in [(Icon::Close, 0), (Icon::Down, 1), (Icon::Up, 2)] {
                         let br = Rect::from_center_size(pos2(x, rect.center().y), vec2(26.0, 26.0));
-                        let b = ui.interact(br, ui.id().with(("q", i, action)), Sense::click());
+                        let b = ui.interact(br, ui.scope_id().with(("q", i, action)), Sense::click());
                         if b.hovered() {
                             ui.painter().circle_filled(br.center(), 13.0, SURFACE_HOVER);
                         }
@@ -621,12 +624,12 @@ impl App {
                 resp.context_menu(|ui| {
                     if ui.button(t!("▶  Play this")).clicked() {
                         self.out.push(Cmd::PlayQueueIndex(gid.clone(), i));
-                        ui.close_menu();
+                        ui.close();
                     }
                     self.favorite_menu_entry(ui, it);
                     if ui.button(t!("Remove from queue")).clicked() {
                         self.out.push(Cmd::RemoveFromQueue(gid.clone(), i));
-                        ui.close_menu();
+                        ui.close();
                     }
                 });
             }
@@ -650,7 +653,7 @@ impl App {
         } else {
             paint_art(ui, &mut self.art, art_r, g.now.art.as_deref(), &seed, 10.0);
         }
-        let art_click = ui.interact(art_r, ui.id().with("np_art"), Sense::click()).on_hover_cursor(egui::CursorIcon::PointingHand);
+        let art_click = ui.interact(art_r, ui.scope_id().with("np_art"), Sense::click()).on_hover_cursor(egui::CursorIcon::PointingHand);
         if art_click.clicked() {
             self.go(View::NowPlaying);
         }
@@ -759,7 +762,7 @@ impl App {
     fn modals(&mut self, ctx: &egui::Context, s: &AppState) {
         if let Some((gid, mut members)) = self.group_editor.take() {
             let mut keep = true;
-            let modal = egui::Modal::new(egui::Id::new("group_editor")).frame(modal_frame()).show(ctx, |ui| {
+            let modal = egui::Modal::new(egui::Id::unique("group_editor")).frame(modal_frame()).show(ctx, |ui| {
                 ui.set_width(380.0);
                 let Some((h, _)) = s.find_group(&gid) else {
                     keep = false;
@@ -862,7 +865,7 @@ impl App {
 
         if let Some(mut alarm) = self.alarm_editor.take() {
             let mut keep = true;
-            let modal = egui::Modal::new(egui::Id::new("alarm_editor")).frame(modal_frame()).show(ctx, |ui| {
+            let modal = egui::Modal::new(egui::Id::unique("alarm_editor")).frame(modal_frame()).show(ctx, |ui| {
                 ui.set_width(420.0);
                 keep = self.alarm_form(ui, s, &mut alarm);
             });
@@ -876,7 +879,7 @@ impl App {
 
         if let Some((uuid, mut name)) = self.rename.take() {
             let mut keep = true;
-            let modal = egui::Modal::new(egui::Id::new("rename")).frame(modal_frame()).show(ctx, |ui| {
+            let modal = egui::Modal::new(egui::Id::unique("rename")).frame(modal_frame()).show(ctx, |ui| {
                 ui.set_width(340.0);
                 ui.label(RichText::new(t!("Rename room")).size(20.0).strong());
                 ui.add_space(8.0);
@@ -904,7 +907,7 @@ impl App {
 
         if let Some((gid, mut name)) = self.save_queue.take() {
             let mut keep = true;
-            let modal = egui::Modal::new(egui::Id::new("save_queue")).frame(modal_frame()).show(ctx, |ui| {
+            let modal = egui::Modal::new(egui::Id::unique("save_queue")).frame(modal_frame()).show(ctx, |ui| {
                 ui.set_width(340.0);
                 ui.label(RichText::new(t!("Save queue as playlist")).size(20.0).strong());
                 ui.add_space(8.0);
@@ -936,7 +939,7 @@ impl App {
             return;
         }
         let mut close = false;
-        let modal = egui::Modal::new(egui::Id::new("link_modal")).frame(modal_frame()).show(ctx, |ui| {
+        let modal = egui::Modal::new(egui::Id::unique("link_modal")).frame(modal_frame()).show(ctx, |ui| {
             ui.set_width(420.0);
             ui.label(RichText::new(t!("Connect {service}", service = link.name)).size(20.0).strong());
             ui.add_space(6.0);
@@ -1044,7 +1047,7 @@ impl App {
         let Some((old, mut g)) = self.group_preset.take() else { return };
         let Some(h) = s.households.iter().find(|h| h.id == g.household).or(s.household()) else { return };
         let mut keep = true;
-        let modal = egui::Modal::new(egui::Id::new("group_preset")).frame(modal_frame()).show(ctx, |ui| {
+        let modal = egui::Modal::new(egui::Id::unique("group_preset")).frame(modal_frame()).show(ctx, |ui| {
             ui.set_width(380.0);
             ui.label(RichText::new(if old.is_some() { t!("Edit group") } else { t!("New group") }).size(20.0).strong());
             ui.label(RichText::new(t!("Pick the rooms that play together, and give them a name.")).size(12.5).color(TEXT_DIM));
@@ -1120,7 +1123,7 @@ impl App {
             return;
         }
         let mut close = false;
-        let modal = egui::Modal::new(egui::Id::new("speakers_modal")).frame(modal_frame()).show(ctx, |ui| {
+        let modal = egui::Modal::new(egui::Id::unique("speakers_modal")).frame(modal_frame()).show(ctx, |ui| {
             ui.set_width(460.0);
             ui.label(RichText::new(t!("Your speakers")).size(20.0).strong());
             let summary = match s.phase {
@@ -1212,7 +1215,7 @@ impl App {
     fn station_modal(&mut self, ctx: &egui::Context) {
         let Some(mut st) = self.station_editor.take() else { return };
         let mut keep = true;
-        let modal = egui::Modal::new(egui::Id::new("station_editor")).frame(modal_frame()).show(ctx, |ui| {
+        let modal = egui::Modal::new(egui::Id::unique("station_editor")).frame(modal_frame()).show(ctx, |ui| {
             ui.set_width(420.0);
             ui.label(RichText::new(t!("Add a station or stream")).size(20.0).strong());
             ui.label(RichText::new(t!("Paste the stream's web address. Playlist links (.pls, .m3u) are followed automatically.")).size(12.5).color(TEXT_DIM));
@@ -1257,7 +1260,7 @@ impl App {
     fn update_modal(&mut self, ctx: &egui::Context) {
         let Some((hid, system, version)) = self.update_confirm.clone() else { return };
         let mut keep = true;
-        let modal = egui::Modal::new(egui::Id::new("update_confirm")).frame(modal_frame()).show(ctx, |ui| {
+        let modal = egui::Modal::new(egui::Id::unique("update_confirm")).frame(modal_frame()).show(ctx, |ui| {
             ui.set_width(420.0);
             ui.label(RichText::new(t!("Update your {system} system?", system = system.label())).size(20.0).strong());
             ui.add_space(6.0);
@@ -1294,7 +1297,7 @@ impl App {
         if s.toasts.is_empty() {
             return;
         }
-        egui::Area::new(egui::Id::new("toasts")).anchor(egui::Align2::RIGHT_BOTTOM, vec2(-360.0, -108.0)).order(egui::Order::Foreground).interactable(false).show(ctx, |ui| {
+        egui::Area::new(egui::Id::unique("toasts")).anchor(egui::Align2::RIGHT_BOTTOM, vec2(-360.0, -108.0)).order(egui::Order::Foreground).interactable(false).show(ctx, |ui| {
             for t in &s.toasts {
                 egui::Frame::new()
                     .fill(SURFACE_HI)
@@ -1320,25 +1323,25 @@ impl App {
         let stream = item.is_stream();
         if ui.button(t!("▶  Play now")).clicked() {
             self.out.push(Cmd::PlayItem(gid.to_string(), item.clone(), PlayHow::Now));
-            ui.close_menu();
+            ui.close();
         }
         if !stream {
             if ui.button(t!("Play next")).clicked() {
                 self.out.push(Cmd::PlayItem(gid.to_string(), item.clone(), PlayHow::Next));
-                ui.close_menu();
+                ui.close();
             }
             if ui.button(t!("Add to end of queue")).clicked() {
                 self.out.push(Cmd::PlayItem(gid.to_string(), item.clone(), PlayHow::End));
-                ui.close_menu();
+                ui.close();
             }
             if ui.button(t!("Replace queue")).clicked() {
                 self.out.push(Cmd::PlayItem(gid.to_string(), item.clone(), PlayHow::Replace));
-                ui.close_menu();
+                ui.close();
             }
         }
         if item.browsable() && ui.button(t!("Open")).clicked() {
             self.open(item);
-            ui.close_menu();
+            ui.close();
         }
         self.source_menu(ui, item);
     }
@@ -1369,11 +1372,11 @@ impl App {
         if self.favorite_of(item).is_some() {
             if ui.button(t!("★  Remove from Favorites")).clicked() {
                 self.toggle_favorite(item);
-                ui.close_menu();
+                ui.close();
             }
         } else if item.can_be_favorite() && ui.button(t!("☆  Add to Favorites")).clicked() {
             self.toggle_favorite(item);
-            ui.close_menu();
+            ui.close();
         }
     }
 
@@ -1391,40 +1394,41 @@ impl App {
         self.favorite_menu_entry(ui, item);
         if item.is_stream() && item.source != "mystations" && item.album.starts_with("http") && ui.button(t!("Save to My stations")).clicked() {
             self.out.push(Cmd::AddStation(crate::config::Station { name: item.title.clone(), url: item.album.clone(), genre: item.genre.clone() }));
-            ui.close_menu();
+            ui.close();
         }
         if item.source == "mystations" {
             if ui.button(t!("Edit station")).clicked() {
                 self.station_editor = Some(crate::config::Station { name: item.title.clone(), url: item.album.clone(), genre: item.genre.clone() });
-                ui.close_menu();
+                ui.close();
             }
             if ui.button(t!("Remove from My stations")).clicked() {
                 self.out.push(Cmd::RemoveStation(item.album.clone()));
-                ui.close_menu();
+                ui.close();
             }
         }
         if let Some(p) = crate::sources::podcasts::podcast_of(item) {
             let subscribed = self.subscribed.contains(&p.feed);
             if !subscribed && ui.button(t!("Subscribe")).clicked() {
                 self.out.push(Cmd::Subscribe(p));
-                ui.close_menu();
+                ui.close();
             } else if subscribed && ui.button(t!("Unsubscribe")).clicked() {
                 self.out.push(Cmd::Unsubscribe(p.feed));
-                ui.close_menu();
+                ui.close();
             }
         }
     }
 }
 
 impl eframe::App for App {
-    fn update(&mut self, ctx: &egui::Context, _frame: &mut eframe::Frame) {
+    fn ui(&mut self, root: &mut egui::Ui, _frame: &mut eframe::Frame) {
+        let ctx = &root.ctx().clone();
         self.handle_screenshot(ctx);
         #[cfg(target_os = "macos")]
         crate::macos_about::install();
         let backend = self.backend.clone();
         {
             let s = backend.lock();
-            if !ctx.wants_keyboard_input() && ctx.input(|i| i.key_pressed(egui::Key::Space)) {
+            if !ctx.egui_wants_keyboard_input() && ctx.input(|i| i.key_pressed(egui::Key::Space)) {
                 if let Some((_, g)) = s.selected_group.as_ref().and_then(|g| s.find_group(g)) {
                     let cmd = if g.now.transport == Transport::Playing { Cmd::Pause(g.id.clone()) } else { Cmd::Play(g.id.clone()) };
                     self.out.push(cmd);
@@ -1447,7 +1451,7 @@ impl eframe::App for App {
                     Some((g.id.clone(), format!("{} · {}", oh.system.label(), oh.group_name(og))))
                 })
                 .collect();
-            self.draw(ctx, &s);
+            self.draw(root, &s);
         }
         for cmd in std::mem::take(&mut self.out) {
             backend.send(cmd);
@@ -1516,7 +1520,7 @@ pub fn paint_text(ui: &egui::Ui, pos: egui::Pos2, text: &str, size: f32, color: 
     }
     let mut job = egui::text::LayoutJob::single_section(text.to_string(), egui::TextFormat { font_id: egui::FontId::proportional(size), color, ..Default::default() });
     job.wrap = egui::text::TextWrapping { max_width: width, max_rows: 1, break_anywhere: true, overflow_character: Some('…') };
-    let galley = ui.fonts(|f| f.layout_job(job));
+    let galley = ui.painter().layout_job(job);
     ui.painter().galley(pos, galley, color);
 }
 

@@ -11,6 +11,7 @@ All notable changes to Roomtone. The format follows [Keep a Changelog](https://k
 - The project's home is <https://github.com/ChrispyGee/Roomtone>: linked from Settings › About (source code, report a problem), the macOS About box, `--help`, the README and Cargo.toml.
 
 ### Changed
+- **egui/eframe 0.31 → 0.37** (Dependabot #2): the app now draws through `App::ui`; panels use `egui::Panel` attached to the root `Ui`; popups use `egui::Popup::menu`; menus close with `ui.close()`; `--screenshot` receives the picture through a `ScreenshotCallback`; the global style is set with `set_global_style` and the theme is pinned to dark; `Ui::id` → `Ui::scope_id` and `Id::new` → `Id::unique`. Every page was compared before and after with `--screenshot`: same layout (text anti-aliasing differs slightly).
 - Dependencies: lofty 0.25, rfd 0.18 and roxmltree 0.21 (from Dependabot #3, #4, #5); GitHub Actions checkout v7 (#1).
 - CI: `cargo clippy -D warnings` must now pass on Windows and Linux too.
 - `.gitignore` also keeps out the app's own data files (`config.json`, `speakers.json`, `songs.json`), `.env` files and key files; CONTRIBUTING has a privacy check; RELEASING explains keeping your commit email private.
