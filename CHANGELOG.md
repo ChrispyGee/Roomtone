@@ -4,6 +4,9 @@ All notable changes to Roomtone. The format follows [Keep a Changelog](https://k
 
 ## [Unreleased]
 
+### Added
+- **Command-line control**: `roomtone play`, `pause`, `next`, `volume 30 --room Kitchen`, `volume +5 --group`, `mute`, `sleep 30`, `group Kitchen Den`, `status`, … for scripts, Stream Deck and shortcuts. Commands go to the Roomtone that's already running through its assistant link (so that must be on), on this computer only. See `roomtone --help`.
+
 ## [0.6.0] — 2026-11-13
 
 ### Added

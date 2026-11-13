@@ -245,6 +245,7 @@ Each changing tool waits until the speakers have answered (up to 20 s). It then 
 | `--screenshot <file.png>` | Draw about 120 frames, save the window as PNG and quit. Uses the demo system, opens without taking focus (and behind other windows on Windows) and doesn't open the assistant port |
 | `--headless`, `--mcp` | §5 |
 | `--mcp-on`, `--mcp-off`, `--mcp-read-only`, `--mcp-allow-control`, `--mcp-port <n>`, `--mcp-info` | §6.1 |
+| `play`, `pause`, `toggle`, `next`, `previous`, `play <name>`, `volume <n\|+n\|-n>`, `mute`, `unmute`, `sleep <min>`, `group <room> <room>…`, `ungroup`, `status`, `now`, `queue`, `favorites`, `alarms` (with `--room <name>`, `--group`) | Control the Roomtone that's already running, through its assistant link (switched on; control allowed for anything that changes things). Talks only to this computer. Exit code 0 done, 1 refused, 2 not understood, 3 can't reach Roomtone |
 | `--help`, `--help mcp` | Options; the assistant guide for this platform |
 
 Test-only environment variables: `ROOMTONE_LIVE` (screenshots with real speakers), `ROOMTONE_SHOT_FRAME`, `ROOMTONE_SCROLL`, `ROOMTONE_TEST_GROUP`, `ROOMTONE_TEST_RECONNECT`, `ROOMTONE_TEST_EDITOR`, `ROOMTONE_TEST_ABOUT` (macOS: also saves a picture of the About box), and `ROOMTONE_SPEAKER` / `ROOMTONE_TERM` for the ignored network tests.
