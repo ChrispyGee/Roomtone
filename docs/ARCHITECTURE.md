@@ -37,6 +37,16 @@ This is the map of the code. What the app should do is in [SPEC.md](../SPEC.md);
 | `backend.rs` | `Cmd`, `Backend` (`send`, `send_and_wait`), the worker and poller threads, discovery and reconnect, streaming playback with account retry, service checks, play-along (`mirror`, `sync_link`), software updates (`check_updates`, `install_update`) |
 | `model.rs` | Data the window shows: `Household`, `Room`, `Group`, `NowPlaying`, `Item`, `Alarm`, `AppState` |
 | `config.rs` | `Config`, saved as `config.json`: folders, stations, podcasts, services, sign-ins, kept favorites, saved groups, language, `McpConfig` |
+| `cli.rs` | The control commands (`roomtone play`, `volume`, `scene`, `backup`…): turns words into assistant tool calls and sends them to the running app's link |
+| `scene.rs` | Doing a scene: the same steps an assistant would take, in order, stopping at the first that fails |
+| `backup.rs` | The backup file (favorites, playlists, alarms and Roomtone's own lists): building, reading, restoring, and the playlist export path |
+| `m3u.rs`, `csv.rs`, `pls_xspf.rs` | Playlist files: writing and reading M3U/M3U8, CSV, PLS and XSPF |
+| `history.rs` | The listening history (`history.json`) and the tracker that decides what counts as played |
+| `media_keys.rs`, `window.rs` | The system's media keys and Now Playing (souvlaki), and the remembered window size and position |
+| `version.rs` | The optional look for a newer Roomtone on GitHub |
+| `s2.rs` | Reading what a speaker says about itself, and judging whether it could move to S2 |
+| `diagnose.rs`, `status.rs` | *Can't find your speakers?* (checks, advice, redacted report) and wired/wireless from a speaker's network counters |
+| `quality.rs` | Sound-quality labels read from what the speaker reports for the playing track |
 | `known.rs` | `speakers.json`: speakers from last time, for an instant start |
 | `demo.rs` | The made-up S1 and S2 systems, and how commands change them (`apply`, `tick`) |
 | `mcp.rs` | The MCP server: tool list, `Mcp::handle` (JSON-RPC), `serve_stdio`, `start_http` (opens and closes the port as settings change) |
@@ -44,15 +54,18 @@ This is the map of the code. What the app should do is in [SPEC.md](../SPEC.md);
 | `net/discovery.rs` | SSDP search and reading each system's topology |
 | `net/soap.rs` | A small UPnP/SOAP client for the speakers' port 1400 |
 | `net/speaker.rs` | Every action on a speaker: transport, volume, browse, queue, favorites, grouping, inputs, EQ, alarms, music-service list, account numbers |
+| `net/events.rs` | UPnP events: subscribing, the listener for `NOTIFY` messages, renewing and cancelling |
 | `net/didl.rs` | DIDL-Lite metadata, reading and writing |
 | `sources/mod.rs` | Registry of sources and services (`SERVICES`), browse/search dispatch, favorites by service |
 | `sources/local.rs` | Scanning music folders, and the file server the speakers fetch from (port 52880) |
 | `sources/radio.rs`, `podcasts.rs`, `archive.rs` | The free online sources |
 | `sources/smapi.rs` | Streaming services through the speakers' music-service API (sign-in links, browse, search, playable addresses) |
+| `sources/progress.rs` | Podcast progress and played marks (`podcast-progress.json`) |
 | `sources/memory.rs` | `songs.json`: details of songs the speakers only know by address |
 | `ui/mod.rs` | The window frame: sidebar, rooms/queue panel, bottom bar, dialogs, toasts, the screenshot option |
 | `ui/pages.rs` | Every page: home, search, library, radio, services, inputs, now playing, alarms, settings, room settings |
-| `ui/widgets.rs`, `theme.rs`, `art.rs` | Drawn icons and controls, the dark and light palettes (`TEXT()`, `SURFACE()`… switch with the appearance), album art |
+| `ui/scenes.rs`, `ui/lists.rs` | The Scenes page, its editor window and the Home row; sorting, filtering and the A–Z strip for long lists |
+| `ui/widgets.rs`, `theme.rs`, `art.rs` | Drawn icons and controls (each one must name itself for screen readers with `describe`, and show `focus_ring`), the dark and light palettes (`TEXT()`, `SURFACE()`… switch with the appearance), album art |
 | `mcp/notify.rs` | Change notifications: subscriptions per session and the watcher that compares what's known once a second |
 | `mcp/extra.rs` | More assistant tools (browse, favorites, queue editing, rooms, alarms, saved groups, services, stations, podcasts), resources, prompts and completions |
 | `test_support.rs` | Test helpers: a scratch settings folder, English wording, a running demo backend |
@@ -82,6 +95,8 @@ Slow work (discovery, browsing, search, service sign-in) runs on its own short-l
 | Event listener | While subscribed | Accepts `NOTIFY` messages from the speakers, one short thread per connection (`net::events::listen`) |
 | Short-lived | Per task | Discovery, browsing, search per source, sign-in polling, service checks, updates, play-along sync |
 | Music server | Whole run | Serves this computer's folders to the speakers (`sources::local`) |
+| Version checker | Whole run, active only while *New versions* is on | Looks at the latest release once a day, or when *Check now* is pressed |
+| Change watcher | One per assistant session that follows resources | Compares what's known once a second and sends `notifications/resources/updated` (stdout or the HTTP event stream) |
 | Assistant link | While on | HTTP listener and one thread per connection (`mcp::start_http`), or the stdin loop (`mcp::serve_stdio`) |
 
 ## Conventions

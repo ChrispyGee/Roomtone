@@ -119,6 +119,11 @@ Used by `net::events` when *Speaker updates* is on. Plain HTTP on port 1400:
 
 Paths: `/MediaRenderer/AVTransport/Event` (a group's coordinator), `/MediaRenderer/RenderingControl/Event` (each room), `/ZoneGroupTopology/Event` (one room per system). The body (`LastChange` XML) is deliberately not parsed: a notice only triggers the usual read of that group, so there is one way of reading state. Checked once against a real S1 speaker (Connect:Amp, firmware 11.16.1, 2026-11-13) with the ignored test `real_speaker_events`: all three subscriptions were accepted, each sent its first notice about 4–5 s after subscribing, the lease was 1800 s and renewing and cancelling worked. Not yet checked: S2 speakers, bonded pairs and groups, and what happens when a speaker restarts. The app counts a subscription as working only after the first notice.
 
+## 6d. Status pages and device details (read-only)
+
+- `GET /xml/device_description.xml` is used for the model, hardware version and software generation (the S2 check) and as the "does it answer?" test in *Can't find your speakers?*.
+- `GET /status/ifconfig` lists the speaker's network interfaces with packet counts. Whichever of the cable (`eth0`) and the wireless interface (`ath0`, `ath1`, `ra0`, `wlan0`) has carried clearly more decides *Wired* or *Wireless*; with under about 100 packets, or both busy, nothing is claimed. **Seen on a real S1 Connect:Amp (wired); a wireless speaker hasn't been seen.** `/status/zp` and `/status/proc/ath_rincon/status` exist but give no signal strength that can be relied on, so none is shown.
+
 ## 7. Things that are guesses
 
 Mark guesses in code comments with "estimate", and list them here.
@@ -126,3 +131,4 @@ Mark guesses in code comments with "estimate", and list them here.
 - Which models have line-in or TV inputs (`model::Room::has_line_in` / `has_tv`) is guessed from the model name.
 - Address formats for service tracks (`smapi::to_item`) were checked against common services, not every one.
 - Software update behaviour (section 6).
+- Wired/wireless from packet counts (section 6d) is a heuristic: a speaker that just started, or one that's busy on both, is reported as unknown.
