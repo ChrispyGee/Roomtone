@@ -68,7 +68,7 @@ Each release also attaches `SHA256SUMS` (a checksum for every file) and `roomton
 
 | Channel | Files | Where they go |
 | --- | --- | --- |
-| Homebrew (macOS) | `homebrew/roomtone.rb`, a cask | A personal tap, a GitHub repository named `homebrew-roomtone` (then `brew install --cask <owner>/roomtone/roomtone`). The main `homebrew-cask` repository asks for a notarised app, so it has to wait for signing |
+| Homebrew (macOS) | `homebrew/roomtone.rb`, a cask | The tap `ChrispyGee/homebrew-roomtone` (created for 0.6.1; `brew install --cask ChrispyGee/roomtone/roomtone`). For each release, replace `Casks/roomtone.rb` there with the new file and commit. The main `homebrew-cask` repository asks for a notarised app, so it has to wait for signing |
 | winget (Windows) | `winget/*.yaml`, three files | A pull request to [microsoft/winget-pkgs](https://github.com/microsoft/winget-pkgs) under `manifests/c/ChrispyGee/Roomtone/<version>/` (`wingetcreate` or `winget validate` checks it first) |
 | Arch User Repository | `aur/PKGBUILD` (`roomtone-bin`) | The AUR package `roomtone-bin`: `git clone ssh://aur@aur.archlinux.org/roomtone-bin.git`, copy `PKGBUILD`, run `makepkg --printsrcinfo > .SRCINFO`, commit and push. Fill in the maintainer line first |
 
