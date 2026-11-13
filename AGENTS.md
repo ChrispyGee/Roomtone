@@ -39,7 +39,7 @@ For MCP tests, set `HOME` (Windows: `APPDATA`) to a scratch folder such as `targ
 
 ## Rules (checklist)
 
-- [ ] Every new user-visible string is wrapped in `t!`/`tn!` (or `n_!` for constants, shown with `i18n::tr`) **and** added to all five `locales/*.tsv` files with placeholders kept. `cargo test` tells you what's missing. MCP replies and CLI help stay English.
+- [ ] Every new user-visible string is wrapped in `t!`/`tn!` (or `n_!` for constants, shown with `i18n::tr`) **and** added to all five `locales/*.tsv` files with placeholders kept. `cargo test` tells you what's missing. MCP replies and CLI help stay English. A **new source file** with `t!` strings must also be added to `SOURCES` in `src/i18n.rs`, or the test won't see its phrases.
 - [ ] Wording is plain and friendly: say what happened and what to do; no bare error codes or jargon.
 - [ ] New behaviour is a `Cmd`, handled in the backend **and** working in the demo system. The window, `--headless` and MCP must behave the same.
 - [ ] No network calls on the UI thread; don't hold the `AppState` lock across a network call.
