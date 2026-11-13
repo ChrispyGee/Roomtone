@@ -95,6 +95,7 @@ its assistant link switched on)
   {e} mute | unmute | sleep MINUTES | ungroup      [--room NAME]
   {e} group ROOM ROOM …                            play these rooms together
   {e} status | now | queue | favorites | alarms    look only
+  {e} scene NAME | scenes                          do a saved scene; list them
   {e} backup FILE.json                             save a backup of favorites, playlists, alarms and settings
   Exit code 0 done, 1 refused, 2 not understood, 3 can't reach Roomtone.
 

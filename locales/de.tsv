@@ -722,3 +722,27 @@ Selected	Ausgewählt
 Sound settings	Klangeinstellungen
 Unmute	Stummschaltung aufheben
 Up	Nach oben
+Delete scene	Szene löschen
+Deleted scene “{name}”	Szene „{name}“ gelöscht
+Do it	Starten
+Edit scene	Szene bearbeiten
+Give it a name and pick at least one room.	Gib ihr einen Namen und wähle mindestens einen Raum.
+Manage	Verwalten
+Name, e.g. Movie night	Name, z. B. Filmabend
+New scene	Neue Szene
+No scenes yet. A scene might be “Movie night”: the living room and kitchen together, quiet, playing a playlist, stopping after two hours.	Noch keine Szenen. Eine Szene könnte „Filmabend“ sein: Wohnzimmer und Küche zusammen, leise, mit einer Playlist, nach zwei Stunden aus.
+Nothing: leave what's playing	Nichts: Wiedergabe unverändert lassen
+One click sets up your rooms: who plays together, how loud, what plays, and when it stops	Ein Klick richtet deine Räume ein: wer zusammen spielt, wie laut, was läuft und wann es endet
+Play these rooms together	Diese Räume zusammen abspielen
+Saved scene “{name}”	Szene „{name}“ gespeichert
+Scene “{name}” is on	Szene „{name}“ läuft
+Scene “{name}” stopped: {error}	Szene „{name}“ angehalten: {error}
+Scenes	Szenen
+Set volume	Lautstärke setzen
+Start	Starten mit
+Stop the music after	Musik stoppen nach
+There's no scene called “{name}”	Es gibt keine Szene „{name}“
+minutes	Minuten
+plays {name}	spielt {name}
+stops after {n} min	stoppt nach {n} Min.
+{room} at {volume}	{room} auf {volume}

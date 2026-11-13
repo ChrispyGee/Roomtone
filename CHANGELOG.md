@@ -5,6 +5,7 @@ All notable changes to Roomtone. The format follows [Keep a Changelog](https://k
 ## [Unreleased]
 
 ### Added
+- **Scenes**: a new *Scenes* page (and a row of buttons on Home) for one-click set-ups such as “Movie night”: pick the rooms (each with an optional volume), play them together, choose a favorite or playlist to start, and an optional sleep timer. Also `roomtone scene "Movie night"` / `roomtone scenes` on the command line and the assistant tools `list_scenes` and `apply_scene`. Checked on the demo system only (it changes volumes and playback, so it hasn't been tried on real speakers). Not yet in a scene: night sound and EQ; not yet in backup files. New `scenes` field in `config.json`.
 - **Keyboard and screen-reader support**: every hand-drawn button, icon button, switch, slider, filter chip, segmented control and list row now has a name and role for screen readers (VoiceOver, Narrator, NVDA, Orca) and shows an orange focus ring when you Tab to it; arrow keys move a focused slider; Ctrl/Cmd with the arrow keys skips songs and changes the volume. Space anywhere else still plays or pauses, but no longer fires while a button has the focus. **Not yet tried with a real screen reader.**
 
 ## [0.6.2] — 2026-11-13

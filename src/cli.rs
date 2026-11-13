@@ -10,8 +10,28 @@ use std::net::TcpStream;
 use std::time::Duration;
 
 /// Words that mean "this is a control command", not an option.
-pub const COMMANDS: &[&str] =
-    &["status", "rooms", "now", "play", "pause", "toggle", "next", "previous", "volume", "mute", "unmute", "group", "ungroup", "sleep", "queue", "favorites", "alarms", "backup"];
+pub const COMMANDS: &[&str] = &[
+    "status",
+    "rooms",
+    "now",
+    "play",
+    "pause",
+    "toggle",
+    "next",
+    "previous",
+    "volume",
+    "mute",
+    "unmute",
+    "group",
+    "ungroup",
+    "sleep",
+    "queue",
+    "favorites",
+    "alarms",
+    "backup",
+    "scene",
+    "scenes",
+];
 
 pub fn is_command(word: &str) -> bool {
     COMMANDS.contains(&word)
@@ -54,6 +74,9 @@ pub fn plan(words: &[String]) -> Result<Call, String> {
         "queue" => call("get_queue", with_room(json!({}))),
         "favorites" => call("list_favorites", with_room(json!({}))),
         "alarms" => call("list_alarms", json!({})),
+        "scenes" => call("list_scenes", json!({})),
+        "scene" if !args.is_empty() => call("apply_scene", json!({"name": args.join(" ")})),
+        "scene" => Err("scene needs a name; `scenes` lists them".into()),
         "backup" => call("save_backup", json!({"file": args.first().ok_or("backup needs a file name ending in .json")?})),
         "pause" | "toggle" | "next" | "previous" => call("playback", with_room(json!({"action": cmd}))),
         "play" if args.is_empty() => call("playback", with_room(json!({"action": "play"}))),
@@ -164,6 +187,9 @@ mod unit {
         assert_eq!(p("status").unwrap().tool, "get_status");
         assert_eq!(p("backup /tmp/b.json").unwrap(), Call { tool: "save_backup", args: json!({"file": "/tmp/b.json"}) });
         assert!(p("backup").is_err());
+        assert_eq!(p("scene Movie night").unwrap(), Call { tool: "apply_scene", args: json!({"name": "Movie night"}) });
+        assert_eq!(p("scenes").unwrap().tool, "list_scenes");
+        assert!(p("scene").is_err());
     }
 
     #[test]

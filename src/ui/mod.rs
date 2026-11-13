@@ -3,6 +3,7 @@
 mod art;
 mod lists;
 mod pages;
+mod scenes;
 pub mod theme;
 pub mod widgets;
 
@@ -34,6 +35,7 @@ pub enum View {
     Room(String),
     Services,
     History,
+    Scenes,
 }
 
 pub struct App {
@@ -89,6 +91,8 @@ pub struct App {
     speakers_open: bool,
     /// The *Can't find your speakers?* window.
     finder_open: bool,
+    /// The scene being made or changed: (its name before, the scene).
+    scene_editor: Option<(Option<String>, crate::config::Scene)>,
     /// Whether the connection type of every room was asked for since *Your speakers* was opened.
     connections_asked: bool,
     merged_source: usize,
@@ -166,6 +170,7 @@ impl App {
             "nowplaying" => View::NowPlaying,
             "services" => View::Services,
             "history" => View::History,
+            "scenes" => View::Scenes,
             "speakers" => View::Home,
             "room" => View::Room("D-LIVING".into()),
             _ => View::Home,
@@ -222,6 +227,7 @@ impl App {
             link_dismissed: false,
             speakers_open: open_speakers,
             finder_open: open_finder,
+            scene_editor: None,
             connections_asked: false,
             merged_source: 0,
             current_group: None,
@@ -366,6 +372,27 @@ impl App {
                 self.backend.send(Cmd::CheckS2(hid));
             }
         }
+        if self.frame == 20 && std::env::var_os("ROOMTONE_TEST_SCENE").is_some() {
+            // Picture check: two made-up scenes in memory (never saved) and the editor open.
+            let mut s = self.backend.lock();
+            let hid = s.household().map(|h| h.id.clone()).unwrap_or_default();
+            use crate::config::{Scene, SceneRoom};
+            let room = |n: &str, v: Option<u8>| SceneRoom { room: n.into(), volume: v };
+            s.config.scenes = vec![
+                Scene {
+                    name: "Movie night".into(),
+                    household: hid.clone(),
+                    rooms: vec![room("Living Room", Some(22)), room("Kitchen", Some(18))],
+                    group: true,
+                    play: "Dinner Party".into(),
+                    sleep_minutes: 120,
+                },
+                Scene { name: "Good night".into(), household: hid.clone(), rooms: vec![room("Bedroom", Some(8))], group: true, play: String::new(), sleep_minutes: 30 },
+            ];
+            if std::env::var("ROOMTONE_TEST_SCENE").as_deref() == Ok("edit") {
+                self.scene_editor = Some((Some("Movie night".into()), s.config.scenes[0].clone()));
+            }
+        }
         if self.frame == 20 && std::env::var_os("ROOMTONE_TEST_FINDER").is_some() {
             self.backend.send(Cmd::Diagnose);
         }
@@ -453,6 +480,7 @@ impl App {
         self.link_modal(ctx, s);
         self.speakers_modal(ctx, s);
         self.finder_modal(ctx, s);
+        self.scene_modal(ctx, s);
         self.group_preset_modal(ctx, s);
         self.update_modal(ctx);
         self.toasts(ctx, s);
@@ -470,7 +498,7 @@ impl App {
         });
         ui.add_space(22.0);
 
-        let items: [(View, Icon, &str); 10] = [
+        let items: [(View, Icon, &str); 11] = [
             (View::Home, Icon::Home, t!("Home")),
             (View::Search, Icon::Search, t!("Search")),
             (View::Favorites, Icon::Star, t!("Favorites")),
@@ -479,6 +507,7 @@ impl App {
             (View::Radio, Icon::Radio, t!("Radio")),
             (View::Services, Icon::Services, t!("Music Services")),
             (View::Inputs, Icon::Input, t!("Line-In & TV")),
+            (View::Scenes, Icon::Sliders, t!("Scenes")),
             (View::Alarms, Icon::Alarm, t!("Alarms")),
             (View::Settings, Icon::Gear, t!("Settings")),
         ];
@@ -1882,7 +1911,7 @@ impl eframe::App for App {
     }
 }
 
-fn modal_frame() -> egui::Frame {
+pub(super) fn modal_frame() -> egui::Frame {
     egui::Frame::new().fill(SURFACE()).corner_radius(18.0).inner_margin(22.0).stroke(Stroke::new(1.0_f32, LINE()))
 }
 

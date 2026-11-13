@@ -722,3 +722,27 @@ Selected	Selezionato
 Sound settings	Impostazioni audio
 Unmute	Riattiva audio
 Up	Su
+Delete scene	Elimina scena
+Deleted scene “{name}”	Scena «{name}» eliminata
+Do it	Avvia
+Edit scene	Modifica scena
+Give it a name and pick at least one room.	Dalle un nome e scegli almeno una stanza.
+Manage	Gestisci
+Name, e.g. Movie night	Nome, es. Serata film
+New scene	Nuova scena
+No scenes yet. A scene might be “Movie night”: the living room and kitchen together, quiet, playing a playlist, stopping after two hours.	Ancora nessuna scena. Una scena potrebbe essere «Serata film»: salotto e cucina insieme, a basso volume, con una playlist, che si ferma dopo due ore.
+Nothing: leave what's playing	Niente: lascia ciò che sta suonando
+One click sets up your rooms: who plays together, how loud, what plays, and when it stops	Un clic prepara le tue stanze: chi suona insieme, a che volume, cosa suona e quando finisce
+Play these rooms together	Riproduci queste stanze insieme
+Saved scene “{name}”	Scena «{name}» salvata
+Scene “{name}” is on	La scena «{name}» è attiva
+Scene “{name}” stopped: {error}	La scena «{name}» si è fermata: {error}
+Scenes	Scene
+Set volume	Imposta il volume
+Start	Avvia
+Stop the music after	Ferma la musica dopo
+There's no scene called “{name}”	Non c'è nessuna scena chiamata «{name}»
+minutes	minuti
+plays {name}	riproduce {name}
+stops after {n} min	si ferma dopo {n} min
+{room} at {volume}	{room} a {volume}

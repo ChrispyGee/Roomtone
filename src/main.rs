@@ -46,6 +46,7 @@ mod net;
 mod pls_xspf;
 mod quality;
 mod s2;
+mod scene;
 mod sources;
 mod status;
 #[cfg(test)]

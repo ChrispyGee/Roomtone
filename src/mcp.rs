@@ -368,6 +368,11 @@ impl Mcp {
 
     // ---------- Tools ----------
 
+    /// Run one tool by name, as an assistant would (used by scenes).
+    pub(crate) fn run_tool(&self, name: &str, a: &Value) -> ToolResult {
+        self.call(name, a)
+    }
+
     fn call(&self, name: &str, a: &Value) -> ToolResult {
         if let Some(result) = self.call_extra(name, a) {
             return result;
@@ -1129,7 +1134,7 @@ mod unit {
         let m = link();
         let all = rpc(&m, 1, "tools/list", json!({}))["result"]["tools"].as_array().unwrap().len();
         assert_eq!(all, tools().len());
-        assert_eq!(all, 49);
+        assert_eq!(all, 51);
         let mut names: Vec<&str> = tools().iter().map(|t| t.0).collect();
         names.sort();
         names.dedup();
@@ -1139,7 +1144,7 @@ mod unit {
         }
         m.b.lock().config.mcp.allow_control = false;
         let look = rpc(&m, 2, "tools/list", json!({}))["result"]["tools"].as_array().unwrap().clone();
-        assert_eq!(look.len(), 14);
+        assert_eq!(look.len(), 15);
         assert!(look.iter().all(|t| t["annotations"]["readOnlyHint"] == true));
         let (text, err) = tool(&m, "playback", json!({"action": "pause"}));
         assert!(err && text.contains("only lets assistants look"));

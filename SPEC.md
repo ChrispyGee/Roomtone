@@ -81,6 +81,10 @@ The source of truth for **what Roomtone does**. Code, tests and docs should agre
 - **Keyboard**: Tab and Shift+Tab move through every button, row, switch and slider, with an orange ring showing where the focus is; Enter or Space presses the focused control; arrow keys move a focused slider (Shift for bigger steps). Space anywhere else plays or pauses the selected room. Ctrl (Cmd on a Mac) with the Right or Left arrow skips to the next or previous song, and with Up or Down changes the volume by 5. None of these act while typing in a text box.
 - **Screen readers**: the window is exposed through AccessKit (VoiceOver on macOS, Narrator and NVDA on Windows, Orca on Linux). Every hand-drawn control has a name and a role: buttons (with a name for each icon), switches and filter chips as checkboxes (with their on/off state), the segmented control as radio buttons, sliders with their name and value, and rows with the song or room they stand for. Controls that are only pictures take their name from `widgets::icon_name`. A test draws the controls and checks the names an accessibility tree reports. **Not yet tried with a real screen reader**, and the artwork and decorative icons aren't described.
 
+### 4.2b Scenes
+
+A **scene** is a named one-click set-up kept in `config.json` (`scenes`): a list of rooms (each with an optional volume), whether to play them together, a favorite or playlist to start (by name), and an optional sleep timer. The **Scenes** page (sidebar) lists the active system's scenes with *Do it*, *Edit* and *Delete* and a *New scene* window; Home shows them as buttons; `roomtone scene <name>` and the assistant tool `apply_scene` do the same. Doing a scene runs the same steps an assistant would, one after another, and stops at the first that fails, saying which: group the rooms (two or more, if *together* is on; the first room leads), set each room's volume, start what it plays in the first room, set the sleep timer. A scene on the demo system works the same way. Not part of a scene yet: night sound, speech enhancement, bass and treble. Scenes aren't in backup files yet.
+
 ### 4.3 Music sources
 | Source | What it offers | Needs |
 | --- | --- | --- |
@@ -195,7 +199,7 @@ Rooms are given by name (exact, or a unique part of a name) or id. Leaving the r
 | --- | --- |
 | `get_status` *(read)* | Every system, room, group, what's playing, volumes, play mode, play-along links and saved groups (JSON) |
 | `now_playing` *(read)* | One room's group: track, position, state, volume, play mode, sleep timer |
-| `playback` | `backup <file.json>`, `play`, `pause`, `toggle`, `next`, `previous` |
+| `playback` | `scene <name>`, `scenes`, `backup <file.json>`, `play`, `pause`, `toggle`, `next`, `previous` |
 | `set_volume` | Absolute `volume` 0–100 or relative `change`; `whole_group` for the group |
 | `set_mute` | Mute or unmute a room or its group |
 | `set_play_mode` | `shuffle`, `repeat` (off/all/one), `crossfade` |
@@ -216,6 +220,7 @@ Rooms are given by name (exact, or a unique part of a name) or id. Leaving the r
 | `install_update` | Installs on every speaker of a room's system; refused unless `confirm: true` |
 | `browse` *(read)* | Step through the sources: without a ref the top level (favorites, playlists, library, this computer, radio, podcasts, Internet Archive, services); with a ref, what's inside (refs `b1`…) |
 | `save_backup` | Writes a backup `.json` of the system's favorites, playlists and alarms and Roomtone's own lists and settings to a new file on this computer (never overwrites; `.json` only). Reads the speakers; restoring stays in the app |
+| `list_scenes` *(read)*, `apply_scene` | The saved scenes; do one by name (groups its rooms, sets volumes, starts what it plays, sets its timer) |
 | `list_recent` *(read)* | Recently played from this app (refs `rec1`…) |
 | `add_favorite`, `remove_favorite` | Save a ref or what's playing (`current: true`); remove by ref from `list_favorites` |
 | `save_queue_as_playlist`, `move_in_queue` | Queue editing |
@@ -315,7 +320,7 @@ Quick checks that a change hasn't broken behaviour. Each needs no real speakers 
 
 1. `cargo test` passes: 103 unit tests, including that every phrase is translated and placeholders are kept.
 2. `roomtone --screenshot shots/x.png` saves a non-blank picture of the demo system within a few seconds.
-3. `roomtone --mcp --demo` with an `initialize` line, then `tools/list`, lists 49 tools when control is allowed and 14 when look-only.
+3. `roomtone --mcp --demo` with an `initialize` line, then `tools/list`, lists 51 tools when control is allowed and 15 when look-only.
 4. With the link off, `tools/call` answers error −32001.
 5. Over HTTP, a request without the key gets 401, one with `Origin: https://example.com` gets 403, and `--mcp-off` closes the port within ~2 s.
 6. In the demo: `play_along` from "Living Room" to "Office", then `playback next` on Living Room, changes Office's track too.
