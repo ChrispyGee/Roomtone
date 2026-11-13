@@ -610,9 +610,8 @@ Import playlist	Afspeellijst importeren
 Connect to your speakers first	Maak eerst verbinding met je speakers
 “{title}” has no songs to export	„{title}” heeft geen nummers om te exporteren
 Saved playlist “{title}” as {file}	Afspeellijst „{title}” opgeslagen als {file}
-Export as M3U…	Exporteren als M3U…
-Export as CSV…	Exporteren als CSV…
 Add a playlist from an M3U or CSV file, or a file saved with Export playlist or Save backup	Een afspeellijst toevoegen uit een M3U- of CSV-bestand, of een bestand dat is opgeslagen met Afspeellijst exporteren of Back-up opslaan
 Back up and restore your favorites, playlists and alarms, and export or import a single playlist (M3U, CSV)	Back-up en herstel van favorieten, afspeellijsten en wekkers, en het exporteren of importeren van één afspeellijst (M3U, CSV)
 Podcasts remember where you stopped, show what's played, and have 15 and 30 second skip buttons	Podcasts onthouden waar je gebleven was, tonen wat beluisterd is en hebben knoppen om 15 en 30 seconden te springen
 The format, sample rate and bit depth of what's playing, where the speaker says	Het formaat, de samplefrequentie en de bitdiepte van wat speelt, als de speaker ze doorgeeft
+Choose the file type when you pick the name: M3U playlist, CSV spreadsheet or Roomtone backup (.json)	Kies het bestandstype bij het kiezen van de naam: M3U-afspeellijst, CSV-spreadsheet of Roomtone-back-up (.json)

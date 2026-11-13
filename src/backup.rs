@@ -441,6 +441,19 @@ impl Backup {
     }
 }
 
+/// The path a playlist is exported to, with a file type Roomtone can write. The type is the one
+/// chosen in the Save dialog (or typed): `.m3u8`/`.m3u`, `.csv` or `.json`. Anything else, or
+/// no extension (some systems' dialogs don't add one), becomes an M3U8 file by adding `.m3u8`.
+pub fn playlist_export_path(path: std::path::PathBuf) -> std::path::PathBuf {
+    let known = path.extension().and_then(|e| e.to_str()).is_some_and(|e| ["m3u8", "m3u", "csv", "json"].contains(&e.to_lowercase().as_str()));
+    if known {
+        return path;
+    }
+    let mut name = path.file_name().map(|n| n.to_os_string()).unwrap_or_default();
+    name.push(".m3u8");
+    path.with_file_name(name)
+}
+
 /// Today's date as `2026-11-13`, for a file name (UTC).
 pub fn date_stamp(secs: u64) -> String {
     let days = (secs / 86_400) as i64;
@@ -683,6 +696,18 @@ mod unit {
         let mut cfg = Config::default();
         b.restore(None, &mut cfg, Sections::default(), "H");
         assert_eq!((cfg.language.as_str(), cfg.theme.as_str()), ("auto", "auto"));
+    }
+
+    #[test]
+    fn exported_playlists_always_get_a_type_we_can_write() {
+        use std::path::PathBuf;
+        let p = |s: &str| playlist_export_path(PathBuf::from(s));
+        assert_eq!(p("/a/Road trip.m3u8"), PathBuf::from("/a/Road trip.m3u8"));
+        assert_eq!(p("/a/Road trip.CSV"), PathBuf::from("/a/Road trip.CSV"));
+        assert_eq!(p("/a/list.json"), PathBuf::from("/a/list.json"));
+        assert_eq!(p("/a/Road trip"), PathBuf::from("/a/Road trip.m3u8"), "no type typed: M3U8");
+        assert_eq!(p("/a/mix.v2"), PathBuf::from("/a/mix.v2.m3u8"), "an unknown ending is kept and the type added");
+        assert_eq!(p("/a/mix.txt"), PathBuf::from("/a/mix.txt.m3u8"));
     }
 
     #[test]

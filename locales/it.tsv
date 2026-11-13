@@ -610,9 +610,8 @@ Import playlist	Importa playlist
 Connect to your speakers first	Collegati prima ai tuoi altoparlanti
 “{title}” has no songs to export	«{title}» non ha brani da esportare
 Saved playlist “{title}” as {file}	Playlist «{title}» salvata come {file}
-Export as M3U…	Esporta come M3U…
-Export as CSV…	Esporta come CSV…
 Add a playlist from an M3U or CSV file, or a file saved with Export playlist or Save backup	Aggiungi una playlist da un file M3U o CSV, o da un file salvato con Esporta playlist o Salva backup
 Back up and restore your favorites, playlists and alarms, and export or import a single playlist (M3U, CSV)	Backup e ripristino di preferiti, playlist e sveglie, ed esportazione o importazione di una singola playlist (M3U, CSV)
 Podcasts remember where you stopped, show what's played, and have 15 and 30 second skip buttons	I podcast ricordano dove ti sei fermato, mostrano cosa è stato ascoltato e hanno i pulsanti per saltare di 15 e 30 secondi
 The format, sample rate and bit depth of what's playing, where the speaker says	Il formato, la frequenza di campionamento e la profondità di bit di ciò che sta suonando, quando l’altoparlante li indica
+Choose the file type when you pick the name: M3U playlist, CSV spreadsheet or Roomtone backup (.json)	Scegli il tipo di file quando dai il nome: playlist M3U, foglio CSV o backup di Roomtone (.json)
