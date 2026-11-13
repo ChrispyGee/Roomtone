@@ -89,6 +89,8 @@ pub struct App {
     speakers_open: bool,
     /// The *Can't find your speakers?* window.
     finder_open: bool,
+    /// Whether the connection type of every room was asked for since *Your speakers* was opened.
+    connections_asked: bool,
     merged_source: usize,
     current_group: Option<String>,
     /// Saved favorites this frame: (address, favorite id) on the speakers, and ids kept in the app.
@@ -220,6 +222,7 @@ impl App {
             link_dismissed: false,
             speakers_open: open_speakers,
             finder_open: open_finder,
+            connections_asked: false,
             merged_source: 0,
             current_group: None,
             speaker_favs: vec![],
@@ -1286,7 +1289,13 @@ impl App {
     /// Every speaker with whether it's answering, plus ways to reconnect.
     fn speakers_modal(&mut self, ctx: &egui::Context, s: &AppState) {
         if !self.speakers_open {
+            self.connections_asked = false;
             return;
+        }
+        if !self.connections_asked {
+            // Ask each speaker how it's connected, once each time this window is opened.
+            self.connections_asked = true;
+            self.out.push(Cmd::CheckConnections);
         }
         let mut close = false;
         let modal = egui::Modal::new(egui::Id::unique("speakers_modal")).frame(modal_frame()).show(ctx, |ui| {
@@ -1338,7 +1347,18 @@ impl App {
                                         info.push(r.ip.clone());
                                     }
                                     ui.label(RichText::new(info.join(" · ")).size(12.0).color(TEXT_DIM()));
-                                    ui.label(RichText::new(&state).size(12.0).color(color));
+                                    ui.horizontal(|ui| {
+                                        ui.label(RichText::new(&state).size(12.0).color(color));
+                                        match s.connections.get(&r.uuid) {
+                                            Some(crate::status::Connection::Wired) => {
+                                                chip(ui, t!("Wired"), TEXT_DIM()).on_hover_text(t!("How this speaker reaches your network, from its own network counters"));
+                                            }
+                                            Some(crate::status::Connection::Wireless) => {
+                                                chip(ui, t!("Wireless"), TEXT_DIM()).on_hover_text(t!("How this speaker reaches your network, from its own network counters"));
+                                            }
+                                            _ => {}
+                                        }
+                                    });
                                     if r.online == Some(false) && !r.problem.is_empty() {
                                         ui.add(egui::Label::new(RichText::new(&r.problem).size(11.0).color(TEXT_FAINT())).wrap());
                                     }

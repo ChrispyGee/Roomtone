@@ -698,3 +698,6 @@ Add a playlist from an M3U, PLS, XSPF or CSV file, or a file saved with Export p
 Control Roomtone from a terminal or script, and let assistants follow changes	Commandez Roomtone depuis un terminal ou un script, et les assistants peuvent suivre les changements
 PLS and XSPF playlists, and backups from the command line	Listes PLS et XSPF, et sauvegardes en ligne de commande
 A guided check for when your speakers can't be found	Une vérification guidée quand vos enceintes sont introuvables
+How this speaker reaches your network, from its own network counters	Comment cette enceinte accède à votre réseau, d'après ses propres compteurs réseau
+Wired	Filaire
+Wireless	Sans fil

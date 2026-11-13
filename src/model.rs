@@ -529,6 +529,8 @@ pub struct AppState {
     pub s2: HashMap<String, S2State>,
     /// The latest *Can't find my speakers?* check.
     pub diagnosis: Option<DiagState>,
+    /// How each room is connected (by room id), once asked in the *Your speakers* window.
+    pub connections: HashMap<String, crate::status::Connection>,
 }
 
 /// Where a system's software update stands.
@@ -589,6 +591,7 @@ impl Default for AppState {
             updates: HashMap::new(),
             s2: HashMap::new(),
             diagnosis: None,
+            connections: HashMap::new(),
         }
     }
 }

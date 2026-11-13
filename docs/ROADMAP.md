@@ -20,6 +20,7 @@ These work on the demo system but haven't been confirmed on real hardware. Repor
 | **Media keys and Now Playing** (0.6.0): do the keyboard keys, headphone buttons and the system's Now Playing show and control the selected room? Only starting up was checked, on macOS | Play something, press the keys, look at Control Center, the Windows media overlay or an MPRIS widget (`playerctl`) | Medium |
 | **S2 check** (0.6.0): what do real Connect, Connect:Amp and Play:5 speakers report so the first and second generations can be told apart? One S1 Connect:Amp reported *Check* | Settings › Software updates › *Check my speakers*; attach the result to a Speaker report | Medium |
 | **New-version check** (0.6.0): does it read GitHub's latest release correctly on every system, including behind a proxy? | Switch it on in Settings › New versions and press *Check now* | Low |
+| **Connection type** (0.6.2): is *Wired* / *Wireless* right on every model, and on Wi-Fi-only speakers? Only one wired S1 Connect:Amp has been checked (reports Wired) | Open *Your speakers*; compare with how each speaker is actually connected. `ROOMTONE_SPEAKER=<ip> cargo test real_speaker_connection -- --ignored --nocapture` | Low |
 | **Speaker updates** (events): S2 speakers, grouped rooms, bonded pairs, and a speaker restarting. Checked once on one S1 speaker (3 subscriptions, ~5 s to first notice, 1800 s lease) | Switch it on in Settings and watch the status line while changing things from another app | Medium |
 
 ## Known limits (by design, for now)
@@ -44,15 +45,14 @@ Roughly in order of value. Discuss in an issue before starting the big ones.
 2. **Backup follow-ups**: bring a streaming-service favorite across when the account number differs, and try restoring on real S1 and S2 speakers (it's only tested on a pretend system and the demo so far). (Playlists as M3U, PLS, XSPF and CSV, and `roomtone backup` / the `save_backup` assistant tool, shipped in 0.6.1; command-line restore stays out until restore is proven.)
 3. **Phone-friendly web remote**: serve a small responsive page from the headless HTTP server (protected by the access key), so any phone, tablet or computer can control Roomtone without an app. Drives the same commands as the window and the assistant link. Open questions: how to keep the access key safe on a phone, and whether to show it as a QR code in Settings.
 4. **Scenes**: one click does several things at once: group these rooms, set each room's volume, choose the source and EQ or night sound, and optionally start a sleep timer ("Movie night", "Dinner", "Good night"). Builds on saved groups; also available from the command line and to assistants. Would also add a `scene` command to the command line.
-5. **Speaker status page**: connection type (wired or Wi-Fi), signal, software version and address for each speaker. (The guided *Can't find your speakers?* check and the redacted report shipped in 0.6.1.)
-6. **Menu-bar or tray mini player**: an optional small player in the menu bar or system tray. (Media keys, Now Playing and the remembered window size shipped in 0.6.0.)
-7. **More streaming services, and more for the favorites-only ones**: add services beyond Spotify, Amazon Music, Deezer, TIDAL and Qobuz, and find legitimate ways to do more than play saved favorites with Apple Music, YouTube Music and SoundCloud (browsing and search where a service allows it). Open question: which services let a third-party controller sign in at all.
-8. **Package managers**: a Homebrew cask, a winget manifest and Flathub/AUR entries, so Roomtone can be installed and updated with the usual tools (signing helps; see the first item).
-9. **Gentler alarms**: a volume fade-in, snooze, alarms in several rooms at once, duplicating an alarm, and one-off timers per room.
-10. **Lyrics (maybe)**: show lyrics for what's playing. Needs an outside lyrics source, so it would be opt-in and add a network destination; it may not be worth it.
-11. **Saved play-along links**, and play along for more than two systems.
-12. **More languages**: see "Adding a language" in [CONTRIBUTING.md](../CONTRIBUTING.md).
-13. **Home-theatre settings**: surround and sub levels, where the speakers allow it locally.
-14. **Accessibility pass**: keyboard navigation through every page, screen-reader labels (egui's AccessKit support).
-15. **Recorded replies from real speakers** as test cases (with names and addresses removed), to complement the hand-written samples in the unit tests.
+5. **Menu-bar or tray mini player**: an optional small player in the menu bar or system tray. (Media keys, Now Playing and the remembered window size shipped in 0.6.0.)
+6. **More streaming services, and more for the favorites-only ones**: add services beyond Spotify, Amazon Music, Deezer, TIDAL and Qobuz, and find legitimate ways to do more than play saved favorites with Apple Music, YouTube Music and SoundCloud (browsing and search where a service allows it). Open question: which services let a third-party controller sign in at all.
+7. **Package managers**: a Homebrew cask, a winget manifest and Flathub/AUR entries, so Roomtone can be installed and updated with the usual tools (signing helps; see the first item).
+8. **Gentler alarms**: a volume fade-in, snooze, alarms in several rooms at once, duplicating an alarm, and one-off timers per room.
+9. **Lyrics (maybe)**: show lyrics for what's playing. Needs an outside lyrics source, so it would be opt-in and add a network destination; it may not be worth it.
+10. **Saved play-along links**, and play along for more than two systems.
+11. **More languages**: see "Adding a language" in [CONTRIBUTING.md](../CONTRIBUTING.md).
+12. **Home-theatre settings**: surround and sub levels, where the speakers allow it locally.
+13. **Accessibility pass**: keyboard navigation through every page, screen-reader labels (egui's AccessKit support).
+14. **Recorded replies from real speakers** as test cases (with names and addresses removed), to complement the hand-written samples in the unit tests.
 
