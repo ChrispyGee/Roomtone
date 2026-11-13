@@ -7,6 +7,8 @@ All notable changes to Roomtone. The format follows [Keep a Changelog](https://k
 ### Added
 - **Stream quality and track details** on the Now Playing page: small labels for the format (FLAC, MP3, AAC…), sample rate, bit depth and bitrate, and *Lossless*, wherever the speaker reports them, plus a collapsible **Technical details** list of what the speaker sent (addresses reduced to their kind) with *Copy details* for bug reports. No extra network calls. Format is known from the MIME type on real S1 library tracks; sample rate, bit depth and bitrate depend on what each speaker sends and haven't been confirmed on real hardware yet.
 
+## [0.5.3] — 2026-11-13
+
 ### Fixed
 - A settings file that can't be read (a typo from editing by hand, a half-written file) is no longer silently replaced by the defaults: it is moved to `config.json.broken-<n>`, a notice at the top of Settings says where it went, and if it can't be moved nothing is saved that run. Background readers never touch it.
 
