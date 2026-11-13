@@ -2134,9 +2134,9 @@ impl App {
             ui.add_space(6.0);
             ui.label(RichText::new(t!("What's new in this version")).color(TEXT()).strong());
             for line in [
-                t!("Control Roomtone from a terminal or script, and let assistants follow changes"),
-                t!("PLS and XSPF playlists, and backups from the command line"),
-                t!("A guided check for when your speakers can't be found"),
+                t!("Your speakers shows whether each one is wired or wireless"),
+                t!("Export a playlist from its own page"),
+                t!("Install on a Mac with Homebrew"),
             ] {
                 ui.horizontal_wrapped(|ui| {
                     ui.label(RichText::new("•").color(ACCENT()));

@@ -695,9 +695,9 @@ macOS: open System Settings › Privacy & Security › Local Network and switch 
 {n} speakers answered the search	{n} Lautsprecher haben auf die Suche geantwortet
 Choose the file type when you pick the name: M3U, PLS or XSPF playlist, CSV spreadsheet or Roomtone backup (.json)	Wähle den Dateityp beim Festlegen des Namens: M3U-, PLS- oder XSPF-Playlist, CSV-Tabelle oder Roomtone-Backup (.json)
 Add a playlist from an M3U, PLS, XSPF or CSV file, or a file saved with Export playlist or Save backup	Eine Playlist aus einer M3U-, PLS-, XSPF- oder CSV-Datei oder einer mit „Playlist exportieren“ oder „Backup speichern“ gespeicherten Datei hinzufügen
-Control Roomtone from a terminal or script, and let assistants follow changes	Roomtone von einem Terminal oder Skript aus steuern, und Assistenten können Änderungen verfolgen
-PLS and XSPF playlists, and backups from the command line	PLS- und XSPF-Playlists sowie Backups über die Befehlszeile
-A guided check for when your speakers can't be found	Eine geführte Prüfung, wenn deine Lautsprecher nicht gefunden werden
 How this speaker reaches your network, from its own network counters	Wie dieser Lautsprecher dein Netzwerk erreicht, nach seinen eigenen Netzwerkzählern
 Wired	Per Kabel
 Wireless	Drahtlos
+Your speakers shows whether each one is wired or wireless	„Deine Lautsprecher“ zeigt, ob jeder per Kabel oder drahtlos verbunden ist
+Export a playlist from its own page	Eine Playlist von ihrer eigenen Seite aus exportieren
+Install on a Mac with Homebrew	Auf dem Mac mit Homebrew installieren
