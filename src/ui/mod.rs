@@ -350,7 +350,10 @@ impl App {
             if let Ok(id) = std::env::var("ROOMTONE_TEST_OPEN") {
                 self.view = View::Library;
                 let parent_id = if id.starts_with("SQ:") { "SQ:".to_string() } else { String::new() };
-                let (class, uri) = if id.starts_with("SQ:") { ("object.container.playlistContainer".to_string(), format!("demo-pl:{}", &id[3..])) } else { Default::default() };
+                let (class, uri) = match id.strip_prefix("SQ:") {
+                    Some(n) => ("object.container.playlistContainer".to_string(), format!("demo-pl:{n}")),
+                    None => Default::default(),
+                };
                 self.open(&Item { id: id.clone(), title: id, is_container: true, parent_id, class, uri, ..Default::default() });
             }
         }
