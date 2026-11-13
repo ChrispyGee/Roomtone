@@ -585,3 +585,6 @@ Save a backup	Een back-up opslaan
 Save backup	Back-up opslaan
 Saves this system's favorites, playlists and alarms, and Roomtone's own lists and settings, to one file. Sign-ins and the access key are never included.	Slaat de favorieten, afspeellijsten en wekkers van dit systeem en de eigen lijsten en instellingen van Roomtone op in één bestand. Aanmeldingen en de toegangssleutel zitten er nooit in.
 {favorites} favorites · {playlists} playlists · {alarms} alarms · {app} of Roomtone's own	{favorites} favorieten · {playlists} afspeellijsten · {alarms} wekkers · {app} van Roomtone zelf
+Instant updates from the speakers, switched on in Settings	Directe updates van de speakers, in te schakelen bij Instellingen
+A guide to every setting, linked from the About section	Een gids voor alle instellingen, gelinkt in het onderdeel Over
+A settings file that can't be read is kept aside instead of being replaced	Een onleesbaar instellingenbestand wordt opzij gezet in plaats van vervangen

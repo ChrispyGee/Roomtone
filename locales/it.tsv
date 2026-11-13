@@ -585,3 +585,6 @@ Save a backup	Salva un backup
 Save backup	Salva backup
 Saves this system's favorites, playlists and alarms, and Roomtone's own lists and settings, to one file. Sign-ins and the access key are never included.	Salva in un file i preferiti, le playlist e le sveglie di questo sistema, più gli elenchi e le impostazioni propri di Roomtone. Gli accessi e la chiave di accesso non sono mai inclusi.
 {favorites} favorites · {playlists} playlists · {alarms} alarms · {app} of Roomtone's own	{favorites} preferiti · {playlists} playlist · {alarms} sveglie · {app} propri di Roomtone
+Instant updates from the speakers, switched on in Settings	Aggiornamenti immediati dagli altoparlanti, da attivare nelle Impostazioni
+A guide to every setting, linked from the About section	Una guida a tutte le impostazioni, collegata nella sezione Informazioni
+A settings file that can't be read is kept aside instead of being replaced	Un file delle impostazioni illeggibile viene messo da parte invece di essere sostituito
