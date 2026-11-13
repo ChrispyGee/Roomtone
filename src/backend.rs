@@ -96,6 +96,8 @@ pub enum Cmd {
     CheckS2(String),
     /// Look for reasons the speakers can't be found (read-only).
     Diagnose,
+    /// Ask every room how it is connected (cable or wireless); read-only.
+    CheckConnections,
     /// Switch the once-a-day look for a newer Roomtone on or off.
     SetVersionCheck(bool),
     /// Look for a newer Roomtone now.
@@ -792,6 +794,7 @@ fn run_live(b: &Backend, ctx: &Waker, cmd: Cmd) -> Result<(), String> {
         | Cmd::SetEvents(_)
         | Cmd::CheckS2(_)
         | Cmd::Diagnose
+        | Cmd::CheckConnections
         | Cmd::SetVersionCheck(_)
         | Cmd::CheckVersionNow
         | Cmd::SetMediaKeys(_)
@@ -1415,6 +1418,39 @@ fn run_common(b: &Backend, ctx: &Waker, cmd: Cmd) -> Result<Option<Cmd>, String>
             let mut s = b.lock();
             s.recent.clear();
             s.toast(crate::t!("History cleared"), false);
+            Ok(None)
+        }
+        Cmd::CheckConnections => {
+            let (rooms, demo) = {
+                let s = b.lock();
+                (s.households.iter().flat_map(|h| h.rooms.iter().map(|r| (r.uuid.clone(), r.ip.clone()))).collect::<Vec<_>>(), s.phase == Phase::Demo)
+            };
+            let (b2, ctx2) = (b.clone(), ctx.clone());
+            thread::spawn(move || {
+                use crate::status::Connection;
+                let handles: Vec<_> = rooms
+                    .into_iter()
+                    .enumerate()
+                    .map(|(i, (uuid, ip))| {
+                        thread::spawn(move || {
+                            // The demo's rooms are made up: alternate so both kinds show.
+                            let c = if demo { Some(if i % 3 == 2 { Connection::Wireless } else { Connection::Wired }) } else { speaker::connection(&ip) };
+                            (uuid, c)
+                        })
+                    })
+                    .collect();
+                let found: Vec<_> = handles.into_iter().filter_map(|h| h.join().ok()).collect();
+                {
+                    let mut s = b2.lock();
+                    for (uuid, c) in found {
+                        match c {
+                            Some(c) => s.connections.insert(uuid, c),
+                            None => s.connections.remove(&uuid),
+                        };
+                    }
+                }
+                ctx2.request_repaint();
+            });
             Ok(None)
         }
         Cmd::Diagnose => {

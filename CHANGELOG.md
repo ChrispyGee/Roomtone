@@ -4,6 +4,9 @@ All notable changes to Roomtone. The format follows [Keep a Changelog](https://k
 
 ## [Unreleased]
 
+### Added
+- **Speaker status**: *Your speakers* now shows whether each room is connected by cable (**Wired**) or **Wireless**, read from the speaker's own network counters (read-only). Checked on one real S1 speaker (Wired). No signal strength: the speakers' status pages don't report one reliably.
+
 ## [0.6.1] — 2026-11-13
 
 ### Added

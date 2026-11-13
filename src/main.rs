@@ -47,6 +47,7 @@ mod pls_xspf;
 mod quality;
 mod s2;
 mod sources;
+mod status;
 #[cfg(test)]
 mod test_support;
 mod ui;

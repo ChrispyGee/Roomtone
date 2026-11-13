@@ -582,6 +582,12 @@ pub fn device_details(ip: &str) -> Option<crate::s2::Details> {
     crate::s2::parse_description(&text)
 }
 
+/// How a speaker is connected (cable or wireless), from its own network counters (read-only).
+pub fn connection(ip: &str) -> Option<crate::status::Connection> {
+    let text = soap::get_text(&format!("http://{ip}:1400/status/ifconfig")).ok()?;
+    Some(crate::status::from_ifconfig(&text))
+}
+
 /// The speaker's build number ("softwareVersion" in its description).
 pub fn software_version(ip: &str) -> Option<String> {
     let text = soap::get_text(&format!("http://{ip}:1400/xml/device_description.xml")).ok()?;
