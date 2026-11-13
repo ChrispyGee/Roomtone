@@ -47,6 +47,7 @@ mod sources;
 #[cfg(test)]
 mod test_support;
 mod ui;
+mod version;
 mod window;
 
 use std::path::PathBuf;
