@@ -638,6 +638,19 @@ Roomtone {version} is available. See Settings.	Roomtone {version} est disponible
 Podcasts and other web audio now play on S1 speakers	Les podcasts et autres contenus audio web fonctionnent maintenant sur les enceintes S1
 Arrange your rooms in the order you like	Organisez vos pièces dans l’ordre que vous voulez
 More ways to sort long lists, an A–Z jump strip, and a search box for the queue	Plus de façons de trier les longues listes, une barre de saut A–Z et un champ de recherche pour la file d’attente
+Can this system move to S2?	Ce système peut-il passer à S2 ?
+Check again	Vérifier à nouveau
+Check my speakers	Vérifier mes enceintes
+Asks each speaker which model it is. Nothing is changed.	Demande à chaque enceinte quel est son modèle. Rien n’est modifié.
+{n} of {total} speakers can't run S2. They would have to stay on S1 as a separate system.	{n} enceintes sur {total} ne peuvent pas utiliser S2. Elles devraient rester en S1 dans un système séparé.
+{n} of {total} speakers need checking: their model comes in a first generation that can't run S2 and a second that can.	{n} enceintes sur {total} sont à vérifier : leur modèle existe en une première génération incompatible avec S2 et une seconde qui l’est.
+Every speaker looks able to run S2.	Toutes les enceintes semblent pouvoir utiliser S2.
+Already on S2	Déjà sous S2
+Can run S2	Compatible S2
+Can't run S2	Incompatible S2
+Check	À vérifier
+Based on Sonos's list of products that can't run S2. For a speaker marked Check, look at Sonos's S2 compatibility list for your product and its generation (the label under the speaker shows the model and a date).	D’après la liste Sonos des produits incompatibles avec S2. Pour une enceinte marquée À vérifier, consultez la liste de compatibilité S2 de Sonos pour votre produit et sa génération (l’étiquette sous l’enceinte indique le modèle et une date).
+No speaker answered	Aucune enceinte n’a répondu
 Media keys	Touches multimédia
 Use the computer's media controls	Utiliser les commandes multimédia de l’ordinateur
 The keyboard's play, next and previous keys, headphone buttons, and the system's Now Playing (Control Center, the lock screen or the media overlay) control the room selected here.	Les touches lecture, suivant et précédent du clavier, les boutons du casque et « Lecture en cours » du système (Centre de contrôle, écran verrouillé ou surimpression multimédia) commandent la pièce sélectionnée ici.

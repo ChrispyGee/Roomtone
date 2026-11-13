@@ -638,6 +638,19 @@ Roomtone {version} is available. See Settings.	Roomtone {version} ist verfügbar
 Podcasts and other web audio now play on S1 speakers	Podcasts und andere Web-Audioquellen laufen jetzt auch auf S1-Lautsprechern
 Arrange your rooms in the order you like	Ordne deine Räume in der Reihenfolge an, die du magst
 More ways to sort long lists, an A–Z jump strip, and a search box for the queue	Mehr Sortiermöglichkeiten für lange Listen, eine A–Z-Sprungleiste und ein Suchfeld für die Warteschlange
+Can this system move to S2?	Kann dieses System auf S2 wechseln?
+Check again	Erneut prüfen
+Check my speakers	Meine Lautsprecher prüfen
+Asks each speaker which model it is. Nothing is changed.	Fragt jeden Lautsprecher nach seinem Modell. Es wird nichts geändert.
+{n} of {total} speakers can't run S2. They would have to stay on S1 as a separate system.	{n} von {total} Lautsprechern können S2 nicht ausführen. Sie müssten als eigenes System bei S1 bleiben.
+{n} of {total} speakers need checking: their model comes in a first generation that can't run S2 and a second that can.	{n} von {total} Lautsprechern müssen geprüft werden: Ihr Modell gibt es in einer ersten Generation, die S2 nicht kann, und einer zweiten, die es kann.
+Every speaker looks able to run S2.	Alle Lautsprecher können offenbar S2 ausführen.
+Already on S2	Schon auf S2
+Can run S2	Kann S2
+Can't run S2	Kann kein S2
+Check	Prüfen
+Based on Sonos's list of products that can't run S2. For a speaker marked Check, look at Sonos's S2 compatibility list for your product and its generation (the label under the speaker shows the model and a date).	Nach Sonos’ Liste der Produkte, die S2 nicht können. Bei „Prüfen“ sieh in Sonos’ S2-Kompatibilitätsliste für dein Produkt und seine Generation nach (das Schild unter dem Lautsprecher zeigt Modell und Datum).
+No speaker answered	Kein Lautsprecher hat geantwortet
 Media keys	Medientasten
 Use the computer's media controls	Die Medienbedienung des Computers verwenden
 The keyboard's play, next and previous keys, headphone buttons, and the system's Now Playing (Control Center, the lock screen or the media overlay) control the room selected here.	Die Wiedergabe-, Weiter- und Zurück-Tasten der Tastatur, Kopfhörertasten und die Anzeige „Wiedergabe“ des Systems (Kontrollzentrum, Sperrbildschirm oder Medien-Overlay) steuern den hier ausgewählten Raum.

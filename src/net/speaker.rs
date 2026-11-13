@@ -576,6 +576,12 @@ pub(crate) fn parse_update_item(xml: &str) -> R<Option<UpdateOffer>> {
     Ok(Some(UpdateOffer { version, url, size: n.attribute("DownloadSize").and_then(|x| x.parse().ok()).unwrap_or(0) }))
 }
 
+/// What a speaker says about itself (model, hardware version, software generation).
+pub fn device_details(ip: &str) -> Option<crate::s2::Details> {
+    let text = soap::get_text(&format!("http://{ip}:1400/xml/device_description.xml")).ok()?;
+    crate::s2::parse_description(&text)
+}
+
 /// The speaker's build number ("softwareVersion" in its description).
 pub fn software_version(ip: &str) -> Option<String> {
     let text = soap::get_text(&format!("http://{ip}:1400/xml/device_description.xml")).ok()?;

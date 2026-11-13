@@ -120,6 +120,7 @@ Create, edit, enable/disable and delete alarms. Each has a time, how often it re
 ### 4.8 Settings
 - **Systems and rooms** (model, version, address). A room opens its **room settings**: rename, volume, bass and treble (−10…+10), loudness, night sound and speech enhancement (TV speakers), status light, and details.
 - **Software updates**, for each system:
+  - For an S1 system, *Check my speakers* (under *Can this system move to S2?*) reads each speaker's own description (`/xml/device_description.xml`: model name and number, hardware version, software generation; read-only) and shows per room *Already on S2* (software generation 2), *Can't run S2* (model numbers ZP80, ZP100, CR100, CR200, BR100), *Check* (ZP90, ZP120, S5: a first generation that can't and a second that can share the number) or *Can run S2* (anything else), with a summary. It never decides for a *Check* model.
   - *Check for updates* asks the speakers' own update service.
   - When an update is offered, *Update all speakers* asks for confirmation (speakers restart and music stops for a few minutes), then tells every speaker of the system to install it, one after another, showing progress.
   - Updates are only offered and installed for the same generation: an S1 system is never moved to S2. The generation is checked again just before installing.
@@ -286,6 +287,7 @@ All in the app's data folder: `~/Library/Application Support/Roomtone/` (macOS),
 | Streaming **playback** and the account-number retry | Not yet heard on real speakers |
 | Play along between real S1 and S2 speakers | Demo system only |
 | Software updates (check and install) | Demo system only |
+| S2 compatibility check | Read-only on a real S1 system of five Connect:Amps (ZP120, hardware 1.16.3.1, software generation 1 → *Check*); S2 speakers and the Connect/Play:5 generations not seen |
 | Backup: saving favorites, playlists and alarms | One real S1 system, read only (counts and round trip); demo system for everything else |
 | Backup: **restoring** favorites, playlists and alarms | Pretend system in unit tests and the demo system; **not yet tried on real speakers** (the playlist calls `CreateSavedQueue`/`AddURIToSavedQueue` are unverified) |
 | Sound quality labels | Unit tests on made-up and real-S1-library descriptions (format from the MIME type is what a real S1 system sends for library tracks); **sample rate, bit depth and bitrate from real speakers not yet seen** (nothing was playing when checked) |

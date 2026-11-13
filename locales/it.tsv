@@ -638,6 +638,19 @@ Roomtone {version} is available. See Settings.	Roomtone {version} è disponibile
 Podcasts and other web audio now play on S1 speakers	I podcast e altro audio web ora funzionano sugli altoparlanti S1
 Arrange your rooms in the order you like	Riordina le tue stanze come preferisci
 More ways to sort long lists, an A–Z jump strip, and a search box for the queue	Più modi di ordinare le liste lunghe, una barra di salto A–Z e un campo di ricerca per la coda
+Can this system move to S2?	Questo sistema può passare a S2?
+Check again	Controlla di nuovo
+Check my speakers	Controlla i miei altoparlanti
+Asks each speaker which model it is. Nothing is changed.	Chiede a ogni altoparlante che modello è. Non viene cambiato nulla.
+{n} of {total} speakers can't run S2. They would have to stay on S1 as a separate system.	{n} altoparlanti su {total} non possono usare S2. Dovrebbero restare su S1 come sistema separato.
+{n} of {total} speakers need checking: their model comes in a first generation that can't run S2 and a second that can.	{n} altoparlanti su {total} vanno controllati: il loro modello esiste in una prima generazione che non supporta S2 e in una seconda che lo supporta.
+Every speaker looks able to run S2.	Tutti gli altoparlanti sembrano poter usare S2.
+Already on S2	Già su S2
+Can run S2	Supporta S2
+Can't run S2	Non supporta S2
+Check	Da controllare
+Based on Sonos's list of products that can't run S2. For a speaker marked Check, look at Sonos's S2 compatibility list for your product and its generation (the label under the speaker shows the model and a date).	Secondo l’elenco Sonos dei prodotti che non supportano S2. Per un altoparlante contrassegnato Da controllare, consulta l’elenco di compatibilità S2 di Sonos per il tuo prodotto e la sua generazione (l’etichetta sotto l’altoparlante mostra modello e data).
+No speaker answered	Nessun altoparlante ha risposto
 Media keys	Tasti multimediali
 Use the computer's media controls	Usa i controlli multimediali del computer
 The keyboard's play, next and previous keys, headphone buttons, and the system's Now Playing (Control Center, the lock screen or the media overlay) control the room selected here.	I tasti riproduci, avanti e indietro della tastiera, i pulsanti delle cuffie e In riproduzione del sistema (Centro di controllo, schermata di blocco o overlay multimediale) controllano la stanza selezionata qui.

@@ -92,6 +92,8 @@ pub enum Cmd {
     SetTheme(String),
     /// Switch speaker events (instant updates instead of polling) on or off.
     SetEvents(bool),
+    /// Ask each speaker of a system whether it could move to S2 (read-only).
+    CheckS2(String),
     /// Switch the once-a-day look for a newer Roomtone on or off.
     SetVersionCheck(bool),
     /// Look for a newer Roomtone now.
@@ -786,6 +788,7 @@ fn run_live(b: &Backend, ctx: &Waker, cmd: Cmd) -> Result<(), String> {
         | Cmd::InstallUpdate(_)
         | Cmd::SetTheme(_)
         | Cmd::SetEvents(_)
+        | Cmd::CheckS2(_)
         | Cmd::SetVersionCheck(_)
         | Cmd::CheckVersionNow
         | Cmd::SetMediaKeys(_)
@@ -1401,6 +1404,23 @@ fn run_common(b: &Backend, ctx: &Waker, cmd: Cmd) -> Result<Option<Cmd>, String>
             let mut s = b.lock();
             s.recent.clear();
             s.toast(crate::t!("History cleared"), false);
+            Ok(None)
+        }
+        Cmd::CheckS2(hid) => {
+            let (rooms, demo) = {
+                let mut s = b.lock();
+                let Some(h) = s.households.iter().find(|h| h.id == hid) else { return Err(crate::t!("That system isn't available right now").to_string()) };
+                let rooms: Vec<(String, String, String)> = h.rooms.iter().map(|r| (r.name.clone(), r.ip.clone(), r.model.clone())).collect();
+                s.s2.insert(hid.clone(), S2State::Checking);
+                (rooms, s.phase == Phase::Demo)
+            };
+            let (b2, ctx2) = (b.clone(), ctx.clone());
+            thread::spawn(move || {
+                let reports = s2_reports(&rooms, demo);
+                let state = if reports.is_empty() { S2State::Failed(crate::t!("No speaker answered").to_string()) } else { S2State::Done(reports) };
+                b2.lock().s2.insert(hid, state);
+                ctx2.request_repaint();
+            });
             Ok(None)
         }
         Cmd::SetVersionCheck(on) => {
@@ -2249,6 +2269,31 @@ fn poller(b: Backend, ctx: Waker) {
     }
 }
 
+/// Ask each room about its model (read-only). `rooms` is (name, address, model name as listed);
+/// the demo system makes up details from the model name instead.
+fn s2_reports(rooms: &[(String, String, String)], demo: bool) -> Vec<crate::s2::RoomReport> {
+    rooms
+        .iter()
+        .filter_map(|(name, ip, model)| {
+            let details = if demo { Some(demo_details(model)) } else { speaker::device_details(ip) }?;
+            let verdict = crate::s2::assess(&details);
+            Some(crate::s2::RoomReport { room: name.clone(), details, verdict })
+        })
+        .collect()
+}
+
+/// Made-up details for the demo system's S1 rooms: the "Connect" ones are the ambiguous kind,
+/// the rest are first-generation Zone Players.
+fn demo_details(model: &str) -> crate::s2::Details {
+    let connect = model.to_lowercase().contains("connect");
+    crate::s2::Details {
+        model_name: format!("Sonos {model}"),
+        model_number: if connect { "ZP120" } else { "ZP100" }.into(),
+        hardware: "1.16.3.1-2.0".into(),
+        software_generation: 1,
+    }
+}
+
 /// Looks for a newer Roomtone: once a day while the setting is on, and whenever *Check now* is
 /// pressed. Only ever reads the project's release page.
 fn version_checker(b: Backend, ctx: Waker) {
@@ -2860,6 +2905,42 @@ mod unit {
         drop(s);
         // Put it back so other tests see the speakers' own order.
         b.send_and_wait(Cmd::MoveGroup(second, 1), wait).unwrap();
+    }
+
+    #[test]
+    fn the_s2_check_reports_every_room_without_changing_anything() {
+        let b = demo_backend();
+        let hid = b.lock().households.iter().find(|h| h.system == System::S1).map(|h| h.id.clone()).expect("the demo has an S1 system");
+        let rooms = b.lock().households.iter().find(|h| h.id == hid).map(|h| h.rooms.len()).unwrap();
+        b.send_and_wait(Cmd::CheckS2(hid.clone()), Duration::from_secs(10)).unwrap();
+        assert!(wait_for(10, || matches!(b.lock().s2.get(&hid), Some(S2State::Done(_)))), "the look finishes");
+        let state = b.lock().s2.get(&hid).cloned();
+        let Some(S2State::Done(reports)) = state else { panic!("no report") };
+        assert_eq!(reports.len(), rooms, "one line per room");
+        let sum = crate::s2::summarize(&reports);
+        assert_eq!(sum.already + sum.can + sum.cannot + sum.check, rooms);
+        assert!(sum.cannot + sum.check > 0, "the demo's old speakers aren't all fine");
+        // An unknown system is a plain error.
+        assert!(b.send_and_wait(Cmd::CheckS2("nope".into()), Duration::from_secs(10)).is_err());
+    }
+
+    /// Read-only check of the S2 report against real speakers (prints models and verdicts only):
+    /// `ROOMTONE_SPEAKER=<ip> cargo test real_speaker_s2_report -- --ignored --nocapture`.
+    #[test]
+    #[ignore]
+    fn real_speaker_s2_report() {
+        let Ok(ip) = std::env::var("ROOMTONE_SPEAKER") else {
+            eprintln!("Set ROOMTONE_SPEAKER=<ip> to run this.");
+            return;
+        };
+        let reports = s2_reports(&[("room".into(), ip, String::new())], false);
+        for r in &reports {
+            eprintln!(
+                "{} · {} · hardware {} · software generation {} → {:?}",
+                r.details.model_name, r.details.model_number, r.details.hardware, r.details.software_generation, r.verdict
+            );
+        }
+        assert!(!reports.is_empty(), "the speaker answers");
     }
 
     #[test]

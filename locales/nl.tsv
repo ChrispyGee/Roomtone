@@ -638,6 +638,19 @@ Roomtone {version} is available. See Settings.	Roomtone {version} is beschikbaar
 Podcasts and other web audio now play on S1 speakers	Podcasts en andere webaudio werken nu ook op S1-speakers
 Arrange your rooms in the order you like	Rangschik je kamers in de volgorde die je wilt
 More ways to sort long lists, an A–Z jump strip, and a search box for the queue	Meer manieren om lange lijsten te sorteren, een A–Z-springbalk en een zoekvak voor de wachtrij
+Can this system move to S2?	Kan dit systeem naar S2?
+Check again	Opnieuw controleren
+Check my speakers	Mijn speakers controleren
+Asks each speaker which model it is. Nothing is changed.	Vraagt elke speaker welk model het is. Er wordt niets gewijzigd.
+{n} of {total} speakers can't run S2. They would have to stay on S1 as a separate system.	{n} van {total} speakers kunnen geen S2 draaien. Ze zouden als apart systeem op S1 moeten blijven.
+{n} of {total} speakers need checking: their model comes in a first generation that can't run S2 and a second that can.	{n} van {total} speakers moeten worden nagekeken: hun model bestaat in een eerste generatie die S2 niet kan en een tweede die het wel kan.
+Every speaker looks able to run S2.	Alle speakers lijken S2 te kunnen draaien.
+Already on S2	Al op S2
+Can run S2	Kan S2
+Can't run S2	Kan geen S2
+Check	Controleren
+Based on Sonos's list of products that can't run S2. For a speaker marked Check, look at Sonos's S2 compatibility list for your product and its generation (the label under the speaker shows the model and a date).	Volgens de lijst van Sonos met producten die geen S2 kunnen. Bij een speaker met Controleren zoek je je product en de generatie op in de S2-compatibiliteitslijst van Sonos (het label onder de speaker toont model en datum).
+No speaker answered	Geen enkele speaker antwoordde
 Media keys	Mediatoetsen
 Use the computer's media controls	De mediabediening van de computer gebruiken
 The keyboard's play, next and previous keys, headphone buttons, and the system's Now Playing (Control Center, the lock screen or the media overlay) control the room selected here.	De afspeel-, volgende- en vorige-toetsen van het toetsenbord, knoppen van de koptelefoon en Nu aan het spelen van het systeem (Bedieningscentrum, vergrendelscherm of media-overlay) bedienen de hier geselecteerde kamer.

@@ -5,6 +5,7 @@ All notable changes to Roomtone. The format follows [Keep a Changelog](https://k
 ## [Unreleased]
 
 ### Added
+- **Can this system move to S2?** Under an S1 system in Settings › Software updates, *Check my speakers* asks each speaker which model it is (read-only) and shows whether it can run S2, can't, or needs checking against Sonos's list (the Connect, Connect:Amp and Play:5 share one model number between a first generation that can't and a second that can). Checked on a real S1 system.
 - **New versions** (Settings › New versions, off by default): an optional once-a-day look at this project's latest release on GitHub, with *Check now* and an *Open download page* button when a newer Roomtone is out. Nothing is sent about you and nothing is downloaded or installed. A new network destination (`api.github.com`), listed in SPEC §9. New `check_new_versions` and `last_version_check` fields in `config.json`.
 - **Media keys and Now Playing** (on by default; Settings › Media keys): the keyboard's play/pause, next and previous keys, headphone buttons and the system's Now Playing (macOS Control Center and lock screen, the Windows media overlay, Linux MPRIS) control the selected room and show its song, artwork and progress. Checked starting up on macOS; **not yet confirmed on Windows and Linux**. New `media_keys` field in `config.json`.
 - **The window remembers its size and position** (`window.json`).
