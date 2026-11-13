@@ -32,6 +32,7 @@ mod config;
 mod csv;
 mod demo;
 mod help;
+mod history;
 mod known;
 mod m3u;
 #[cfg(target_os = "macos")]
