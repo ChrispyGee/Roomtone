@@ -89,6 +89,8 @@ pub struct App {
     along: HashMap<String, String>,
     /// A software update waiting for the person to confirm: (household id, system, version).
     update_confirm: Option<(String, System, String)>,
+    /// Which parts of a backup file to restore (ticked in Settings).
+    backup_sections: crate::backup::Sections,
 }
 
 impl App {
@@ -180,6 +182,7 @@ impl App {
             shot_saved: Default::default(),
             applied_theme: String::new(),
             update_confirm: None,
+            backup_sections: Default::default(),
             group_preset: open_new_group
                 .then(|| (None, crate::config::SavedGroup { name: "Downstairs".into(), household: "demo-s2".into(), rooms: vec!["D-LIVING".into(), "D-KITCHEN".into()] })),
         }
@@ -1409,6 +1412,31 @@ impl App {
                 self.out.push(Cmd::RemoveStation(item.album.clone()));
                 ui.close();
             }
+        }
+        if item.parent_id == "SQ:" && item.is_container && item.id.starts_with("SQ:") && ui.button(t!("Export as CSV…")).clicked() {
+            let name: String = item.title.chars().map(|c| if c.is_alphanumeric() || c == ' ' || c == '-' { c } else { '_' }).collect();
+            let file = rfd::FileDialog::new().set_title(t!("Export as CSV…")).set_file_name(format!("{}.csv", name.trim())).add_filter("CSV spreadsheet", &["csv"]).save_file();
+            if let Some(path) = file {
+                self.out.push(Cmd::ExportPlaylist(item.clone(), path));
+            }
+            ui.close();
+        }
+        if item.parent_id == "SQ:" && item.is_container && item.id.starts_with("SQ:") && ui.button(t!("Export as M3U…")).clicked() {
+            let name: String = item.title.chars().map(|c| if c.is_alphanumeric() || c == ' ' || c == '-' { c } else { '_' }).collect();
+            let file =
+                rfd::FileDialog::new().set_title(t!("Export as M3U…")).set_file_name(format!("{}.m3u8", name.trim())).add_filter("M3U playlist", &["m3u8", "m3u"]).save_file();
+            if let Some(path) = file {
+                self.out.push(Cmd::ExportPlaylist(item.clone(), path));
+            }
+            ui.close();
+        }
+        if item.parent_id == "SQ:" && item.is_container && item.id.starts_with("SQ:") && ui.button(t!("Export playlist…")).clicked() {
+            let name: String = item.title.chars().map(|c| if c.is_alphanumeric() || c == ' ' || c == '-' { c } else { '_' }).collect();
+            let file = rfd::FileDialog::new().set_title(t!("Export playlist…")).set_file_name(format!("{}.json", name.trim())).add_filter("Roomtone backup", &["json"]).save_file();
+            if let Some(path) = file {
+                self.out.push(Cmd::ExportPlaylist(item.clone(), path));
+            }
+            ui.close();
         }
         if let Some(p) = crate::sources::podcasts::podcast_of(item) {
             let subscribed = self.subscribed.contains(&p.feed);

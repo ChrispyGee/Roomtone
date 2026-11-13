@@ -172,6 +172,39 @@ fn favorites() -> Vec<Item> {
     v
 }
 
+/// Add a favorite to the demo system without a pop-up (for restoring a backup).
+pub fn add_favorite_quiet(s: &mut AppState, item: &Item) {
+    let mut list = match s.browse.get("FV:2") {
+        Some(Browse::Ready(v)) => v.clone(),
+        _ => browse("FV:2"),
+    };
+    let mut fav = item.clone();
+    fav.id = format!("FV:2/demo{}", list.len() + 1);
+    list.push(fav);
+    s.browse.insert("FV:2".into(), Browse::Ready(list));
+}
+
+/// Add a playlist, with its songs, to the demo system (for restoring a backup).
+pub fn add_playlist_quiet(s: &mut AppState, title: &str, tracks: &[Item]) {
+    let mut list = match s.browse.get("SQ:") {
+        Some(Browse::Ready(v)) => v.clone(),
+        _ => browse("SQ:"),
+    };
+    let id = format!("SQ:demo{}", list.len() + 1);
+    list.push(Item {
+        id: id.clone(),
+        parent_id: "SQ:".into(),
+        title: title.into(),
+        description: format!("Playlist · {} songs", tracks.len()),
+        class: "object.container.playlistContainer".into(),
+        uri: format!("demo-pl:{id}"),
+        is_container: true,
+        ..Default::default()
+    });
+    s.browse.insert("SQ:".into(), Browse::Ready(list));
+    s.browse.insert(id, Browse::Ready(tracks.to_vec()));
+}
+
 pub fn browse(id: &str) -> Vec<Item> {
     match id {
         "FV:2" => favorites()
@@ -484,6 +517,11 @@ pub fn apply(s: &mut AppState, cmd: &Cmd) {
         | Cmd::SetLanguage(_)
         | Cmd::SetMcp(_)
         | Cmd::SetEvents(_)
+        | Cmd::SaveBackup(..)
+        | Cmd::ReadBackup(_)
+        | Cmd::RestoreBackup(..)
+        | Cmd::DismissBackup
+        | Cmd::ExportPlaylist(..)
         | Cmd::CheckService(_)
         | Cmd::LinkGroups(..)
         | Cmd::Unlink(_)

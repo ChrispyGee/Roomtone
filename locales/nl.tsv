@@ -566,6 +566,38 @@ Technical details	Technische details
 This is what the speaker told Roomtone about this song. Anything it doesn't send can't be shown.	Dit is wat de speaker aan Roomtone heeft doorgegeven over dit nummer. Wat hij niet stuurt, kan niet worden getoond.
 Copy details	Details kopiëren
 Details copied	Details gekopieerd
+Added: {counts}	Toegevoegd: {counts}
+Adds what's in a backup file to this system. Nothing that's already there is changed or removed.	Voegt toe aan dit systeem wat in een back-upbestand staat. Wat er al is, wordt niet gewijzigd of verwijderd.
+Alarms ({n})	Wekkers ({n})
+Alarms are matched to rooms by name. Things already on this system are skipped.	Wekkers worden op naam aan kamers gekoppeld. Wat al op dit systeem staat, wordt overgeslagen.
+Already there, left alone: {counts}	Al aanwezig, ongewijzigd: {counts}
+Backup and restore	Back-up en herstel
+Backup made on {date}	Back-up van {date}
+Backup saved as {file}	Back-up opgeslagen als {file}
+Choose a backup	Kies een back-up
+Couldn't open the backup: {error}	De back-up kon niet worden geopend: {error}
+Couldn't restore: {counts}	Niet hersteld: {counts}
+Couldn't save the backup: {error}	De back-up kon niet worden opgeslagen: {error}
+Couldn't use that file: {error}	Dat bestand kan niet worden gebruikt: {error}
+Details	Details
+Favorites ({n})	Favorieten ({n})
+Nothing new to add: everything was already there.	Niets nieuws om toe te voegen: alles was er al.
+Playlists ({n})	Afspeellijsten ({n})
+Restore	Herstellen
+Restore from a backup	Herstellen uit een back-up
+Roomtone's own lists and settings ({n})	Eigen lijsten en instellingen van Roomtone ({n})
+Save a backup	Een back-up opslaan
+Save backup	Back-up opslaan
+Saves this system's favorites, playlists and alarms, and Roomtone's own lists and settings, to one file. Sign-ins and the access key are never included.	Slaat de favorieten, afspeellijsten en wekkers van dit systeem en de eigen lijsten en instellingen van Roomtone op in één bestand. Aanmeldingen en de toegangssleutel zitten er nooit in.
+{favorites} favorites · {playlists} playlists · {alarms} alarms · {app} of Roomtone's own	{favorites} favorieten · {playlists} afspeellijsten · {alarms} wekkers · {app} van Roomtone zelf
 Instant updates from the speakers, switched on in Settings	Directe updates van de speakers, in te schakelen bij Instellingen
 A guide to every setting, linked from the About section	Een gids voor alle instellingen, gelinkt in het onderdeel Over
 A settings file that can't be read is kept aside instead of being replaced	Een onleesbaar instellingenbestand wordt opzij gezet in plaats van vervangen
+Export playlist…	Afspeellijst exporteren…
+Import playlist	Afspeellijst importeren
+Connect to your speakers first	Maak eerst verbinding met je speakers
+“{title}” has no songs to export	„{title}” heeft geen nummers om te exporteren
+Saved playlist “{title}” as {file}	Afspeellijst „{title}” opgeslagen als {file}
+Export as M3U…	Exporteren als M3U…
+Export as CSV…	Exporteren als CSV…
+Add a playlist from an M3U or CSV file, or a file saved with Export playlist or Save backup	Een afspeellijst toevoegen uit een M3U- of CSV-bestand, of een bestand dat is opgeslagen met Afspeellijst exporteren of Back-up opslaan
