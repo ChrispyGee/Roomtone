@@ -4,6 +4,9 @@ All notable changes to Roomtone. The format follows [Keep a Changelog](https://k
 
 ## [Unreleased]
 
+### Added
+- **Speaker updates** (Settings › Speaker updates, off by default): instead of asking the speakers again and again, Roomtone subscribes to their UPnP events and re-reads a group the moment its speaker reports a change, so changes made elsewhere show up at once. While events work, polling slows to a safety net (10 s / 30 s / 60 s instead of 1 s / 4 s / 20 s), which also cuts network traffic and CPU use. If the speakers can't reach this computer (a firewall), Roomtone says so and keeps polling as before. Needs an incoming connection from the speakers; only subscribed speakers' notices are accepted. Not yet tried with real speakers (the roadmap item for this is done). New `speaker_events` field in `config.json`.
+
 ## [0.5.2] — 2026-11-13
 
 ### Added

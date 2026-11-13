@@ -547,3 +547,12 @@ Installers for macOS, Windows and Linux (.dmg, setup program, .deb and .rpm)	Ins
 The installers aren't signed yet, so your system may ask you to confirm the first launch	Die Installationsprogramme sind noch nicht signiert; dein System fragt beim ersten Start eventuell nach einer Bestätigung
 Light, dark or automatic appearance	Helles, dunkles oder automatisches Erscheinungsbild
 More tools, resources and prompts for AI assistants	Mehr Werkzeuge, Ressourcen und Vorlagen für KI-Assistenten
+Speaker updates	Sprecher-Updates
+Instant updates from the speakers	Sofortige Updates von den Lautsprechern
+The speakers tell Roomtone when something changes, so changes made elsewhere show up at once and far less network traffic is needed. Needs this computer to accept connections from the speakers.	Die Lautsprecher melden Roomtone, wenn sich etwas ändert. Änderungen von anderswo erscheinen sofort, und es wird deutlich weniger Netzwerkverkehr gebraucht. Dieser Computer muss Verbindungen von den Lautsprechern annehmen.
+Works with real speakers, not the demo system.	Funktioniert mit echten Lautsprechern, nicht mit dem Demo-System.
+Some speakers aren't reaching this computer. A firewall may be blocking incoming connections; Roomtone keeps asking them the usual way meanwhile.	Einige Lautsprecher erreichen diesen Computer nicht. Vielleicht blockiert eine Firewall eingehende Verbindungen; Roomtone fragt sie in der Zwischenzeit wie gewohnt ab.
+1 speaker is sending updates.	1 Lautsprecher sendet Updates.
+{n} speakers are sending updates.	{n} Lautsprecher senden Updates.
+1 speaker is sending updates; the rest couldn't be reached yet.	1 Lautsprecher sendet Updates; die anderen waren noch nicht erreichbar.
+{n} speakers are sending updates; the rest couldn't be reached yet.	{n} Lautsprecher senden Updates; die anderen waren noch nicht erreichbar.

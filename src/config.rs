@@ -129,6 +129,10 @@ pub struct Config {
     /// Appearance: "auto" follows the computer, or "light" / "dark".
     #[serde(default = "default_theme")]
     pub theme: String,
+    /// Let the speakers say when something changes (UPnP events) instead of asking over and
+    /// over. Off until the person switches it on: it needs an incoming connection.
+    #[serde(default)]
+    pub speaker_events: bool,
 }
 
 fn default_theme() -> String {
@@ -148,6 +152,7 @@ impl Default for Config {
             language: default_language(),
             mcp: McpConfig::default(),
             theme: default_theme(),
+            speaker_events: false,
         }
     }
 }

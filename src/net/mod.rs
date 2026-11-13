@@ -4,5 +4,6 @@
 
 pub mod didl;
 pub mod discovery;
+pub mod events;
 pub mod soap;
 pub mod speaker;

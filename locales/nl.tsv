@@ -547,3 +547,12 @@ Installers for macOS, Windows and Linux (.dmg, setup program, .deb and .rpm)	Ins
 The installers aren't signed yet, so your system may ask you to confirm the first launch	De installatieprogramma’s zijn nog niet ondertekend, dus je systeem vraagt mogelijk om bevestiging bij de eerste start
 Light, dark or automatic appearance	Lichte, donkere of automatische weergave
 More tools, resources and prompts for AI assistants	Meer tools, bronnen en prompts voor AI-assistenten
+Speaker updates	Updates van de speakers
+Instant updates from the speakers	Directe updates van de speakers
+The speakers tell Roomtone when something changes, so changes made elsewhere show up at once and far less network traffic is needed. Needs this computer to accept connections from the speakers.	De speakers melden aan Roomtone wanneer er iets verandert, zodat wijzigingen van elders meteen verschijnen en er veel minder netwerkverkeer nodig is. Deze computer moet verbindingen van de speakers accepteren.
+Works with real speakers, not the demo system.	Werkt met echte speakers, niet met het demosysteem.
+Some speakers aren't reaching this computer. A firewall may be blocking incoming connections; Roomtone keeps asking them the usual way meanwhile.	Sommige speakers bereiken deze computer niet. Misschien blokkeert een firewall inkomende verbindingen; Roomtone vraagt ze intussen op de gewone manier af.
+1 speaker is sending updates.	1 speaker stuurt updates.
+{n} speakers are sending updates.	{n} speakers sturen updates.
+1 speaker is sending updates; the rest couldn't be reached yet.	1 speaker stuurt updates; de rest was nog niet bereikbaar.
+{n} speakers are sending updates; the rest couldn't be reached yet.	{n} speakers sturen updates; de rest was nog niet bereikbaar.

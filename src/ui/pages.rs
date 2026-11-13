@@ -1863,6 +1863,8 @@ impl App {
         ui.add_space(14.0);
         self.language_card(ui, s);
         ui.add_space(14.0);
+        self.events_card(ui, s);
+        ui.add_space(14.0);
         self.assistant_card(ui, s);
         ui.add_space(14.0);
         self.about_card(ui, s);
@@ -2076,6 +2078,54 @@ impl App {
                     .color(TEXT_FAINT()),
             );
         });
+    }
+
+    /// Instant updates from the speakers (UPnP events) instead of asking again and again.
+    fn events_card(&mut self, ui: &mut Ui, s: &AppState) {
+        section_title(ui, t!("Speaker updates"));
+        let mut on = s.config.speaker_events;
+        card_frame().show(ui, |ui| {
+            ui.set_width(ui.available_width());
+            ui.horizontal(|ui| {
+                ui.set_min_height(40.0);
+                ui.vertical(|ui| {
+                    // Leave room for the switch, so the explanation wraps instead of running under it.
+                    ui.set_max_width((ui.available_width() - 64.0).max(120.0));
+                    ui.label(RichText::new(t!("Instant updates from the speakers")).color(TEXT()));
+                    ui.label(
+                        RichText::new(t!("The speakers tell Roomtone when something changes, so changes made elsewhere show up at once and far less network traffic is needed. Needs this computer to accept connections from the speakers."))
+                            .size(12.0)
+                            .color(TEXT_DIM()),
+                    );
+                });
+                ui.with_layout(Layout::right_to_left(Align::Center), |ui| {
+                    toggle(ui, &mut on);
+                });
+            });
+            if on {
+                let e = &s.events;
+                let (color, text) = if s.phase != Phase::Live {
+                    (TEXT_DIM(), t!("Works with real speakers, not the demo system.").to_string())
+                } else if e.working == 0 && e.silent == 0 && e.failed == 0 {
+                    (TEXT_DIM(), t!("Starting…").to_string())
+                } else if e.silent > 0 || (e.working == 0 && e.failed > 0) {
+                    (BAD(), t!("Some speakers aren't reaching this computer. A firewall may be blocking incoming connections; Roomtone keeps asking them the usual way meanwhile.").to_string())
+                } else if e.failed > 0 {
+                    (TEXT_DIM(), tn!(e.working, "1 speaker is sending updates; the rest couldn't be reached yet.", "{n} speakers are sending updates; the rest couldn't be reached yet."))
+                } else {
+                    (GOOD(), tn!(e.working, "1 speaker is sending updates.", "{n} speakers are sending updates."))
+                };
+                ui.add_space(6.0);
+                ui.horizontal(|ui| {
+                    let (r, _) = ui.allocate_exact_size(vec2(8.0, 8.0), Sense::hover());
+                    ui.painter().circle_filled(r.center(), 4.0, color);
+                    ui.label(RichText::new(text).size(12.5).color(color));
+                });
+            }
+        });
+        if on != s.config.speaker_events {
+            self.send(Cmd::SetEvents(on));
+        }
     }
 
     fn appearance_card(&mut self, ui: &mut Ui, s: &AppState) {

@@ -91,6 +91,19 @@ Services seen refusing third-party sign-in (2026-11-11): Apple Music (`getAppLin
 - **Safety rule** (`backend::check_updates`, `install_update`): an offer is accepted only if its build generation matches the system (S1 ≤ 57, S2 ≥ 58). It is checked again just before installing. Never send S2 software to an S1 system.
 - Not yet tried against real speakers. Whether one call per system is enough, or each speaker needs one, is an open question; the app calls every speaker in turn.
 
+## 6b. Events (UPnP `SUBSCRIBE`)
+
+Used by `net::events` when *Speaker updates* is on. Plain HTTP on port 1400:
+
+| Step | Request |
+| --- | --- |
+| Subscribe | `SUBSCRIBE <path>` with `CALLBACK: <http://this-computer:port/>`, `NT: upnp:event`, `TIMEOUT: Second-1800` → `200` with `SID` and `TIMEOUT` |
+| Renew | `SUBSCRIBE <path>` with `SID` and `TIMEOUT` (no callback) → `200` (anything else: subscribe again) |
+| Cancel | `UNSUBSCRIBE <path>` with `SID` |
+| Notice | The speaker sends `NOTIFY /` to the callback with `SID`, `NT: upnp:event`, `NTS: upnp:propchange`, `SEQ` and an XML property set; we answer `200` |
+
+Paths: `/MediaRenderer/AVTransport/Event` (a group's coordinator), `/MediaRenderer/RenderingControl/Event` (each room), `/ZoneGroupTopology/Event` (one room per system). The body (`LastChange` XML) is deliberately not parsed: a notice only triggers the usual read of that group, so there is one way of reading state. Not yet checked against real speakers: the exact lifetime they grant, whether S1 and S2 differ, and whether every speaker sends an initial notice on subscribing (the app counts a subscription as working only after the first notice).
+
 ## 7. Things that are guesses
 
 Mark guesses in code comments with "estimate", and list them here.
