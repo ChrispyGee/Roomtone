@@ -2,8 +2,7 @@ cask "roomtone" do
   version "@VERSION@"
   sha256 "@SHA_DMG@"
 
-  url "https://github.com/ChrispyGee/Roomtone/releases/download/v#{version}/roomtone-v#{version}-macos-arm64.dmg",
-      verified: "github.com/ChrispyGee/Roomtone/"
+  url "https://github.com/ChrispyGee/Roomtone/releases/download/v#{version}/roomtone-v#{version}-macos-arm64.dmg"
   name "Roomtone"
   desc "Controller for S1 and S2 wireless speaker systems"
   homepage "https://github.com/ChrispyGee/Roomtone"
