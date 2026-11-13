@@ -157,6 +157,9 @@ pub struct Config {
     /// over. Off until the person switches it on: it needs an incoming connection.
     #[serde(default)]
     pub speaker_events: bool,
+    /// Remember what was played (on this computer only) for Recently played and History.
+    #[serde(default = "yes")]
+    pub remember_history: bool,
     /// The order the person arranged their rooms in (room ids, first to last). Rooms not listed
     /// come after, in the speakers' own order.
     #[serde(default)]
@@ -181,6 +184,7 @@ impl Default for Config {
             mcp: McpConfig::default(),
             theme: default_theme(),
             speaker_events: false,
+            remember_history: true,
             room_order: vec![],
         }
     }

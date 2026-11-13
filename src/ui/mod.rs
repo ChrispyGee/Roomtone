@@ -33,6 +33,7 @@ pub enum View {
     NowPlaying,
     Room(String),
     Services,
+    History,
 }
 
 pub struct App {
@@ -132,6 +133,7 @@ impl App {
             "settings" => View::Settings,
             "nowplaying" => View::NowPlaying,
             "services" => View::Services,
+            "history" => View::History,
             "speakers" => View::Home,
             "room" => View::Room("D-LIVING".into()),
             _ => View::Home,

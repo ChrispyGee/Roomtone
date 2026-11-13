@@ -4,6 +4,9 @@ All notable changes to Roomtone. The format follows [Keep a Changelog](https://k
 
 ## [Unreleased]
 
+### Added
+- **Listening history** (on by default, on this computer only): songs and stations played for about 20 seconds are remembered in `history.json`, so *Recently played* survives restarts and includes what was played from other apps, and a new **History** page lists everything with how often and how long ago, ready to play again. Switch it off or *Clear history* in Settings › Listening history. New `remember_history` field in `config.json`.
+
 ## [0.5.5] — 2026-11-13
 
 ### Added
