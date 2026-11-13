@@ -1952,9 +1952,10 @@ impl App {
             ui.add_space(6.0);
             ui.label(RichText::new(t!("What's new in this version")).color(TEXT()).strong());
             for line in [
-                t!("Refreshed to the latest interface toolkit, with the same look and layout"),
-                t!("Fixes a Windows build problem and a warning on Windows and Linux"),
-                t!("The project page and Report a problem are linked from Settings › About"),
+                t!("Light, dark or automatic appearance"),
+                t!("More tools, resources and prompts for AI assistants"),
+                t!("Installers for macOS, Windows and Linux (.dmg, setup program, .deb and .rpm)"),
+                t!("The installers aren't signed yet, so your system may ask you to confirm the first launch"),
             ] {
                 ui.horizontal_wrapped(|ui| {
                     ui.label(RichText::new("•").color(ACCENT()));

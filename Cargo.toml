@@ -1,6 +1,6 @@
 [package]
 name = "roomtone"
-version = "0.5.1"
+version = "0.5.2"
 edition = "2021"
 description = "A modern controller for S1 and S2 wireless speaker systems, with a headless mode and an MCP server for AI assistants"
 license = "MIT OR Apache-2.0"

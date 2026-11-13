@@ -543,3 +543,7 @@ Light or dark	Hell oder dunkel
 Automatic follows your computer's setting.	Automatisch folgt der Einstellung deines Computers.
 Light	Hell
 Dark	Dunkel
+Installers for macOS, Windows and Linux (.dmg, setup program, .deb and .rpm)	Installationsprogramme für macOS, Windows und Linux (.dmg, Setup-Programm, .deb und .rpm)
+The installers aren't signed yet, so your system may ask you to confirm the first launch	Die Installationsprogramme sind noch nicht signiert; dein System fragt beim ersten Start eventuell nach einer Bestätigung
+Light, dark or automatic appearance	Helles, dunkles oder automatisches Erscheinungsbild
+More tools, resources and prompts for AI assistants	Mehr Werkzeuge, Ressourcen und Vorlagen für KI-Assistenten
