@@ -5,7 +5,7 @@ All notable changes to Roomtone. The format follows [Keep a Changelog](https://k
 ## [Unreleased]
 
 ### Added
-- **Backup and restore** (Settings › Backup and restore): save the system's Sonos favorites, playlists (with their songs) and alarms, plus Roomtone's own folders, stations, podcasts, saved groups, kept favorites and preferences, to one JSON file (never sign-ins or the access key), and restore from it on the same or a new system. Restoring only adds: duplicates are skipped, nothing existing is changed, alarms are matched to rooms by name, and a summary says what was added, skipped or couldn't be restored. A single playlist can be exported from its menu on the Playlists page (*Export playlist…*) and imported with *Import playlist*. Saving was checked against a real S1 system (read only); restoring to real speakers isn't tried yet.
+- **Backup and restore** (Settings › Backup and restore): save the system's Sonos favorites, playlists (with their songs) and alarms, plus Roomtone's own folders, stations, podcasts, saved groups, kept favorites and preferences, to one JSON file (never sign-ins or the access key), and restore from it on the same or a new system. Restoring only adds: duplicates are skipped, nothing existing is changed, alarms are matched to rooms by name, and a summary says what was added, skipped or couldn't be restored. A single playlist can be exported from its menu on the Playlists page (*Export playlist…*) and imported with *Import playlist*; **M3U/M3U8** is supported too (*Export as M3U…*, and *Import playlist* opens `.m3u`/`.m3u8` files, matching file paths to your music folders). Saving was checked against a real S1 system (read only); restoring to real speakers isn't tried yet.
 
 ## [0.5.3] — 2026-11-13
 

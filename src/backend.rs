@@ -919,6 +919,13 @@ fn run_common(b: &Backend, ctx: &Waker, cmd: Cmd) -> Result<Option<Cmd>, String>
             if tracks.is_empty() {
                 return Err(crate::t!("“{title}” has no songs to export", title = playlist.title).to_string());
             }
+            if crate::m3u::is_m3u(&path) {
+                let text = crate::m3u::write(&playlist.title, &tracks, &crate::sources::local::path_of_address);
+                std::fs::write(&path, text).map_err(|e| crate::t!("Couldn't save the backup: {error}", error = e))?;
+                let file = path.file_name().map(|n| n.to_string_lossy().to_string()).unwrap_or_default();
+                b.lock().toast(crate::t!("Saved playlist “{title}” as {file}", title = playlist.title, file = file), false);
+                return Ok(None);
+            }
             let now = std::time::SystemTime::now().duration_since(std::time::UNIX_EPOCH).map(|d| d.as_secs()).unwrap_or(0);
             let backup = crate::backup::Backup {
                 roomtone_backup: crate::backup::FORMAT,
@@ -935,16 +942,14 @@ fn run_common(b: &Backend, ctx: &Waker, cmd: Cmd) -> Result<Option<Cmd>, String>
             Ok(None)
         }
         Cmd::ReadBackup(path) => {
-            let text = std::fs::read_to_string(&path).map_err(|e| crate::t!("Couldn't open the backup: {error}", error = e))?;
-            let backup = crate::backup::Backup::parse(&text).map_err(|e| crate::t!("Couldn't use that file: {error}", error = e))?;
+            let backup = load_backup_file(&path)?;
             let mut s = b.lock();
             s.backup_result = None;
             s.backup_preview = Some((path, backup.summary()));
             Ok(None)
         }
         Cmd::RestoreBackup(path, sections) => {
-            let text = std::fs::read_to_string(&path).map_err(|e| crate::t!("Couldn't open the backup: {error}", error = e))?;
-            let backup = crate::backup::Backup::parse(&text).map_err(|e| crate::t!("Couldn't use that file: {error}", error = e))?;
+            let backup = load_backup_file(&path)?;
             let system = active_system(b);
             let (mut cfg, household) = {
                 let s = b.lock();
@@ -2156,6 +2161,27 @@ fn poller(b: Backend, ctx: Waker) {
     }
 }
 
+/// A backup file, or a playlist file (M3U) read as a backup with one playlist in it.
+fn load_backup_file(path: &std::path::Path) -> Result<crate::backup::Backup, String> {
+    if crate::m3u::is_m3u(path) {
+        let bytes = std::fs::read(path).map_err(|e| crate::t!("Couldn't open the backup: {error}", error = e))?;
+        let text = String::from_utf8_lossy(&bytes);
+        let parsed = crate::m3u::parse(&text, path.parent(), &crate::sources::local::item_for_path).map_err(|e| crate::t!("Couldn't use that file: {error}", error = e))?;
+        let title = parsed.title.unwrap_or_else(|| path.file_stem().map(|s| s.to_string_lossy().to_string()).unwrap_or_default());
+        let now = std::time::SystemTime::now().duration_since(std::time::UNIX_EPOCH).map(|d| d.as_secs()).unwrap_or(0);
+        return Ok(crate::backup::Backup {
+            roomtone_backup: crate::backup::FORMAT,
+            created: now,
+            app_version: env!("CARGO_PKG_VERSION").to_string(),
+            sonos_playlists: vec![crate::backup::PlaylistBackup { title, tracks: parsed.tracks }],
+            import_notes: parsed.notes,
+            ..Default::default()
+        });
+    }
+    let text = std::fs::read_to_string(path).map_err(|e| crate::t!("Couldn't open the backup: {error}", error = e))?;
+    crate::backup::Backup::parse(&text).map_err(|e| crate::t!("Couldn't use that file: {error}", error = e))
+}
+
 /// The active system as the backup code sees it: the real speakers, or the demo system.
 struct ActiveSystem {
     b: Backend,
@@ -2488,6 +2514,37 @@ mod unit {
             Some(BackupResult::Restored(r)) => assert_eq!(r.added.playlists, 1, "{r:?}"),
             other => panic!("{other:?}"),
         }
+    }
+
+    #[test]
+    fn a_playlist_can_be_exported_as_m3u_and_imported_again() {
+        use crate::backup::Sections;
+        let b = demo_backend();
+        let wait = Duration::from_secs(10);
+        let dir = std::path::Path::new(env!("CARGO_MANIFEST_DIR")).join("target").join("backup-tests");
+        std::fs::create_dir_all(&dir).unwrap();
+        let file = dir.join("road trip.m3u8");
+        let playlist = demo::browse("SQ:").into_iter().next().expect("the demo has playlists");
+
+        b.send_and_wait(Cmd::ExportPlaylist(playlist.clone(), file.clone()), wait).unwrap();
+        let text = std::fs::read_to_string(&file).unwrap();
+        assert!(text.starts_with("#EXTM3U\n#PLAYLIST:"), "{text}");
+        assert!(text.contains("#EXTINF:"));
+
+        // Read it as an import: its songs come back under the playlist's name.
+        b.send_and_wait(Cmd::ReadBackup(file.clone()), wait).unwrap();
+        let counts = b.lock().backup_preview.as_ref().map(|(_, s)| s.counts).expect("a preview is shown");
+        assert_eq!((counts.playlists, counts.favorites, counts.alarms), (1, 0, 0));
+        // Same name as one that's already there: skipped, with nothing lost or duplicated.
+        b.send_and_wait(Cmd::RestoreBackup(file.clone(), Sections::default()), wait).unwrap();
+        let result = b.lock().backup_result.clone();
+        match result {
+            Some(BackupResult::Restored(r)) => assert_eq!(r.added.playlists + r.skipped.playlists, 1, "{r:?}"),
+            other => panic!("{other:?}"),
+        }
+        // A file that isn't a song list is refused with a message.
+        std::fs::write(&file, "#EXTM3U\n#EXT-X-VERSION:3\n").unwrap();
+        assert!(b.send_and_wait(Cmd::ReadBackup(file), wait).is_err());
     }
 
     /// The demo rooms have no network address; give each a made-up one.

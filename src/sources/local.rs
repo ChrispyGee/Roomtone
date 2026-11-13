@@ -228,6 +228,34 @@ fn album_key(artist: &str, album: &str) -> String {
     format!("{artist}\u{1f}{album}")
 }
 
+/// The file on this computer behind a song address from this app's own music server
+/// (`http://…/t/<code>.<ext>`).
+pub fn path_of_address(uri: &str) -> Option<PathBuf> {
+    let id = uri.split_once("/t/")?.1.split(['.', '?']).next()?;
+    let l = lib().read().ok()?;
+    l.tracks.get(*l.by_id.get(id)?).map(|t| t.path.clone())
+}
+
+/// The song in the music folders for a file path from a playlist. Tries the exact file first,
+/// then a file with the same last folder and name (so a list made on another computer, with its
+/// own drive letters or home folder, still finds your copies).
+pub fn item_for_path(path: &Path) -> Option<Item> {
+    let l = lib().read().ok()?;
+    let exact = std::fs::canonicalize(path).ok();
+    if let Some(t) = l.tracks.iter().find(|t| t.path == path || exact.as_ref().is_some_and(|e| std::fs::canonicalize(&t.path).ok().as_ref() == Some(e))) {
+        return Some(track_item(t));
+    }
+    let tail = |p: &str| -> Vec<String> {
+        let parts: Vec<String> = p.split(['/', '\\']).filter(|s| !s.is_empty()).map(|s| s.to_lowercase()).collect();
+        parts.into_iter().rev().take(2).collect()
+    };
+    let wanted = tail(&path.to_string_lossy());
+    if wanted.len() < 2 {
+        return None;
+    }
+    l.tracks.iter().find(|t| tail(&t.path.to_string_lossy()) == wanted).map(track_item)
+}
+
 /// Details of a song from the folders, by its `/t/<code>` address part.
 pub fn known_track(key: &str) -> Option<super::memory::Known> {
     let id = key.strip_prefix("/t/")?;
@@ -558,5 +586,40 @@ mod tests {
         assert_eq!(body.len(), 100);
         assert_eq!(&body[..4], b"RIFF");
         assert!(super::search("test").iter().any(|i| i.title == "Test Song"));
+    }
+}
+
+#[cfg(test)]
+mod playlist_files {
+    use super::*;
+
+    #[test]
+    fn songs_are_found_by_address_and_by_path_even_from_another_computer() {
+        let id = "m3u-test-0001".to_string();
+        {
+            let mut l = lib().write().unwrap();
+            let t = Track {
+                id: id.clone(),
+                path: PathBuf::from("/Users/me/Music/Marlow Quartet/Morning Fog.flac"),
+                title: "Morning Fog".into(),
+                artist: "Marlow Quartet".into(),
+                album: "Low Tide".into(),
+                genre: String::new(),
+                track_no: 1,
+                duration: 200.0,
+                ext: "flac".into(),
+            };
+            let at = l.tracks.len();
+            l.tracks.push(t);
+            l.by_id.insert(id.clone(), at);
+        }
+        assert_eq!(path_of_address(&format!("http://192.168.1.5:52880/t/{id}.flac")), Some(PathBuf::from("/Users/me/Music/Marlow Quartet/Morning Fog.flac")));
+        assert_eq!(path_of_address("http://x/other.mp3"), None);
+        // Another computer's path (a Windows drive) still finds it by the last folder and file name.
+        let found = item_for_path(Path::new("D:\\Old Music\\marlow quartet\\MORNING FOG.flac")).expect("matched by folder and file name");
+        assert_eq!(found.title, "Morning Fog");
+        assert!(found.uri.ends_with(&format!("/t/{id}.flac")));
+        assert!(item_for_path(Path::new("/nowhere/Else/song.mp3")).is_none());
+        assert!(item_for_path(Path::new("Morning Fog.flac")).is_none(), "a bare file name is too loose to trust");
     }
 }

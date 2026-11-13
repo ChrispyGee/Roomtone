@@ -32,6 +32,7 @@ mod config;
 mod demo;
 mod help;
 mod known;
+mod m3u;
 #[cfg(target_os = "macos")]
 mod macos_about;
 mod mcp;

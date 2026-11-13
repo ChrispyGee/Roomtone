@@ -371,8 +371,11 @@ impl App {
         self.header(ui, title, sub);
         if id == "SQ:" {
             ui.horizontal(|ui| {
-                if pill(ui, Some(Icon::Plus), t!("Import playlist"), false).on_hover_text(t!("Add a playlist from a file saved with Export playlist or Save backup")).clicked() {
-                    if let Some(path) = rfd::FileDialog::new().set_title(t!("Import playlist")).add_filter("Roomtone backup", &["json"]).pick_file() {
+                if pill(ui, Some(Icon::Plus), t!("Import playlist"), false)
+                    .on_hover_text(t!("Add a playlist from an M3U file, or a file saved with Export playlist or Save backup"))
+                    .clicked()
+                {
+                    if let Some(path) = rfd::FileDialog::new().set_title(t!("Import playlist")).add_filter("Playlists and backups", &["m3u8", "m3u", "json"]).pick_file() {
                         self.backup_sections = Default::default();
                         self.send(Cmd::ReadBackup(path));
                         // The summary, with its Restore button, is in Settings › Backup and restore.

@@ -29,6 +29,9 @@ pub struct Backup {
     pub sonos_playlists: Vec<PlaylistBackup>,
     pub alarms: Vec<AlarmBackup>,
     pub app: AppBackup,
+    /// Things skipped while reading a playlist file (M3U); not part of the saved format.
+    #[serde(skip)]
+    pub import_notes: Vec<String>,
 }
 
 /// Where it came from (for the person's information; restoring doesn't depend on it).
@@ -255,7 +258,7 @@ impl Backup {
     /// Add what's in the backup to the system and to `cfg`. Existing things are never changed
     /// or removed. `household` is the system the saved groups should belong to.
     pub fn restore(&self, system: Option<&dyn SystemAccess>, cfg: &mut Config, sections: Sections, household: &str) -> Report {
-        let mut r = Report::default();
+        let mut r = Report { notes: self.import_notes.clone(), ..Default::default() };
         let on_speakers = sections.favorites || sections.playlists || sections.alarms;
         if on_speakers && system.is_none() && (!self.sonos_favorites.is_empty() || !self.sonos_playlists.is_empty() || !self.alarms.is_empty()) {
             r.notes.push("No speakers are connected, so favorites, playlists and alarms weren't restored.".to_string());

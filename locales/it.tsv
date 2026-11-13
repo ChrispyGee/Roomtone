@@ -590,7 +590,8 @@ A guide to every setting, linked from the About section	Una guida a tutte le imp
 A settings file that can't be read is kept aside instead of being replaced	Un file delle impostazioni illeggibile viene messo da parte invece di essere sostituito
 Export playlist…	Esporta playlist…
 Import playlist	Importa playlist
-Add a playlist from a file saved with Export playlist or Save backup	Aggiungi una playlist da un file salvato con Esporta playlist o Salva backup
 Connect to your speakers first	Collegati prima ai tuoi altoparlanti
 “{title}” has no songs to export	«{title}» non ha brani da esportare
 Saved playlist “{title}” as {file}	Playlist «{title}» salvata come {file}
+Export as M3U…	Esporta come M3U…
+Add a playlist from an M3U file, or a file saved with Export playlist or Save backup	Aggiungi una playlist da un file M3U, o da un file salvato con Esporta playlist o Salva backup
