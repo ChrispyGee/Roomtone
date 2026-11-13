@@ -5,6 +5,7 @@ All notable changes to Roomtone. The format follows [Keep a Changelog](https://k
 ## [Unreleased]
 
 ### Added
+- **Package-manager files**: every release now also attaches `SHA256SUMS` (a checksum for each download) and a `…-package-manifests.tar.gz` with a ready-to-submit Homebrew cask, winget manifest and Arch (AUR) `PKGBUILD` for that version, made from templates in `packaging/package-managers/`. Nothing is published to those services yet; `docs/RELEASING.md` says how. The files are checked to fill in correctly in CI; they haven't been installed through the real package managers.
 - **Speaker status**: *Your speakers* now shows whether each room is connected by cable (**Wired**) or **Wireless**, read from the speaker's own network counters (read-only). Checked on one real S1 speaker (Wired). No signal strength: the speakers' status pages don't report one reliably.
 
 ### Changed

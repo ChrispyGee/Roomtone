@@ -1,0 +1,18 @@
+# yaml-language-server: $schema=https://aka.ms/winget-manifest.installer.1.6.0.schema.json
+PackageIdentifier: ChrispyGee.Roomtone
+PackageVersion: @VERSION@
+InstallerType: inno
+Scope: user
+InstallModes:
+  - interactive
+  - silent
+  - silentWithProgress
+UpgradeBehavior: install
+ReleaseDate: @DATE@
+Installers:
+  - Architecture: x64
+    InstallerUrl: https://github.com/ChrispyGee/Roomtone/releases/download/v@VERSION@/roomtone-v@VERSION@-windows-x64-setup.exe
+    InstallerSha256: @SHA_EXE@
+    ProductCode: '{6B0F2C2E-5D0B-4E7B-9B7A-3C1A8F1E7A52}_is1'
+ManifestType: installer
+ManifestVersion: 1.6.0

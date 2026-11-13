@@ -1,0 +1,22 @@
+# yaml-language-server: $schema=https://aka.ms/winget-manifest.defaultLocale.1.6.0.schema.json
+PackageIdentifier: ChrispyGee.Roomtone
+PackageVersion: @VERSION@
+PackageLocale: en-US
+Publisher: Roomtone
+PublisherUrl: https://github.com/ChrispyGee/Roomtone
+PublisherSupportUrl: https://github.com/ChrispyGee/Roomtone/issues
+PackageName: Roomtone
+PackageUrl: https://github.com/ChrispyGee/Roomtone
+License: MIT OR Apache-2.0
+LicenseUrl: https://github.com/ChrispyGee/Roomtone/blob/v@VERSION@/LICENSE-MIT
+ShortDescription: A controller for S1 and S2 wireless speaker systems, with a headless mode and an assistant (MCP) link.
+Description: Roomtone controls S1 and S2 speaker systems side by side from one window, on macOS, Windows and Linux. It also runs without a window and serves an MCP link for AI assistants. Free and open source; nothing is sent anywhere.
+Tags:
+  - audio
+  - music
+  - speakers
+  - upnp
+  - mcp
+ReleaseNotesUrl: https://github.com/ChrispyGee/Roomtone/releases/tag/v@VERSION@
+ManifestType: defaultLocale
+ManifestVersion: 1.6.0
