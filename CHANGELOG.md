@@ -5,6 +5,9 @@ All notable changes to Roomtone. The format follows [Keep a Changelog](https://k
 ## [Unreleased]
 
 ### Fixed
+- Podcasts (and other https audio) on S1 speakers failed with "AddURIToQueue was refused (HTTP 500, code 804)". The relay address this computer gives S1 speakers (`…/p/<code>`) had no file ending, and the speakers decide what kind of audio a plain web address is from its ending, so they refused it. Relay addresses now end like the original (`.mp3`, `.m4a`…, or `.mp3` when it has none). Not yet confirmed on a real S1 speaker.
+
+### Fixed
 - Backups and playlist exports (JSON, M3U, CSV) now give songs that came from a computer's music folders their remembered titles and artists, as the Playlists page does; before, such songs could be exported with only a code as the title (found by exporting a real playlist).
 
 ### Changed

@@ -58,7 +58,16 @@ pub fn proxied(url: &str) -> String {
         m.insert(id.clone(), url.to_string());
     }
     super::memory::remember_relay(&id, url);
-    format!("{b}/p/{id}")
+    format!("{b}/p/{id}.{}", relay_extension(url))
+}
+
+/// The file ending a relayed address gets. The speakers decide what kind of audio a plain web
+/// address is from its ending, and refuse one with none (an S1 speaker answers "error 804" to an
+/// address like `/p/3f9a…`). So the relay path carries the original's ending, or `mp3`.
+fn relay_extension(url: &str) -> &'static str {
+    let path = url.split(['?', '#']).next().unwrap_or(url);
+    let ext = path.rsplit_once('.').map(|(_, e)| e.to_lowercase()).unwrap_or_default();
+    AUDIO.iter().copied().find(|a| *a == ext).map(|a| if a == "alac" { "m4a" } else { a }).unwrap_or("mp3")
 }
 
 fn base() -> &'static RwLock<String> {
@@ -506,7 +515,8 @@ fn serve(mut stream: TcpStream) -> std::io::Result<()> {
 }
 
 fn relay(stream: &mut TcpStream, id: &str, range: Option<(u64, Option<u64>)>, head_only: bool) -> std::io::Result<()> {
-    let code = id.split('?').next().unwrap_or("");
+    // The code, without the file ending the address carries or a query.
+    let code = id.split(['?', '.']).next().unwrap_or("");
     let url = proxies().lock().ok().and_then(|m| m.get(code).cloned()).or_else(|| super::memory::relay(code));
     let Some(url) = url else { return not_found(stream) };
     let agent = ureq::AgentBuilder::new().timeout_connect(std::time::Duration::from_secs(8)).user_agent(concat!("Roomtone/", env!("CARGO_PKG_VERSION"))).build();
@@ -634,5 +644,33 @@ mod playlist_files {
         assert!(item_for_path(Path::new("Morning Fog.flac")).is_none(), "a bare file name is too loose to trust");
         assert_eq!(item_for_name("morning fog", "MARLOW QUARTET").map(|i| i.title), Some("Morning Fog".into()));
         assert!(item_for_name("Morning Fog", "Someone Else").is_none() && item_for_name("", "").is_none());
+    }
+}
+
+#[cfg(test)]
+mod relay_addresses {
+    use super::*;
+
+    #[test]
+    fn relay_addresses_end_like_audio_files() {
+        assert_eq!(relay_extension("https://pdst.fm/e/traffic.megaphone.fm/GLT1544818210.mp3"), "mp3");
+        assert_eq!(relay_extension("https://cdn.example/show/ep1.M4A?token=1"), "m4a");
+        assert_eq!(relay_extension("https://cdn.example/live/stream"), "mp3", "no ending: the usual one");
+        assert_eq!(relay_extension("https://cdn.example/page.html"), "mp3", "not an audio ending");
+        assert_eq!(relay_extension("https://cdn.example/a.flac#t=1"), "flac");
+    }
+
+    #[test]
+    fn a_relayed_address_has_an_ending_and_keeps_its_code() {
+        let url = "https://pdst.fm/e/traffic.megaphone.fm/relay-test-0001.mp3";
+        let relayed = proxied(url);
+        if let Some(rest) = relayed.rsplit_once("/p/") {
+            assert!(rest.1.ends_with(".mp3"), "{relayed}");
+            let code = rest.1.split(['?', '.']).next().unwrap();
+            assert_eq!(code.len(), 16);
+            assert_eq!(proxies().lock().unwrap().get(code).map(String::as_str), Some(url), "the code on the address finds the original");
+        } else {
+            assert_eq!(relayed, url, "without a running server the address is left alone");
+        }
     }
 }
