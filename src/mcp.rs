@@ -1129,7 +1129,7 @@ mod unit {
         let m = link();
         let all = rpc(&m, 1, "tools/list", json!({}))["result"]["tools"].as_array().unwrap().len();
         assert_eq!(all, tools().len());
-        assert_eq!(all, 48);
+        assert_eq!(all, 49);
         let mut names: Vec<&str> = tools().iter().map(|t| t.0).collect();
         names.sort();
         names.dedup();
@@ -1309,6 +1309,21 @@ mod unit {
             m.subs.lock().unwrap().insert(format!("x{i}"), Default::default());
         }
         assert!(m.subscribe("brand-new", "roomtone://status").is_err(), "too many sessions");
+    }
+
+    #[test]
+    fn a_backup_can_be_saved_but_never_over_something() {
+        let m = link();
+        let dir = std::env::temp_dir().join(format!("roomtone-mcp-backup-{}", std::process::id()));
+        std::fs::create_dir_all(&dir).unwrap();
+        let file = dir.join("b.json");
+        let said = ok(&m, "save_backup", json!({"file": file.to_string_lossy()}));
+        assert!(said.starts_with("Saved") && file.exists(), "{said}");
+        assert!(crate::backup::Backup::parse(&std::fs::read_to_string(&file).unwrap()).is_ok());
+        assert!(tool(&m, "save_backup", json!({"file": file.to_string_lossy()})).0.contains("already exists"));
+        assert!(tool(&m, "save_backup", json!({"file": dir.join("b.txt").to_string_lossy()})).1, "only .json");
+        assert!(tool(&m, "save_backup", json!({"file": dir.join("nope").join("b.json").to_string_lossy()})).1, "folder must exist");
+        let _ = std::fs::remove_dir_all(&dir);
     }
 
     #[test]

@@ -15,6 +15,12 @@ pub(super) fn tools() -> Vec<(&'static str, &'static str, Value, bool)> {
             json!({"type": "object", "properties": {"ref": reff, "room": room}}),
             false,
         ),
+        (
+            "save_backup",
+            "Save a backup file (.json) on this computer with the system's favorites, playlists and alarms and Roomtone's own lists and settings. Reads the speakers and writes only that file; restoring is done in the app.",
+            json!({"type": "object", "properties": {"file": {"type": "string", "description": "Where to save it, e.g. ~/roomtone-backup.json. Must end in .json; the folder must exist; an existing file is not overwritten."}}, "required": ["file"]}),
+            true,
+        ),
         ("list_recent", "What was played recently from this app, with refs to play again.", json!({"type": "object", "properties": {}}), false),
         (
             "add_favorite",
@@ -206,6 +212,38 @@ impl Mcp {
                     Ok(format!("{}:\n{}", item.title, self.list_text("b", &items, "Nothing here.")))
                 }
             },
+            "save_backup" => {
+                let file = str_arg("file").ok_or("Say where to save it (file)")?;
+                let file = match file.strip_prefix("~/") {
+                    Some(rest) => {
+                        std::env::var_os("HOME").or_else(|| std::env::var_os("USERPROFILE")).map(|h| std::path::PathBuf::from(h).join(rest)).ok_or("Can't find the home folder")?
+                    }
+                    None => std::path::PathBuf::from(file),
+                };
+                if !file.extension().is_some_and(|e| e.eq_ignore_ascii_case("json")) {
+                    return Err("The file name must end in .json".into());
+                }
+                if file.exists() {
+                    return Err(format!("{} already exists; choose a new name so nothing is overwritten.", file.display()));
+                }
+                if !file.parent().map(|p| p.as_os_str().is_empty() || p.is_dir()).unwrap_or(false) {
+                    return Err("That folder doesn't exist".into());
+                }
+                self.b.lock().backup_result = None;
+                self.wait(Cmd::SaveBackup(file.clone(), crate::backup::Sections::default()))?;
+                match self.b.lock().backup_result.clone() {
+                    Some(BackupResult::Saved { counts, notes, .. }) => Ok(format!(
+                        "Saved {} ({} favorites, {} playlists, {} alarms, {} of Roomtone's own).{}",
+                        file.display(),
+                        counts.favorites,
+                        counts.playlists,
+                        counts.alarms,
+                        counts.app,
+                        if notes.is_empty() { String::new() } else { format!(" Not included: {}", notes.join("; ")) }
+                    )),
+                    _ => Err("The backup didn't finish".into()),
+                }
+            }
             "list_recent" => {
                 let recent = self.b.lock().recent.clone();
                 Ok(self.list_text("rec", &recent, "Nothing played from this app yet."))

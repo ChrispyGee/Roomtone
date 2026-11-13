@@ -1716,6 +1716,8 @@ impl App {
                 .set_title(t!("Export playlist…"))
                 .set_file_name(format!("{}.m3u8", name.trim()))
                 .add_filter("M3U playlist (.m3u8)", &["m3u8", "m3u"])
+                .add_filter("PLS playlist (.pls)", &["pls"])
+                .add_filter("XSPF playlist (.xspf)", &["xspf"])
                 .add_filter("CSV spreadsheet (.csv)", &["csv"])
                 .add_filter("Roomtone backup (.json)", &["json"])
                 .save_file();
