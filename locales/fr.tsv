@@ -547,3 +547,14 @@ Installers for macOS, Windows and Linux (.dmg, setup program, .deb and .rpm)	Pro
 The installers aren't signed yet, so your system may ask you to confirm the first launch	Les programmes d’installation ne sont pas encore signés : votre système peut demander de confirmer le premier lancement
 Light, dark or automatic appearance	Apparence claire, sombre ou automatique
 More tools, resources and prompts for AI assistants	Plus d’outils, de ressources et de suggestions pour les assistants IA
+Speaker updates	Mises à jour des enceintes
+Instant updates from the speakers	Mises à jour instantanées des enceintes
+The speakers tell Roomtone when something changes, so changes made elsewhere show up at once and far less network traffic is needed. Needs this computer to accept connections from the speakers.	Les enceintes préviennent Roomtone quand quelque chose change : les changements faits ailleurs apparaissent aussitôt et il faut bien moins de trafic réseau. Cet ordinateur doit accepter les connexions des enceintes.
+Works with real speakers, not the demo system.	Fonctionne avec de vraies enceintes, pas avec le système de démonstration.
+Some speakers aren't reaching this computer. A firewall may be blocking incoming connections; Roomtone keeps asking them the usual way meanwhile.	Certaines enceintes n’atteignent pas cet ordinateur. Un pare-feu bloque peut-être les connexions entrantes ; en attendant, Roomtone les interroge comme d’habitude.
+1 speaker is sending updates.	1 enceinte envoie des mises à jour.
+{n} speakers are sending updates.	{n} enceintes envoient des mises à jour.
+1 speaker is sending updates; the rest couldn't be reached yet.	1 enceinte envoie des mises à jour ; les autres n’ont pas encore pu être jointes.
+{n} speakers are sending updates; the rest couldn't be reached yet.	{n} enceintes envoient des mises à jour ; les autres n’ont pas encore pu être jointes.
+Settings guide	Guide des réglages
+Every setting explained, and how to back them up	Tous les réglages expliqués, et comment les sauvegarder

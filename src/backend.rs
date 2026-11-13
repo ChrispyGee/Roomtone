@@ -11,6 +11,7 @@ use std::time::{Duration, Instant};
 use crate::demo;
 use crate::model::*;
 use crate::net::discovery;
+use crate::net::events::{self, Kind};
 use crate::net::speaker::{self, PlayHow};
 
 #[derive(Clone, Debug)]
@@ -89,6 +90,8 @@ pub enum Cmd {
     CheckService(u32),
     /// Switch the appearance: "auto", "light" or "dark".
     SetTheme(String),
+    /// Switch speaker events (instant updates instead of polling) on or off.
+    SetEvents(bool),
     /// Switch the app's language ("auto" follows the computer).
     SetLanguage(String),
     /// Change the assistant link (MCP) settings.
@@ -148,8 +151,12 @@ impl Backend {
             thread::spawn(move || worker(b, rx, ctx));
         }
         {
-            let b = backend.clone();
+            let (b, ctx) = (backend.clone(), ctx.clone());
             thread::spawn(move || poller(b, ctx));
+        }
+        {
+            let b = backend.clone();
+            thread::spawn(move || events_manager(b, ctx));
         }
         crate::sources::local::start_server();
         backend.send(Cmd::Rescan);
@@ -745,7 +752,8 @@ fn run_live(b: &Backend, ctx: &Waker, cmd: Cmd) -> Result<(), String> {
         | Cmd::Unlink(_)
         | Cmd::CheckUpdates(_)
         | Cmd::InstallUpdate(_)
-        | Cmd::SetTheme(_) => Ok(()),
+        | Cmd::SetTheme(_)
+        | Cmd::SetEvents(_) => Ok(()),
         Cmd::PlayItem(g, item, how) => {
             let ip = coord(&g)?;
             let item = adapt_for_system(b, &g, item);
@@ -1219,6 +1227,11 @@ fn run_common(b: &Backend, ctx: &Waker, cmd: Cmd) -> Result<Option<Cmd>, String>
         }
         Cmd::SetMcp(m) => {
             b.lock().config.mcp = m;
+            save(b);
+            Ok(None)
+        }
+        Cmd::SetEvents(on) => {
+            b.lock().config.speaker_events = on;
             save(b);
             Ok(None)
         }
@@ -2007,15 +2020,25 @@ fn poller(b: Backend, ctx: Waker) {
         };
         match phase {
             Phase::Live => {
+                // When the speakers report changes themselves, asking is only a safety net.
+                let quiet = |g: &str| events_reliable(&b, g);
                 if let Some(g) = &selected {
-                    poll_one(&b, g, tick.is_multiple_of(2));
+                    if quiet(g) {
+                        if tick.is_multiple_of(SAFETY_NET_SELECTED) {
+                            poll_one(&b, g, true);
+                        }
+                    } else {
+                        poll_one(&b, g, tick.is_multiple_of(2));
+                    }
                 }
-                if tick.is_multiple_of(4) {
-                    for g in &others {
+                for g in &others {
+                    let every = if quiet(g) { SAFETY_NET_OTHERS } else { 4 };
+                    if tick.is_multiple_of(every) {
                         poll_one(&b, g, false);
                     }
                 }
-                if tick.is_multiple_of(20) {
+                let every = if events_topology_reliable(&b) { SAFETY_NET_TOPOLOGY } else { 20 };
+                if tick.is_multiple_of(every) {
                     let _ = refresh_topology(&b);
                 }
                 if tick.is_multiple_of(60) {
@@ -2040,10 +2063,186 @@ fn poller(b: Backend, ctx: Waker) {
     }
 }
 
+/// With speaker events working, a group is asked about this often (in seconds) as a safety net
+/// (the playback position is counted on the screen between answers).
+const SAFETY_NET_SELECTED: u64 = 10;
+const SAFETY_NET_OTHERS: u64 = 30;
+const SAFETY_NET_TOPOLOGY: u64 = 60;
+
+/// Are events switched on and reliably reporting for this group's coordinator?
+fn events_reliable(b: &Backend, gid: &str) -> bool {
+    let ip = {
+        let s = b.lock();
+        if !s.config.speaker_events {
+            return false;
+        }
+        s.coordinator_ip(gid)
+    };
+    ip.is_some_and(|ip| events::hub().reliable(&ip, Kind::Transport))
+}
+
+/// Are events reliably reporting changes of room layout for every system?
+fn events_topology_reliable(b: &Backend) -> bool {
+    let ips: Vec<String> = {
+        let s = b.lock();
+        if !s.config.speaker_events {
+            return false;
+        }
+        s.households.iter().filter_map(|h| h.rooms.first().map(|r| r.ip.clone())).collect()
+    };
+    !ips.is_empty() && ips.iter().all(|ip| events::hub().reliable(ip, Kind::Topology))
+}
+
+/// Every speaker and kind of event we want to hear about right now.
+fn wanted_subscriptions(b: &Backend) -> Vec<(String, Kind)> {
+    let s = b.lock();
+    let mut out = vec![];
+    for h in &s.households {
+        let reachable = |r: &&Room| r.online != Some(false) && !r.ip.is_empty();
+        if let Some(first) = h.rooms.iter().find(reachable) {
+            out.push((first.ip.clone(), Kind::Topology));
+        }
+        for r in h.rooms.iter().filter(reachable) {
+            out.push((r.ip.clone(), Kind::Rendering));
+        }
+        for g in &h.groups {
+            if let Some(r) = h.room(&g.coordinator).filter(|r| r.online != Some(false) && !r.ip.is_empty()) {
+                out.push((r.ip.clone(), Kind::Transport));
+            }
+        }
+    }
+    out.sort_by(|a, b| a.0.cmp(&b.0).then((a.1 as u8).cmp(&(b.1 as u8))));
+    out.dedup();
+    out
+}
+
+/// Which group does a notice from this speaker concern?
+fn group_for_notice(s: &AppState, ip: &str, kind: Kind) -> Option<String> {
+    s.households.iter().flat_map(|h| h.groups.iter().map(move |g| (h, g))).find_map(|(h, g)| {
+        let hit = match kind {
+            Kind::Transport => h.room(&g.coordinator).is_some_and(|r| r.ip == ip),
+            _ => g.members.iter().any(|m| h.room(m).is_some_and(|r| r.ip == ip)),
+        };
+        hit.then(|| g.id.clone())
+    })
+}
+
+/// Speaker events: keep the subscriptions in line with the speakers we know while the setting
+/// is on, and turn each notice into a fresh read of just the group or layout that changed.
+fn events_manager(b: Backend, ctx: Waker) {
+    let syncing = Arc::new(std::sync::atomic::AtomicBool::new(false));
+    let mut running = false;
+    let mut last_sync: Option<Instant> = None;
+    loop {
+        thread::sleep(Duration::from_millis(200));
+        let (on, live) = {
+            let s = b.lock();
+            (s.config.speaker_events, s.phase == Phase::Live)
+        };
+        if !(on && live) {
+            if running && !syncing.load(Ordering::SeqCst) {
+                events::hub().stop(1400);
+                running = false;
+                last_sync = None;
+                b.lock().events = Default::default();
+                ctx.request_repaint();
+            }
+            continue;
+        }
+        if last_sync.is_none_or(|t| t.elapsed() > Duration::from_secs(5)) && !syncing.swap(true, Ordering::SeqCst) {
+            running = true;
+            last_sync = Some(Instant::now());
+            // Subscribing waits on each speaker, so it runs beside the notices.
+            let (b2, ctx2, flag) = (b.clone(), ctx.clone(), syncing.clone());
+            thread::spawn(move || {
+                let wanted = wanted_subscriptions(&b2);
+                events::hub().sync(&wanted, 1400);
+                b2.lock().events = events::hub().summary();
+                flag.store(false, Ordering::SeqCst);
+                ctx2.request_repaint();
+            });
+        }
+        let notices = events::hub().take_notices();
+        if notices.is_empty() {
+            continue;
+        }
+        let mut groups: Vec<String> = vec![];
+        let mut layout = false;
+        {
+            let s = b.lock();
+            for n in &notices {
+                if n.kind == Kind::Topology {
+                    layout = true;
+                } else if let Some(g) = group_for_notice(&s, &n.ip, n.kind) {
+                    if !groups.contains(&g) {
+                        groups.push(g);
+                    }
+                }
+            }
+        }
+        if layout {
+            let _ = refresh_topology(&b);
+        }
+        for g in &groups {
+            poll_one(&b, g, true);
+        }
+        b.lock().events = events::hub().summary();
+        ctx.request_repaint();
+    }
+}
+
 #[cfg(test)]
 mod unit {
     use super::*;
     use crate::test_support::{demo_backend, isolate, wait_for};
+
+    /// The demo rooms have no network address; give each a made-up one.
+    fn give_rooms_addresses(b: &Backend) {
+        let mut s = b.lock();
+        let mut n = 0;
+        for h in s.households.iter_mut() {
+            for r in h.rooms.iter_mut() {
+                n += 1;
+                r.ip = format!("10.0.0.{n}");
+            }
+        }
+    }
+
+    #[test]
+    fn events_are_wanted_per_system_room_and_group() {
+        let b = demo_backend();
+        assert!(wanted_subscriptions(&b).is_empty(), "rooms without an address can't be subscribed to");
+        give_rooms_addresses(&b);
+        let wanted = wanted_subscriptions(&b);
+        let s = b.lock();
+        let rooms: usize = s.households.iter().map(|h| h.rooms.len()).sum();
+        let groups: usize = s.households.iter().map(|h| h.groups.len()).sum();
+        let of = |k: Kind| wanted.iter().filter(|(_, kind)| *kind == k).count();
+        assert_eq!(of(Kind::Topology), s.households.len(), "one speaker per system reports the layout");
+        assert_eq!(of(Kind::Rendering), rooms, "every room reports its volume");
+        assert_eq!(of(Kind::Transport), groups, "every group's coordinator reports playback");
+        let mut again = wanted.clone();
+        again.dedup();
+        assert_eq!(again.len(), wanted.len(), "nothing is asked for twice");
+    }
+
+    #[test]
+    fn a_notice_points_at_the_right_group() {
+        let b = demo_backend();
+        give_rooms_addresses(&b);
+        let s = b.lock();
+        for h in &s.households {
+            for g in &h.groups {
+                let coordinator = h.room(&g.coordinator).unwrap().ip.clone();
+                assert_eq!(group_for_notice(&s, &coordinator, Kind::Transport), Some(g.id.clone()));
+                for m in &g.members {
+                    let ip = h.room(m).unwrap().ip.clone();
+                    assert_eq!(group_for_notice(&s, &ip, Kind::Rendering), Some(g.id.clone()), "a volume change belongs to the room's group");
+                }
+            }
+        }
+        assert_eq!(group_for_notice(&s, "203.0.113.9", Kind::Transport), None, "unknown speakers are ignored");
+    }
 
     #[test]
     fn group_volume_scales_rooms_proportionally() {

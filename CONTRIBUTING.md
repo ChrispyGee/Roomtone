@@ -38,7 +38,7 @@ Read [SPEC.md](SPEC.md) (what the app does) and [docs/ARCHITECTURE.md](docs/ARCH
 2. `cargo clippy --all-targets -- -D warnings`: no warnings.
 3. `cargo test`: this also fails if any wording isn't translated.
 4. `cargo run -- --screenshot shots/check.png`, then look at the picture: the demo system should draw correctly.
-5. If behaviour changed, update **[SPEC.md](SPEC.md)** in the same pull request, and add a line to **[CHANGELOG.md](CHANGELOG.md)** under *Unreleased*.
+5. If behaviour changed, update **[SPEC.md](SPEC.md)** in the same pull request, and add a line to **[CHANGELOG.md](CHANGELOG.md)** under *Unreleased*. If you add or change a setting, update **[docs/SETTINGS.md](docs/SETTINGS.md)** as well.
 6. If you touched the speaker protocol, update **[docs/PROTOCOL.md](docs/PROTOCOL.md)**.
 7. **Privacy check**: make sure nothing from your own home slipped in: room names, speaker IP addresses, household or speaker ids (`Sonos_…`, `RINCON_…`), sign-in tokens, the assistant access key, or paths with your user name. Test data and screenshots must use the demo system. A quick look:
    ```sh

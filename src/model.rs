@@ -453,6 +453,8 @@ pub struct AppState {
     pub errors: Vec<(u64, String)>,
     /// Is the assistant link (MCP) listening right now, and where.
     pub mcp_status: String,
+    /// How speaker events are going (empty when switched off); see `net::events::Summary`.
+    pub events: crate::net::events::Summary,
     /// Results of "Check" on the Music Services page, by service number (empty: checking).
     pub service_checks: HashMap<u32, String>,
     /// Groups in different systems playing the same thing: (leading group, following group).
@@ -509,6 +511,7 @@ impl Default for AppState {
             done_seq: 0,
             errors: vec![],
             mcp_status: String::new(),
+            events: Default::default(),
             service_checks: HashMap::new(),
             links: vec![],
             updates: HashMap::new(),

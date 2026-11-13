@@ -39,6 +39,7 @@ The source of truth for **what Roomtone does**. Code, tests and docs should agre
 - If no speakers answer, the **demo system** is shown (one made-up S2 system with 5 rooms and one S1 system with 3), so every screen can be tried. A banner says so and offers "Search again".
 - Lost contact (after the computer wakes from sleep, or after three failed polls in a row) triggers an automatic reconnect. Settings also offers a manual **Reconnect**.
 - Group state is polled about every second for the selected group, every 4 s for others and every 20 s for grouping (topology). A full background search runs every 2 minutes.
+- **Speaker updates** (Settings; off by default): the app subscribes to each speaker's UPnP events (playback on each group's coordinator, volume on every room, room layout on one room per system) and a small listener on this computer receives the `NOTIFY` messages. A notice only says which speaker and what kind of thing changed; the app then reads that group (or the layout) with the same calls polling uses. While a speaker is subscribed and has been heard from, polling for it slows to a safety net (selected group every 10 s, others every 30 s, layout every 60 s); the playback position is counted on screen between answers. If a speaker doesn't send notices within 20 s of subscribing (a firewall, say) the app keeps polling it as before and Settings says so. Subscriptions are renewed at half their lifetime and cancelled when the setting is switched off or the app quits. Only `NOTIFY` messages from a subscribed speaker's address carrying that subscription's id are accepted.
 
 ## 3. Window layout
 
@@ -120,12 +121,14 @@ Create, edit, enable/disable and delete alarms. Each has a time, how often it re
 - **Connection**: search again, add a speaker by IP address, open the demo.
 - **Appearance**: *Automatic* (follows the computer's light/dark setting), *Light* or *Dark*. It changes at once.
 - **Language**: *Automatic* (follows the computer) or a fixed language. It changes at once.
+- **Speaker updates**: a switch for *Instant updates from the speakers* (§2) with a status line (how many speakers are sending updates, or a hint if they can't reach this computer).
 - **Assistant link (MCP)**: §6.
+- Every setting, its place in the app, its `config.json` name, defaults, options and back-up advice is written up in [docs/SETTINGS.md](docs/SETTINGS.md); the About section and `--help` link to it (*Settings guide*). Keep that file in step with this section.
 - **About**:
   - version and platform; each system with its room count and speaker software versions;
   - the language in use, the address this computer serves music from, and the assistant link status;
   - the settings folder, with *Show* to open it in the file browser;
-  - what's new in this version, help commands to copy, and buttons for the project page, *Report a problem* and *Latest version* (on GitHub);
+  - what's new in this version, help commands to copy, and buttons for the project page, *Settings guide*, *Report a problem* and *Latest version* (on GitHub);
   - credits (Radio Browser, the Apple Podcasts directory search, the Internet Archive, the open-source libraries) and a note that the app is independent of the speaker maker and the music services.
 
 ### 4.9 Languages
@@ -240,7 +243,7 @@ All in the app's data folder: `~/Library/Application Support/Roomtone/` (macOS),
 
 | File | Contents |
 | --- | --- |
-| `config.json` (mode 600 on Unix) | `folders` (paths), `stations` [{`name`, `url`, `genre`}], `podcasts` [{`title`, `author`, `feed`, `art`}], `services` (switched-on free sources: `local`, `radio`, `podcasts`, `archive`), `accounts` [{`sid`, `name`, `uri`, `manifest`, `household`, `device_id`, `token`, `key`, `sn`}], `favorites` (items kept in the app), `groups` [{`name`, `household`, `rooms`}], `language` (`auto` or a code), `theme` (`auto`, `light` or `dark`), `mcp` {`enabled`, `allow_control`, `allow_network`, `port`, `token`} |
+| `config.json` (mode 600 on Unix) | `folders` (paths), `stations` [{`name`, `url`, `genre`}], `podcasts` [{`title`, `author`, `feed`, `art`}], `services` (switched-on free sources: `local`, `radio`, `podcasts`, `archive`), `accounts` [{`sid`, `name`, `uri`, `manifest`, `household`, `device_id`, `token`, `key`, `sn`}], `favorites` (items kept in the app), `groups` [{`name`, `household`, `rooms`}], `language` (`auto` or a code), `theme` (`auto`, `light` or `dark`), `speaker_events` (`true` or `false`), `mcp` {`enabled`, `allow_control`, `allow_network`, `port`, `token`} |
 | `speakers.json` | Systems from last time: [{`id`, `s1`, `rooms` [{`uuid`, `name`, `ip`, `model`, `version`}], `groups` [{`coordinator`, `members`}]}] |
 | `songs.json` | `songs`: details (title, artist, album, art) by address, for songs the speakers know only by address; `relays`: relay codes for S1 and the https address each stands for |
 
@@ -251,6 +254,7 @@ All in the app's data folder: `~/Library/Application Support/Roomtone/` (macOS),
 | UDP 1900 (multicast 239.255.255.250) | out/in | Finding speakers (SSDP) |
 | TCP 1400 on each speaker | out | Control (UPnP/SOAP), artwork, device details |
 | TCP 52880 (or a free port) on this computer | in | Speakers fetch music from this computer and S1 https relays |
+| A free TCP port on this computer (only while *Speaker updates* is on) | in | Speakers send change notices (UPnP events); anything not from a subscribed speaker with its subscription id is refused |
 | TCP 8790 (configurable) | in | Assistant link over HTTP, 127.0.0.1 unless other computers are allowed |
 | HTTPS out | out | Radio Browser, Apple Podcasts search and feeds, Internet Archive, streaming services' own APIs |
 
@@ -268,9 +272,10 @@ All in the app's data folder: `~/Library/Application Support/Roomtone/` (macOS),
 | Streaming **playback** and the account-number retry | Not yet heard on real speakers |
 | Play along between real S1 and S2 speakers | Demo system only |
 | Software updates (check and install) | Demo system only |
+| Speaker updates (UPnP events) | Unit tests against a pretend speaker (subscribe, notice, renew, cancel, refusals); tried once with a real S1 speaker (Connect:Amp, firmware 11.16): all three subscriptions accepted, a first notice for each within about 5 s, a 1800 s lease, renewing and cancelling work; no S2 or multi-room tests yet |
 | Assistant link: every tool, on/off, look-only, key, origin check | Demo system, stdio and HTTP |
 | Translations | Automated completeness test; not reviewed by native speakers |
-| Logic without speakers (parsers, rules, settings, demo system, assistant link incl. HTTP security) | 97 unit tests (`cargo test`), run on every platform in CI |
+| Logic without speakers (parsers, rules, settings, demo system, assistant link incl. HTTP security) | 103 unit tests (`cargo test`), run on every platform in CI |
 | Light mode | Screenshots of every page in the demo system |
 | Windows and Linux builds | Continuous integration (`.github/workflows/ci.yml`); not run by hand |
 
@@ -278,7 +283,7 @@ All in the app's data folder: `~/Library/Application Support/Roomtone/` (macOS),
 
 Quick checks that a change hasn't broken behaviour. Each needs no real speakers unless marked.
 
-1. `cargo test` passes: 97 unit tests, including that every phrase is translated and placeholders are kept.
+1. `cargo test` passes: 103 unit tests, including that every phrase is translated and placeholders are kept.
 2. `roomtone --screenshot shots/x.png` saves a non-blank picture of the demo system within a few seconds.
 3. `roomtone --mcp --demo` with an `initialize` line, then `tools/list`, lists 48 tools when control is allowed and 14 when look-only.
 4. With the link off, `tools/call` answers error −32001.

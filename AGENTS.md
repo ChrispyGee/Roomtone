@@ -49,6 +49,7 @@ For MCP tests, set `HOME` (Windows: `APPDATA`) to a scratch folder such as `targ
 - [ ] Colours come from the palette in `src/ui/theme.rs` (`TEXT()`, `SURFACE()`, `overlay(a)`…), never fixed values, so light and dark both work. Check with `--theme light` and `--theme dark`.
 - [ ] New parsers and rules get unit tests; behaviour tests drive `test_support::demo_backend()`, never real speakers. `cargo test` must stay green on every platform.
 - [ ] Keep `--screenshot` working: it must save a non-blank picture of the demo window without taking focus.
+- [ ] Added, renamed or changed a setting (a `config.json` field, a switch, a command-line option)? Update docs/SETTINGS.md too.
 - [ ] Update SPEC.md, CHANGELOG.md (*Unreleased*) and, for protocol changes, docs/PROTOCOL.md.
 - [ ] No telemetry; no new network destinations without listing them in SPEC.md §9.
 - [ ] Don't copy other apps' code, logos or artwork. Protocol identifiers the speakers require are fine.

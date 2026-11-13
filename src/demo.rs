@@ -471,6 +471,7 @@ pub fn apply(s: &mut AppState, cmd: &Cmd) {
         | Cmd::SetAccountNumber(..)
         | Cmd::SetLanguage(_)
         | Cmd::SetMcp(_)
+        | Cmd::SetEvents(_)
         | Cmd::CheckService(_)
         | Cmd::LinkGroups(..)
         | Cmd::Unlink(_)

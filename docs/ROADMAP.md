@@ -30,8 +30,8 @@ These work on the demo system but haven't been confirmed on real hardware. Repor
 
 Roughly in order of value. Discuss in an issue before starting the big ones.
 
-1. **Signed packaging**: the macOS `.dmg`, Windows setup and Linux `.deb` already attach to each release but aren't signed or notarised (Apple Developer ID, Windows code-signing certificate), so macOS and SmartScreen warn on first run. Also an Intel Mac build, and Linux AppImage/Flatpak.
-2. **Speaker-side events** (UPnP `SUBSCRIBE`) instead of polling, for instant updates and less network traffic.
+1. **Signed packaging**: the macOS `.dmg`, Windows setup and Linux `.deb`/`.rpm` already attach to each release but aren't signed or notarised (Apple Developer ID, Windows code-signing certificate), so macOS and SmartScreen warn on first run. Also an Intel Mac build, and Linux AppImage/Flatpak.
+2. **Back up, restore and move favorites and playlists**: save the system's Sonos favorites and playlists (and the favorites, saved groups and radio stations Roomtone keeps itself) to a file, load them back, and move them to a new or different system, for example after a reset, a replaced speaker or a switch from S1 to S2. Open questions: how to read a playlist's tracks and re-create it on another system, what to do with items from services that aren't signed in on the target, and whether one file format can serve both S1 and S2.
 3. **Saved play-along links**, and play along for more than two systems.
 4. **More languages**: see "Adding a language" in [CONTRIBUTING.md](../CONTRIBUTING.md).
 5. **Home-theatre settings**: surround and sub levels, where the speakers allow it locally.

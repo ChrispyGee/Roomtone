@@ -547,3 +547,14 @@ Installers for macOS, Windows and Linux (.dmg, setup program, .deb and .rpm)	Ins
 The installers aren't signed yet, so your system may ask you to confirm the first launch	Los instaladores aún no están firmados, así que tu sistema puede pedirte confirmar el primer inicio
 Light, dark or automatic appearance	Apariencia clara, oscura o automática
 More tools, resources and prompts for AI assistants	Más herramientas, recursos e indicaciones para asistentes de IA
+Speaker updates	Actualizaciones de los altavoces
+Instant updates from the speakers	Actualizaciones instantáneas de los altavoces
+The speakers tell Roomtone when something changes, so changes made elsewhere show up at once and far less network traffic is needed. Needs this computer to accept connections from the speakers.	Los altavoces avisan a Roomtone cuando algo cambia, así que los cambios hechos en otro sitio aparecen al instante y hace falta mucho menos tráfico de red. Este equipo debe aceptar conexiones de los altavoces.
+Works with real speakers, not the demo system.	Funciona con altavoces reales, no con el sistema de demostración.
+Some speakers aren't reaching this computer. A firewall may be blocking incoming connections; Roomtone keeps asking them the usual way meanwhile.	Algunos altavoces no llegan a este equipo. Puede que un cortafuegos bloquee las conexiones entrantes; mientras tanto Roomtone les pregunta de la forma habitual.
+1 speaker is sending updates.	1 altavoz envía actualizaciones.
+{n} speakers are sending updates.	{n} altavoces envían actualizaciones.
+1 speaker is sending updates; the rest couldn't be reached yet.	1 altavoz envía actualizaciones; los demás aún no se han podido alcanzar.
+{n} speakers are sending updates; the rest couldn't be reached yet.	{n} altavoces envían actualizaciones; los demás aún no se han podido alcanzar.
+Settings guide	Guía de ajustes
+Every setting explained, and how to back them up	Todos los ajustes explicados, y cómo hacer copias de seguridad

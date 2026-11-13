@@ -76,7 +76,9 @@ Slow work (discovery, browsing, search, service sign-in) runs on its own short-l
 | --- | --- | --- |
 | Main (window) | Whole run | Draws every frame (at least every 250 ms) and sends commands; never waits on the network |
 | Worker | Whole run | Runs commands in order (`worker`) |
-| Poller | Whole run | Polls groups and topology; demo ticks; reconnects (`poller`) |
+| Poller | Whole run | Polls groups and topology (slower while speaker events work); demo ticks; reconnects (`poller`) |
+| Events manager | Whole run, active only while *Speaker updates* is on | Keeps UPnP subscriptions in line with the known speakers and turns notices into reads of the affected group (`events_manager`, `net::events`) |
+| Event listener | While subscribed | Accepts `NOTIFY` messages from the speakers, one short thread per connection (`net::events::listen`) |
 | Short-lived | Per task | Discovery, browsing, search per source, sign-in polling, service checks, updates, play-along sync |
 | Music server | Whole run | Serves this computer's folders to the speakers (`sources::local`) |
 | Assistant link | While on | HTTP listener and one thread per connection (`mcp::start_http`), or the stdin loop (`mcp::serve_stdio`) |
