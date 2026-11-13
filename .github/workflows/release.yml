@@ -77,7 +77,7 @@ jobs:
         shell: bash
         run: |
           target/release/roomtone.exe --write-icon dist/roomtone.ico
-          iscc "//DAppVersion=$VERSION" "//DSourceDir=$(pwd -W)" packaging/windows/roomtone.iss
+          ROOMTONE_VERSION="$VERSION" ROOMTONE_SRC="$(pwd -W)" iscc packaging/windows/roomtone.iss
           rm dist/roomtone.ico
 
       - name: Installer (Linux .deb)

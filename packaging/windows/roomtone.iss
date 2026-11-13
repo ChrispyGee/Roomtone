@@ -1,12 +1,21 @@
 ; Inno Setup script. Build with:
-;   iscc /DAppVersion=0.5.1 /DSourceDir=<repo root> packaging\windows\roomtone.iss
+;   set ROOMTONE_VERSION=0.5.1 && set ROOMTONE_SRC=<repo root> && iscc packaging\windows\roomtone.iss
+; (or pass /DAppVersion=... /DSourceDir=... instead of the two variables)
 ; The installer is per-user by default (no administrator rights needed) and not code-signed,
 ; so Windows SmartScreen may ask you to confirm the first run ("More info" › "Run anyway").
 #ifndef AppVersion
-  #define AppVersion "0.0.0"
+  #define AppVersion GetEnv("ROOMTONE_VERSION")
+  #if AppVersion == ""
+    #undef AppVersion
+    #define AppVersion "0.0.0"
+  #endif
 #endif
 #ifndef SourceDir
-  #define SourceDir "..\.."
+  #define SourceDir GetEnv("ROOMTONE_SRC")
+  #if SourceDir == ""
+    #undef SourceDir
+    #define SourceDir "..\.."
+  #endif
 #endif
 
 [Setup]
