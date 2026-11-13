@@ -698,9 +698,6 @@ Add a playlist from an M3U, PLS, XSPF or CSV file, or a file saved with Export p
 How this speaker reaches your network, from its own network counters	Comment cette enceinte accède à votre réseau, d'après ses propres compteurs réseau
 Wired	Filaire
 Wireless	Sans fil
-Your speakers shows whether each one is wired or wireless	« Vos enceintes » indique si chacune est filaire ou sans fil
-Export a playlist from its own page	Exportez une liste depuis sa propre page
-Install on a Mac with Homebrew	Installation sur Mac avec Homebrew
 Alarm on	Alarme activée
 Back	Retour
 Down	Descendre
@@ -746,3 +743,6 @@ minutes	minutes
 plays {name}	joue {name}
 stops after {n} min	s'arrête après {n} min
 {room} at {volume}	{room} à {volume}
+Scenes: one click sets up your rooms, volumes, music and a sleep timer	Scènes : un clic règle pièces, volume, musique et minuterie d'arrêt
+Keyboard and screen-reader support throughout	Prise en charge du clavier et des lecteurs d'écran partout
+Do scenes from the command line and from assistants	Lancez des scènes en ligne de commande et depuis des assistants

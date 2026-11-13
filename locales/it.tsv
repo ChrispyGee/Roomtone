@@ -698,9 +698,6 @@ Add a playlist from an M3U, PLS, XSPF or CSV file, or a file saved with Export p
 How this speaker reaches your network, from its own network counters	Come questo altoparlante raggiunge la tua rete, in base ai suoi contatori di rete
 Wired	Via cavo
 Wireless	Wireless
-Your speakers shows whether each one is wired or wireless	«I tuoi altoparlanti» mostra se ciascuno è collegato via cavo o in modalità wireless
-Export a playlist from its own page	Esporta una playlist dalla sua pagina
-Install on a Mac with Homebrew	Installa sul Mac con Homebrew
 Alarm on	Sveglia attiva
 Back	Indietro
 Down	Giù
@@ -746,3 +743,6 @@ minutes	minuti
 plays {name}	riproduce {name}
 stops after {n} min	si ferma dopo {n} min
 {room} at {volume}	{room} a {volume}
+Scenes: one click sets up your rooms, volumes, music and a sleep timer	Scene: un clic prepara stanze, volume, musica e timer di spegnimento
+Keyboard and screen-reader support throughout	Supporto per tastiera e screen reader ovunque
+Do scenes from the command line and from assistants	Avvia le scene dalla riga di comando e dagli assistenti
