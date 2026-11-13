@@ -561,6 +561,19 @@ mod unit {
             }
         }
         eprintln!("heard from: {heard:?}");
+        // Optionally keep listening, to see changes that happen on their own (a song ending, a
+        // volume change from another app): ROOMTONE_LISTEN=<seconds>.
+        if let Some(secs) = std::env::var("ROOMTONE_LISTEN").ok().and_then(|v| v.parse::<u64>().ok()) {
+            let mut counts: std::collections::BTreeMap<String, usize> = Default::default();
+            let end = Instant::now() + Duration::from_secs(secs);
+            while Instant::now() < end {
+                thread::sleep(Duration::from_millis(250));
+                for n in hub.take_notices() {
+                    *counts.entry(format!("{:?}", n.kind)).or_default() += 1;
+                }
+            }
+            eprintln!("notices over {secs} s of listening: {counts:?}");
+        }
         let subs: Vec<(Kind, String, Duration)> = {
             let st = hub.state.lock().unwrap();
             st.subs.iter().map(|((_, k), sub)| (*k, sub.sid.clone(), sub.expires.saturating_duration_since(Instant::now()))).collect()
