@@ -6,6 +6,7 @@ All notable changes to Roomtone. The format follows [Keep a Changelog](https://k
 
 ### Added
 - **Assistants can follow changes** (`resources/subscribe`): an assistant can subscribe to the status, now-playing, alarms or a room's queue and is sent `notifications/resources/updated` when it changes, over stdout (`--mcp`) or an event stream on the HTTP link (`GET /mcp`, with the new `Mcp-Session-Id`), instead of asking again and again. Checked over stdio on the demo system.
+- **Command-line control**: `roomtone play`, `pause`, `next`, `volume 30 --room Kitchen`, `volume +5 --group`, `mute`, `sleep 30`, `group Kitchen Den`, `status`, … for scripts, Stream Deck and shortcuts. Commands go to the Roomtone that's already running through its assistant link (so that must be on), on this computer only. See `roomtone --help`.
 
 ## [0.6.0] — 2026-11-13
 

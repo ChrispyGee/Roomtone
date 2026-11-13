@@ -17,6 +17,9 @@ These work on the demo system but haven't been confirmed on real hardware. Repor
 | **Restoring a backup** (0.5.4): does *Restore* create Sonos favorites, playlists (`CreateSavedQueue` / `AddURIToSavedQueue`) and alarms correctly, on S1 and on S2, and between them? | On a system you can spare: save a backup, delete a test playlist and favorite, restore, and check they're back. Saving was only checked read-only on one S1 system | High |
 | **Podcast resume** (0.5.4): do speakers accept a seek about 1.5 s after an episode starts, so *Resume where you left off* works? | Play an episode for a minute, stop, play it again | Medium |
 | **Sound quality** (0.5.4): what do S2 speakers send for sample rate, bit depth and bitrate? Only the format is confirmed (S1 library track: MIME type) | Play a song on an S2 speaker, open Now Playing › Technical details › Copy details, and attach it to a Speaker report | Medium |
+| **Media keys and Now Playing** (0.6.0): do the keyboard keys, headphone buttons and the system's Now Playing show and control the selected room? Only starting up was checked, on macOS | Play something, press the keys, look at Control Center, the Windows media overlay or an MPRIS widget (`playerctl`) | Medium |
+| **S2 check** (0.6.0): what do real Connect, Connect:Amp and Play:5 speakers report so the first and second generations can be told apart? One S1 Connect:Amp reported *Check* | Settings › Software updates › *Check my speakers*; attach the result to a Speaker report | Medium |
+| **New-version check** (0.6.0): does it read GitHub's latest release correctly on every system, including behind a proxy? | Switch it on in Settings › New versions and press *Check now* | Low |
 | **Speaker updates** (events): S2 speakers, grouped rooms, bonded pairs, and a speaker restarting. Checked once on one S1 speaker (3 subscriptions, ~5 s to first notice, 1800 s lease) | Switch it on in Settings and watch the status line while changing things from another app | Medium |
 
 ## Known limits (by design, for now)
@@ -42,18 +45,16 @@ Roughly in order of value. Discuss in an issue before starting the big ones.
 3. **Phone-friendly web remote**: serve a small responsive page from the headless HTTP server (protected by the access key), so any phone, tablet or computer can control Roomtone without an app. Drives the same commands as the window and the assistant link. Open questions: how to keep the access key safe on a phone, and whether to show it as a QR code in Settings.
 4. **Scenes**: one click does several things at once: group these rooms, set each room's volume, choose the source and EQ or night sound, and optionally start a sleep timer ("Movie night", "Dinner", "Good night"). Builds on saved groups; also available from the command line and to assistants.
 5. **"Can't find my speakers" helper and diagnostics**: a guided check (Local Network permission, same network, firewall, separate guest network, adding an address by hand), a speaker status page with connection type (wired or Wi-Fi), signal, software version and address, and a *Copy speaker report* button that redacts names and addresses and fills the `speaker-report` issue form.
-6. **System media controls and a smaller footprint**: keyboard media keys, headphones and the lock screen control the selected group (macOS Now Playing, Windows media controls, Linux MPRIS); an optional menu-bar or tray mini player; and the window remembers its size and position.
+6. **Menu-bar or tray mini player**: an optional small player in the menu bar or system tray. (Media keys, Now Playing and the remembered window size shipped in 0.6.0.)
 7. **More streaming services, and more for the favorites-only ones**: add services beyond Spotify, Amazon Music, Deezer, TIDAL and Qobuz, and find legitimate ways to do more than play saved favorites with Apple Music, YouTube Music and SoundCloud (browsing and search where a service allows it). Open question: which services let a third-party controller sign in at all.
-8. **Show which devices can move to S2**: a report of every speaker on a system and whether it can run S2 software, to check before changing systems. Read-only; builds on the speaker list and the software-update checks.
-9. **Listening history**: remember what was played (kept on this computer, never sent anywhere), so *Recently played* survives restarts and holds more than the last dozen, with *Play again* and simple counts.
-10. **Package managers**: a Homebrew cask, a winget manifest and Flathub/AUR entries, so Roomtone can be installed and updated with the usual tools (signing helps; see the first item).
-11. **Gentler alarms**: a volume fade-in, snooze, alarms in several rooms at once, duplicating an alarm, and one-off timers per room.
-12. **Check for new versions**: an optional switch (off by default) that tells you when a newer Roomtone is out, by reading GitHub's releases page. A new network destination to list in SPEC §9; no personal data sent.
-13. **Command-line control**: `roomtone play`, `pause`, `volume 30 --room Kitchen`, `scene movie-night`, for scripts, Stream Deck and macOS Shortcuts.
-14. **Lyrics (maybe)**: show lyrics for what's playing. Needs an outside lyrics source, so it would be opt-in and add a network destination; it may not be worth it.
-15. **Saved play-along links**, and play along for more than two systems.
-16. **More languages**: see "Adding a language" in [CONTRIBUTING.md](../CONTRIBUTING.md).
-17. **Home-theatre settings**: surround and sub levels, where the speakers allow it locally.
-18. **Accessibility pass**: keyboard navigation through every page, screen-reader labels (egui's AccessKit support).
-19. **Recorded replies from real speakers** as test cases (with names and addresses removed), to complement the hand-written samples in the unit tests.
-20. **MCP change notifications**: let assistants subscribe to the now-playing and queue resources.
+8. **Package managers**: a Homebrew cask, a winget manifest and Flathub/AUR entries, so Roomtone can be installed and updated with the usual tools (signing helps; see the first item).
+9. **Gentler alarms (planned for 0.6.1)**: a volume fade-in, snooze, alarms in several rooms at once, duplicating an alarm, and one-off timers per room.
+10. **Command-line control**: `roomtone play`, `pause`, `volume 30 --room Kitchen`, `scene movie-night`, for scripts, Stream Deck and macOS Shortcuts.
+11. **Lyrics (maybe)**: show lyrics for what's playing. Needs an outside lyrics source, so it would be opt-in and add a network destination; it may not be worth it.
+12. **Saved play-along links**, and play along for more than two systems.
+13. **More languages**: see "Adding a language" in [CONTRIBUTING.md](../CONTRIBUTING.md).
+14. **Home-theatre settings**: surround and sub levels, where the speakers allow it locally.
+15. **Accessibility pass**: keyboard navigation through every page, screen-reader labels (egui's AccessKit support).
+16. **Recorded replies from real speakers** as test cases (with names and addresses removed), to complement the hand-written samples in the unit tests.
+17. **MCP change notifications**: let assistants subscribe to the now-playing and queue resources.
+
