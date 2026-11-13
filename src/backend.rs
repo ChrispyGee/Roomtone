@@ -974,8 +974,16 @@ fn run_common(b: &Backend, ctx: &Waker, cmd: Cmd) -> Result<Option<Cmd>, String>
                 b.lock().toast(crate::t!("Saved playlist “{title}” as {file}", title = playlist.title, file = file), false);
                 return Ok(None);
             }
-            if crate::m3u::is_m3u(&path) {
-                let text = crate::m3u::write(&playlist.title, &tracks, &crate::sources::local::path_of_address);
+            let text = if crate::pls_xspf::is_pls(&path) {
+                Some(crate::pls_xspf::write_pls(&tracks, &crate::sources::local::path_of_address))
+            } else if crate::pls_xspf::is_xspf(&path) {
+                Some(crate::pls_xspf::write_xspf(&playlist.title, &tracks, &crate::sources::local::path_of_address))
+            } else if crate::m3u::is_m3u(&path) {
+                Some(crate::m3u::write(&playlist.title, &tracks, &crate::sources::local::path_of_address))
+            } else {
+                None
+            };
+            if let Some(text) = text {
                 std::fs::write(&path, text).map_err(|e| crate::t!("Couldn't save the backup: {error}", error = e))?;
                 let file = path.file_name().map(|n| n.to_string_lossy().to_string()).unwrap_or_default();
                 b.lock().toast(crate::t!("Saved playlist “{title}” as {file}", title = playlist.title, file = file), false);
@@ -2409,10 +2417,14 @@ fn track_episodes(b: &Backend) {
 
 /// A backup file, or a playlist file (M3U or CSV) read as a backup with one playlist in it.
 fn load_backup_file(path: &std::path::Path) -> Result<crate::backup::Backup, String> {
-    if crate::m3u::is_m3u(path) || crate::csv::is_csv(path) {
+    if crate::m3u::is_m3u(path) || crate::csv::is_csv(path) || crate::pls_xspf::is_pls(path) || crate::pls_xspf::is_xspf(path) {
         let bytes = std::fs::read(path).map_err(|e| crate::t!("Couldn't open the backup: {error}", error = e))?;
         let text = String::from_utf8_lossy(&bytes);
-        let parsed = if crate::csv::is_csv(path) {
+        let parsed = if crate::pls_xspf::is_pls(path) {
+            crate::pls_xspf::parse_pls(&text, path.parent(), &crate::sources::local::item_for_path)
+        } else if crate::pls_xspf::is_xspf(path) {
+            crate::pls_xspf::parse_xspf(&text, path.parent(), &crate::sources::local::item_for_path)
+        } else if crate::csv::is_csv(path) {
             crate::csv::parse(&text, path.parent(), &crate::sources::local::item_for_path, &crate::sources::local::item_for_name)
         } else {
             crate::m3u::parse(&text, path.parent(), &crate::sources::local::item_for_path)
