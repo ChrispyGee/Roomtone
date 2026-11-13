@@ -2879,7 +2879,11 @@ mod unit {
     fn listening_history_can_be_switched_off_and_cleared() {
         let b = demo_backend();
         let wait = Duration::from_secs(10);
-        assert!(b.lock().config.remember_history, "on by default");
+        // (The test settings file is shared by every test and keeps what an earlier run left, so
+        // the default is checked on a fresh config, and the switch is set explicitly.)
+        assert!(crate::config::Config::default().remember_history, "on by default");
+        b.send_and_wait(Cmd::SetHistory(true), wait).unwrap();
+        assert!(b.lock().config.remember_history);
         b.send_and_wait(Cmd::SetHistory(false), wait).unwrap();
         assert!(!b.lock().config.remember_history);
         b.lock().recent.push(Item { title: "Song".into(), uri: "x://song".into(), ..Default::default() });
