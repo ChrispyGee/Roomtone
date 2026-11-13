@@ -98,6 +98,8 @@ pub enum Cmd {
     ReadBackup(std::path::PathBuf),
     /// Add what's in a backup file to this system and to Roomtone's settings.
     RestoreBackup(std::path::PathBuf, crate::backup::Sections),
+    /// Save one playlist (with its songs) to its own file; it restores like any backup.
+    ExportPlaylist(Item, std::path::PathBuf),
     /// Close the backup panel.
     DismissBackup,
     /// Switch the app's language ("auto" follows the computer).
@@ -766,6 +768,7 @@ fn run_live(b: &Backend, ctx: &Waker, cmd: Cmd) -> Result<(), String> {
         | Cmd::SaveBackup(..)
         | Cmd::ReadBackup(_)
         | Cmd::RestoreBackup(..)
+        | Cmd::ExportPlaylist(..)
         | Cmd::DismissBackup => Ok(()),
         Cmd::PlayItem(g, item, how) => {
             let ip = coord(&g)?;
@@ -908,6 +911,27 @@ fn run_common(b: &Backend, ctx: &Waker, cmd: Cmd) -> Result<Option<Cmd>, String>
             let mut s = b.lock();
             s.backup_preview = None;
             s.backup_result = Some(BackupResult::Saved { file, counts, notes });
+            Ok(None)
+        }
+        Cmd::ExportPlaylist(playlist, path) => {
+            let system = active_system(b).ok_or_else(|| crate::t!("Connect to your speakers first").to_string())?;
+            let tracks = system.playlist_tracks(&playlist)?;
+            if tracks.is_empty() {
+                return Err(crate::t!("“{title}” has no songs to export", title = playlist.title).to_string());
+            }
+            let now = std::time::SystemTime::now().duration_since(std::time::UNIX_EPOCH).map(|d| d.as_secs()).unwrap_or(0);
+            let backup = crate::backup::Backup {
+                roomtone_backup: crate::backup::FORMAT,
+                created: now,
+                app_version: env!("CARGO_PKG_VERSION").to_string(),
+                system: crate::backup::SystemInfo { generation: crate::backup::SystemAccess::generation(&system), rooms: vec![] },
+                sonos_playlists: vec![crate::backup::PlaylistBackup { title: playlist.title.clone(), tracks }],
+                ..Default::default()
+            };
+            std::fs::write(&path, backup.to_json()?).map_err(|e| crate::t!("Couldn't save the backup: {error}", error = e))?;
+            let file = path.file_name().map(|n| n.to_string_lossy().to_string()).unwrap_or_default();
+            let mut s = b.lock();
+            s.toast(crate::t!("Saved playlist “{title}” as {file}", title = playlist.title, file = file), false);
             Ok(None)
         }
         Cmd::ReadBackup(path) => {
@@ -2153,6 +2177,19 @@ fn active_system(b: &Backend) -> Option<ActiveSystem> {
     Some(ActiveSystem { b: b.clone(), ip, generation: h.system.label().to_string(), rooms: h.rooms.iter().map(|r| (r.uuid.clone(), r.name.clone())).collect() })
 }
 
+impl ActiveSystem {
+    /// The songs of one playlist (an item from the system's playlist list).
+    fn playlist_tracks(&self, playlist: &Item) -> Result<Vec<Item>, String> {
+        match &self.ip {
+            Some(ip) => speaker::browse(ip, &playlist.id),
+            None => Ok(match self.b.lock().browse.get(&playlist.id) {
+                Some(Browse::Ready(v)) => v.clone(),
+                _ => demo::browse(&playlist.id),
+            }),
+        }
+    }
+}
+
 impl crate::backup::SystemAccess for ActiveSystem {
     fn generation(&self) -> String {
         self.generation.clone()
@@ -2414,6 +2451,43 @@ mod unit {
         // A file that isn't a backup is refused with a message, not a crash.
         std::fs::write(&file, "{\"hello\": 1}").unwrap();
         assert!(b.send_and_wait(Cmd::ReadBackup(file), wait).is_err());
+    }
+
+    #[test]
+    fn one_playlist_can_be_exported_and_imported() {
+        use crate::backup::Backup;
+        let b = demo_backend();
+        let wait = Duration::from_secs(10);
+        let dir = std::path::Path::new(env!("CARGO_MANIFEST_DIR")).join("target").join("backup-tests");
+        std::fs::create_dir_all(&dir).unwrap();
+        let file = dir.join("one-playlist.json");
+        let playlist = demo::browse("SQ:").into_iter().next().expect("the demo has playlists");
+
+        b.send_and_wait(Cmd::ExportPlaylist(playlist.clone(), file.clone()), wait).unwrap();
+        let saved = Backup::parse(&std::fs::read_to_string(&file).unwrap()).unwrap();
+        assert_eq!(saved.sonos_playlists.len(), 1, "just the one playlist");
+        assert_eq!(saved.sonos_playlists[0].title, playlist.title);
+        assert!(!saved.sonos_playlists[0].tracks.is_empty());
+        assert!(saved.sonos_favorites.is_empty() && saved.alarms.is_empty() && saved.app == Default::default(), "nothing else comes with it");
+
+        // As a file to import: it's recognised, and since the demo already has it, it's skipped.
+        b.send_and_wait(Cmd::ReadBackup(file.clone()), wait).unwrap();
+        assert_eq!(b.lock().backup_preview.as_ref().map(|(_, s)| s.counts.playlists), Some(1));
+        b.send_and_wait(Cmd::RestoreBackup(file.clone(), crate::backup::Sections::default()), wait).unwrap();
+        match &b.lock().backup_result {
+            Some(BackupResult::Restored(r)) => assert_eq!((r.added.playlists, r.skipped.playlists), (0, 1), "{r:?}"),
+            other => panic!("{other:?}"),
+        }
+        // A playlist that isn't there yet is added, songs and all.
+        let mut renamed = saved.clone();
+        renamed.sonos_playlists[0].title = format!("Copy {}", std::time::SystemTime::now().duration_since(std::time::UNIX_EPOCH).map(|d| d.as_nanos()).unwrap_or(0));
+        std::fs::write(&file, renamed.to_json().unwrap()).unwrap();
+        b.send_and_wait(Cmd::RestoreBackup(file, crate::backup::Sections::default()), wait).unwrap();
+        let result = b.lock().backup_result.clone();
+        match result {
+            Some(BackupResult::Restored(r)) => assert_eq!(r.added.playlists, 1, "{r:?}"),
+            other => panic!("{other:?}"),
+        }
     }
 
     /// The demo rooms have no network address; give each a made-up one.

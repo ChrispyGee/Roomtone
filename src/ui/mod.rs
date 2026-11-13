@@ -1413,6 +1413,14 @@ impl App {
                 ui.close();
             }
         }
+        if item.parent_id == "SQ:" && item.is_container && item.id.starts_with("SQ:") && ui.button(t!("Export playlist…")).clicked() {
+            let name: String = item.title.chars().map(|c| if c.is_alphanumeric() || c == ' ' || c == '-' { c } else { '_' }).collect();
+            let file = rfd::FileDialog::new().set_title(t!("Export playlist…")).set_file_name(format!("{}.json", name.trim())).add_filter("Roomtone backup", &["json"]).save_file();
+            if let Some(path) = file {
+                self.out.push(Cmd::ExportPlaylist(item.clone(), path));
+            }
+            ui.close();
+        }
         if let Some(p) = crate::sources::podcasts::podcast_of(item) {
             let subscribed = self.subscribed.contains(&p.feed);
             if !subscribed && ui.button(t!("Subscribe")).clicked() {

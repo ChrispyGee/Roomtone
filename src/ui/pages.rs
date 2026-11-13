@@ -369,6 +369,19 @@ impl App {
 
     fn grid_page(&mut self, ui: &mut Ui, s: &AppState, title: &str, sub: &str, id: &str) {
         self.header(ui, title, sub);
+        if id == "SQ:" {
+            ui.horizontal(|ui| {
+                if pill(ui, Some(Icon::Plus), t!("Import playlist"), false).on_hover_text(t!("Add a playlist from a file saved with Export playlist or Save backup")).clicked() {
+                    if let Some(path) = rfd::FileDialog::new().set_title(t!("Import playlist")).add_filter("Roomtone backup", &["json"]).pick_file() {
+                        self.backup_sections = Default::default();
+                        self.send(Cmd::ReadBackup(path));
+                        // The summary, with its Restore button, is in Settings › Backup and restore.
+                        self.go(View::Settings);
+                    }
+                }
+            });
+            ui.add_space(8.0);
+        }
         let gid = s.selected_group.clone();
         if id == "FV:2" {
             egui::CollapsingHeader::new(RichText::new(t!("What can be a favorite?")).size(13.5).color(ACCENT())).id_salt("fav_help").show(ui, |ui| {

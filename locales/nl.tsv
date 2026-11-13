@@ -588,3 +588,9 @@ Saves this system's favorites, playlists and alarms, and Roomtone's own lists an
 Instant updates from the speakers, switched on in Settings	Directe updates van de speakers, in te schakelen bij Instellingen
 A guide to every setting, linked from the About section	Een gids voor alle instellingen, gelinkt in het onderdeel Over
 A settings file that can't be read is kept aside instead of being replaced	Een onleesbaar instellingenbestand wordt opzij gezet in plaats van vervangen
+Export playlist…	Afspeellijst exporteren…
+Import playlist	Afspeellijst importeren
+Add a playlist from a file saved with Export playlist or Save backup	Een afspeellijst toevoegen uit een bestand dat is opgeslagen met Afspeellijst exporteren of Back-up opslaan
+Connect to your speakers first	Maak eerst verbinding met je speakers
+“{title}” has no songs to export	„{title}” heeft geen nummers om te exporteren
+Saved playlist “{title}” as {file}	Afspeellijst „{title}” opgeslagen als {file}

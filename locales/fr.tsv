@@ -588,3 +588,9 @@ Saves this system's favorites, playlists and alarms, and Roomtone's own lists an
 Instant updates from the speakers, switched on in Settings	Mises à jour instantanées des enceintes, à activer dans les Réglages
 A guide to every setting, linked from the About section	Un guide de tous les réglages, accessible depuis la section À propos
 A settings file that can't be read is kept aside instead of being replaced	Un fichier de réglages illisible est conservé à part au lieu d’être remplacé
+Export playlist…	Exporter la playlist…
+Import playlist	Importer une playlist
+Add a playlist from a file saved with Export playlist or Save backup	Ajouter une playlist depuis un fichier enregistré avec Exporter la playlist ou Enregistrer la sauvegarde
+Connect to your speakers first	Connectez-vous d’abord à vos enceintes
+“{title}” has no songs to export	« {title} » ne contient aucun morceau à exporter
+Saved playlist “{title}” as {file}	Playlist « {title} » enregistrée sous {file}
