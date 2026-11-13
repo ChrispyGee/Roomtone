@@ -442,6 +442,14 @@ pub fn recurrence_label(r: &str) -> String {
     }
 }
 
+/// The state of the S2 compatibility look for one system.
+#[derive(Clone, Debug, PartialEq)]
+pub enum S2State {
+    Checking,
+    Done(Vec<crate::s2::RoomReport>),
+    Failed(String),
+}
+
 /// What the last backup action did.
 #[derive(Clone, Debug, PartialEq)]
 pub enum BackupResult {
@@ -505,6 +513,8 @@ pub struct AppState {
     pub links: Vec<(String, String)>,
     /// Software update status by system (household id).
     pub updates: HashMap<String, UpdateState>,
+    /// What the *Can it move to S2?* look found, by system.
+    pub s2: HashMap<String, S2State>,
 }
 
 /// Where a system's software update stands.
@@ -560,6 +570,7 @@ impl Default for AppState {
             service_checks: HashMap::new(),
             links: vec![],
             updates: HashMap::new(),
+            s2: HashMap::new(),
         }
     }
 }

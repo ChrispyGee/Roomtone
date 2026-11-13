@@ -2178,6 +2178,69 @@ impl App {
     }
 
     /// Software updates for each system: check, see what's offered, install after confirming.
+    /// For an S1 system: which of its speakers could move to S2 (asked of the speakers, read-only).
+    fn s2_rows(&mut self, ui: &mut Ui, s: &AppState, h: &Household) {
+        use crate::s2::{summarize, Verdict};
+        ui.add_space(4.0);
+        ui.horizontal(|ui| {
+            ui.label(RichText::new(t!("Can this system move to S2?")).size(13.0).color(TEXT_DIM()));
+            ui.with_layout(Layout::right_to_left(Align::Center), |ui| match s.s2.get(&h.id) {
+                Some(S2State::Checking) => spinner_dots(ui, TEXT_DIM()),
+                _ => {
+                    let label = if s.s2.contains_key(&h.id) { t!("Check again") } else { t!("Check my speakers") };
+                    if pill(ui, None, label, false).on_hover_text(t!("Asks each speaker which model it is. Nothing is changed.")).clicked() {
+                        self.send(Cmd::CheckS2(h.id.clone()));
+                    }
+                }
+            });
+        });
+        match s.s2.get(&h.id) {
+            Some(S2State::Done(rooms)) => {
+                let sum = summarize(rooms);
+                let (line, color) = if sum.cannot > 0 {
+                    (t!("{n} of {total} speakers can't run S2. They would have to stay on S1 as a separate system.", n = sum.cannot, total = rooms.len()).to_string(), BAD())
+                } else if sum.check > 0 {
+                    (
+                        t!(
+                            "{n} of {total} speakers need checking: their model comes in a first generation that can't run S2 and a second that can.",
+                            n = sum.check,
+                            total = rooms.len()
+                        )
+                        .to_string(),
+                        ACCENT(),
+                    )
+                } else {
+                    (t!("Every speaker looks able to run S2.").to_string(), GOOD())
+                };
+                ui.label(RichText::new(line).size(12.5).color(color));
+                ui.add_space(4.0);
+                for r in rooms {
+                    ui.horizontal_wrapped(|ui| {
+                        ui.label(RichText::new(&r.room).size(12.5).color(TEXT()));
+                        let model = if r.details.model_name.is_empty() { r.details.model_number.clone() } else { r.details.model_name.clone() };
+                        ui.label(RichText::new(format!("{model} · {} · {}", r.details.model_number, r.details.hardware)).size(11.5).color(TEXT_FAINT()));
+                        match r.verdict {
+                            Verdict::AlreadyS2 => chip(ui, t!("Already on S2"), GOOD()),
+                            Verdict::Can => chip(ui, t!("Can run S2"), GOOD()),
+                            Verdict::Cannot => chip(ui, t!("Can't run S2"), BAD()),
+                            Verdict::Check => chip(ui, t!("Check"), ACCENT()),
+                        };
+                    });
+                }
+                ui.add_space(2.0);
+                ui.label(
+                    RichText::new(t!("Based on Sonos's list of products that can't run S2. For a speaker marked Check, look at Sonos's S2 compatibility list for your product and its generation (the label under the speaker shows the model and a date)."))
+                        .size(11.5)
+                        .color(TEXT_FAINT()),
+                );
+            }
+            Some(S2State::Failed(e)) => {
+                ui.label(RichText::new(t!("Couldn't check: {error}", error = e)).size(12.5).color(BAD()));
+            }
+            _ => {}
+        }
+    }
+
     fn updates_card(&mut self, ui: &mut Ui, s: &AppState) {
         if s.households.is_empty() {
             return;
@@ -2227,6 +2290,9 @@ impl App {
                         }
                     });
                 });
+                if h.system == System::S1 {
+                    self.s2_rows(ui, s, h);
+                }
             }
             ui.add_space(4.0);
             ui.label(

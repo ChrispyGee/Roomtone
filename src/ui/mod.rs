@@ -266,6 +266,12 @@ impl App {
                 self.open(&Item { id: id.clone(), title: id, is_container: true, ..Default::default() });
             }
         }
+        if self.frame == 20 && std::env::var_os("ROOMTONE_TEST_S2").is_some() {
+            let hid = self.backend.lock().households.iter().find(|h| h.system == System::S1).map(|h| h.id.clone());
+            if let Some(hid) = hid {
+                self.backend.send(Cmd::CheckS2(hid));
+            }
+        }
         if self.frame == 20 && std::env::var_os("ROOMTONE_TEST_EDITOR").is_some() {
             let s = self.backend.lock();
             if let Some((_, g)) = s.selected_group.as_ref().and_then(|g| s.find_group(g)) {

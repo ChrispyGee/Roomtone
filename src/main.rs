@@ -40,6 +40,7 @@ mod mcp;
 mod model;
 mod net;
 mod quality;
+mod s2;
 mod sources;
 #[cfg(test)]
 mod test_support;

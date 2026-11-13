@@ -44,6 +44,14 @@ Each system (S1 and S2 are shown separately) lists its rooms with their model an
 ### Software updates
 *Check for updates* asks each system's own update service whether newer speaker software exists. *Update all speakers* asks for confirmation, then installs on every speaker of that system. S1 systems are only offered S1 updates; moving S1 to S2 isn't possible from the app. Nothing here is saved by Roomtone.
 
+### Can this system move to S2?
+Under an S1 system in *Software updates*, *Check my speakers* asks each speaker which model it is (read-only: nothing is changed) and lists every room with its model, model number and hardware version, and one of:
+- **Already on S2**: it runs S2 software.
+- **Can run S2**: its model isn't on Sonos's list of products that can't.
+- **Can't run S2**: Zone Players, controllers and the Bridge (model numbers `ZP80`, `ZP100`, `CR100`, `CR200`, `BR100`).
+- **Check**: the Connect (`ZP90`), Connect:Amp (`ZP120`) and Play:5 (`S5`) came in a first generation that can't run S2 and a second that can, **with the same model number**, so Roomtone doesn't guess; look your product and its generation up in Sonos's S2 compatibility list (the label under the speaker shows the model and a date).
+A summary line says how many speakers can't run S2 (a system with such speakers would have to keep them on S1 as a separate system) or need checking. Roomtone's list is short on purpose, so a model it doesn't know shows as *Can run S2*: treat that as "not known to be a problem".
+
 ### Connection
 | Control | What it does |
 | --- | --- |

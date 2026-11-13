@@ -4,6 +4,9 @@ All notable changes to Roomtone. The format follows [Keep a Changelog](https://k
 
 ## [Unreleased]
 
+### Added
+- **Can this system move to S2?** Under an S1 system in Settings › Software updates, *Check my speakers* asks each speaker which model it is (read-only) and shows whether it can run S2, can't, or needs checking against Sonos's list (the Connect, Connect:Amp and Play:5 share one model number between a first generation that can't and a second that can). Checked on a real S1 system.
+
 ## [0.5.5] — 2026-11-13
 
 ### Added

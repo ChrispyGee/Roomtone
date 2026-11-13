@@ -627,3 +627,16 @@ Jump to {letter}	Ir a {letter}
 Podcasts and other web audio now play on S1 speakers	Los podcasts y otro audio web ya funcionan en altavoces S1
 Arrange your rooms in the order you like	Ordena tus habitaciones como quieras
 More ways to sort long lists, an A–Z jump strip, and a search box for the queue	Más formas de ordenar listas largas, una franja A–Z para saltar y un cuadro de búsqueda para la cola
+Can this system move to S2?	¿Puede este sistema pasar a S2?
+Check again	Comprobar de nuevo
+Check my speakers	Comprobar mis altavoces
+Asks each speaker which model it is. Nothing is changed.	Pregunta a cada altavoz qué modelo es. No se cambia nada.
+{n} of {total} speakers can't run S2. They would have to stay on S1 as a separate system.	{n} de {total} altavoces no pueden usar S2. Tendrían que quedarse en S1 como sistema aparte.
+{n} of {total} speakers need checking: their model comes in a first generation that can't run S2 and a second that can.	{n} de {total} altavoces hay que revisarlos: su modelo existe en una primera generación que no admite S2 y en una segunda que sí.
+Every speaker looks able to run S2.	Todos los altavoces parecen poder usar S2.
+Already on S2	Ya en S2
+Can run S2	Admite S2
+Can't run S2	No admite S2
+Check	Revisar
+Based on Sonos's list of products that can't run S2. For a speaker marked Check, look at Sonos's S2 compatibility list for your product and its generation (the label under the speaker shows the model and a date).	Según la lista de Sonos de productos que no admiten S2. Para un altavoz marcado como Revisar, mira la lista de compatibilidad con S2 de Sonos para tu producto y su generación (la etiqueta bajo el altavoz muestra el modelo y una fecha).
+No speaker answered	Ningún altavoz respondió
