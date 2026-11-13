@@ -4,6 +4,30 @@
 use serde::{Deserialize, Serialize};
 use std::path::PathBuf;
 
+/// What went wrong with the settings file at start-up (shown in Settings, and printed).
+#[derive(Clone, Debug, PartialEq)]
+pub enum Problem {
+    /// The file couldn't be understood; it was moved to `kept_as` and the defaults are in use.
+    SetAside { why: String, kept_as: String },
+    /// It couldn't be understood or moved, so nothing will be saved this time.
+    NotSaved { why: String, error: String },
+}
+
+impl Problem {
+    /// The message in English, for the terminal.
+    pub fn plain(&self) -> String {
+        match self {
+            Problem::SetAside { why, kept_as } => format!("Your settings file couldn't be read ({why}), so it was kept as {kept_as} and Roomtone started with the defaults."),
+            Problem::NotSaved { why, error } => {
+                format!("Your settings file couldn't be read ({why}) and couldn't be set aside ({error}), so Roomtone started with the defaults and won't save changes this time.")
+            }
+        }
+    }
+}
+
+/// Set when an unreadable settings file couldn't be moved aside: saving would overwrite it.
+static BLOCK_SAVING: std::sync::atomic::AtomicBool = std::sync::atomic::AtomicBool::new(false);
+
 #[derive(Clone, Debug, Default, Serialize, Deserialize, PartialEq)]
 pub struct Station {
     pub name: String,
@@ -181,17 +205,81 @@ impl Config {
         Some(p)
     }
 
-    pub fn load() -> Config {
-        let text = Self::path().and_then(|p| std::fs::read_to_string(p).ok());
-        let cfg: Config = text.as_deref().and_then(|t| serde_json::from_str(t).ok()).unwrap_or_default();
-        // Keep the assistant link's secret from the first run on, so it doesn't change.
-        if text.as_deref().is_some_and(|t| !t.contains("\"mcp\"")) {
-            let _ = cfg.save();
+    /// Read the settings without touching anything: a missing or unreadable file gives the
+    /// defaults. For code that only looks (help, background reads, a running copy checking for
+    /// changes), so a file being edited can never be moved or replaced by it.
+    pub fn load_readonly() -> Config {
+        match Self::path().map(|p| Self::read_file(&p)) {
+            Some(Ok(Some(c))) => c,
+            _ => Config::default(),
         }
-        cfg
+    }
+
+    /// What's in the settings file: `Ok(None)` if there isn't one yet, `Err` if it can't be
+    /// read or understood.
+    fn read_file(p: &std::path::Path) -> Result<Option<Config>, String> {
+        let text = match std::fs::read(p) {
+            Ok(bytes) => bytes,
+            Err(e) if e.kind() == std::io::ErrorKind::NotFound => return Ok(None),
+            Err(e) => return Err(e.to_string()),
+        };
+        serde_json::from_slice(&text).map(Some).map_err(|e| e.to_string())
+    }
+
+    /// Read the settings at start-up. A file that can't be understood (a typo in a hand edit,
+    /// a half-written file) is **moved to one side** (`config.json.broken-<time>`), never
+    /// overwritten, and the app starts with the defaults. The second value says what happened,
+    /// in plain words, for the person to see.
+    pub fn load() -> (Config, Option<Problem>) {
+        let Some(p) = Self::path() else { return (Config::default(), None) };
+        Self::load_from(&p)
+    }
+
+    fn load_from(p: &std::path::Path) -> (Config, Option<Problem>) {
+        match Self::read_file(p) {
+            Ok(Some(cfg)) => {
+                // Keep the assistant link's secret from the first run on, so it doesn't change.
+                let text = std::fs::read_to_string(p).ok();
+                if text.as_deref().is_some_and(|t| !t.contains("\"mcp\"")) {
+                    let _ = cfg.save();
+                }
+                (cfg, None)
+            }
+            Ok(None) => (Config::default(), None),
+            Err(why) => {
+                let problem = match Self::set_aside(p) {
+                    Ok(kept_as) => Problem::SetAside { why, kept_as },
+                    Err(error) => {
+                        BLOCK_SAVING.store(true, std::sync::atomic::Ordering::SeqCst);
+                        Problem::NotSaved { why, error }
+                    }
+                };
+                eprintln!("{}", problem.plain());
+                (Config::default(), Some(problem))
+            }
+        }
+    }
+
+    /// Rename the settings file to `config.json.broken-<seconds>`; returns the new name.
+    fn set_aside(p: &std::path::Path) -> Result<String, String> {
+        let secs = std::time::SystemTime::now().duration_since(std::time::UNIX_EPOCH).map(|d| d.as_secs()).unwrap_or(0);
+        let mut n = 0;
+        let target = loop {
+            let name = if n == 0 { format!("config.json.broken-{secs}") } else { format!("config.json.broken-{secs}-{n}") };
+            let t = p.with_file_name(&name);
+            if !t.exists() {
+                break t;
+            }
+            n += 1;
+        };
+        std::fs::rename(p, &target).map_err(|e| e.to_string())?;
+        Ok(target.file_name().map(|n| n.to_string_lossy().to_string()).unwrap_or_default())
     }
 
     pub fn save(&self) -> Result<(), String> {
+        if BLOCK_SAVING.load(std::sync::atomic::Ordering::SeqCst) {
+            return Err("The settings file couldn't be read at start-up, so nothing is saved".into());
+        }
         let p = Self::path().ok_or("No home folder to save settings in")?;
         if let Some(dir) = p.parent() {
             std::fs::create_dir_all(dir).map_err(|e| e.to_string())?;
@@ -284,5 +372,72 @@ mod unit {
         let d = Config::data_dir().unwrap();
         let s = d.to_string_lossy().to_lowercase();
         assert!(s.contains("roomtone"));
+    }
+
+    /// Run `f` with an empty folder of its own, so these tests can't disturb (or be disturbed
+    /// by) the other tests' settings.
+    fn with_clean_folder(name: &str, f: impl FnOnce(&std::path::Path)) {
+        let dir = std::path::Path::new(env!("CARGO_MANIFEST_DIR")).join("target").join("config-tests").join(name);
+        let _ = std::fs::remove_dir_all(&dir);
+        std::fs::create_dir_all(&dir).unwrap();
+        f(&dir);
+    }
+
+    fn files(dir: &std::path::Path) -> Vec<String> {
+        let mut v: Vec<String> = std::fs::read_dir(dir).unwrap().flatten().map(|e| e.file_name().to_string_lossy().to_string()).collect();
+        v.sort();
+        v
+    }
+
+    #[test]
+    fn a_corrupt_settings_file_is_moved_aside_not_overwritten() {
+        with_clean_folder("aside", |dir| {
+            let bad = r#"{"theme": "dark", "folders": ["/music"],"#; // cut off mid-way
+            std::fs::write(dir.join("config.json"), bad).unwrap();
+            let (cfg, note) = Config::load_from(&dir.join("config.json"));
+            assert_eq!(cfg.theme, "auto", "starts with the defaults");
+            let Some(Problem::SetAside { kept_as, .. }) = note else { panic!("the person is told: {note:?}") };
+            assert!(kept_as.starts_with("config.json.broken-"), "{kept_as}");
+            let names = files(dir);
+            assert_eq!(names.len(), 1, "{names:?}");
+            assert!(names[0].starts_with("config.json.broken-"));
+            assert_eq!(std::fs::read_to_string(dir.join(&names[0])).unwrap(), bad, "the original text is kept untouched");
+        });
+    }
+
+    #[test]
+    fn two_corrupt_files_in_a_row_keep_both() {
+        with_clean_folder("twice", |dir| {
+            for text in ["{ not json", "also {broken"] {
+                std::fs::write(dir.join("config.json"), text).unwrap();
+                let _ = Config::load_from(&dir.join("config.json"));
+            }
+            assert_eq!(files(dir).len(), 2, "{:?}", files(dir));
+        });
+    }
+
+    #[test]
+    fn a_good_or_missing_settings_file_is_left_alone() {
+        with_clean_folder("good", |dir| {
+            let (cfg, note) = Config::load_from(&dir.join("config.json"));
+            assert!(note.is_none() && cfg.theme == "auto", "no file yet is normal");
+            assert!(files(dir).is_empty(), "loading never creates or moves anything when there is no file");
+            std::fs::write(dir.join("config.json"), r#"{"theme": "dark", "mcp": {"enabled": true}}"#).unwrap();
+            let (cfg, note) = Config::load_from(&dir.join("config.json"));
+            assert!(note.is_none());
+            assert_eq!(cfg.theme, "dark");
+            assert_eq!(files(dir), ["config.json"]);
+        });
+    }
+
+    #[test]
+    fn looking_never_moves_a_file() {
+        with_clean_folder("readonly", |dir| {
+            std::fs::write(dir.join("config.json"), "{ half edited").unwrap();
+            let cfg = Config::read_file(&dir.join("config.json")).ok().flatten().unwrap_or_default();
+            assert_eq!(cfg.theme, "auto");
+            assert_eq!(files(dir), ["config.json"], "a file being edited is not touched by readers");
+            assert_eq!(std::fs::read_to_string(dir.join("config.json")).unwrap(), "{ half edited");
+        });
     }
 }

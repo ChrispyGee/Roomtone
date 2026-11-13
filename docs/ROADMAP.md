@@ -32,9 +32,13 @@ Roughly in order of value. Discuss in an issue before starting the big ones.
 
 1. **Signed packaging**: the macOS `.dmg`, Windows setup and Linux `.deb`/`.rpm` already attach to each release but aren't signed or notarised (Apple Developer ID, Windows code-signing certificate), so macOS and SmartScreen warn on first run. Also an Intel Mac build, and Linux AppImage/Flatpak.
 2. **Back up, restore and move favorites and playlists**: save the system's Sonos favorites and playlists (and the favorites, saved groups and radio stations Roomtone keeps itself) to a file, load them back, and move them to a new or different system, for example after a reset, a replaced speaker or a switch from S1 to S2. Open questions: how to read a playlist's tracks and re-create it on another system, what to do with items from services that aren't signed in on the target, and whether one file format can serve both S1 and S2.
-3. **Saved play-along links**, and play along for more than two systems.
-4. **More languages**: see "Adding a language" in [CONTRIBUTING.md](../CONTRIBUTING.md).
-5. **Home-theatre settings**: surround and sub levels, where the speakers allow it locally.
-6. **Accessibility pass**: keyboard navigation through every page, screen-reader labels (egui's AccessKit support).
-7. **Recorded replies from real speakers** as test cases (with names and addresses removed), to complement the hand-written samples in the unit tests.
-8. **MCP change notifications**: let assistants subscribe to the now-playing and queue resources.
+3. **Phone-friendly web remote**: serve a small responsive page from the headless HTTP server (protected by the access key), so any phone, tablet or computer can control Roomtone without an app. Drives the same commands as the window and the assistant link. Open questions: how to keep the access key safe on a phone, and whether to show it as a QR code in Settings.
+4. **Scenes**: one click does several things at once: group these rooms, set each room's volume, choose the source and EQ or night sound, and optionally start a sleep timer ("Movie night", "Dinner", "Good night"). Builds on saved groups; also available from the command line and to assistants.
+5. **"Can't find my speakers" helper and diagnostics**: a guided check (Local Network permission, same network, firewall, separate guest network, adding an address by hand), a speaker status page with connection type (wired or Wi-Fi), signal, software version and address, and a *Copy speaker report* button that redacts names and addresses and fills the `speaker-report` issue form.
+6. **System media controls and a smaller footprint**: keyboard media keys, headphones and the lock screen control the selected group (macOS Now Playing, Windows media controls, Linux MPRIS); an optional menu-bar or tray mini player; and the window remembers its size and position.
+7. **Saved play-along links**, and play along for more than two systems.
+8. **More languages**: see "Adding a language" in [CONTRIBUTING.md](../CONTRIBUTING.md).
+9. **Home-theatre settings**: surround and sub levels, where the speakers allow it locally.
+10. **Accessibility pass**: keyboard navigation through every page, screen-reader labels (egui's AccessKit support).
+11. **Recorded replies from real speakers** as test cases (with names and addresses removed), to complement the hand-written samples in the unit tests.
+12. **MCP change notifications**: let assistants subscribe to the now-playing and queue resources.

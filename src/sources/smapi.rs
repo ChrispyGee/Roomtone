@@ -418,7 +418,7 @@ mod deep_tests {
     #[test]
     #[ignore]
     fn service_deep() {
-        let cfg = crate::config::Config::load();
+        let cfg = crate::config::Config::load_readonly();
         let term = std::env::var("ROOMTONE_TERM").unwrap_or_else(|_| "Adele".into());
         for acc in &cfg.accounts {
             match super::browse(acc, "root") {
@@ -454,7 +454,7 @@ mod home_tests {
     #[test]
     #[ignore]
     fn service_home() {
-        let cfg = crate::config::Config::load();
+        let cfg = crate::config::Config::load_readonly();
         for acc in &cfg.accounts {
             let t = std::time::Instant::now();
             let env = super::envelope(

@@ -558,3 +558,6 @@ Some speakers aren't reaching this computer. A firewall may be blocking incoming
 {n} speakers are sending updates; the rest couldn't be reached yet.	{n} speakers sturen updates; de rest was nog niet bereikbaar.
 Settings guide	Gids voor instellingen
 Every setting explained, and how to back them up	Alle instellingen uitgelegd, en hoe je ze back-upt
+Your settings file couldn't be read	Je instellingenbestand kon niet worden gelezen
+It was kept as {file} in the settings folder, and Roomtone started with the defaults. Fix it or copy back what you need, then rename it to config.json to use it again.	Het is bewaard als {file} in de instellingenmap en Roomtone is met de standaardwaarden gestart. Herstel het of kopieer terug wat je nodig hebt en hernoem het dan naar config.json om het weer te gebruiken.
+It couldn't be set aside either ({error}), so changes won't be saved this time. Fix or move the file, then start Roomtone again.	Het kon ook niet opzij worden gezet ({error}), dus wijzigingen worden deze keer niet opgeslagen. Herstel of verplaats het bestand en start Roomtone opnieuw.

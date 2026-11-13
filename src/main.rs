@@ -87,14 +87,14 @@ fn main() {
             "--mcp-info" => info = true,
             "--help" | "-h" => {
                 if args.next().as_deref() == Some("mcp") {
-                    print!("{}", help::mcp(&config::Config::load().mcp));
+                    print!("{}", help::mcp(&config::Config::load_readonly().mcp));
                 } else {
                     print!("{}", help::general());
                 }
                 return;
             }
             "--help-mcp" => {
-                print!("{}", help::mcp(&config::Config::load().mcp));
+                print!("{}", help::mcp(&config::Config::load_readonly().mcp));
                 return;
             }
             other => eprintln!("Ignoring unknown option {other} (see --help)"),
@@ -150,7 +150,7 @@ fn main() {
 
 /// Change the assistant link's settings from the command line (for computers without a screen).
 fn mcp_settings(edits: &[String], port: Option<u16>, info: bool) -> i32 {
-    let mut cfg = config::Config::load();
+    let (mut cfg, _) = config::Config::load();
     for e in edits {
         match e.as_str() {
             "--mcp-on" => cfg.mcp.enabled = true,
@@ -195,7 +195,7 @@ fn run_headless(demo: bool, stdio: bool) {
         let b = b.clone();
         std::thread::spawn(move || loop {
             std::thread::sleep(Duration::from_secs(2));
-            let fresh = config::Config::load();
+            let fresh = config::Config::load_readonly();
             let mut s = b.lock();
             if s.config.mcp != fresh.mcp {
                 s.config.mcp = fresh.mcp;

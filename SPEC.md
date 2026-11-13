@@ -260,6 +260,7 @@ All in the app's data folder: `~/Library/Application Support/Roomtone/` (macOS),
 
 - No telemetry. Nothing is sent anywhere except the speakers, the music sources listed above, and the services the person signs in to.
 - Sign-in tokens and the access key live only in `config.json`, readable only by the user.
+- A settings file that can't be read is never overwritten: at start-up it is renamed `config.json.broken-<n>`, the defaults are used, and Settings shows a notice with the new name. If it can't be renamed, saving is switched off for that run. Read-only callers (`--help`, the headless copy's change watcher, streaming-service lookups) never rename or write it.
 - Actions that can't be undone are never done without the person's confirmation: software updates; never moving S1 to S2.
 
 ## 10. Verification status

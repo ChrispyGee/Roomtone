@@ -1780,6 +1780,24 @@ impl App {
 
     fn settings_page(&mut self, ui: &mut Ui, s: &AppState) {
         self.header(ui, t!("Settings"), t!("Systems, rooms and connection"));
+        if let Some(problem) = &s.config_problem {
+            let (title, text) = match problem {
+                crate::config::Problem::SetAside { kept_as, .. } => (
+                    t!("Your settings file couldn't be read"),
+                    t!("It was kept as {file} in the settings folder, and Roomtone started with the defaults. Fix it or copy back what you need, then rename it to config.json to use it again.", file = kept_as),
+                ),
+                crate::config::Problem::NotSaved { error, .. } => (
+                    t!("Your settings file couldn't be read"),
+                    t!("It couldn't be set aside either ({error}), so changes won't be saved this time. Fix or move the file, then start Roomtone again.", error = error),
+                ),
+            };
+            card_frame().show(ui, |ui| {
+                ui.set_width(ui.available_width());
+                ui.label(RichText::new(title).color(BAD()).strong());
+                ui.label(RichText::new(text).size(12.5).color(TEXT_DIM()));
+            });
+            ui.add_space(14.0);
+        }
         for (i, h) in s.households.iter().enumerate() {
             ui.horizontal(|ui| {
                 ui.label(RichText::new(t!("{system} system", system = h.system.label())).size(19.0).color(TEXT()).strong());

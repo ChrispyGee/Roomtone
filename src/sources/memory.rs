@@ -172,7 +172,7 @@ mod tests {
     #[ignore]
     fn playlist_names() {
         let Ok(ip) = std::env::var("ROOMTONE_SPEAKER") else { return };
-        let cfg = crate::config::Config::load();
+        let cfg = crate::config::Config::load_readonly();
         super::super::local::start_server();
         super::super::local::rescan(&cfg.folders, |_| {});
         let lists = crate::net::speaker::browse(&ip, "SQ:").unwrap();
