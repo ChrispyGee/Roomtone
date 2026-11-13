@@ -102,6 +102,12 @@ Sign-in happens on the service's own web page, with a code when the service uses
 - **Check** (each connected service): tries browsing, a search and finding the account, without playing anything, and shows the result in green or red.
 - The Music Services page shows each service as *Connected*, *Ready to connect*, *Favorites only* or *Not offered on this system*.
 
+### 4.5a Long lists
+- Lists of songs, albums, playlists, favorites and stations have a filter box, a sort (*Default order*, *Title A–Z*, *Title Z–A*, *Artist A–Z*, *Album A–Z*, *Longest first*, *Shortest first*; songs with no known length go last) and, where tagged, a genre filter.
+- A list of 40 or more entries that is alphabetical (by the chosen sort, or in its own order if that is by title or artist) shows an **A–Z strip** of the letters that occur (`#` for numbers and symbols, leading punctuation ignored); clicking a letter scrolls to the first entry under it. Not shown for orders that aren't alphabetical (longest first and so on).
+- The queue has a search box (title, artist, album) when it holds more than 8 songs; the rows keep their real positions, so playing, moving and removing act on the right song.
+- *Rescan* (Music Library, when music folders are added) reads the folders again.
+
 ### 4.5 Search
 One box searches every source in parallel: library, favorites (by title, artist, album, description or service name), playlists, this computer, My stations, the radio directory, podcasts, the Internet Archive and each connected service. Results are grouped by type (artists, albums, songs, playlists, stations, podcasts, episodes, folders). There are source and type filters, a genre filter and sort orders. A source that fails says so; the others still show.
 
