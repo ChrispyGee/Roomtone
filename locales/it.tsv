@@ -566,6 +566,18 @@ Technical details	Dettagli tecnici
 This is what the speaker told Roomtone about this song. Anything it doesn't send can't be shown.	Questo è ciò che l’altoparlante ha comunicato a Roomtone su questo brano. Ciò che non invia non può essere mostrato.
 Copy details	Copia i dettagli
 Details copied	Dettagli copiati
+Played	Ascoltato
+{n} min left	ancora {n} min
+−15 s	−15 s
++30 s	+30 s
+Skip back 15 seconds	Indietro di 15 secondi
+Skip forward 30 seconds	Avanti di 30 secondi
+Continue listening	Continua ad ascoltare
+Mark as played	Segna come ascoltato
+Mark as not played	Segna come non ascoltato
+Marked “{title}” as played	«{title}» segnato come ascoltato
+Marked “{title}” as not played	«{title}» segnato come non ascoltato
+Resuming where you left off	Riprendo da dove avevi interrotto
 Added: {counts}	Aggiunto: {counts}
 Adds what's in a backup file to this system. Nothing that's already there is changed or removed.	Aggiunge a questo sistema ciò che c’è in un file di backup. Nulla di ciò che c’è già viene modificato o rimosso.
 Alarms ({n})	Sveglie ({n})

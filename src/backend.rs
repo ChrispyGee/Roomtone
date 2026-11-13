@@ -92,6 +92,8 @@ pub enum Cmd {
     SetTheme(String),
     /// Switch speaker events (instant updates instead of polling) on or off.
     SetEvents(bool),
+    /// Mark a podcast episode as played or not played.
+    MarkEpisode(Item, bool),
     /// Save a backup file (favorites, playlists, alarms, Roomtone's own lists and settings).
     SaveBackup(std::path::PathBuf, crate::backup::Sections),
     /// Read a backup file and show what's in it, ready to restore.
@@ -765,6 +767,7 @@ fn run_live(b: &Backend, ctx: &Waker, cmd: Cmd) -> Result<(), String> {
         | Cmd::InstallUpdate(_)
         | Cmd::SetTheme(_)
         | Cmd::SetEvents(_)
+        | Cmd::MarkEpisode(..)
         | Cmd::SaveBackup(..)
         | Cmd::ReadBackup(_)
         | Cmd::RestoreBackup(..)
@@ -772,6 +775,7 @@ fn run_live(b: &Backend, ctx: &Waker, cmd: Cmd) -> Result<(), String> {
         | Cmd::DismissBackup => Ok(()),
         Cmd::PlayItem(g, item, how) => {
             let ip = coord(&g)?;
+            let episode = crate::sources::progress::is_episode(&item).then(|| item.clone());
             let item = adapt_for_system(b, &g, item);
             crate::sources::memory::remember(std::slice::from_ref(&item));
             match service_of(&item.uri) {
@@ -779,6 +783,9 @@ fn run_live(b: &Backend, ctx: &Waker, cmd: Cmd) -> Result<(), String> {
                 _ => speaker::play_item(&ip, &g, &item, how)?,
             }
             b.lock().toast(played(how, &item.title), false);
+            if let Some(ep) = episode {
+                episode_started(b, &g, &ip, &ep);
+            }
             refresh_group(b, &g)?;
             load_queue(b, &g)
         }
@@ -980,6 +987,12 @@ fn run_common(b: &Backend, ctx: &Waker, cmd: Cmd) -> Result<Option<Cmd>, String>
                     b.lock().alarms = Some(list);
                 }
             }
+            Ok(None)
+        }
+        Cmd::MarkEpisode(item, played) => {
+            crate::sources::progress::mark(&item, played);
+            let text = if played { crate::t!("Marked “{title}” as played", title = item.title) } else { crate::t!("Marked “{title}” as not played", title = item.title) };
+            b.lock().toast(text, false);
             Ok(None)
         }
         Cmd::Browse(id) if id.starts_with("ARTIST:") => {
@@ -2149,6 +2162,9 @@ fn poller(b: Backend, ctx: Waker) {
                 if tick.is_multiple_of(60) {
                     remember_speakers(&b);
                 }
+                if tick.is_multiple_of(5) {
+                    track_episodes(&b);
+                }
                 if tick.is_multiple_of(120) && !b.lock().reconnecting {
                     let (b2, ctx2) = (b.clone(), ctx.clone());
                     thread::spawn(move || background_scan(&b2, &ctx2));
@@ -2166,6 +2182,50 @@ fn poller(b: Backend, ctx: Waker) {
         }
         ctx.request_repaint();
     }
+}
+
+/// A podcast episode just started in a group: remember it, and pick up where the person left
+/// off if they'd listened before.
+fn episode_started(b: &Backend, gid: &str, ip: &str, item: &Item) {
+    let resume = crate::sources::progress::start(item);
+    if let Some(g) = b.lock().group_mut(gid) {
+        g.episode = Some((item.uri.clone(), Instant::now()));
+    }
+    if let Some(pos) = resume {
+        let (b2, ip2) = (b.clone(), ip.to_string());
+        thread::spawn(move || {
+            // The speaker needs a moment to start before it can be moved.
+            for attempt in 0..3 {
+                thread::sleep(Duration::from_millis(if attempt == 0 { 1500 } else { 2000 }));
+                if speaker::seek(&ip2, pos).is_ok() {
+                    b2.lock().toast(crate::t!("Resuming where you left off"), false);
+                    return;
+                }
+            }
+        });
+    }
+}
+
+/// Every few seconds: note where each group's podcast episode has got to, and stop tracking
+/// a group once it plays something else.
+fn track_episodes(b: &Backend) {
+    use crate::sources::progress;
+    let mut s = b.lock();
+    for h in s.households.iter_mut() {
+        for g in h.groups.iter_mut() {
+            let Some((key, since)) = g.episode.clone() else { continue };
+            let same = progress::title_of(&key).is_some_and(|t| t == g.now.title);
+            if (!same || g.now.is_empty()) && since.elapsed() > Duration::from_secs(12) {
+                g.episode = None;
+                continue;
+            }
+            if same && g.now.transport != Transport::Stopped && !g.now.is_stream {
+                progress::record(&key, g.now.live_position(), g.now.duration);
+            }
+        }
+    }
+    drop(s);
+    progress::flush(false);
 }
 
 /// A backup file, or a playlist file (M3U or CSV) read as a backup with one playlist in it.
@@ -2432,6 +2492,38 @@ fn events_manager(b: Backend, ctx: Waker) {
 mod unit {
     use super::*;
     use crate::test_support::{demo_backend, isolate, wait_for};
+
+    #[test]
+    fn podcast_episodes_resume_track_and_can_be_marked_played() {
+        use crate::sources::progress::{self, Status};
+        let b = demo_backend();
+        let wait = Duration::from_secs(10);
+        let unique = std::time::SystemTime::now().duration_since(std::time::UNIX_EPOCH).map(|d| d.as_nanos()).unwrap_or(0);
+        let url = format!("https://test.example/{unique}.mp3");
+        let episode = Item { id: format!("POD:EP/{url}"), uri: url.clone(), title: "A long episode".into(), duration: 3000.0, source: "podcasts".into(), ..Default::default() };
+        let gid = b.lock().selected_group.clone().expect("a group is selected");
+
+        // Listened to 15 minutes before: it should pick up a few seconds earlier.
+        assert_eq!(progress::start(&episode), None, "first time: from the start");
+        progress::record(&url, 900.0, 3000.0);
+        assert_eq!(progress::status(&url), Status::InProgress { left: 2100.0 });
+        assert!(progress::continue_list(50).iter().any(|e| e.item.uri == url), "it's offered under Continue listening");
+
+        b.send_and_wait(Cmd::PlayItem(gid.clone(), episode.clone(), PlayHow::Now), wait).unwrap();
+        {
+            let s = b.lock();
+            let (_, g) = s.find_group(&gid).unwrap();
+            assert_eq!(g.episode.as_ref().map(|(k, _)| k.as_str()), Some(url.as_str()), "the group knows it's playing an episode");
+            assert!((g.now.live_position() - 897.0).abs() < 5.0, "resumed at {}", g.now.live_position());
+        }
+
+        // Marking it played takes it off Continue listening; unmarking starts it fresh.
+        b.send_and_wait(Cmd::MarkEpisode(episode.clone(), true), wait).unwrap();
+        assert_eq!(progress::status(&url), Status::Played);
+        assert!(!progress::continue_list(50).iter().any(|e| e.item.uri == url));
+        b.send_and_wait(Cmd::MarkEpisode(episode.clone(), false), wait).unwrap();
+        assert_eq!(progress::status(&url), Status::New);
+    }
 
     #[test]
     fn a_backup_can_be_saved_read_and_restored_on_the_demo_system() {

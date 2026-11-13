@@ -10,6 +10,21 @@ use super::widgets::*;
 use super::{paint_text, App, View};
 use crate::backend::Cmd;
 use crate::model::*;
+
+/// An item's second line; podcast episodes start it with whether they're played or how much is left
+/// (first, so it isn't the part cut off on a narrow tile).
+fn item_subtitle(item: &Item) -> String {
+    use crate::sources::progress::{self, Status};
+    let base = item.subtitle();
+    if !progress::is_episode(item) {
+        return base;
+    }
+    match progress::status(&item.uri) {
+        Status::Played => format!("{} · {base}", t!("Played")),
+        Status::InProgress { left } if left > 0.0 => format!("{} · {base}", t!("{n} min left", n = ((left / 60.0).ceil() as u32).max(1))),
+        _ => base,
+    }
+}
 use crate::net::speaker::PlayHow;
 
 const LIBRARY_ROOT: &[(&str, &str, &str)] = &[
@@ -121,6 +136,12 @@ impl App {
             self.tile_row(ui, &favs, gid.as_deref(), "home_fav");
             ui.add_space(18.0);
         }
+        let resume: Vec<Item> = crate::sources::progress::continue_list(8).into_iter().map(|e| e.item).collect();
+        if !resume.is_empty() {
+            section_title(ui, t!("Continue listening"));
+            self.tile_row(ui, &resume, gid.as_deref(), "home_resume");
+            ui.add_space(18.0);
+        }
         if !s.recent.is_empty() {
             section_title(ui, t!("Recently played"));
             self.tile_row(ui, &s.recent, gid.as_deref(), "home_recent");
@@ -213,6 +234,9 @@ impl App {
         if icon_button(&mut bar, Icon::Next, 18.0, TEXT()).clicked() {
             self.send(Cmd::Next(g.id.clone()));
         }
+        if g.episode.is_some() {
+            self.skip_buttons(&mut bar, g);
+        }
         self.now_star(&mut bar, &g.now, 18.0);
         bar.add_space(8.0);
         if pill(&mut bar, Some(Icon::Up), t!("Open player"), false).clicked() {
@@ -259,6 +283,18 @@ impl App {
                 self.toast_here(t!("Details copied"));
             }
         });
+    }
+
+    /// Podcast episodes: jump back 15 seconds or ahead 30.
+    fn skip_buttons(&mut self, ui: &mut Ui, g: &Group) {
+        let now = g.now.live_position();
+        let limit = if g.now.duration > 0.0 { g.now.duration } else { f32::MAX };
+        if pill(ui, None, t!("−15 s"), false).on_hover_text(t!("Skip back 15 seconds")).clicked() {
+            self.send(Cmd::Seek(g.id.clone(), (now - 15.0).max(0.0)));
+        }
+        if pill(ui, None, t!("+30 s"), false).on_hover_text(t!("Skip forward 30 seconds")).clicked() {
+            self.send(Cmd::Seek(g.id.clone(), (now + 30.0).min(limit)));
+        }
     }
 
     // ---------- Tiles and rows ----------
@@ -310,7 +346,7 @@ impl App {
             paint_icon(ui.painter(), Rect::from_center_size(play_c + vec2(1.0, 0.0), vec2(18.0, 18.0)), Icon::Play, Color32::BLACK);
         }
         paint_text(ui, pos2(rect.min.x + 2.0, base.max.y + 8.0), &item.title, 14.0, TEXT(), size - 4.0);
-        paint_text(ui, pos2(rect.min.x + 2.0, base.max.y + 27.0), &item.subtitle(), 12.0, TEXT_DIM(), size - 4.0);
+        paint_text(ui, pos2(rect.min.x + 2.0, base.max.y + 27.0), &item_subtitle(item), 12.0, TEXT_DIM(), size - 4.0);
         if play.clicked() {
             self.play(gid, item, PlayHow::Now);
         } else if resp.clicked() {
@@ -356,7 +392,7 @@ impl App {
         if (self.view == View::Search && self.stack.is_empty() || in_merged) && !item.source.is_empty() {
             sx += source_badge(ui, pos2(x, rect.min.y + 32.0), crate::sources::source_label(&item.source)) + 8.0;
         }
-        paint_text(ui, pos2(sx, rect.min.y + 32.0), &item.subtitle(), 12.5, TEXT_DIM(), tw - (sx - x));
+        paint_text(ui, pos2(sx, rect.min.y + 32.0), &item_subtitle(item), 12.5, TEXT_DIM(), tw - (sx - x));
         if hovered {
             if dots.hovered() {
                 ui.painter().circle_filled(dots_r.center(), 15.0, SURFACE_HOVER());
@@ -1541,6 +1577,9 @@ impl App {
                     }
                     if icon_button(ui, Icon::Next, 24.0, TEXT()).clicked() {
                         self.send(Cmd::Next(gid.clone()));
+                    }
+                    if g.episode.is_some() {
+                        self.skip_buttons(ui, g);
                     }
                     let rep_icon = if g.repeat == Repeat::One { Icon::RepeatOne } else { Icon::Repeat };
                     if icon_button(ui, rep_icon, 20.0, if g.repeat != Repeat::Off { ACCENT() } else { TEXT_DIM() }).clicked() {

@@ -517,6 +517,7 @@ pub fn apply(s: &mut AppState, cmd: &Cmd) {
         | Cmd::SetLanguage(_)
         | Cmd::SetMcp(_)
         | Cmd::SetEvents(_)
+        | Cmd::MarkEpisode(..)
         | Cmd::SaveBackup(..)
         | Cmd::ReadBackup(_)
         | Cmd::RestoreBackup(..)
@@ -552,6 +553,16 @@ pub fn apply(s: &mut AppState, cmd: &Cmd) {
             }
             let tracks = tracks_for(item);
             enqueue(s, gid, tracks, *how, &item.title);
+            if crate::sources::progress::is_episode(item) {
+                let resume = crate::sources::progress::start(item);
+                if let Some(g) = s.group_mut(gid) {
+                    g.episode = Some((item.uri.clone(), Instant::now()));
+                    if let Some(pos) = resume {
+                        g.now.position = pos;
+                        g.now.stamp = Some(Instant::now());
+                    }
+                }
+            }
         }
         Cmd::LoadQueue(_) => {}
         Cmd::PlayQueueIndex(g, i) => {

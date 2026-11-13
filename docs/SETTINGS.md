@@ -200,6 +200,7 @@ Edit it by hand only if you know what you're doing; a file that can't be read is
 | `speakers.json` | Speakers found last time, for a fast start. | Yes: Roomtone searches again. |
 | `config.json.broken-…` | A settings file Roomtone couldn't read, kept for you. | Yes, once you've recovered what you need. |
 | `songs.json` | Details of songs played from this computer. | Yes: rebuilt as needed. |
+| `podcast-progress.json` | Where you stopped in podcast episodes, and which are played (newest 300). Behind *Continue listening* and the *Played* labels. | Yes, but you lose your place in episodes. |
 
 ## Back up, move and reset
 

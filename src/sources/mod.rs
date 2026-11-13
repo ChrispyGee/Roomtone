@@ -6,6 +6,7 @@ pub mod archive;
 pub mod local;
 pub mod memory;
 pub mod podcasts;
+pub mod progress;
 pub mod radio;
 pub mod smapi;
 
