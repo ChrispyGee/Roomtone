@@ -66,11 +66,11 @@ impl App {
     }
 
     fn demo_banner(&mut self, ui: &mut Ui) {
-        egui::Frame::new().fill(ACCENT_SOFT).corner_radius(12.0).inner_margin(egui::Margin::symmetric(14, 10)).show(ui, |ui| {
+        egui::Frame::new().fill(ACCENT_SOFT()).corner_radius(12.0).inner_margin(egui::Margin::symmetric(14, 10)).show(ui, |ui| {
             ui.set_width(ui.available_width());
             ui.horizontal(|ui| {
-                ui.label(RichText::new(t!("Demo system")).strong().color(ACCENT));
-                ui.label(RichText::new(t!("No speakers answered, so you're exploring made-up rooms.")).size(13.0).color(TEXT_DIM));
+                ui.label(RichText::new(t!("Demo system")).strong().color(ACCENT()));
+                ui.label(RichText::new(t!("No speakers answered, so you're exploring made-up rooms.")).size(13.0).color(TEXT_DIM()));
                 ui.with_layout(Layout::right_to_left(Align::Center), |ui| {
                     if ui.add(egui::Button::new(RichText::new(t!("Search again")).size(13.0)).corner_radius(14.0)).clicked() {
                         self.send(Cmd::Discover);
@@ -82,9 +82,9 @@ impl App {
     }
 
     fn header(&mut self, ui: &mut Ui, title: &str, subtitle: &str) {
-        ui.label(RichText::new(title).size(30.0).strong().color(TEXT));
+        ui.label(RichText::new(title).size(30.0).strong().color(TEXT()));
         if !subtitle.is_empty() {
-            ui.label(RichText::new(subtitle).size(14.0).color(TEXT_DIM));
+            ui.label(RichText::new(subtitle).size(14.0).color(TEXT_DIM()));
         }
         ui.add_space(14.0);
     }
@@ -140,9 +140,9 @@ impl App {
         let mut clicked = false;
         ui.add_space(6.0);
         ui.horizontal(|ui| {
-            ui.label(RichText::new(title).size(19.0).color(TEXT).strong());
+            ui.label(RichText::new(title).size(19.0).color(TEXT()).strong());
             ui.with_layout(Layout::right_to_left(Align::Center), |ui| {
-                let r = ui.add(egui::Label::new(RichText::new(link).size(13.0).color(TEXT_DIM)).sense(Sense::click()));
+                let r = ui.add(egui::Label::new(RichText::new(link).size(13.0).color(TEXT_DIM())).sense(Sense::click()));
                 if r.hovered() {
                     ui.ctx().set_cursor_icon(egui::CursorIcon::PointingHand);
                 }
@@ -158,10 +158,10 @@ impl App {
         let height = 190.0;
         let (rect, _) = ui.allocate_exact_size(vec2(w, height), Sense::hover());
         let seed = if g.now.album.is_empty() { g.now.title.clone() } else { g.now.album.clone() };
-        let tint = if g.now.is_empty() { SURFACE_HI } else { seed_color(&seed) };
+        let tint = if g.now.is_empty() { SURFACE_HI() } else { seed_color(&seed) };
         // A dark card washed from the left with the artwork's colour.
         let p = ui.painter();
-        p.rect_filled(rect, 20.0, SURFACE);
+        p.rect_filled(rect, 20.0, SURFACE());
         let a = tint.gamma_multiply(0.42);
         let clear = Color32::TRANSPARENT;
         let inner = Rect::from_min_max(rect.min + vec2(20.0, 0.0), rect.max - vec2(20.0, 0.0));
@@ -177,8 +177,8 @@ impl App {
 
         let art_r = Rect::from_min_size(rect.min + vec2(20.0, 20.0), vec2(150.0, 150.0));
         if g.now.is_empty() {
-            ui.painter().rect_filled(art_r, 14.0, SURFACE_HOVER);
-            paint_icon(ui.painter(), Rect::from_center_size(art_r.center(), vec2(48.0, 48.0)), Icon::Speaker, TEXT_FAINT);
+            ui.painter().rect_filled(art_r, 14.0, SURFACE_HOVER());
+            paint_icon(ui.painter(), Rect::from_center_size(art_r.center(), vec2(48.0, 48.0)), Icon::Speaker, TEXT_FAINT());
         } else {
             paint_art(ui, &mut self.art, art_r, g.now.art.as_deref(), &seed, 14.0);
         }
@@ -190,27 +190,27 @@ impl App {
             Transport::Transitioning => t!("LOADING"),
             Transport::Stopped => t!("READY"),
         };
-        paint_text(ui, pos2(x, rect.min.y + 26.0), &format!("{state}  ·  {}", h.group_name(g).to_uppercase()), 11.5, ACCENT, tw);
+        paint_text(ui, pos2(x, rect.min.y + 26.0), &format!("{state}  ·  {}", h.group_name(g).to_uppercase()), 11.5, ACCENT(), tw);
         let title = if g.now.is_empty() { t!("Nothing playing yet") } else { &g.now.title };
-        paint_text(ui, pos2(x, rect.min.y + 48.0), title, 26.0, TEXT, tw);
+        paint_text(ui, pos2(x, rect.min.y + 48.0), title, 26.0, TEXT(), tw);
         let sub = if g.now.is_empty() {
             t!("Pick something from your favorites below").to_string()
         } else {
             [g.now.artist.as_str(), g.now.album.as_str()].iter().filter(|x| !x.is_empty()).copied().collect::<Vec<_>>().join(" · ")
         };
-        paint_text(ui, pos2(x, rect.min.y + 84.0), &sub, 14.5, TEXT_DIM, tw);
+        paint_text(ui, pos2(x, rect.min.y + 84.0), &sub, 14.5, TEXT_DIM(), tw);
 
         let bar_rect = Rect::from_min_max(pos2(x, rect.min.y + 116.0), pos2(rect.max.x - 20.0, rect.max.y - 22.0));
         let mut bar = ui.new_child(egui::UiBuilder::new().max_rect(bar_rect).layout(Layout::left_to_right(Align::Center)));
         let playing = g.now.transport == Transport::Playing;
-        if round_button(&mut bar, if playing { Icon::Pause } else { Icon::Play }, 46.0, ACCENT, Color32::BLACK).clicked() {
+        if round_button(&mut bar, if playing { Icon::Pause } else { Icon::Play }, 46.0, ACCENT(), Color32::BLACK).clicked() {
             self.send(if playing { Cmd::Pause(g.id.clone()) } else { Cmd::Play(g.id.clone()) });
         }
         bar.add_space(6.0);
-        if icon_button(&mut bar, Icon::Prev, 18.0, TEXT).clicked() {
+        if icon_button(&mut bar, Icon::Prev, 18.0, TEXT()).clicked() {
             self.send(Cmd::Previous(g.id.clone()));
         }
-        if icon_button(&mut bar, Icon::Next, 18.0, TEXT).clicked() {
+        if icon_button(&mut bar, Icon::Next, 18.0, TEXT()).clicked() {
             self.send(Cmd::Next(g.id.clone()));
         }
         self.now_star(&mut bar, &g.now, 18.0);
@@ -221,8 +221,8 @@ impl App {
         if g.now.duration > 0.0 {
             let frac = (g.now.live_position() / g.now.duration).clamp(0.0, 1.0);
             let track = Rect::from_min_size(pos2(x, rect.max.y - 16.0), vec2(tw, 3.0));
-            ui.painter().rect_filled(track, 1.5, Color32::from_white_alpha(25));
-            ui.painter().rect_filled(Rect::from_min_size(track.min, vec2(tw * frac, 3.0)), 1.5, ACCENT);
+            ui.painter().rect_filled(track, 1.5, overlay(25));
+            ui.painter().rect_filled(Rect::from_min_size(track.min, vec2(tw * frac, 3.0)), 1.5, ACCENT());
         }
     }
 
@@ -271,11 +271,11 @@ impl App {
         let play_r = Rect::from_center_size(play_c, vec2(42.0, 42.0));
         let play = ui.interact(play_r, ui.scope_id().with(("tile_play", salt.0, salt.1)), Sense::click());
         if hovered || play.hovered() {
-            ui.painter().circle_filled(play_c, if play.hovered() { 22.0 } else { 20.0 }, ACCENT);
+            ui.painter().circle_filled(play_c, if play.hovered() { 22.0 } else { 20.0 }, ACCENT());
             paint_icon(ui.painter(), Rect::from_center_size(play_c + vec2(1.0, 0.0), vec2(18.0, 18.0)), Icon::Play, Color32::BLACK);
         }
-        paint_text(ui, pos2(rect.min.x + 2.0, base.max.y + 8.0), &item.title, 14.0, TEXT, size - 4.0);
-        paint_text(ui, pos2(rect.min.x + 2.0, base.max.y + 27.0), &item.subtitle(), 12.0, TEXT_DIM, size - 4.0);
+        paint_text(ui, pos2(rect.min.x + 2.0, base.max.y + 8.0), &item.title, 14.0, TEXT(), size - 4.0);
+        paint_text(ui, pos2(rect.min.x + 2.0, base.max.y + 27.0), &item.subtitle(), 12.0, TEXT_DIM(), size - 4.0);
         if play.clicked() {
             self.play(gid, item, PlayHow::Now);
         } else if resp.clicked() {
@@ -302,11 +302,11 @@ impl App {
         let dots = ui.interact(dots_r, ui.scope_id().with(("row_dots", salt.0, salt.1)), Sense::click());
         let hovered = resp.hovered() || dots.hovered();
         if hovered {
-            ui.painter().rect_filled(rect, 12.0, SURFACE);
+            ui.painter().rect_filled(rect, 12.0, SURFACE());
         }
         let mut x = rect.min.x + 10.0;
         if let Some(n) = number {
-            ui.painter().text(pos2(x + 10.0, rect.center().y), egui::Align2::CENTER_CENTER, n.to_string(), egui::FontId::proportional(13.0), TEXT_FAINT);
+            ui.painter().text(pos2(x + 10.0, rect.center().y), egui::Align2::CENTER_CENTER, n.to_string(), egui::FontId::proportional(13.0), TEXT_FAINT());
             x += 30.0;
         } else {
             let art_r = Rect::from_min_size(pos2(x, rect.min.y + 8.0), vec2(42.0, 42.0));
@@ -315,23 +315,23 @@ impl App {
             x = art_r.max.x + 14.0;
         }
         let tw = rect.max.x - x - 110.0;
-        paint_text(ui, pos2(x, rect.min.y + 11.0), &item.title, 14.5, TEXT, tw);
+        paint_text(ui, pos2(x, rect.min.y + 11.0), &item.title, 14.5, TEXT(), tw);
         let mut sx = x;
         let in_merged = self.stack.last().is_some_and(|t| t.id.starts_with("ALL:") || t.id.starts_with("ARTIST:"));
         if (self.view == View::Search && self.stack.is_empty() || in_merged) && !item.source.is_empty() {
             sx += source_badge(ui, pos2(x, rect.min.y + 32.0), crate::sources::source_label(&item.source)) + 8.0;
         }
-        paint_text(ui, pos2(sx, rect.min.y + 32.0), &item.subtitle(), 12.5, TEXT_DIM, tw - (sx - x));
+        paint_text(ui, pos2(sx, rect.min.y + 32.0), &item.subtitle(), 12.5, TEXT_DIM(), tw - (sx - x));
         if hovered {
             if dots.hovered() {
-                ui.painter().circle_filled(dots_r.center(), 15.0, SURFACE_HOVER);
+                ui.painter().circle_filled(dots_r.center(), 15.0, SURFACE_HOVER());
             }
-            paint_icon(ui.painter(), dots_r.shrink(7.0), Icon::Dots, TEXT_DIM);
+            paint_icon(ui.painter(), dots_r.shrink(7.0), Icon::Dots, TEXT_DIM());
         }
         if item.browsable() {
-            paint_icon(ui.painter(), Rect::from_center_size(pos2(rect.max.x - 58.0, rect.center().y), vec2(14.0, 14.0)), Icon::Chevron, TEXT_FAINT);
+            paint_icon(ui.painter(), Rect::from_center_size(pos2(rect.max.x - 58.0, rect.center().y), vec2(14.0, 14.0)), Icon::Chevron, TEXT_FAINT());
         } else if item.duration > 0.0 {
-            ui.painter().text(pos2(rect.max.x - 48.0, rect.center().y), egui::Align2::RIGHT_CENTER, fmt_time(item.duration), egui::FontId::proportional(12.5), TEXT_FAINT);
+            ui.painter().text(pos2(rect.max.x - 48.0, rect.center().y), egui::Align2::RIGHT_CENTER, fmt_time(item.duration), egui::FontId::proportional(12.5), TEXT_FAINT());
         }
         egui::Popup::menu(&dots).close_behavior(egui::PopupCloseBehavior::CloseOnClick).show(|ui| {
             ui.set_min_width(180.0);
@@ -352,14 +352,14 @@ impl App {
         match b {
             None | Some(Browse::Loading) => {
                 ui.add_space(20.0);
-                spinner_dots(ui, TEXT_DIM);
+                spinner_dots(ui, TEXT_DIM());
             }
             Some(Browse::Failed(e)) => {
-                ui.label(RichText::new(t!("Couldn't load this right now. Check the internet connection and try again.")).color(BAD)).on_hover_text(e);
+                ui.label(RichText::new(t!("Couldn't load this right now. Check the internet connection and try again.")).color(BAD())).on_hover_text(e);
             }
             Some(Browse::Ready(items)) if items.is_empty() => {
                 ui.add_space(10.0);
-                ui.label(RichText::new(empty).color(TEXT_DIM));
+                ui.label(RichText::new(empty).color(TEXT_DIM()));
             }
             Some(Browse::Ready(items)) => f(self, ui, items),
         }
@@ -371,8 +371,8 @@ impl App {
         self.header(ui, title, sub);
         let gid = s.selected_group.clone();
         if id == "FV:2" {
-            egui::CollapsingHeader::new(RichText::new(t!("What can be a favorite?")).size(13.5).color(ACCENT)).id_salt("fav_help").show(ui, |ui| {
-                ui.label(RichText::new(t!("Favorites live on your speakers, so every controller and room shares them. Use ⋯ or right-click on any of these and choose Add to Favorites:")).size(12.5).color(TEXT_DIM));
+            egui::CollapsingHeader::new(RichText::new(t!("What can be a favorite?")).size(13.5).color(ACCENT())).id_salt("fav_help").show(ui, |ui| {
+                ui.label(RichText::new(t!("Favorites live on your speakers, so every controller and room shares them. Use ⋯ or right-click on any of these and choose Add to Favorites:")).size(12.5).color(TEXT_DIM()));
                 ui.add_space(4.0);
                 for (what, from) in [
                     (t!("Radio stations"), t!("Radio directory, My stations, and stations saved on your system")),
@@ -384,12 +384,12 @@ impl App {
                     (t!("What's playing"), t!("The star in the player bar, the Now Playing page and the Home card")),
                 ] {
                     ui.horizontal_wrapped(|ui| {
-                        ui.label(RichText::new(what).size(12.5).color(TEXT).strong());
-                        ui.label(RichText::new(from).size(12.5).color(TEXT_DIM));
+                        ui.label(RichText::new(what).size(12.5).color(TEXT()).strong());
+                        ui.label(RichText::new(from).size(12.5).color(TEXT_DIM()));
                     });
                 }
                 ui.add_space(2.0);
-                ui.label(RichText::new(t!("Things the speakers can't store themselves (albums, artists and folders from this computer, podcast shows, archive recordings) are kept as favorites in this app. Not possible: Line-In/TV and the queue itself (save it as a playlist instead).")).size(12.0).color(TEXT_FAINT));
+                ui.label(RichText::new(t!("Things the speakers can't store themselves (albums, artists and folders from this computer, podcast shows, archive recordings) are kept as favorites in this app. Not possible: Line-In/TV and the queue itself (save it as a playlist instead).")).size(12.0).color(TEXT_FAINT()));
             });
             ui.add_space(8.0);
         }
@@ -405,7 +405,7 @@ impl App {
                 Some(Browse::Ready(v)) if v.is_empty() => {}
                 _ => {
                     section_title(ui, t!("On your speakers"));
-                    ui.label(RichText::new(t!("Shared with every room and controller.")).size(12.0).color(TEXT_FAINT));
+                    ui.label(RichText::new(t!("Shared with every room and controller.")).size(12.0).color(TEXT_FAINT()));
                     ui.add_space(4.0);
                 }
             }
@@ -421,7 +421,7 @@ impl App {
             ui.label(
                 RichText::new(t!("Albums, artists and folders from this computer, podcast shows and archive recordings can't be stored on the speakers, so they're kept here."))
                     .size(12.0)
-                    .color(TEXT_FAINT),
+                    .color(TEXT_FAINT()),
             );
             ui.add_space(6.0);
             self.tile_grid(ui, &kept, gid.as_deref(), "app_favs");
@@ -440,7 +440,7 @@ impl App {
         ui.add_space(14.0);
         if self.library_scope == 0 {
             section_title(ui, t!("All your music"));
-            ui.label(RichText::new(t!("Your system's library and the folders on this computer, together.")).size(12.5).color(TEXT_DIM));
+            ui.label(RichText::new(t!("Your system's library and the folders on this computer, together.")).size(12.5).color(TEXT_DIM()));
             ui.add_space(6.0);
             let cards: Vec<(String, String, String, Icon)> =
                 MERGED.iter().map(|(id, t, _, _, icon)| (id.to_string(), crate::i18n::tr(t).to_string(), t!("System library and this computer").to_string(), *icon)).collect();
@@ -483,7 +483,7 @@ impl App {
         }
         if self.library_scope == 0 || self.library_scope == 2 {
             ui.horizontal(|ui| {
-                ui.label(RichText::new(t!("On this computer")).size(19.0).color(TEXT).strong());
+                ui.label(RichText::new(t!("On this computer")).size(19.0).color(TEXT()).strong());
                 ui.with_layout(Layout::right_to_left(Align::Center), |ui| {
                     if pill(ui, Some(Icon::Plus), t!("Add folder"), true).clicked() {
                         self.pick_folder();
@@ -495,14 +495,14 @@ impl App {
             });
             ui.add_space(4.0);
             if !s.local_status.is_empty() {
-                ui.label(RichText::new(&s.local_status).size(12.5).color(TEXT_DIM));
+                ui.label(RichText::new(&s.local_status).size(12.5).color(TEXT_DIM()));
                 ui.add_space(6.0);
             }
             if s.config.folders.is_empty() {
                 card_frame().show(ui, |ui| {
                     ui.set_width(ui.available_width());
-                    ui.label(RichText::new(t!("Add folders of music from this Mac, an external drive or a mounted network share.")).color(TEXT));
-                    ui.label(RichText::new(t!("Your speakers play them straight from this computer while the app is open.")).size(12.5).color(TEXT_DIM));
+                    ui.label(RichText::new(t!("Add folders of music from this Mac, an external drive or a mounted network share.")).color(TEXT()));
+                    ui.label(RichText::new(t!("Your speakers play them straight from this computer while the app is open.")).size(12.5).color(TEXT_DIM()));
                 });
             } else {
                 let cards: Vec<(String, String, String, Icon)> = vec![
@@ -555,8 +555,8 @@ impl App {
                 ui.set_width(ui.available_width());
                 ui.horizontal(|ui| {
                     ui.vertical(|ui| {
-                        ui.label(RichText::new(t!("No streaming services connected yet.")).color(TEXT));
-                        ui.label(RichText::new(t!("Connect Spotify, Amazon Music, Deezer, TIDAL or Qobuz, then browse them here.")).size(12.5).color(TEXT_DIM));
+                        ui.label(RichText::new(t!("No streaming services connected yet.")).color(TEXT()));
+                        ui.label(RichText::new(t!("Connect Spotify, Amazon Music, Deezer, TIDAL or Qobuz, then browse them here.")).size(12.5).color(TEXT_DIM()));
                     });
                     ui.with_layout(Layout::right_to_left(Align::Center), |ui| {
                         if pill(ui, Some(Icon::Services), t!("Music Services"), false).clicked() {
@@ -602,13 +602,13 @@ impl App {
                 ui.spacing_mut().item_spacing.x = 14.0;
                 for (id, title, sub, icon) in chunk {
                     let (rect, resp) = ui.allocate_exact_size(vec2(cw, 68.0), Sense::click());
-                    ui.painter().rect_filled(rect, 14.0, if resp.hovered() { SURFACE_HI } else { SURFACE });
+                    ui.painter().rect_filled(rect, 14.0, if resp.hovered() { SURFACE_HI() } else { SURFACE() });
                     let badge = Rect::from_min_size(rect.min + vec2(14.0, 12.0), vec2(44.0, 44.0));
                     ui.painter().rect_filled(badge, 12.0, seed_color(title).gamma_multiply(0.35));
-                    paint_icon(ui.painter(), badge.shrink(11.0), *icon, TEXT);
-                    paint_text(ui, pos2(badge.max.x + 14.0, rect.min.y + 15.0), title, 15.0, TEXT, cw - 120.0);
-                    paint_text(ui, pos2(badge.max.x + 14.0, rect.min.y + 37.0), sub, 12.5, TEXT_DIM, cw - 120.0);
-                    paint_icon(ui.painter(), Rect::from_center_size(pos2(rect.max.x - 24.0, rect.center().y), vec2(14.0, 14.0)), Icon::Chevron, TEXT_FAINT);
+                    paint_icon(ui.painter(), badge.shrink(11.0), *icon, TEXT());
+                    paint_text(ui, pos2(badge.max.x + 14.0, rect.min.y + 15.0), title, 15.0, TEXT(), cw - 120.0);
+                    paint_text(ui, pos2(badge.max.x + 14.0, rect.min.y + 37.0), sub, 12.5, TEXT_DIM(), cw - 120.0);
+                    paint_icon(ui.painter(), Rect::from_center_size(pos2(rect.max.x - 24.0, rect.center().y), vec2(14.0, 14.0)), Icon::Chevron, TEXT_FAINT());
                     if resp.on_hover_cursor(egui::CursorIcon::PointingHand).clicked() {
                         self.open(&Item { id: id.clone(), title: title.clone(), class: "object.container".into(), is_container: true, ..Default::default() });
                     }
@@ -622,19 +622,19 @@ impl App {
     fn folder_list(&mut self, ui: &mut Ui, s: &AppState) {
         card_frame().show(ui, |ui| {
             ui.set_width(ui.available_width());
-            ui.label(RichText::new(t!("Your folders")).size(13.0).color(TEXT_DIM));
+            ui.label(RichText::new(t!("Your folders")).size(13.0).color(TEXT_DIM()));
             for f in &s.config.folders {
                 ui.horizontal(|ui| {
                     ui.set_height(34.0);
                     let (r, _) = ui.allocate_exact_size(vec2(18.0, 18.0), Sense::hover());
-                    paint_icon(ui.painter(), r, Icon::Folder, ACCENT);
+                    paint_icon(ui.painter(), r, Icon::Folder, ACCENT());
                     let exists = std::path::Path::new(f).exists();
-                    ui.label(RichText::new(f).color(if exists { TEXT } else { TEXT_FAINT }));
+                    ui.label(RichText::new(f).color(if exists { TEXT() } else { TEXT_FAINT() }));
                     if !exists {
-                        chip(ui, t!("Not reachable"), BAD);
+                        chip(ui, t!("Not reachable"), BAD());
                     }
                     ui.with_layout(Layout::right_to_left(Align::Center), |ui| {
-                        if icon_button(ui, Icon::Close, 14.0, TEXT_DIM).on_hover_text(t!("Remove folder")).clicked() {
+                        if icon_button(ui, Icon::Close, 14.0, TEXT_DIM()).on_hover_text(t!("Remove folder")).clicked() {
                             self.send(Cmd::RemoveFolder(f.clone()));
                         }
                     });
@@ -661,10 +661,10 @@ impl App {
         let sorts: [&str; 4] = [t!("Default order"), t!("Title A–Z"), t!("Artist A–Z"), t!("Longest first")];
         if items.len() > 6 || !self.list_filter.is_empty() {
             ui.horizontal(|ui| {
-                egui::Frame::new().fill(SURFACE_HI).corner_radius(18.0).inner_margin(egui::Margin { left: 12, right: 12, top: 6, bottom: 6 }).show(ui, |ui| {
+                egui::Frame::new().fill(SURFACE_HI()).corner_radius(18.0).inner_margin(egui::Margin { left: 12, right: 12, top: 6, bottom: 6 }).show(ui, |ui| {
                     ui.horizontal(|ui| {
                         let (r, _) = ui.allocate_exact_size(vec2(15.0, 15.0), Sense::hover());
-                        paint_icon(ui.painter(), r, Icon::Filter, TEXT_DIM);
+                        paint_icon(ui.painter(), r, Icon::Filter, TEXT_DIM());
                         ui.add(egui::TextEdit::singleline(&mut self.list_filter).hint_text(t!("Filter this list")).frame(egui::Frame::NONE).desired_width(200.0));
                     });
                 });
@@ -694,7 +694,7 @@ impl App {
             .collect();
         sort_items(&mut out, self.list_sort);
         if out.len() != items.len() {
-            ui.label(RichText::new(t!("Showing {shown} of {total}", shown = out.len(), total = items.len())).size(12.0).color(TEXT_FAINT));
+            ui.label(RichText::new(t!("Showing {shown} of {total}", shown = out.len(), total = items.len())).size(12.0).color(TEXT_FAINT()));
         }
         out
     }
@@ -703,7 +703,7 @@ impl App {
     fn merged_list(&mut self, ui: &mut Ui, s: &AppState, id: &str, system_id: &str, local_id: &str) {
         let gid = s.selected_group.clone();
         ui.horizontal(|ui| {
-            ui.label(RichText::new(t!("Show")).size(12.0).color(TEXT_FAINT));
+            ui.label(RichText::new(t!("Show")).size(12.0).color(TEXT_FAINT()));
             for (i, label) in [t!("Everything"), t!("System library"), t!("This computer")].iter().enumerate() {
                 if filter_chip(ui, label, self.merged_source == i).clicked() {
                     self.merged_source = i;
@@ -738,14 +738,14 @@ impl App {
             }
         }
         for n in &notes {
-            ui.label(RichText::new(n).size(12.0).color(TEXT_FAINT));
+            ui.label(RichText::new(n).size(12.0).color(TEXT_FAINT()));
         }
         if waiting {
-            spinner_dots(ui, TEXT_DIM);
+            spinner_dots(ui, TEXT_DIM());
         }
         if items.is_empty() {
             if !waiting {
-                ui.label(RichText::new(t!("Nothing here yet.")).color(TEXT_DIM));
+                ui.label(RichText::new(t!("Nothing here yet.")).color(TEXT_DIM()));
             }
             return;
         }
@@ -771,11 +771,11 @@ impl App {
     fn container_page(&mut self, ui: &mut Ui, s: &AppState, top: &Item) {
         let gid = s.selected_group.clone();
         ui.horizontal(|ui| {
-            if icon_button(ui, Icon::Back, 18.0, TEXT).clicked() {
+            if icon_button(ui, Icon::Back, 18.0, TEXT()).clicked() {
                 self.stack.pop();
             }
             let crumbs: Vec<String> = self.stack.iter().map(|i| i.title.clone()).collect();
-            ui.label(RichText::new(crumbs.join("  ›  ")).size(13.0).color(TEXT_DIM));
+            ui.label(RichText::new(crumbs.join("  ›  ")).size(13.0).color(TEXT_DIM()));
         });
         ui.add_space(10.0);
         let hero = !top.uri.is_empty()
@@ -796,20 +796,20 @@ impl App {
                         kind_label(&top.class)
                     };
                     ui.horizontal(|ui| {
-                        ui.label(RichText::new(kind.to_uppercase()).size(11.5).color(ACCENT));
+                        ui.label(RichText::new(kind.to_uppercase()).size(11.5).color(ACCENT()));
                         if !top.source.is_empty() {
-                            chip(ui, crate::sources::source_label(&top.source), TEXT_DIM);
+                            chip(ui, crate::sources::source_label(&top.source), TEXT_DIM());
                         }
                     });
-                    ui.label(RichText::new(&top.title).size(30.0).strong().color(TEXT));
+                    ui.label(RichText::new(&top.title).size(30.0).strong().color(TEXT()));
                     if !top.artist.is_empty() {
                         let link = ui
-                            .add(egui::Label::new(RichText::new(&top.artist).size(15.0).color(TEXT_DIM)).sense(Sense::click()))
+                            .add(egui::Label::new(RichText::new(&top.artist).size(15.0).color(TEXT_DIM())).sense(Sense::click()))
                             .on_hover_cursor(egui::CursorIcon::PointingHand)
                             .on_hover_text(t!("See everything by {artist}", artist = top.artist));
                         if link.hovered() {
                             let r = link.rect;
-                            ui.painter().line_segment([pos2(r.min.x, r.max.y), pos2(r.max.x, r.max.y)], egui::Stroke::new(1.0_f32, TEXT_DIM));
+                            ui.painter().line_segment([pos2(r.min.x, r.max.y), pos2(r.max.x, r.max.y)], egui::Stroke::new(1.0_f32, TEXT_DIM()));
                         }
                         if link.clicked() {
                             self.open_artist(&top.artist);
@@ -850,7 +850,7 @@ impl App {
             ui.add_space(16.0);
         } else {
             ui.horizontal(|ui| {
-                ui.label(RichText::new(&top.title).size(30.0).strong().color(TEXT));
+                ui.label(RichText::new(&top.title).size(30.0).strong().color(TEXT()));
                 if top.id == "S:" || top.id == "LOCAL:FOLDERS" || top.id == "ALL:FOLDERS" {
                     ui.with_layout(Layout::right_to_left(Align::Center), |ui| {
                         if pill(ui, Some(Icon::Plus), t!("Add folder"), true).clicked() {
@@ -873,7 +873,7 @@ impl App {
         let items: Option<Vec<Item>> = match self.browse(s, &id) {
             Some(Browse::Ready(v)) => Some(v.iter().cloned().chain(extra.iter().cloned()).collect()),
             Some(Browse::Failed(e)) if !extra.is_empty() => {
-                ui.label(RichText::new(t!("System folders unavailable: {error}", error = e)).size(12.5).color(TEXT_FAINT));
+                ui.label(RichText::new(t!("System folders unavailable: {error}", error = e)).size(12.5).color(TEXT_FAINT()));
                 Some(extra.clone())
             }
             other => {
@@ -886,16 +886,16 @@ impl App {
         if items.is_empty() {
             if let Some(sid) = top.id.strip_prefix("FVSVC:").and_then(|x| x.parse::<u32>().ok()) {
                 let name = crate::sources::SERVICES.iter().find(|x| x.sid == sid).map(|x| x.name).unwrap_or("");
-                ui.label(RichText::new(t!("No {service} favorites yet.", service = name)).color(TEXT));
+                ui.label(RichText::new(t!("No {service} favorites yet.", service = name)).color(TEXT()));
                 ui.label(
                     RichText::new(t!("In the speaker maker's app, save {service} albums, playlists, songs or stations to Favorites (or press ☆ in the player here while one is playing). They show up here, in Favorites and in Search, and play from this app.", service = name))
                         .size(12.5)
-                        .color(TEXT_DIM),
+                        .color(TEXT_DIM()),
                 );
                 return;
             }
             let msg = if is_folders { t!("No folders yet. Use Add folder to choose music on this computer.") } else { t!("Nothing here yet.") };
-            ui.label(RichText::new(msg).color(TEXT_DIM));
+            ui.label(RichText::new(msg).color(TEXT_DIM()));
             return;
         }
         let shown = self.filter_bar(ui, &id, &items);
@@ -910,7 +910,7 @@ impl App {
                 let path = it.id.trim_start_matches("LOCAL:FOLDER/").to_string();
                 ui.horizontal(|ui| {
                     ui.add_space(66.0);
-                    if ui.add(egui::Button::new(RichText::new(t!("Remove folder")).size(11.5).color(TEXT_DIM)).frame(false)).clicked() {
+                    if ui.add(egui::Button::new(RichText::new(t!("Remove folder")).size(11.5).color(TEXT_DIM())).frame(false)).clicked() {
                         self.send(Cmd::RemoveFolder(path));
                     }
                 });
@@ -921,11 +921,11 @@ impl App {
     fn search_page(&mut self, ui: &mut Ui, s: &AppState) {
         self.header(ui, t!("Search"), t!("Every music source you've set up, in one place"));
         let gid = s.selected_group.clone();
-        let frame = egui::Frame::new().fill(SURFACE_HI).corner_radius(22.0).inner_margin(egui::Margin { left: 16, right: 16, top: 9, bottom: 9 });
+        let frame = egui::Frame::new().fill(SURFACE_HI()).corner_radius(22.0).inner_margin(egui::Margin { left: 16, right: 16, top: 9, bottom: 9 });
         frame.show(ui, |ui| {
             ui.horizontal(|ui| {
                 let (r, _) = ui.allocate_exact_size(vec2(18.0, 18.0), Sense::hover());
-                paint_icon(ui.painter(), r, Icon::Search, TEXT_DIM);
+                paint_icon(ui.painter(), r, Icon::Search, TEXT_DIM());
                 let edit = ui.add(
                     egui::TextEdit::singleline(&mut self.search)
                         .hint_text(t!("Artists, albums, songs, stations, podcasts…"))
@@ -958,7 +958,7 @@ impl App {
         let all_sources = crate::sources::all_search_sources(&s.config);
         let sources: Vec<&str> = all_sources.iter().map(String::as_str).filter(|src| crate::sources::enabled(&s.config, src)).collect();
         ui.horizontal_wrapped(|ui| {
-            ui.label(RichText::new(t!("Sources")).size(12.0).color(TEXT_FAINT));
+            ui.label(RichText::new(t!("Sources")).size(12.0).color(TEXT_FAINT()));
             if filter_chip(ui, t!("All"), self.search_sources.is_empty()).clicked() {
                 self.search_sources.clear();
             }
@@ -975,7 +975,7 @@ impl App {
         });
         ui.add_space(4.0);
         ui.horizontal_wrapped(|ui| {
-            ui.label(RichText::new(t!("Types")).size(12.0).color(TEXT_FAINT));
+            ui.label(RichText::new(t!("Types")).size(12.0).color(TEXT_FAINT()));
             if filter_chip(ui, t!("All"), self.search_types.is_empty()).clicked() {
                 self.search_types.clear();
             }
@@ -1042,13 +1042,13 @@ impl App {
                 });
             }
             if !waiting.is_empty() {
-                spinner_dots(ui, TEXT_DIM);
+                spinner_dots(ui, TEXT_DIM());
                 let names: Vec<&str> = waiting.iter().map(|w| crate::sources::source_label(w)).collect();
-                ui.label(RichText::new(t!("Searching {sources}…", sources = names.join(", "))).size(12.0).color(TEXT_FAINT));
+                ui.label(RichText::new(t!("Searching {sources}…", sources = names.join(", "))).size(12.0).color(TEXT_FAINT()));
             }
         });
         for (src, e) in &failed {
-            ui.label(RichText::new(t!("{source} couldn't be reached right now.", source = crate::i18n::tr(crate::sources::source_label(src)))).size(12.0).color(TEXT_FAINT))
+            ui.label(RichText::new(t!("{source} couldn't be reached right now.", source = crate::i18n::tr(crate::sources::source_label(src)))).size(12.0).color(TEXT_FAINT()))
                 .on_hover_text(e);
         }
         ui.add_space(8.0);
@@ -1074,7 +1074,7 @@ impl App {
             sort_items(&mut shown, self.search_sort);
         }
         if shown.is_empty() && waiting.is_empty() {
-            ui.label(RichText::new(t!("Nothing matched “{query}” with these filters.", query = self.searched)).color(TEXT_DIM));
+            ui.label(RichText::new(t!("Nothing matched “{query}” with these filters.", query = self.searched)).color(TEXT_DIM()));
             return;
         }
         for t in ITEM_TYPES {
@@ -1084,8 +1084,8 @@ impl App {
             }
             ui.add_space(6.0);
             ui.horizontal(|ui| {
-                ui.label(RichText::new(crate::i18n::tr(t)).size(19.0).color(TEXT).strong());
-                ui.label(RichText::new(list.len().to_string()).size(12.0).color(TEXT_FAINT));
+                ui.label(RichText::new(crate::i18n::tr(t)).size(19.0).color(TEXT()).strong());
+                ui.label(RichText::new(list.len().to_string()).size(12.0).color(TEXT_FAINT()));
             });
             let limit = if self.search_types.len() == 1 { 200 } else { 8 };
             for (i, it) in list.iter().take(limit).enumerate() {
@@ -1093,7 +1093,7 @@ impl App {
             }
             if list.len() > limit {
                 let label = t!("Show all {n} {kind}", n = list.len(), kind = crate::i18n::tr(t).to_lowercase());
-                if ui.add(egui::Button::new(RichText::new(label).size(13.0).color(ACCENT)).frame(false)).clicked() {
+                if ui.add(egui::Button::new(RichText::new(label).size(13.0).color(ACCENT())).frame(false)).clicked() {
                     self.search_types = [t.to_string()].into_iter().collect();
                 }
             }
@@ -1114,7 +1114,7 @@ impl App {
 
         section_title(ui, t!("My stations"));
         if s.config.stations.is_empty() {
-            ui.label(RichText::new(t!("Add any internet radio stream by its address, or save stations from the directory below.")).color(TEXT_DIM));
+            ui.label(RichText::new(t!("Add any internet radio stream by its address, or save stations from the directory below.")).color(TEXT_DIM()));
         } else {
             let mine: Vec<Item> = s.config.stations.iter().map(crate::sources::radio::my_station_item).collect();
             self.tile_grid(ui, &mine, gid.as_deref(), "mine");
@@ -1138,7 +1138,7 @@ impl App {
         }
 
         if !s.config.service_on("radio") {
-            ui.label(RichText::new(t!("The radio directory is switched off in Music Services.")).color(TEXT_DIM));
+            ui.label(RichText::new(t!("The radio directory is switched off in Music Services.")).color(TEXT_DIM()));
             return;
         }
         section_title(ui, t!("Radio directory"));
@@ -1158,10 +1158,10 @@ impl App {
         });
         ui.add_space(6.0);
         ui.horizontal(|ui| {
-            egui::Frame::new().fill(SURFACE_HI).corner_radius(18.0).inner_margin(egui::Margin { left: 12, right: 12, top: 6, bottom: 6 }).show(ui, |ui| {
+            egui::Frame::new().fill(SURFACE_HI()).corner_radius(18.0).inner_margin(egui::Margin { left: 12, right: 12, top: 6, bottom: 6 }).show(ui, |ui| {
                 ui.horizontal(|ui| {
                     let (r, _) = ui.allocate_exact_size(vec2(15.0, 15.0), Sense::hover());
-                    paint_icon(ui.painter(), r, Icon::Search, TEXT_DIM);
+                    paint_icon(ui.painter(), r, Icon::Search, TEXT_DIM());
                     let e = ui.add(egui::TextEdit::singleline(&mut self.radio_search).hint_text(t!("Find a station by name")).frame(egui::Frame::NONE).desired_width(260.0));
                     if e.lost_focus() && ui.input(|i| i.key_pressed(egui::Key::Enter)) && !self.radio_search.trim().is_empty() {
                         self.radio_searched = self.radio_search.trim().to_string();
@@ -1169,7 +1169,7 @@ impl App {
                     }
                 });
             });
-            ui.label(RichText::new(t!("Press Return to search")).size(12.0).color(TEXT_FAINT));
+            ui.label(RichText::new(t!("Press Return to search")).size(12.0).color(TEXT_FAINT()));
         });
         ui.add_space(8.0);
         let key = if self.radio_searched.is_empty() {
@@ -1199,8 +1199,8 @@ impl App {
                 ui.horizontal(|ui| {
                     service_badge(ui, svc.name, true);
                     ui.vertical(|ui| {
-                        ui.label(RichText::new(crate::i18n::tr(svc.name)).size(15.0).color(TEXT));
-                        ui.label(RichText::new(crate::i18n::tr(svc.blurb)).size(12.5).color(TEXT_DIM));
+                        ui.label(RichText::new(crate::i18n::tr(svc.name)).size(15.0).color(TEXT()));
+                        ui.label(RichText::new(crate::i18n::tr(svc.blurb)).size(12.5).color(TEXT_DIM()));
                     });
                     ui.with_layout(Layout::right_to_left(Align::Center), |ui| {
                         let mut on = s.config.service_on(svc.id);
@@ -1241,7 +1241,7 @@ impl App {
             });
             ui.add_space(8.0);
         }
-        ui.label(RichText::new(t!("Tip: find new podcasts and Internet Archive recordings with Search.")).size(12.0).color(TEXT_FAINT));
+        ui.label(RichText::new(t!("Tip: find new podcasts and Internet Archive recordings with Search.")).size(12.0).color(TEXT_FAINT()));
         ui.add_space(12.0);
         section_title(ui, t!("Streaming services"));
         let live = s.phase == Phase::Live;
@@ -1252,7 +1252,7 @@ impl App {
                 t!("Connecting a streaming service needs your speakers on the network. Anything you've saved to Favorites from these services plays here today.")
             })
             .size(12.5)
-            .color(TEXT_DIM),
+            .color(TEXT_DIM()),
         );
         ui.add_space(8.0);
         let w = ui.available_width();
@@ -1273,18 +1273,18 @@ impl App {
                                 service_badge(ui, svc.name, account.is_some());
                                 ui.vertical(|ui| {
                                     ui.horizontal(|ui| {
-                                        ui.label(RichText::new(crate::i18n::tr(svc.name)).size(15.0).color(TEXT));
+                                        ui.label(RichText::new(crate::i18n::tr(svc.name)).size(15.0).color(TEXT()));
                                         if account.is_some() {
-                                            chip(ui, t!("Connected"), GOOD);
+                                            chip(ui, t!("Connected"), GOOD());
                                         } else if !svc.note.is_empty() {
-                                            chip(ui, t!("Favorites only"), TEXT_DIM);
+                                            chip(ui, t!("Favorites only"), TEXT_DIM());
                                         } else if live && !offered {
-                                            chip(ui, t!("Not offered on this system"), TEXT_FAINT);
+                                            chip(ui, t!("Not offered on this system"), TEXT_FAINT());
                                         } else {
-                                            chip(ui, t!("Ready to connect"), ACCENT);
+                                            chip(ui, t!("Ready to connect"), ACCENT());
                                         }
                                     });
-                                    ui.label(RichText::new(crate::i18n::tr(svc.blurb)).size(12.0).color(TEXT_DIM));
+                                    ui.label(RichText::new(crate::i18n::tr(svc.blurb)).size(12.0).color(TEXT_DIM()));
                                 });
                             });
                             ui.add_space(6.0);
@@ -1313,7 +1313,7 @@ impl App {
                                         self.send(Cmd::DisconnectService(a.sid));
                                     }
                                     let mut sn = a.sn.max(1);
-                                    ui.label(RichText::new(t!("Account")).size(11.5).color(TEXT_FAINT))
+                                    ui.label(RichText::new(t!("Account")).size(11.5).color(TEXT_FAINT()))
                                         .on_hover_text(t!("Which of your system's accounts for this service plays the music. Change it if songs won't start."));
                                     if ui.add(egui::DragValue::new(&mut sn).range(1..=20)).changed() {
                                         self.send(Cmd::SetAccountNumber(a.sid, sn));
@@ -1340,10 +1340,10 @@ impl App {
                             });
                             if let Some(result) = account.as_ref().and_then(|a| s.service_checks.get(&a.sid)).filter(|r| !r.is_empty()) {
                                 let failed = result.starts_with('!');
-                                ui.add(egui::Label::new(RichText::new(result.trim_start_matches('!')).size(11.5).color(if failed { BAD } else { GOOD })).wrap());
+                                ui.add(egui::Label::new(RichText::new(result.trim_start_matches('!')).size(11.5).color(if failed { BAD() } else { GOOD() })).wrap());
                             }
                             if account.is_none() && !svc.note.is_empty() {
-                                ui.add(egui::Label::new(RichText::new(crate::i18n::tr(svc.note)).size(11.5).color(TEXT_FAINT)).wrap());
+                                ui.add(egui::Label::new(RichText::new(crate::i18n::tr(svc.note)).size(11.5).color(TEXT_FAINT())).wrap());
                             }
                         });
                     });
@@ -1373,11 +1373,11 @@ impl App {
                     ui.set_width(ui.available_width());
                     ui.horizontal(|ui| {
                         let (b, _) = ui.allocate_exact_size(vec2(44.0, 44.0), Sense::hover());
-                        ui.painter().rect_filled(b, 12.0, SURFACE_HI);
-                        paint_icon(ui.painter(), b.shrink(11.0), icon, ACCENT);
+                        ui.painter().rect_filled(b, 12.0, SURFACE_HI());
+                        paint_icon(ui.painter(), b.shrink(11.0), icon, ACCENT());
                         ui.vertical(|ui| {
-                            ui.label(RichText::new(format!("{} · {}", label, r.name)).size(15.0).color(TEXT));
-                            ui.label(RichText::new(if r.model.is_empty() { t!("Speaker").to_string() } else { r.model.clone() }).size(12.0).color(TEXT_DIM));
+                            ui.label(RichText::new(format!("{} · {}", label, r.name)).size(15.0).color(TEXT()));
+                            ui.label(RichText::new(if r.model.is_empty() { t!("Speaker").to_string() } else { r.model.clone() }).size(12.0).color(TEXT_DIM()));
                         });
                         ui.with_layout(Layout::right_to_left(Align::Center), |ui| {
                             if pill(ui, Some(Icon::Play), t!("Play"), false).clicked() {
@@ -1390,10 +1390,10 @@ impl App {
             }
         }
         if !any {
-            ui.label(RichText::new(t!("None of your speakers look like they have a line-in or TV connection.")).color(TEXT_DIM));
+            ui.label(RichText::new(t!("None of your speakers look like they have a line-in or TV connection.")).color(TEXT_DIM()));
         }
         ui.add_space(6.0);
-        ui.label(RichText::new(t!("Sources are guessed from each speaker's model; a speaker without that socket will refuse to play it.")).size(12.0).color(TEXT_FAINT));
+        ui.label(RichText::new(t!("Sources are guessed from each speaker's model; a speaker without that socket will refuse to play it.")).size(12.0).color(TEXT_FAINT()));
     }
 
     // ---------- Now playing ----------
@@ -1405,14 +1405,14 @@ impl App {
         };
         let gid = g.id.clone();
         ui.horizontal(|ui| {
-            if icon_button(ui, Icon::Down, 18.0, TEXT).clicked() {
+            if icon_button(ui, Icon::Down, 18.0, TEXT()).clicked() {
                 self.go(View::Home);
             }
-            ui.label(RichText::new(t!("Playing in {room}", room = h.group_name(g))).size(13.0).color(TEXT_DIM));
+            ui.label(RichText::new(t!("Playing in {room}", room = h.group_name(g))).size(13.0).color(TEXT_DIM()));
             ui.add_space(6.0);
             chip(ui, &t!("{system} system", system = h.system.label()), system_tint(h.system));
             if !g.now.source.is_empty() {
-                chip(ui, &g.now.source, TEXT_DIM);
+                chip(ui, &g.now.source, TEXT_DIM());
             }
         });
         ui.add_space(12.0);
@@ -1423,7 +1423,7 @@ impl App {
             ui.painter().rect_filled(r.translate(vec2(0.0, 10.0)).shrink(10.0), 20.0, Color32::from_black_alpha(120));
             let seed = if g.now.album.is_empty() { g.now.title.clone() } else { g.now.album.clone() };
             if g.now.is_empty() {
-                ui.painter().rect_filled(r, 20.0, SURFACE_HI);
+                ui.painter().rect_filled(r, 20.0, SURFACE_HI());
             } else {
                 paint_art(ui, &mut self.art, r, g.now.art.as_deref(), &seed, 20.0);
             }
@@ -1432,11 +1432,11 @@ impl App {
                 let cw = ui.available_width();
                 ui.add_space(12.0);
                 ui.horizontal(|ui| {
-                    clipped_label(ui, if g.now.is_empty() { t!("Nothing playing") } else { &g.now.title }, 28.0, TEXT, cw - 44.0, true);
+                    clipped_label(ui, if g.now.is_empty() { t!("Nothing playing") } else { &g.now.title }, 28.0, TEXT(), cw - 44.0, true);
                     self.now_star(ui, &g.now, 20.0);
                 });
                 ui.add_space(2.0);
-                let artist = clipped_label(ui, &g.now.artist, 17.0, TEXT_DIM, cw, false);
+                let artist = clipped_label(ui, &g.now.artist, 17.0, TEXT_DIM(), cw, false);
                 if !g.now.artist.is_empty() && !g.now.is_stream {
                     let artist = ui
                         .interact(artist.rect, ui.scope_id().with("np_artist"), Sense::click())
@@ -1448,13 +1448,13 @@ impl App {
                         self.open_artist(&name);
                     }
                 }
-                clipped_label(ui, &g.now.album, 14.0, TEXT_FAINT, cw, false);
+                clipped_label(ui, &g.now.album, 14.0, TEXT_FAINT(), cw, false);
                 ui.add_space(18.0);
                 let dur = g.now.duration;
                 let pos = g.now.live_position();
                 if dur > 0.0 {
                     let mut v = self.seek_drag.unwrap_or(pos / dur);
-                    let (r, changed) = slider(ui, "np_seek", &mut v, cw, ACCENT);
+                    let (r, changed) = slider(ui, "np_seek", &mut v, cw, ACCENT());
                     if changed {
                         self.seek_drag = Some(v);
                     }
@@ -1464,39 +1464,39 @@ impl App {
                         }
                     }
                     ui.horizontal(|ui| {
-                        ui.label(RichText::new(fmt_time(self.seek_drag.map(|v| v * dur).unwrap_or(pos))).size(12.0).color(TEXT_FAINT));
+                        ui.label(RichText::new(fmt_time(self.seek_drag.map(|v| v * dur).unwrap_or(pos))).size(12.0).color(TEXT_FAINT()));
                         ui.with_layout(Layout::right_to_left(Align::Center), |ui| {
-                            ui.label(RichText::new(format!("-{}", fmt_time(dur - pos))).size(12.0).color(TEXT_FAINT));
+                            ui.label(RichText::new(format!("-{}", fmt_time(dur - pos))).size(12.0).color(TEXT_FAINT()));
                         });
                     });
                 } else if g.now.is_stream {
-                    chip(ui, t!("LIVE"), ACCENT);
+                    chip(ui, t!("LIVE"), ACCENT());
                 }
                 ui.add_space(10.0);
                 ui.horizontal(|ui| {
                     ui.spacing_mut().item_spacing.x = 14.0;
-                    if icon_button(ui, Icon::Shuffle, 20.0, if g.shuffle { ACCENT } else { TEXT_DIM }).clicked() {
+                    if icon_button(ui, Icon::Shuffle, 20.0, if g.shuffle { ACCENT() } else { TEXT_DIM() }).clicked() {
                         self.send(Cmd::SetPlayMode(gid.clone(), !g.shuffle, g.repeat));
                     }
-                    if icon_button(ui, Icon::Prev, 24.0, TEXT).clicked() {
+                    if icon_button(ui, Icon::Prev, 24.0, TEXT()).clicked() {
                         self.send(Cmd::Previous(gid.clone()));
                     }
                     let playing = g.now.transport == Transport::Playing;
-                    if round_button(ui, if playing { Icon::Pause } else { Icon::Play }, 62.0, ACCENT, Color32::BLACK).clicked() {
+                    if round_button(ui, if playing { Icon::Pause } else { Icon::Play }, 62.0, ACCENT(), Color32::BLACK).clicked() {
                         self.send(if playing { Cmd::Pause(gid.clone()) } else { Cmd::Play(gid.clone()) });
                     }
-                    if icon_button(ui, Icon::Next, 24.0, TEXT).clicked() {
+                    if icon_button(ui, Icon::Next, 24.0, TEXT()).clicked() {
                         self.send(Cmd::Next(gid.clone()));
                     }
                     let rep_icon = if g.repeat == Repeat::One { Icon::RepeatOne } else { Icon::Repeat };
-                    if icon_button(ui, rep_icon, 20.0, if g.repeat != Repeat::Off { ACCENT } else { TEXT_DIM }).clicked() {
+                    if icon_button(ui, rep_icon, 20.0, if g.repeat != Repeat::Off { ACCENT() } else { TEXT_DIM() }).clicked() {
                         self.send(Cmd::SetPlayMode(gid.clone(), g.shuffle, g.repeat.next()));
                     }
                 });
                 ui.add_space(14.0);
                 ui.horizontal_wrapped(|ui| {
                     let mut cf = g.crossfade;
-                    ui.label(RichText::new(t!("Crossfade")).size(13.0).color(TEXT_DIM));
+                    ui.label(RichText::new(t!("Crossfade")).size(13.0).color(TEXT_DIM()));
                     if toggle(ui, &mut cf).changed() {
                         self.send(Cmd::SetCrossfade(gid.clone(), cf));
                     }
@@ -1562,12 +1562,12 @@ impl App {
                     let w = ui.available_width();
                     let (rect, resp) = ui.allocate_exact_size(vec2(w, 50.0), Sense::click());
                     if resp.hovered() {
-                        ui.painter().rect_filled(rect, 10.0, SURFACE);
+                        ui.painter().rect_filled(rect, 10.0, SURFACE());
                     }
                     let ar = Rect::from_min_size(rect.min + vec2(8.0, 7.0), vec2(36.0, 36.0));
                     paint_art(ui, &mut self.art, ar, it.art.as_deref(), seed_of(it), 7.0);
-                    paint_text(ui, pos2(ar.max.x + 12.0, rect.min.y + 8.0), &it.title, 14.0, TEXT, w - 140.0);
-                    paint_text(ui, pos2(ar.max.x + 12.0, rect.min.y + 27.0), &it.artist, 12.0, TEXT_DIM, w - 140.0);
+                    paint_text(ui, pos2(ar.max.x + 12.0, rect.min.y + 8.0), &it.title, 14.0, TEXT(), w - 140.0);
+                    paint_text(ui, pos2(ar.max.x + 12.0, rect.min.y + 27.0), &it.artist, 12.0, TEXT_DIM(), w - 140.0);
                     let resp = resp.on_hover_cursor(egui::CursorIcon::PointingHand);
                     if resp.clicked() {
                         self.send(Cmd::PlayQueueIndex(gid.clone(), i));
@@ -1582,22 +1582,22 @@ impl App {
     fn volume_line(&mut self, ui: &mut Ui, name: &str, key: &str, volume: u8, muted: bool, strong: bool, set: impl Fn(u8) -> Cmd, mute: impl Fn(bool) -> Cmd) {
         ui.horizontal(|ui| {
             ui.set_height(36.0);
-            let label = RichText::new(name).size(14.0).color(if strong { TEXT } else { TEXT_DIM });
+            let label = RichText::new(name).size(14.0).color(if strong { TEXT() } else { TEXT_DIM() });
             ui.allocate_ui_with_layout(vec2(130.0, 20.0), Layout::left_to_right(Align::Center), |ui| {
                 ui.set_width(130.0);
                 ui.add(egui::Label::new(if strong { label.strong() } else { label }).truncate());
             });
-            if icon_button(ui, if muted { Icon::Muted } else { Icon::Speaker }, 16.0, if muted { BAD } else { TEXT_DIM }).clicked() {
+            if icon_button(ui, if muted { Icon::Muted } else { Icon::Speaker }, 16.0, if muted { BAD() } else { TEXT_DIM() }).clicked() {
                 self.send(mute(!muted));
             }
             let mut v = self.shown_volume(key, volume);
             let w = ui.available_width() - 40.0;
-            let (_, changed) = slider(ui, key, &mut v, w, if strong { ACCENT } else { TEXT });
+            let (_, changed) = slider(ui, key, &mut v, w, if strong { ACCENT() } else { TEXT() });
             if changed {
                 self.local_vol.insert(key.to_string(), (v, Instant::now()));
                 self.send(set((v * 100.0).round() as u8));
             }
-            ui.label(RichText::new(format!("{}", (v * 100.0).round() as u8)).size(12.5).color(TEXT_DIM));
+            ui.label(RichText::new(format!("{}", (v * 100.0).round() as u8)).size(12.5).color(TEXT_DIM()));
         });
     }
 
@@ -1626,24 +1626,24 @@ impl App {
         });
         let Some(list) = &s.alarms else {
             self.ask_once("alarms", Duration::from_secs(10), Cmd::LoadAlarms);
-            spinner_dots(ui, TEXT_DIM);
+            spinner_dots(ui, TEXT_DIM());
             return;
         };
         if list.is_empty() {
-            ui.label(RichText::new(t!("No alarms yet.")).color(TEXT_DIM));
+            ui.label(RichText::new(t!("No alarms yet.")).color(TEXT_DIM()));
             return;
         }
         for a in list {
             card_frame().show(ui, |ui| {
                 ui.set_width(ui.available_width());
                 ui.horizontal(|ui| {
-                    let col = if a.enabled { TEXT } else { TEXT_FAINT };
+                    let col = if a.enabled { TEXT() } else { TEXT_FAINT() };
                     ui.label(RichText::new(format!("{:02}:{:02}", a.hour, a.minute)).size(34.0).color(col));
                     ui.add_space(12.0);
                     ui.vertical(|ui| {
                         ui.add_space(4.0);
                         let room = s.find_room(&a.room_uuid).map(|(_, r)| r.name.clone()).unwrap_or_else(|| t!("Unknown room").into());
-                        ui.label(RichText::new(format!("{} · {}", recurrence_label(&a.recurrence), room)).size(14.0).color(if a.enabled { TEXT } else { TEXT_DIM }));
+                        ui.label(RichText::new(format!("{} · {}", recurrence_label(&a.recurrence), room)).size(14.0).color(if a.enabled { TEXT() } else { TEXT_DIM() }));
                         ui.label(
                             RichText::new(t!(
                                 "{program} · volume {volume} · {minutes} min",
@@ -1652,7 +1652,7 @@ impl App {
                                 minutes = a.duration_min
                             ))
                             .size(12.5)
-                            .color(TEXT_DIM),
+                            .color(TEXT_DIM()),
                         );
                     });
                     ui.with_layout(Layout::right_to_left(Align::Center), |ui| {
@@ -1662,7 +1662,7 @@ impl App {
                             a2.enabled = on;
                             self.send(Cmd::SaveAlarm(a2));
                         }
-                        if icon_button(ui, Icon::Sliders, 16.0, TEXT_DIM).on_hover_text(t!("Edit")).clicked() {
+                        if icon_button(ui, Icon::Sliders, 16.0, TEXT_DIM()).on_hover_text(t!("Edit")).clicked() {
                             self.alarm_editor = Some(a.clone());
                         }
                     });
@@ -1683,11 +1683,11 @@ impl App {
             ui.label(RichText::new(":").size(22.0));
             ui.add(egui::DragValue::new(&mut a.minute).range(0..=59).custom_formatter(|v, _| format!("{:02}", v as u32)).speed(0.2));
             ui.add_space(10.0);
-            ui.label(RichText::new(t!("Drag or type to set the time")).size(12.0).color(TEXT_FAINT));
+            ui.label(RichText::new(t!("Drag or type to set the time")).size(12.0).color(TEXT_FAINT()));
         });
         ui.add_space(8.0);
         egui::Grid::new("alarm_grid").num_columns(2).spacing([16.0, 12.0]).show(ui, |ui| {
-            ui.label(RichText::new(t!("Repeat")).color(TEXT_DIM));
+            ui.label(RichText::new(t!("Repeat")).color(TEXT_DIM()));
             egui::ComboBox::from_id_salt("alarm_rec").width(220.0).selected_text(recurrence_label(&a.recurrence)).show_ui(ui, |ui| {
                 for r in ["DAILY", "WEEKDAYS", "WEEKENDS", "ONCE"] {
                     ui.selectable_value(&mut a.recurrence, r.to_string(), recurrence_label(r));
@@ -1695,7 +1695,7 @@ impl App {
             });
             ui.end_row();
 
-            ui.label(RichText::new(t!("Room")).color(TEXT_DIM));
+            ui.label(RichText::new(t!("Room")).color(TEXT_DIM()));
             let room_name = s.find_room(&a.room_uuid).map(|(_, r)| r.name.clone()).unwrap_or_else(|| t!("Choose a room").into());
             egui::ComboBox::from_id_salt("alarm_room").width(220.0).selected_text(room_name).show_ui(ui, |ui| {
                 if let Some(h) = s.household() {
@@ -1706,7 +1706,7 @@ impl App {
             });
             ui.end_row();
 
-            ui.label(RichText::new(t!("Music")).color(TEXT_DIM));
+            ui.label(RichText::new(t!("Music")).color(TEXT_DIM()));
             let favs: Vec<Item> = match s.browse.get("FV:2") {
                 Some(Browse::Ready(f)) => f.clone(),
                 _ => {
@@ -1730,17 +1730,17 @@ impl App {
             });
             ui.end_row();
 
-            ui.label(RichText::new(t!("Volume")).color(TEXT_DIM));
+            ui.label(RichText::new(t!("Volume")).color(TEXT_DIM()));
             ui.horizontal(|ui| {
                 let mut v = a.volume as f32 / 100.0;
-                if slider(ui, "alarm_vol", &mut v, 180.0, ACCENT).1 {
+                if slider(ui, "alarm_vol", &mut v, 180.0, ACCENT()).1 {
                     a.volume = (v * 100.0).round() as u8;
                 }
-                ui.label(RichText::new(a.volume.to_string()).color(TEXT_DIM));
+                ui.label(RichText::new(a.volume.to_string()).color(TEXT_DIM()));
             });
             ui.end_row();
 
-            ui.label(RichText::new(t!("Play for")).color(TEXT_DIM));
+            ui.label(RichText::new(t!("Play for")).color(TEXT_DIM()));
             egui::ComboBox::from_id_salt("alarm_dur").width(220.0).selected_text(t!("{n} minutes", n = a.duration_min)).show_ui(ui, |ui| {
                 for m in [15, 30, 45, 60, 90, 120, 180] {
                     ui.selectable_value(&mut a.duration_min, m, t!("{n} minutes", n = m));
@@ -1748,7 +1748,7 @@ impl App {
             });
             ui.end_row();
 
-            ui.label(RichText::new(t!("Grouped rooms")).color(TEXT_DIM));
+            ui.label(RichText::new(t!("Grouped rooms")).color(TEXT_DIM()));
             toggle(ui, &mut a.include_linked);
             ui.end_row();
         });
@@ -1782,10 +1782,10 @@ impl App {
         self.header(ui, t!("Settings"), t!("Systems, rooms and connection"));
         for (i, h) in s.households.iter().enumerate() {
             ui.horizontal(|ui| {
-                ui.label(RichText::new(t!("{system} system", system = h.system.label())).size(19.0).color(TEXT).strong());
+                ui.label(RichText::new(t!("{system} system", system = h.system.label())).size(19.0).color(TEXT()).strong());
                 chip(ui, if h.system == System::S1 { t!("Legacy firmware 11.x") } else { t!("Current firmware") }, system_tint(h.system));
                 if i == s.active {
-                    chip(ui, t!("Active"), GOOD);
+                    chip(ui, t!("Active"), GOOD());
                 }
             });
             card_frame().show(ui, |ui| {
@@ -1794,15 +1794,15 @@ impl App {
                     let w = ui.available_width();
                     let (rect, resp) = ui.allocate_exact_size(vec2(w, 50.0), Sense::click());
                     if resp.hovered() {
-                        ui.painter().rect_filled(rect, 10.0, SURFACE_HI);
+                        ui.painter().rect_filled(rect, 10.0, SURFACE_HI());
                     }
                     paint_icon(ui.painter(), Rect::from_min_size(rect.min + vec2(10.0, 15.0), vec2(20.0, 20.0)), Icon::Speaker, system_tint(h.system));
-                    paint_text(ui, pos2(rect.min.x + 44.0, rect.min.y + 8.0), &r.name, 14.5, TEXT, w - 200.0);
+                    paint_text(ui, pos2(rect.min.x + 44.0, rect.min.y + 8.0), &r.name, 14.5, TEXT(), w - 200.0);
                     let sub = if r.version.is_empty() { r.model.clone() } else { format!("{} · {}", r.model, t!("version {version}", version = r.version)) };
-                    paint_text(ui, pos2(rect.min.x + 44.0, rect.min.y + 28.0), &sub, 12.0, TEXT_DIM, w - 200.0);
-                    paint_icon(ui.painter(), Rect::from_center_size(pos2(rect.max.x - 18.0, rect.center().y), vec2(14.0, 14.0)), Icon::Chevron, TEXT_FAINT);
+                    paint_text(ui, pos2(rect.min.x + 44.0, rect.min.y + 28.0), &sub, 12.0, TEXT_DIM(), w - 200.0);
+                    paint_icon(ui.painter(), Rect::from_center_size(pos2(rect.max.x - 18.0, rect.center().y), vec2(14.0, 14.0)), Icon::Chevron, TEXT_FAINT());
                     if !r.ip.is_empty() {
-                        ui.painter().text(pos2(rect.max.x - 36.0, rect.center().y), egui::Align2::RIGHT_CENTER, &r.ip, egui::FontId::proportional(12.0), TEXT_FAINT);
+                        ui.painter().text(pos2(rect.max.x - 36.0, rect.center().y), egui::Align2::RIGHT_CENTER, &r.ip, egui::FontId::proportional(12.0), TEXT_FAINT());
                     }
                     if resp.on_hover_cursor(egui::CursorIcon::PointingHand).clicked() {
                         self.view = View::Room(r.uuid.clone());
@@ -1819,8 +1819,8 @@ impl App {
             ui.set_width(ui.available_width());
             ui.horizontal(|ui| {
                 ui.vertical(|ui| {
-                    ui.label(RichText::new(t!("Find speakers")).color(TEXT));
-                    ui.label(RichText::new(t!("Searches this network for S1 and S2 speakers.")).size(12.0).color(TEXT_DIM));
+                    ui.label(RichText::new(t!("Find speakers")).color(TEXT()));
+                    ui.label(RichText::new(t!("Searches this network for S1 and S2 speakers.")).size(12.0).color(TEXT_DIM()));
                 });
                 ui.with_layout(Layout::right_to_left(Align::Center), |ui| {
                     if pill(ui, Some(Icon::Refresh), t!("Search again"), false).clicked() {
@@ -1831,8 +1831,8 @@ impl App {
             ui.add_space(8.0);
             ui.separator();
             ui.add_space(8.0);
-            ui.label(RichText::new(t!("Add a speaker by address")).color(TEXT));
-            ui.label(RichText::new(t!("If your network blocks discovery, type a speaker's IP address (find it in your router).")).size(12.0).color(TEXT_DIM));
+            ui.label(RichText::new(t!("Add a speaker by address")).color(TEXT()));
+            ui.label(RichText::new(t!("If your network blocks discovery, type a speaker's IP address (find it in your router).")).size(12.0).color(TEXT_DIM()));
             ui.horizontal(|ui| {
                 ui.add(egui::TextEdit::singleline(&mut self.manual_ip).hint_text("192.168.1.20").desired_width(200.0).margin(vec2(10.0, 7.0)));
                 if pill(ui, Some(Icon::Plus), t!("Add"), false).clicked() {
@@ -1848,8 +1848,8 @@ impl App {
             ui.add_space(8.0);
             ui.horizontal(|ui| {
                 ui.vertical(|ui| {
-                    ui.label(RichText::new(t!("Demo system")).color(TEXT));
-                    ui.label(RichText::new(t!("Explore every screen with made-up rooms and music.")).size(12.0).color(TEXT_DIM));
+                    ui.label(RichText::new(t!("Demo system")).color(TEXT()));
+                    ui.label(RichText::new(t!("Explore every screen with made-up rooms and music.")).size(12.0).color(TEXT_DIM()));
                 });
                 ui.with_layout(Layout::right_to_left(Align::Center), |ui| {
                     if pill(ui, None, t!("Open demo"), false).clicked() {
@@ -1858,6 +1858,8 @@ impl App {
                 });
             });
         });
+        ui.add_space(14.0);
+        self.appearance_card(ui, s);
         ui.add_space(14.0);
         self.language_card(ui, s);
         ui.add_space(14.0);
@@ -1873,23 +1875,23 @@ impl App {
             // Name, version and platform.
             ui.horizontal(|ui| {
                 let (r, _) = ui.allocate_exact_size(vec2(40.0, 40.0), Sense::hover());
-                ui.painter().circle_filled(r.center(), 20.0, ACCENT);
+                ui.painter().circle_filled(r.center(), 20.0, ACCENT());
                 ui.painter().circle_filled(r.center() + vec2(5.0, -5.0), 10.0, Color32::from_rgb(255, 196, 140));
                 ui.add_space(6.0);
                 ui.vertical(|ui| {
                     ui.horizontal(|ui| {
-                        ui.label(RichText::new("Roomtone").size(22.0).strong().color(TEXT));
-                        chip(ui, &t!("Version {version}", version = env!("CARGO_PKG_VERSION")), ACCENT);
-                        chip(ui, &format!("{} · {}", crate::help::platform(), std::env::consts::ARCH), TEXT_DIM);
+                        ui.label(RichText::new("Roomtone").size(22.0).strong().color(TEXT()));
+                        chip(ui, &t!("Version {version}", version = env!("CARGO_PKG_VERSION")), ACCENT());
+                        chip(ui, &format!("{} · {}", crate::help::platform(), std::env::consts::ARCH), TEXT_DIM());
                     });
-                    ui.label(RichText::new(t!("A modern controller for S1 and S2 speaker systems")).size(13.0).color(TEXT_DIM));
+                    ui.label(RichText::new(t!("A modern controller for S1 and S2 speaker systems")).size(13.0).color(TEXT_DIM()));
                 });
             });
             ui.add_space(10.0);
             ui.label(
                 RichText::new(t!("Roomtone talks to your speakers directly on your home network, with no account of its own. S1 (firmware 11.x) and S2 systems each appear as their own system on the left: they can't share a group, but rooms can play along across them. Streaming services play through your system's own accounts."))
                     .size(12.5)
-                    .color(TEXT_DIM),
+                    .color(TEXT_DIM()),
             );
             ui.add_space(12.0);
 
@@ -1905,10 +1907,10 @@ impl App {
             };
             let link = if s.config.mcp.enabled && !s.config.mcp.allow_control { format!("{link} · {}", t!("look only")) } else { link };
             egui::Grid::new("about_grid").num_columns(2).spacing([24.0, 8.0]).show(ui, |ui| {
-                ui.label(RichText::new(t!("Systems")).color(TEXT_DIM));
+                ui.label(RichText::new(t!("Systems")).color(TEXT_DIM()));
                 ui.vertical(|ui| {
                     if s.households.is_empty() {
-                        ui.label(RichText::new(t!("No speakers yet.")).color(TEXT));
+                        ui.label(RichText::new(t!("No speakers yet.")).color(TEXT()));
                     }
                     for h in &s.households {
                         let mut versions: Vec<&str> = h.rooms.iter().map(|r| r.version.as_str()).filter(|v| !v.is_empty()).collect();
@@ -1920,24 +1922,24 @@ impl App {
                             [first, .., last] => format!(" · {}", t!("software {version}", version = format!("{first}–{last}"))),
                         };
                         let demo = if s.phase == Phase::Demo { format!(" · {}", t!("Demo")) } else { String::new() };
-                        ui.label(RichText::new(format!("{} · {}{software}{demo}", t!("{system} system", system = h.system.label()), tn!(h.rooms.len(), "1 room", "{n} rooms"))).color(TEXT));
+                        ui.label(RichText::new(format!("{} · {}{software}{demo}", t!("{system} system", system = h.system.label()), tn!(h.rooms.len(), "1 room", "{n} rooms"))).color(TEXT()));
                     }
                 });
                 ui.end_row();
-                ui.label(RichText::new(t!("Language")).color(TEXT_DIM));
-                ui.label(RichText::new(lang).color(TEXT));
+                ui.label(RichText::new(t!("Language")).color(TEXT_DIM()));
+                ui.label(RichText::new(lang).color(TEXT()));
                 ui.end_row();
-                ui.label(RichText::new(t!("Music from this computer")).color(TEXT_DIM));
-                ui.label(RichText::new(music).color(TEXT));
+                ui.label(RichText::new(t!("Music from this computer")).color(TEXT_DIM()));
+                ui.label(RichText::new(music).color(TEXT()));
                 ui.end_row();
-                ui.label(RichText::new(t!("Assistant link (MCP)")).color(TEXT_DIM));
-                ui.label(RichText::new(link).color(TEXT));
+                ui.label(RichText::new(t!("Assistant link (MCP)")).color(TEXT_DIM()));
+                ui.label(RichText::new(link).color(TEXT()));
                 ui.end_row();
-                ui.label(RichText::new(t!("Settings folder")).color(TEXT_DIM));
+                ui.label(RichText::new(t!("Settings folder")).color(TEXT_DIM()));
                 ui.horizontal(|ui| {
                     let path = folder.as_ref().map(|p| p.display().to_string()).unwrap_or_default();
                     let w = (ui.available_width() - 80.0).max(120.0);
-                    ui.add_sized([w, 18.0], egui::Label::new(RichText::new(&path).size(12.5).color(TEXT)).truncate()).on_hover_text(&path);
+                    ui.add_sized([w, 18.0], egui::Label::new(RichText::new(&path).size(12.5).color(TEXT())).truncate()).on_hover_text(&path);
                     if folder.is_some() && ui.add(egui::Button::new(RichText::new(t!("Show")).size(12.0)).corner_radius(10.0)).clicked() {
                         show_folder(&path);
                     }
@@ -1948,22 +1950,22 @@ impl App {
             ui.add_space(12.0);
             ui.separator();
             ui.add_space(6.0);
-            ui.label(RichText::new(t!("What's new in this version")).color(TEXT).strong());
+            ui.label(RichText::new(t!("What's new in this version")).color(TEXT()).strong());
             for line in [
                 t!("Refreshed to the latest interface toolkit, with the same look and layout"),
                 t!("Fixes a Windows build problem and a warning on Windows and Linux"),
                 t!("The project page and Report a problem are linked from Settings › About"),
             ] {
                 ui.horizontal_wrapped(|ui| {
-                    ui.label(RichText::new("•").color(ACCENT));
-                    ui.label(RichText::new(line).size(12.5).color(TEXT_DIM));
+                    ui.label(RichText::new("•").color(ACCENT()));
+                    ui.label(RichText::new(line).size(12.5).color(TEXT_DIM()));
                 });
             }
 
             ui.add_space(10.0);
-            ui.label(RichText::new(t!("Help")).color(TEXT).strong());
+            ui.label(RichText::new(t!("Help")).color(TEXT()).strong());
             ui.horizontal_wrapped(|ui| {
-                ui.label(RichText::new(t!("Open source: the code, issues and new versions are on GitHub.")).size(12.5).color(TEXT_DIM));
+                ui.label(RichText::new(t!("Open source: the code, issues and new versions are on GitHub.")).size(12.5).color(TEXT_DIM()));
             });
             ui.horizontal_wrapped(|ui| {
                 if pill(ui, None, t!("Open project page"), false).on_hover_text(crate::help::REPO_URL).clicked() {
@@ -1981,8 +1983,8 @@ impl App {
             let name = std::env::current_exe().ok().and_then(|p| p.file_name().map(|n| n.to_string_lossy().to_string())).unwrap_or_else(|| "roomtone".into());
             for (text, args) in [(t!("Every option, in a terminal:"), "--help"), (t!("Running without a window and connecting assistants:"), "--help mcp")] {
                 ui.horizontal(|ui| {
-                    ui.label(RichText::new(text).size(12.5).color(TEXT_DIM));
-                    ui.label(RichText::new(format!("{name} {args}")).monospace().size(12.0).color(TEXT));
+                    ui.label(RichText::new(text).size(12.5).color(TEXT_DIM()));
+                    ui.label(RichText::new(format!("{name} {args}")).monospace().size(12.0).color(TEXT()));
                     if ui.add(egui::Button::new(RichText::new(t!("Copy")).size(12.0)).corner_radius(10.0)).on_hover_text(format!("{exe} {args}")).clicked() {
                         ui.ctx().copy_text(format!("{exe} {args}"));
                         self.toast_here(t!("Copied"));
@@ -1991,26 +1993,26 @@ impl App {
             }
 
             ui.add_space(10.0);
-            ui.label(RichText::new(t!("Thanks to")).color(TEXT).strong());
+            ui.label(RichText::new(t!("Thanks to")).color(TEXT()).strong());
             ui.label(
                 RichText::new(t!("Free music directories: Radio Browser (radio-browser.info), the Apple Podcasts directory search and the Internet Archive (archive.org)."))
                     .size(12.5)
-                    .color(TEXT_DIM),
+                    .color(TEXT_DIM()),
             );
             ui.label(
                 RichText::new(t!("Built with Rust and the open-source libraries egui/eframe, winit, ureq, roxmltree, serde, image, lofty and rfd."))
                     .size(12.5)
-                    .color(TEXT_DIM),
+                    .color(TEXT_DIM()),
             );
             ui.add_space(8.0);
             ui.label(
                 RichText::new(t!("Roomtone is an independent app. It isn't made or endorsed by the speaker maker or by any music service; their names belong to their owners."))
                     .size(12.0)
-                    .color(TEXT_FAINT),
+                    .color(TEXT_FAINT()),
             );
             if cfg!(target_os = "macos") {
                 ui.add_space(4.0);
-                ui.label(RichText::new(t!("On macOS, allow Local Network access for this app in System Settings › Privacy & Security if no speakers appear.")).size(12.0).color(TEXT_FAINT));
+                ui.label(RichText::new(t!("On macOS, allow Local Network access for this app in System Settings › Privacy & Security if no speakers appear.")).size(12.0).color(TEXT_FAINT()));
             }
         });
     }
@@ -2035,19 +2037,19 @@ impl App {
                     ui.set_min_height(44.0);
                     ui.vertical(|ui| {
                         ui.horizontal(|ui| {
-                            ui.label(RichText::new(t!("{system} system", system = h.system.label())).color(TEXT));
+                            ui.label(RichText::new(t!("{system} system", system = h.system.label())).color(TEXT()));
                             if !versions.is_empty() {
                                 chip(ui, &t!("software {version}", version = versions.join(", ")), system_tint(h.system));
                             }
                         });
                         let (text, color) = match state {
-                            None => (t!("Not checked yet").to_string(), TEXT_DIM),
-                            Some(UpdateState::Checking) => (t!("Checking…").to_string(), TEXT_DIM),
-                            Some(UpdateState::UpToDate) => (t!("Up to date").to_string(), GOOD),
-                            Some(UpdateState::Available(o)) => (t!("Version {version} is available", version = o.version), ACCENT),
-                            Some(UpdateState::Installing(done, total)) => (t!("Sending the update to speaker {n} of {total}…", n = done + 1, total = total), ACCENT),
-                            Some(UpdateState::Started(v)) => (t!("Installing {version}: speakers restart one by one", version = v), ACCENT),
-                            Some(UpdateState::Failed(e)) => (t!("Couldn't check: {error}", error = e), BAD),
+                            None => (t!("Not checked yet").to_string(), TEXT_DIM()),
+                            Some(UpdateState::Checking) => (t!("Checking…").to_string(), TEXT_DIM()),
+                            Some(UpdateState::UpToDate) => (t!("Up to date").to_string(), GOOD()),
+                            Some(UpdateState::Available(o)) => (t!("Version {version} is available", version = o.version), ACCENT()),
+                            Some(UpdateState::Installing(done, total)) => (t!("Sending the update to speaker {n} of {total}…", n = done + 1, total = total), ACCENT()),
+                            Some(UpdateState::Started(v)) => (t!("Installing {version}: speakers restart one by one", version = v), ACCENT()),
+                            Some(UpdateState::Failed(e)) => (t!("Couldn't check: {error}", error = e), BAD()),
                         };
                         ui.label(RichText::new(text).size(12.5).color(color));
                     });
@@ -2057,7 +2059,7 @@ impl App {
                                 self.update_confirm = Some((h.id.clone(), h.system, o.version.clone()));
                             }
                         }
-                        Some(UpdateState::Checking) | Some(UpdateState::Installing(..)) => spinner_dots(ui, TEXT_DIM),
+                        Some(UpdateState::Checking) | Some(UpdateState::Installing(..)) => spinner_dots(ui, TEXT_DIM()),
                         _ => {
                             if pill(ui, Some(Icon::Refresh), t!("Check for updates"), false).clicked() {
                                 self.send(Cmd::CheckUpdates(h.id.clone()));
@@ -2070,8 +2072,28 @@ impl App {
             ui.label(
                 RichText::new(t!("Updates come from the speakers' own update service. S1 systems only get S1 updates here; moving to S2 isn't possible from this app."))
                     .size(12.0)
-                    .color(TEXT_FAINT),
+                    .color(TEXT_FAINT()),
             );
+        });
+    }
+
+    fn appearance_card(&mut self, ui: &mut Ui, s: &AppState) {
+        section_title(ui, t!("Appearance"));
+        card_frame().show(ui, |ui| {
+            ui.set_width(ui.available_width());
+            ui.horizontal(|ui| {
+                ui.vertical(|ui| {
+                    ui.label(RichText::new(t!("Light or dark")).color(TEXT()));
+                    ui.label(RichText::new(t!("Automatic follows your computer's setting.")).size(12.0).color(TEXT_DIM()));
+                });
+                ui.with_layout(Layout::right_to_left(Align::Center), |ui| {
+                    let codes = ["auto", "light", "dark"];
+                    let current = codes.iter().position(|c| *c == s.config.theme).unwrap_or(0);
+                    if let Some(i) = segmented(ui, &[t!("Automatic"), t!("Light"), t!("Dark")], current, 300.0) {
+                        self.send(Cmd::SetTheme(codes[i].to_string()));
+                    }
+                });
+            });
         });
     }
 
@@ -2081,8 +2103,8 @@ impl App {
             ui.set_width(ui.available_width());
             ui.horizontal(|ui| {
                 ui.vertical(|ui| {
-                    ui.label(RichText::new(t!("App language")).color(TEXT));
-                    ui.label(RichText::new(t!("Automatic follows your computer's language.")).size(12.0).color(TEXT_DIM));
+                    ui.label(RichText::new(t!("App language")).color(TEXT()));
+                    ui.label(RichText::new(t!("Automatic follows your computer's language.")).size(12.0).color(TEXT_DIM()));
                 });
                 ui.with_layout(Layout::right_to_left(Align::Center), |ui| {
                     let chosen = s.config.language.clone();
@@ -2119,8 +2141,8 @@ impl App {
                 ui.horizontal(|ui| {
                     ui.set_min_height(40.0);
                     ui.vertical(|ui| {
-                        ui.label(RichText::new(title).color(TEXT));
-                        ui.label(RichText::new(sub).size(12.0).color(TEXT_DIM));
+                        ui.label(RichText::new(title).color(TEXT()));
+                        ui.label(RichText::new(sub).size(12.0).color(TEXT_DIM()));
                     });
                     ui.with_layout(Layout::right_to_left(Align::Center), |ui| {
                         toggle(ui, on);
@@ -2131,9 +2153,9 @@ impl App {
             if m.enabled {
                 ui.horizontal(|ui| {
                     let (color, text) = match s.mcp_status.split_once(':') {
-                        Some(("ok", addr)) => (GOOD, t!("Ready at {address}", address = addr)),
-                        Some(("err", e)) => (BAD, t!("Couldn't open port {port}: {error}", port = m.port, error = e)),
-                        _ => (TEXT_DIM, t!("Starting…").to_string()),
+                        Some(("ok", addr)) => (GOOD(), t!("Ready at {address}", address = addr)),
+                        Some(("err", e)) => (BAD(), t!("Couldn't open port {port}: {error}", port = m.port, error = e)),
+                        _ => (TEXT_DIM(), t!("Starting…").to_string()),
                     };
                     let (r, _) = ui.allocate_exact_size(vec2(8.0, 8.0), Sense::hover());
                     ui.painter().circle_filled(r.center(), 4.0, color);
@@ -2146,27 +2168,27 @@ impl App {
                 row(ui, t!("Allow other computers"), t!("Assistants on other computers in your home can connect with the access key."), &mut m.allow_network);
                 ui.separator();
                 ui.add_space(4.0);
-                ui.label(RichText::new(t!("Connect an assistant")).color(TEXT));
+                ui.label(RichText::new(t!("Connect an assistant")).color(TEXT()));
                 ui.label(
                     RichText::new(t!(
                         "Apps that start the link themselves (such as desktop assistants) run Roomtone with --mcp. Others connect to the web address with the access key."
                     ))
                     .size(12.0)
-                    .color(TEXT_DIM),
+                    .color(TEXT_DIM()),
                 );
                 ui.add_space(6.0);
                 let exe = std::env::current_exe().map(|p| p.display().to_string()).unwrap_or_else(|_| "roomtone".into());
                 let address = crate::mcp::address(&m);
                 egui::Grid::new("mcp_info").num_columns(2).spacing([16.0, 8.0]).show(ui, |ui| {
-                    ui.label(RichText::new(t!("Web address")).color(TEXT_DIM));
-                    ui.label(RichText::new(&address).monospace().color(TEXT));
+                    ui.label(RichText::new(t!("Web address")).color(TEXT_DIM()));
+                    ui.label(RichText::new(&address).monospace().color(TEXT()));
                     ui.end_row();
-                    ui.label(RichText::new(t!("Port")).color(TEXT_DIM));
+                    ui.label(RichText::new(t!("Port")).color(TEXT_DIM()));
                     ui.add(egui::DragValue::new(&mut m.port).range(1024..=65535));
                     ui.end_row();
-                    ui.label(RichText::new(t!("Access key")).color(TEXT_DIM));
+                    ui.label(RichText::new(t!("Access key")).color(TEXT_DIM()));
                     let shown: String = m.token.chars().take(6).chain("••••••••••".chars()).collect();
-                    ui.label(RichText::new(shown).monospace().color(TEXT));
+                    ui.label(RichText::new(shown).monospace().color(TEXT()));
                     ui.end_row();
                 });
                 ui.add_space(8.0);
@@ -2200,7 +2222,7 @@ impl App {
     /// Steps for this platform, with commands to copy.
     fn connect_help(&mut self, ui: &mut Ui, address: &str) {
         let exe = crate::help::exe();
-        egui::CollapsingHeader::new(RichText::new(t!("How to connect on {platform}", platform = crate::help::platform())).size(13.5).color(ACCENT)).id_salt("mcp_help").show(
+        egui::CollapsingHeader::new(RichText::new(t!("How to connect on {platform}", platform = crate::help::platform())).size(13.5).color(ACCENT())).id_salt("mcp_help").show(
             ui,
             |ui| {
                 let steps: Vec<(String, String)> = vec![
@@ -2215,10 +2237,10 @@ impl App {
                 ];
                 for (text, command) in steps {
                     ui.add_space(4.0);
-                    ui.label(RichText::new(text).size(12.5).color(TEXT_DIM));
+                    ui.label(RichText::new(text).size(12.5).color(TEXT_DIM()));
                     ui.horizontal(|ui| {
                         let w = ui.available_width() - 70.0;
-                        ui.add_sized([w, 20.0], egui::Label::new(RichText::new(&command).monospace().size(12.0).color(TEXT)).truncate());
+                        ui.add_sized([w, 20.0], egui::Label::new(RichText::new(&command).monospace().size(12.0).color(TEXT())).truncate());
                         if ui.add(egui::Button::new(RichText::new(t!("Copy")).size(12.0)).corner_radius(10.0)).clicked() {
                             ui.ctx().copy_text(command.clone());
                             self.toast_here(t!("Copied"));
@@ -2238,14 +2260,14 @@ impl App {
             self.ask_once(&format!("room:{uuid}"), Duration::from_secs(8), Cmd::LoadRoomSettings(uuid.to_string()));
         }
         ui.horizontal(|ui| {
-            if icon_button(ui, Icon::Back, 18.0, TEXT).clicked() {
+            if icon_button(ui, Icon::Back, 18.0, TEXT()).clicked() {
                 self.go(View::Settings);
             }
-            ui.label(RichText::new(t!("Settings")).size(13.0).color(TEXT_DIM));
+            ui.label(RichText::new(t!("Settings")).size(13.0).color(TEXT_DIM()));
         });
         ui.add_space(6.0);
         ui.horizontal(|ui| {
-            ui.label(RichText::new(&r.name).size(30.0).strong().color(TEXT));
+            ui.label(RichText::new(&r.name).size(30.0).strong().color(TEXT()));
             ui.add_space(6.0);
             if pill(ui, None, t!("Rename"), false).clicked() {
                 self.rename = Some((uuid.to_string(), r.name.clone()));
@@ -2254,7 +2276,7 @@ impl App {
         ui.horizontal(|ui| {
             chip(ui, &t!("{system} system", system = h.system.label()), system_tint(h.system));
             if !r.model.is_empty() {
-                chip(ui, &r.model, TEXT_DIM);
+                chip(ui, &r.model, TEXT_DIM());
             }
         });
         ui.add_space(14.0);
@@ -2269,7 +2291,7 @@ impl App {
 
         section_title(ui, t!("Sound"));
         let Some(st) = r.settings.clone() else {
-            spinner_dots(ui, TEXT_DIM);
+            spinner_dots(ui, TEXT_DIM());
             return;
         };
         card_frame().show(ui, |ui| {
@@ -2280,14 +2302,14 @@ impl App {
                     ui.set_height(34.0);
                     ui.allocate_ui_with_layout(vec2(90.0, 20.0), Layout::left_to_right(Align::Center), |ui| {
                         ui.set_width(90.0);
-                        ui.label(RichText::new(label).color(TEXT));
+                        ui.label(RichText::new(label).color(TEXT()));
                     });
-                    ui.label(RichText::new("−").color(TEXT_FAINT));
+                    ui.label(RichText::new("−").color(TEXT_FAINT()));
                     let mut v = (value + 10) as f32 / 20.0;
-                    let (_, changed) = slider(ui, label, &mut v, w - 190.0, ACCENT);
-                    ui.label(RichText::new("+").color(TEXT_FAINT));
+                    let (_, changed) = slider(ui, label, &mut v, w - 190.0, ACCENT());
+                    ui.label(RichText::new("+").color(TEXT_FAINT()));
                     let nv = (v * 20.0).round() as i32 - 10;
-                    ui.label(RichText::new(format!("{nv:+}")).size(12.5).color(TEXT_DIM));
+                    ui.label(RichText::new(format!("{nv:+}")).size(12.5).color(TEXT_DIM()));
                     if changed && nv != value {
                         self.send(if is_bass { Cmd::SetBass(uuid.to_string(), nv) } else { Cmd::SetTreble(uuid.to_string(), nv) });
                     }
@@ -2306,8 +2328,8 @@ impl App {
                 ui.horizontal(|ui| {
                     ui.set_height(44.0);
                     ui.vertical(|ui| {
-                        ui.label(RichText::new(label).color(TEXT));
-                        ui.label(RichText::new(sub).size(12.0).color(TEXT_DIM));
+                        ui.label(RichText::new(label).color(TEXT()));
+                        ui.label(RichText::new(sub).size(12.0).color(TEXT_DIM()));
                     });
                     ui.with_layout(Layout::right_to_left(Align::Center), |ui| {
                         if toggle(ui, &mut on).changed() {
@@ -2335,8 +2357,8 @@ impl App {
                     (t!("IP address"), if r.ip.is_empty() { t!("Demo").into() } else { r.ip.clone() }),
                     (t!("Speaker ID"), r.uuid.clone()),
                 ] {
-                    ui.label(RichText::new(k).color(TEXT_DIM));
-                    ui.label(RichText::new(if v.is_empty() { "—".to_string() } else { v }).color(TEXT));
+                    ui.label(RichText::new(k).color(TEXT_DIM()));
+                    ui.label(RichText::new(if v.is_empty() { "—".to_string() } else { v }).color(TEXT()));
                     ui.end_row();
                 }
             });
@@ -2359,7 +2381,7 @@ fn service_badge(ui: &mut Ui, name: &str, ready: bool) {
     let c = seed_color(name);
     ui.painter().rect_filled(r, 12.0, if ready { c.gamma_multiply(0.45) } else { c.gamma_multiply(0.18) });
     let letter: String = name.chars().next().map(|c| c.to_uppercase().to_string()).unwrap_or_default();
-    ui.painter().text(r.center(), egui::Align2::CENTER_CENTER, letter, egui::FontId::proportional(19.0), if ready { TEXT } else { c });
+    ui.painter().text(r.center(), egui::Align2::CENTER_CENTER, letter, egui::FontId::proportional(19.0), if ready { TEXT() } else { c });
 }
 
 /// Open a folder in the platform's file browser.

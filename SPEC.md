@@ -20,7 +20,7 @@ The source of truth for **what Roomtone does**. Code, tests and docs should agre
 **Goals**
 1. Control **S1 and S2 systems from one app**, each shown as its own system.
 2. Offer what the current official (S2-generation) controller app does: rooms and grouping, queue, search, favorites, playlists, library, radio, music services, line-in/TV, alarms, sleep timer, sound settings and software updates.
-3. A modern dark look of its own (not a copy of any existing app).
+3. A modern look of its own (not a copy of any existing app), in a **dark** and a **light** version, or **Automatic** to follow the computer.
 4. Work **without a cloud account of its own**: everything goes straight to the speakers on the local network.
 5. Run **without a window**, and let **AI assistants** control the speakers through **MCP**, switched off by default.
 6. **Localised**: English, German, French, Spanish, Italian, Dutch.
@@ -51,6 +51,7 @@ The source of truth for **what Roomtone does**. Code, tests and docs should agre
 
 - The space bar toggles play/pause when no text field has focus.
 - Minimum window size is 1040 × 660; the default is 1320 × 840.
+- **Appearance**: dark and light palettes share one design. *Automatic* follows the computer's light/dark setting and switches the moment it changes. The brand orange is a little deeper in light mode for contrast; album art and gradients are the same in both.
 - The app has its own icon (an orange orb on a dark rounded square), drawn in code and used for the window, the Dock or taskbar, and the About box.
 - **macOS application menu**: *About Roomtone*, *Services*, *Hide Roomtone*, *Hide Others*, *Show All*, *Quit Roomtone*, all in the chosen language. *About Roomtone* opens the standard About box with the name, version, platform and architecture, icon, a short description, credits and copyright.
 
@@ -117,6 +118,7 @@ Create, edit, enable/disable and delete alarms. Each has a time, how often it re
   - Updates are only offered and installed for the same generation: an S1 system is never moved to S2. The generation is checked again just before installing.
   - An offer matching the speaker's current build counts as up to date.
 - **Connection**: search again, add a speaker by IP address, open the demo.
+- **Appearance**: *Automatic* (follows the computer's light/dark setting), *Light* or *Dark*. It changes at once.
 - **Language**: *Automatic* (follows the computer) or a fixed language. It changes at once.
 - **Assistant link (MCP)**: §6.
 - **About**:
@@ -157,7 +159,7 @@ Command line, each one saves and quits: `--mcp-on`, `--mcp-off`, `--mcp-read-onl
 
 ### 6.2 Protocol
 - JSON-RPC 2.0 with MCP protocol versions `2025-06-18`, `2025-03-26` and `2024-11-05` (the client's choice if supported, otherwise the newest).
-- Methods: `initialize`, `ping`, `tools/list`, `tools/call`, plus `resources/list`, `resources/templates/list` and `prompts/list`, which return empty lists. Notifications get no reply. Batches are accepted.
+- Methods: `initialize`, `ping`, `tools/list`, `tools/call`, `resources/list`, `resources/templates/list`, `resources/read`, `prompts/list`, `prompts/get` and `completion/complete`. Notifications get no reply. Batches are accepted. Capabilities: tools, resources, prompts and completions (none of them send change notifications).
 - HTTP (Streamable HTTP, JSON responses only):
   - `POST /mcp` only; `GET` and `DELETE` return 405.
   - Requires `Content-Type: application/json` (otherwise 415) and a valid key (otherwise 401).
@@ -190,6 +192,29 @@ Rooms are given by name (exact, or a unique part of a name) or id. Leaving the r
 | `list_alarms` *(read)*, `set_alarm_enabled` | Alarms |
 | `check_for_updates` *(read)* | Whether each system has newer software (same generation only) |
 | `install_update` | Installs on every speaker of a room's system; refused unless `confirm: true` |
+| `browse` *(read)* | Step through the sources: without a ref the top level (favorites, playlists, library, this computer, radio, podcasts, Internet Archive, services); with a ref, what's inside (refs `b1`…) |
+| `list_recent` *(read)* | Recently played from this app (refs `rec1`…) |
+| `add_favorite`, `remove_favorite` | Save a ref or what's playing (`current: true`); remove by ref from `list_favorites` |
+| `save_queue_as_playlist`, `move_in_queue` | Queue editing |
+| `pause_all` | Pause every playing group (or one system's) |
+| `rename_room` | New room name (up to 40 characters) |
+| `create_alarm`, `delete_alarm` | `time` "HH:MM", `days` (daily, weekdays, weekends, once, or day names), `volume`, `minutes`, optional `ref` to play (otherwise the chime) |
+| `save_group`, `delete_saved_group` | Named groups for `use_saved_group` (rooms of one system) |
+| `list_services` *(read)*, `check_service` *(read)* | Each service's state; an end-to-end check of a connected one without playing anything |
+| `find_speakers` *(read)* | Search the network again |
+| `add_station`, `remove_station` | My stations |
+| `subscribe_podcast`, `unsubscribe_podcast` | Podcast shows (subscribe by a ref from `search`) |
+
+### 6.4 Resources, prompts and completions
+
+| Resource | Contents |
+| --- | --- |
+| `roomtone://status` | The same JSON as `get_status` |
+| `roomtone://now-playing` | What every group is playing (JSON) |
+| `roomtone://favorites`, `roomtone://alarms` | As `list_favorites` / `list_alarms` |
+| `roomtone://queue/{room}` (template) | A room's queue; the room name is URL-encoded |
+
+Prompts (ready-made instructions an assistant can offer the person): `play_for_mood` (mood, room), `bedtime` (room, minutes), `whole_home` (what), `morning_alarm` (room, time). `completion/complete` suggests room names, saved-group names, alarm days and moods while an argument is typed.
 
 Each changing tool waits until the speakers have answered (up to 20 s). It then returns a one-line summary, or the speakers' error with `isError: true`. Refs last until the next list of the same kind.
 
@@ -200,6 +225,7 @@ Each changing tool waits until the speakers have answered (up to 20 s). It then 
 | *(none)* | Open the window |
 | `--demo` | Demo system |
 | `--lang <code>` | Language for this run |
+| `--theme <mode>` | Appearance for this run: `auto`, `light` or `dark` |
 | `--view <page>` | Open a page first: home, search, favorites, playlists, library, radio, inputs, alarms, settings, nowplaying, services |
 | `--screenshot <file.png>` | Draw about 120 frames, save the window as PNG and quit. Uses the demo system, opens without taking focus (and behind other windows on Windows) and doesn't open the assistant port |
 | `--headless`, `--mcp` | §5 |
@@ -214,7 +240,7 @@ All in the app's data folder: `~/Library/Application Support/Roomtone/` (macOS),
 
 | File | Contents |
 | --- | --- |
-| `config.json` (mode 600 on Unix) | `folders` (paths), `stations` [{`name`, `url`, `genre`}], `podcasts` [{`title`, `author`, `feed`, `art`}], `services` (switched-on free sources: `local`, `radio`, `podcasts`, `archive`), `accounts` [{`sid`, `name`, `uri`, `manifest`, `household`, `device_id`, `token`, `key`, `sn`}], `favorites` (items kept in the app), `groups` [{`name`, `household`, `rooms`}], `language` (`auto` or a code), `mcp` {`enabled`, `allow_control`, `allow_network`, `port`, `token`} |
+| `config.json` (mode 600 on Unix) | `folders` (paths), `stations` [{`name`, `url`, `genre`}], `podcasts` [{`title`, `author`, `feed`, `art`}], `services` (switched-on free sources: `local`, `radio`, `podcasts`, `archive`), `accounts` [{`sid`, `name`, `uri`, `manifest`, `household`, `device_id`, `token`, `key`, `sn`}], `favorites` (items kept in the app), `groups` [{`name`, `household`, `rooms`}], `language` (`auto` or a code), `theme` (`auto`, `light` or `dark`), `mcp` {`enabled`, `allow_control`, `allow_network`, `port`, `token`} |
 | `speakers.json` | Systems from last time: [{`id`, `s1`, `rooms` [{`uuid`, `name`, `ip`, `model`, `version`}], `groups` [{`coordinator`, `members`}]}] |
 | `songs.json` | `songs`: details (title, artist, album, art) by address, for songs the speakers know only by address; `relays`: relay codes for S1 and the https address each stands for |
 
@@ -244,17 +270,20 @@ All in the app's data folder: `~/Library/Application Support/Roomtone/` (macOS),
 | Software updates (check and install) | Demo system only |
 | Assistant link: every tool, on/off, look-only, key, origin check | Demo system, stdio and HTTP |
 | Translations | Automated completeness test; not reviewed by native speakers |
+| Logic without speakers (parsers, rules, settings, demo system, assistant link incl. HTTP security) | 97 unit tests (`cargo test`), run on every platform in CI |
+| Light mode | Screenshots of every page in the demo system |
 | Windows and Linux builds | Continuous integration (`.github/workflows/ci.yml`); not run by hand |
 
 ## 11. Acceptance checks
 
 Quick checks that a change hasn't broken behaviour. Each needs no real speakers unless marked.
 
-1. `cargo test` passes: every phrase is translated and placeholders are kept.
+1. `cargo test` passes: 97 unit tests, including that every phrase is translated and placeholders are kept.
 2. `roomtone --screenshot shots/x.png` saves a non-blank picture of the demo system within a few seconds.
-3. `roomtone --mcp --demo` with an `initialize` line, then `tools/list`, lists 29 tools when control is allowed and 9 when look-only.
+3. `roomtone --mcp --demo` with an `initialize` line, then `tools/list`, lists 48 tools when control is allowed and 14 when look-only.
 4. With the link off, `tools/call` answers error −32001.
 5. Over HTTP, a request without the key gets 401, one with `Origin: https://example.com` gets 403, and `--mcp-off` closes the port within ~2 s.
 6. In the demo: `play_along` from "Living Room" to "Office", then `playback next` on Living Room, changes Office's track too.
 7. In the demo: `check_for_updates` offers an S2 update and none for S1. `install_update` without `confirm` is refused; with it, the update is installed.
 8. *(real speakers)* Settings › Music Services › *Check* on a connected service shows browsing and search working.
+9. `roomtone --theme light --screenshot shots/light.png` draws the light palette (and `--theme dark` matches the earlier dark pictures).

@@ -64,6 +64,7 @@ Window
   (no options)              open the app
   --demo                    use made-up demo rooms instead of searching the network
   --lang <code>             language for this run: en, de, fr, es, it, nl
+  --theme <mode>            appearance for this run: auto, light, dark
   --view <page>             open a page first: home, search, favorites, playlists, library,
                             radio, inputs, alarms, settings, nowplaying, services
   --screenshot <file.png>   draw about 120 frames, save a picture of the window, then quit
@@ -240,5 +241,47 @@ fn platform_notes() -> &'static str {
         "   If a firewall is on (ufw, firewalld), allow UDP port 1900 so speakers can be found,
    TCP port 52880 so they can fetch music from this computer, and the HTTP link's port
    if other computers should connect."
+    }
+}
+
+#[cfg(test)]
+mod unit {
+    use super::*;
+
+    #[test]
+    fn help_lists_every_option() {
+        let text = general();
+        for opt in [
+            "--demo",
+            "--lang",
+            "--theme",
+            "--view",
+            "--screenshot",
+            "--headless",
+            "--mcp",
+            "--mcp-on",
+            "--mcp-off",
+            "--mcp-read-only",
+            "--mcp-allow-control",
+            "--mcp-port",
+            "--mcp-info",
+            "--help mcp",
+        ] {
+            assert!(text.contains(opt), "--help is missing {opt}");
+        }
+        assert!(text.contains(env!("CARGO_PKG_VERSION")));
+        assert!(text.contains(REPO_URL));
+    }
+
+    #[test]
+    fn assistant_guide_for_this_platform() {
+        let m = crate::config::McpConfig { enabled: true, port: 8790, ..Default::default() };
+        let text = mcp(&m);
+        assert!(text.contains(platform()));
+        assert!(text.contains("http://127.0.0.1:8790/mcp"));
+        assert!(text.contains("claude mcp add"));
+        assert!(text.contains("the link is ON"));
+        let setup: serde_json::Value = serde_json::from_str(&stdio_setup()).unwrap();
+        assert_eq!(setup["mcpServers"]["roomtone"]["args"][0], "--mcp");
     }
 }

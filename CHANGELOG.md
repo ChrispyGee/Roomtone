@@ -4,6 +4,17 @@ All notable changes to Roomtone. The format follows [Keep a Changelog](https://k
 
 ## [Unreleased]
 
+### Added
+- **Installers** on each release: a macOS `.dmg` (Roomtone.app with its icon and Local Network prompt text, ad-hoc signed), a Windows setup `.exe` (per-user, Start menu entry, optional desktop shortcut, uninstaller) and a Linux `.deb` (program, menu entry and icon), next to the plain `.zip`/`.tar.gz`. They aren't code-signed or notarised yet.
+- `roomtone --write-icon <file> [size]` saves the app icon (a PNG, or a Windows `.ico`) for the installers.
+- The Release workflow can also be started by hand on a branch to try the installers without publishing a release.
+
+### Added
+- **Light, dark or automatic appearance** (Settings › Appearance; `--theme` for one run). Automatic follows the computer's setting live. Dark mode is unchanged.
+- **19 more assistant (MCP) tools** (48 in all): `browse`, `list_recent`, `add_favorite`, `remove_favorite`, `save_queue_as_playlist`, `move_in_queue`, `pause_all`, `rename_room`, `create_alarm`, `delete_alarm`, `save_group`, `delete_saved_group`, `list_services`, `check_service`, `find_speakers`, `add_station`, `remove_station`, `subscribe_podcast`, `unsubscribe_podcast`.
+- **MCP resources** (`roomtone://status`, `now-playing`, `favorites`, `alarms`, `queue/{room}`), **prompts** (`play_for_mood`, `bedtime`, `whole_home`, `morning_alarm`) and **completions** for room and group names.
+- **97 unit tests** covering the protocol parsers, rules, settings, translations, the demo system and the assistant link, including its HTTP security checks. Parsers for topology, update offers, podcast feeds and radio playlists were split out so they can be tested without a network.
+
 ## [0.5.1] — 2026-11-12
 
 ### Fixed

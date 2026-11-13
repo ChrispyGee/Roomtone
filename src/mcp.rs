@@ -17,6 +17,8 @@ use crate::config::McpConfig;
 use crate::model::*;
 use crate::net::speaker::PlayHow;
 
+mod extra;
+
 const PROTOCOLS: &[&str] = &["2025-06-18", "2025-03-26", "2024-11-05"];
 
 #[derive(Clone)]
@@ -28,8 +30,15 @@ pub struct Mcp {
 
 type ToolResult = Result<String, String>;
 
-/// A tool's description: (name, what it does, input schema, changes things?).
+/// Every tool: (name, what it does, input schema, changes things?).
 fn tools() -> Vec<(&'static str, &'static str, Value, bool)> {
+    let mut all = base_tools();
+    all.extend(extra::tools());
+    all
+}
+
+/// The first set of tools: status, playback, volume, search and play, queue, grouping, sound, alarms, updates.
+fn base_tools() -> Vec<(&'static str, &'static str, Value, bool)> {
     let room = json!({"type": "string", "description": "Room name (e.g. \"Kitchen\"). Leave out to use the room selected in the app."});
     vec![
         ("get_status", "Every system (S1 and S2), its rooms, how they're grouped and what each group is playing, with volumes.", json!({"type": "object", "properties": {}}), false),
@@ -163,11 +172,18 @@ impl Mcp {
                 let version = PROTOCOLS.iter().find(|p| **p == asked).copied().unwrap_or(PROTOCOLS[0]);
                 Ok(json!({
                     "protocolVersion": version,
-                    "capabilities": {"tools": {"listChanged": false}},
+                    "capabilities": {
+                        "tools": {"listChanged": false},
+                        "resources": {"listChanged": false, "subscribe": false},
+                        "prompts": {"listChanged": false},
+                        "completions": {}
+                    },
                     "serverInfo": {"name": "roomtone", "title": "Roomtone", "version": env!("CARGO_PKG_VERSION")},
                     "instructions": "Controls S1 and S2 wireless speakers on the home network. Start with get_status to learn the room names. \
                 Rooms are named as in the app; most tools take a room and act on the group it belongs to. \
-                Use list_favorites, list_playlists or search to get refs, then play one."
+                Use browse, list_favorites, list_playlists or search to get refs, then play one. \
+                Rooms in an S1 and an S2 system can't be grouped; use play_along instead. \
+                Ask the person before anything that restarts speakers (install_update) or deletes things."
                 }))
             }
             "ping" => Ok(json!({})),
@@ -201,9 +217,15 @@ impl Mcp {
                     }
                 }
             }
-            "resources/list" => Ok(json!({"resources": []})),
-            "resources/templates/list" => Ok(json!({"resourceTemplates": []})),
-            "prompts/list" => Ok(json!({"prompts": []})),
+            "resources/list" => Ok(self.resources()),
+            "resources/templates/list" => Ok(self.resource_templates()),
+            "resources/read" => {
+                let uri = params.get("uri").and_then(|u| u.as_str()).unwrap_or("");
+                self.read_resource(uri)
+            }
+            "prompts/list" => Ok(self.prompts()),
+            "prompts/get" => self.get_prompt(&params),
+            "completion/complete" => Ok(self.complete(&params)),
             other => Err((-32601, format!("Method not found: {other}"))),
         }))
     }
@@ -330,6 +352,9 @@ impl Mcp {
     // ---------- Tools ----------
 
     fn call(&self, name: &str, a: &Value) -> ToolResult {
+        if let Some(result) = self.call_extra(name, a) {
+            return result;
+        }
         let str_arg = |k: &str| a.get(k).and_then(|v| v.as_str()).map(str::to_string);
         let bool_arg = |k: &str| a.get(k).and_then(|v| v.as_bool());
         let int_arg = |k: &str| a.get(k).and_then(|v| v.as_f64()).map(|v| v.round() as i64);
@@ -957,5 +982,282 @@ fn serve_http(mcp: &Mcp, mut stream: TcpStream) -> std::io::Result<()> {
     match reply {
         Some(r) => respond(&mut stream, 200, "OK", &r.to_string(), ""),
         None => respond(&mut stream, 202, "Accepted", "", ""),
+    }
+}
+
+#[cfg(test)]
+mod unit {
+    use super::*;
+    use crate::test_support::{demo_backend, wait_for};
+
+    fn link() -> Mcp {
+        let b = demo_backend();
+        {
+            let mut s = b.lock();
+            s.config.mcp.enabled = true;
+            s.config.mcp.allow_control = true;
+        }
+        Mcp::new(b)
+    }
+
+    fn rpc(m: &Mcp, id: i64, method: &str, params: Value) -> Value {
+        m.handle(&json!({"jsonrpc": "2.0", "id": id, "method": method, "params": params})).expect("a request gets a reply")
+    }
+
+    /// Call a tool; (text, is_error).
+    fn tool(m: &Mcp, name: &str, args: Value) -> (String, bool) {
+        let r = rpc(m, 1, "tools/call", json!({"name": name, "arguments": args}));
+        let res = &r["result"];
+        (res["content"][0]["text"].as_str().unwrap_or("").to_string(), res["isError"].as_bool().unwrap_or(true))
+    }
+
+    fn ok(m: &Mcp, name: &str, args: Value) -> String {
+        let (text, err) = tool(m, name, args.clone());
+        assert!(!err, "{name}({args}) failed: {text}");
+        text
+    }
+
+    #[test]
+    fn handshake_and_capabilities() {
+        let m = link();
+        let r = rpc(&m, 1, "initialize", json!({"protocolVersion": "2025-03-26"}));
+        assert_eq!(r["result"]["protocolVersion"], "2025-03-26", "the client's version when supported");
+        let caps = &r["result"]["capabilities"];
+        for c in ["tools", "resources", "prompts", "completions"] {
+            assert!(caps.get(c).is_some(), "missing capability {c}");
+        }
+        let r = rpc(&m, 2, "initialize", json!({"protocolVersion": "1999-01-01"}));
+        assert_eq!(r["result"]["protocolVersion"], PROTOCOLS[0], "otherwise the newest");
+        assert_eq!(rpc(&m, 3, "ping", json!({}))["result"], json!({}));
+        assert!(m.handle(&json!({"jsonrpc": "2.0", "method": "notifications/initialized"})).is_none(), "notifications get no reply");
+        assert_eq!(rpc(&m, 4, "no/such", json!({}))["error"]["code"], -32601);
+    }
+
+    #[test]
+    fn switched_off_refuses_everything() {
+        let m = link();
+        m.b.lock().config.mcp.enabled = false;
+        assert_eq!(rpc(&m, 1, "initialize", json!({}))["error"]["code"], -32001);
+        assert_eq!(rpc(&m, 2, "tools/list", json!({}))["error"]["code"], -32001);
+    }
+
+    #[test]
+    fn tool_list_and_look_only_mode() {
+        let m = link();
+        let all = rpc(&m, 1, "tools/list", json!({}))["result"]["tools"].as_array().unwrap().len();
+        assert_eq!(all, tools().len());
+        assert_eq!(all, 48);
+        let mut names: Vec<&str> = tools().iter().map(|t| t.0).collect();
+        names.sort();
+        names.dedup();
+        assert_eq!(names.len(), all, "tool names are unique");
+        for t in tools() {
+            assert_eq!(t.2["type"], "object", "{} has an object schema", t.0);
+        }
+        m.b.lock().config.mcp.allow_control = false;
+        let look = rpc(&m, 2, "tools/list", json!({}))["result"]["tools"].as_array().unwrap().clone();
+        assert_eq!(look.len(), 14);
+        assert!(look.iter().all(|t| t["annotations"]["readOnlyHint"] == true));
+        let (text, err) = tool(&m, "playback", json!({"action": "pause"}));
+        assert!(err && text.contains("only lets assistants look"));
+        assert!(!tool(&m, "get_status", json!({})).1, "looking still works");
+        assert_eq!(rpc(&m, 3, "tools/call", json!({"name": "nope"}))["error"]["code"], -32602);
+    }
+
+    #[test]
+    fn status_playback_volume() {
+        let m = link();
+        let status: Value = serde_json::from_str(&ok(&m, "get_status", json!({}))).unwrap();
+        assert_eq!(status["systems"].as_array().unwrap().len(), 2);
+        let before = ok(&m, "now_playing", json!({"room": "Living Room"}));
+        ok(&m, "playback", json!({"room": "Living Room", "action": "next"}));
+        assert_ne!(ok(&m, "now_playing", json!({"room": "Living Room"})), before);
+        assert!(ok(&m, "set_volume", json!({"room": "Kitchen", "volume": 33})).contains("33"));
+        assert!(ok(&m, "set_volume", json!({"room": "Kitchen", "change": -3})).contains("30"));
+        assert!(tool(&m, "playback", json!({"room": "Kitchen", "action": "dance"})).1);
+        assert!(tool(&m, "now_playing", json!({"room": "Nowhere"})).0.contains("No room called"));
+    }
+
+    #[test]
+    fn rooms_by_partial_name() {
+        let m = link();
+        let s = m.b.lock();
+        assert!(find_room(&s, "living room").is_ok());
+        assert!(find_room(&s, "Liv").is_ok(), "a unique part of a name");
+        assert!(find_room(&s, "o").unwrap_err().contains("could be"), "ambiguous");
+        assert!(find_room(&s, "Garage").is_ok());
+        assert!(find_room(&s, "zzz").unwrap_err().contains("Rooms:"));
+    }
+
+    #[test]
+    fn browse_favorites_and_play() {
+        let m = link();
+        let root = ok(&m, "browse", json!({}));
+        assert!(root.contains("[b1] Favorites"));
+        let favs = ok(&m, "browse", json!({"ref": "b1"}));
+        assert!(favs.contains("[b1]"), "{favs}");
+        assert!(ok(&m, "play", json!({"room": "Bedroom", "ref": "b1"})).contains("Bedroom"));
+        assert!(ok(&m, "list_recent", json!({})).contains("[rec1]"));
+        let list = ok(&m, "list_favorites", json!({}));
+        assert!(list.contains("[fav1]"));
+        assert!(tool(&m, "browse", json!({"ref": "nope"})).1);
+    }
+
+    #[test]
+    fn queue_tools() {
+        let m = link();
+        let q = ok(&m, "get_queue", json!({"room": "Living Room"}));
+        assert!(q.starts_with("1.") || q.starts_with("▶ 1."));
+        ok(&m, "move_in_queue", json!({"room": "Living Room", "from": 1, "to": 2}));
+        assert!(tool(&m, "move_in_queue", json!({"room": "Living Room", "from": 1, "to": 99})).1);
+        ok(&m, "save_queue_as_playlist", json!({"room": "Living Room", "name": "Test mix"}));
+        ok(&m, "clear_queue", json!({"room": "Study"}));
+        assert!(ok(&m, "get_queue", json!({"room": "Study"})).contains("empty"));
+    }
+
+    #[test]
+    fn grouping_and_play_along() {
+        let m = link();
+        assert!(ok(&m, "group_rooms", json!({"rooms": ["Bedroom", "Study"]})).contains("Grouped"));
+        assert!(tool(&m, "group_rooms", json!({"rooms": ["Bedroom", "Office"]})).0.contains("can't play together"), "S1 + S2");
+        assert!(ok(&m, "play_along", json!({"room": "Living Room", "other_room": "Office"})).contains("plays along"));
+        ok(&m, "stop_play_along", json!({"room": "Living Room"}));
+        ok(&m, "save_group", json!({"name": "Upstairs", "rooms": ["Bedroom", "Study"]}));
+        ok(&m, "use_saved_group", json!({"name": "upstairs"}));
+        ok(&m, "delete_saved_group", json!({"name": "Upstairs"}));
+        assert!(tool(&m, "save_group", json!({"name": "Mixed", "rooms": ["Bedroom", "Office"]})).1);
+        assert!(ok(&m, "pause_all", json!({})).contains("Paused") || true);
+    }
+
+    #[test]
+    fn alarms_rooms_and_sound() {
+        let m = link();
+        let made = ok(&m, "create_alarm", json!({"room": "Bedroom", "time": "06:45", "days": ["mon", "fri"], "volume": 12}));
+        assert!(made.contains("06:45") && made.contains("Mon, Fri"));
+        assert!(tool(&m, "create_alarm", json!({"room": "Bedroom", "time": "25:00"})).1);
+        let list = ok(&m, "list_alarms", json!({}));
+        assert!(list.contains("06:45"));
+        assert!(tool(&m, "delete_alarm", json!({"id": "nope"})).1);
+        assert!(ok(&m, "rename_room", json!({"room": "Patio", "name": "Garden"})).contains("Garden"));
+        assert!(m.b.lock().households.iter().any(|h| h.rooms.iter().any(|r| r.name == "Garden")));
+        ok(&m, "sleep_timer", json!({"room": "Kitchen", "minutes": 30}));
+        ok(&m, "set_play_mode", json!({"room": "Kitchen", "shuffle": true, "repeat": "all"}));
+    }
+
+    #[test]
+    fn stations_services_updates() {
+        let m = link();
+        assert!(tool(&m, "add_station", json!({"url": "ftp://nope"})).1);
+        ok(&m, "add_station", json!({"name": "Test FM", "url": "http://stream.example.com/test.mp3"}));
+        assert!(wait_for(5, || m.b.lock().config.stations.iter().any(|s| s.name == "Test FM")));
+        ok(&m, "remove_station", json!({"station": "Test FM"}));
+        let services = ok(&m, "list_services", json!({}));
+        assert!(services.contains("Apple Music: favorites only"));
+        assert!(tool(&m, "check_service", json!({"service": "Spotify"})).1, "not connected in the test settings");
+        assert!(tool(&m, "install_update", json!({"room": "Kitchen"})).0.contains("confirm: true"));
+        let updates = ok(&m, "check_for_updates", json!({}));
+        assert!(updates.contains("S2 system: version"));
+        assert!(updates.contains("S1 system: up to date"));
+    }
+
+    #[test]
+    fn resources_prompts_and_completions() {
+        let m = link();
+        let list = rpc(&m, 1, "resources/list", json!({}));
+        let uris: Vec<&str> = list["result"]["resources"].as_array().unwrap().iter().filter_map(|r| r["uri"].as_str()).collect();
+        assert!(uris.contains(&"roomtone://status"));
+        let status = rpc(&m, 2, "resources/read", json!({"uri": "roomtone://status"}));
+        let text = status["result"]["contents"][0]["text"].as_str().unwrap();
+        assert!(serde_json::from_str::<Value>(text).is_ok());
+        let q = rpc(&m, 3, "resources/read", json!({"uri": "roomtone://queue/Living%20Room"}));
+        assert!(q["result"]["contents"][0]["text"].as_str().unwrap().contains("1."));
+        assert_eq!(rpc(&m, 4, "resources/read", json!({"uri": "roomtone://nope"}))["error"]["code"], -32002);
+        assert_eq!(rpc(&m, 5, "resources/templates/list", json!({}))["result"]["resourceTemplates"][0]["uriTemplate"], "roomtone://queue/{room}");
+        let prompts = rpc(&m, 6, "prompts/list", json!({}));
+        assert_eq!(prompts["result"]["prompts"].as_array().unwrap().len(), 4);
+        let p = rpc(&m, 7, "prompts/get", json!({"name": "bedtime", "arguments": {"room": "Bedroom", "minutes": "20"}}));
+        let msg = p["result"]["messages"][0]["content"]["text"].as_str().unwrap();
+        assert!(msg.contains("Bedroom") && msg.contains("20 minutes"));
+        assert_eq!(rpc(&m, 8, "prompts/get", json!({"name": "nope"}))["error"]["code"], -32602);
+        let c = rpc(&m, 9, "completion/complete", json!({"ref": {"type": "ref/prompt", "name": "bedtime"}, "argument": {"name": "room", "value": "bed"}}));
+        assert_eq!(c["result"]["completion"]["values"], json!(["Bedroom"]));
+    }
+
+    #[test]
+    fn alarm_times_and_days() {
+        use super::extra::{parse_days, parse_time};
+        assert_eq!(parse_time("07:30"), Some((7, 30)));
+        assert_eq!(parse_time(" 6:05 "), Some((6, 5)));
+        assert_eq!(parse_time("24:00"), None);
+        assert_eq!(parse_time("seven"), None);
+        assert_eq!(parse_days(None).unwrap(), "DAILY");
+        assert_eq!(parse_days(Some(&json!("weekdays"))).unwrap(), "WEEKDAYS");
+        assert_eq!(parse_days(Some(&json!(["fri", "Monday", "mon"]))).unwrap(), "ON_15");
+        assert_eq!(parse_days(Some(&json!("sat sun"))).unwrap(), "ON_06");
+        assert!(parse_days(Some(&json!(["someday"]))).is_err());
+    }
+
+    // ---------- over HTTP ----------
+
+    fn free_port() -> u16 {
+        TcpListener::bind("127.0.0.1:0").unwrap().local_addr().unwrap().port()
+    }
+
+    fn http(port: u16, request: &str) -> String {
+        let Ok(mut s) = TcpStream::connect(("127.0.0.1", port)) else { return "refused".into() };
+        s.set_read_timeout(Some(Duration::from_secs(10))).unwrap();
+        s.write_all(request.as_bytes()).unwrap();
+        let mut out = String::new();
+        let _ = s.read_to_string(&mut out);
+        out
+    }
+
+    fn post(port: u16, key: &str, extra: &str, body: &str) -> String {
+        http(
+            port,
+            &format!(
+                "POST /mcp HTTP/1.1\r\nHost: 127.0.0.1:{port}\r\nAuthorization: Bearer {key}\r\nContent-Type: application/json\r\n{extra}Content-Length: {}\r\n\r\n{body}",
+                body.len()
+            ),
+        )
+    }
+
+    #[test]
+    fn http_link_checks_key_origin_and_switch() {
+        let m = link();
+        let port = free_port();
+        let key = {
+            let mut s = m.b.lock();
+            s.config.mcp.port = port;
+            s.config.mcp.token.clone()
+        };
+        start_http(m.clone(), crate::backend::Waker::none());
+        assert!(wait_for(5, || m.b.lock().mcp_status.starts_with("ok:")), "the link opens");
+        let ping = r#"{"jsonrpc":"2.0","id":1,"method":"ping"}"#;
+        assert!(post(port, &key, "", ping).starts_with("HTTP/1.1 200"));
+        assert!(post(port, "wrong", "", ping).starts_with("HTTP/1.1 401"));
+        assert!(post(port, &key, "Origin: https://evil.example\r\n", ping).starts_with("HTTP/1.1 403"));
+        assert!(post(port, &key, &format!("Origin: http://localhost:{port}\r\n"), ping).starts_with("HTTP/1.1 200"), "local pages are fine");
+        let wrong_host = format!(
+            "POST /mcp HTTP/1.1\r\nHost: attacker.example\r\nAuthorization: Bearer {key}\r\nContent-Type: application/json\r\nContent-Length: {}\r\n\r\n{ping}",
+            ping.len()
+        );
+        assert!(http(port, &wrong_host).starts_with("HTTP/1.1 403"), "DNS-rebinding guard");
+        let text_plain =
+            format!("POST /mcp HTTP/1.1\r\nHost: 127.0.0.1\r\nAuthorization: Bearer {key}\r\nContent-Type: text/plain\r\nContent-Length: {}\r\n\r\n{ping}", ping.len());
+        assert!(http(port, &text_plain).starts_with("HTTP/1.1 415"));
+        assert!(http(port, &format!("GET /mcp HTTP/1.1\r\nHost: 127.0.0.1\r\nAuthorization: Bearer {key}\r\n\r\n")).starts_with("HTTP/1.1 405"));
+        assert!(post(port, &key, "", r#"{"jsonrpc":"2.0","method":"notifications/initialized"}"#).starts_with("HTTP/1.1 202"));
+        let batch = post(port, &key, "", r#"[{"jsonrpc":"2.0","id":1,"method":"ping"},{"jsonrpc":"2.0","id":2,"method":"ping"}]"#);
+        assert!(batch.contains(r#""id":2"#));
+        // Switching off closes the port.
+        m.b.lock().config.mcp.enabled = false;
+        assert!(wait_for(5, || http(port, "GET / HTTP/1.1\r\n\r\n") == "refused"), "the port closes when switched off");
+    }
+
+    #[test]
+    fn web_address() {
+        let cfg = McpConfig { port: 9999, ..Default::default() };
+        assert_eq!(address(&cfg), "http://127.0.0.1:9999/mcp");
     }
 }

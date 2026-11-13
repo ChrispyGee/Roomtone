@@ -1,0 +1,10 @@
+[Desktop Entry]
+Type=Application
+Name=Roomtone
+GenericName=Speaker controller
+Comment=Control S1 and S2 wireless speakers on your home network
+Exec=roomtone
+Icon=roomtone
+Terminal=false
+Categories=AudioVideo;Audio;Player;
+Keywords=speakers;music;upnp;

@@ -93,3 +93,32 @@ pub fn get_bytes(url: &str) -> Result<Vec<u8>, String> {
     resp.into_reader().take(8 * 1024 * 1024).read_to_end(&mut buf).map_err(|e| e.to_string())?;
     Ok(buf)
 }
+
+// ---- soap ----
+#[cfg(test)]
+mod unit {
+    use super::*;
+
+    #[test]
+    fn escaping() {
+        assert_eq!(escape(r#"a & b < c > "d" 'e'"#), "a &amp; b &lt; c &gt; &quot;d&quot; &apos;e&apos;");
+        assert_eq!(escape("plain"), "plain");
+    }
+
+    #[test]
+    fn reading_replies() {
+        let reply = r#"<?xml version="1.0"?><s:Envelope xmlns:s="http://schemas.xmlsoap.org/soap/envelope/"><s:Body><u:GetVolumeResponse xmlns:u="urn:schemas-upnp-org:service:RenderingControl:1"><CurrentVolume>27</CurrentVolume><Empty></Empty></u:GetVolumeResponse></s:Body></s:Envelope>"#;
+        let m = parse_response(reply, "GetVolume").unwrap();
+        assert_eq!(m.get("CurrentVolume").map(String::as_str), Some("27"));
+        assert_eq!(m.get("Empty").map(String::as_str), Some(""));
+        assert!(parse_response(reply, "GetMute").is_err(), "a reply to a different action");
+        assert!(parse_response("garbage", "GetVolume").is_err());
+    }
+
+    #[test]
+    fn escaped_xml_inside_a_reply_comes_back_whole() {
+        let reply = r#"<s:Envelope xmlns:s="http://schemas.xmlsoap.org/soap/envelope/"><s:Body><u:BrowseResponse xmlns:u="x"><Result>&lt;DIDL-Lite&gt;&lt;item id="1"/&gt;&lt;/DIDL-Lite&gt;</Result></u:BrowseResponse></s:Body></s:Envelope>"#;
+        let m = parse_response(reply, "Browse").unwrap();
+        assert_eq!(m.get("Result").map(String::as_str), Some(r#"<DIDL-Lite><item id="1"/></DIDL-Lite>"#));
+    }
+}

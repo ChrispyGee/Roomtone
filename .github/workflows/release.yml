@@ -1,10 +1,14 @@
 name: Release
 
-# Pushing a tag like v0.5.1 builds Roomtone on each platform and attaches the
-# programs to a GitHub release, with that version's section of CHANGELOG.md as notes.
+# Pushing a tag like v0.5.1 builds Roomtone on each platform (a zip/tar.gz plus an installer:
+# .dmg, Windows setup .exe, Linux .deb) and attaches them to a GitHub release, with that
+# version's section of CHANGELOG.md as notes.
+# "Run workflow" on a branch builds the same files and keeps them as workflow artifacts,
+# without publishing a release (a way to try the installers).
 on:
   push:
     tags: ["v*"]
+  workflow_dispatch:
 
 permissions:
   contents: read
@@ -40,10 +44,20 @@ jobs:
       - name: Build
         run: cargo build --release --locked
 
+      - name: Version
+        shell: bash
+        run: |
+          if [ "${GITHUB_REF_TYPE}" = tag ]; then
+            version="${GITHUB_REF_NAME#v}"
+          else
+            version="$(cargo metadata --no-deps --format-version 1 | python3 -c 'import json,sys; print(json.load(sys.stdin)["packages"][0]["version"])')"
+          fi
+          echo "VERSION=$version" >> "$GITHUB_ENV"
+
       - name: Package
         shell: bash
         run: |
-          name="roomtone-${GITHUB_REF_NAME}-${{ matrix.name }}"
+          name="roomtone-v${VERSION}-${{ matrix.name }}"
           mkdir "$name"
           cp "target/release/${{ matrix.exe }}" README.md LICENSE-MIT LICENSE-APACHE "$name/"
           if [ "${{ matrix.archive }}" = zip ]; then
@@ -51,16 +65,38 @@ jobs:
           else
             tar czf "$name.tar.gz" "$name"
           fi
-          echo "ASSET=$name.${{ matrix.archive }}" >> "$GITHUB_ENV"
+          mkdir -p dist
+          mv "$name.${{ matrix.archive }}" dist/
+
+      - name: Installer (macOS .dmg)
+        if: runner.os == 'macOS'
+        run: packaging/macos/build-dmg.sh "$VERSION" "dist/roomtone-v${VERSION}-macos-arm64.dmg"
+
+      - name: Installer (Windows setup)
+        if: runner.os == 'Windows'
+        shell: bash
+        run: |
+          target/release/roomtone.exe --write-icon dist/roomtone.ico
+          iscc "//DAppVersion=$VERSION" "//DSourceDir=$(pwd -W)" packaging/windows/roomtone.iss
+          rm dist/roomtone.ico
+
+      - name: Installer (Linux .deb)
+        if: runner.os == 'Linux'
+        run: |
+          target/release/roomtone --write-icon dist/roomtone.png 512
+          cargo install cargo-deb --version 3.8.0 --locked
+          cargo deb --no-build --output "dist/roomtone-v${VERSION}-linux-x64.deb"
+          rm dist/roomtone.png
 
       - uses: actions/upload-artifact@v4
         with:
           name: ${{ matrix.name }}
-          path: ${{ env.ASSET }}
+          path: dist/*
           if-no-files-found: error
 
   publish:
     name: Publish release
+    if: github.ref_type == 'tag'
     needs: build
     runs-on: ubuntu-latest
     permissions:

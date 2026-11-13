@@ -526,11 +526,15 @@ impl UpdateOffer {
 /// Ask a speaker whether its system has newer software (`None`: up to date).
 pub fn check_for_update(ip: &str) -> R<Option<UpdateOffer>> {
     let reply = soap::call(ip, soap::ZONE_TOPOLOGY, "CheckForUpdate", &[("UpdateType", "All"), ("CachedOnly", "0"), ("Version", "")])?;
-    let xml = reply.get("UpdateItem").cloned().unwrap_or_default();
+    parse_update_item(&reply.get("UpdateItem").cloned().unwrap_or_default())
+}
+
+/// Read the `UpdateItem` of a `CheckForUpdate` reply (`None`: nothing newer).
+pub(crate) fn parse_update_item(xml: &str) -> R<Option<UpdateOffer>> {
     if xml.trim().is_empty() {
         return Ok(None);
     }
-    let doc = roxmltree::Document::parse(&xml).map_err(|e| format!("CheckForUpdate: unexpected reply ({e})"))?;
+    let doc = roxmltree::Document::parse(xml).map_err(|e| format!("CheckForUpdate: unexpected reply ({e})"))?;
     let n = doc.root_element();
     let version = n.attribute("Version").unwrap_or("").to_string();
     let url = n.attribute("UpdateURL").unwrap_or("").to_string();
@@ -550,4 +554,37 @@ pub fn software_version(ip: &str) -> Option<String> {
 /// Tell a speaker to download and install an update. It restarts when done.
 pub fn begin_update(ip: &str, url: &str) -> R<()> {
     soap::call(ip, soap::ZONE_TOPOLOGY, "BeginSoftwareUpdate", &[("UpdateURL", url), ("Flags", "0"), ("ExtraOptions", "")]).map(|_| ())
+}
+
+#[cfg(test)]
+mod unit {
+    use super::*;
+
+    #[test]
+    fn update_offers() {
+        assert_eq!(parse_update_item("").unwrap(), None);
+        assert_eq!(parse_update_item("   ").unwrap(), None);
+        let s2 = parse_update_item(r#"<UpdateItem xmlns="urn:schemas-rinconnetworks-com:update-1-0" Type="Software" Version="86.4-62010" UpdateURL="https://update.example/86.4.upd" DownloadSize="190000000"/>"#).unwrap().unwrap();
+        assert_eq!(s2.version, "86.4-62010");
+        assert_eq!(s2.url, "https://update.example/86.4.upd");
+        assert_eq!(s2.size, 190_000_000);
+        assert_eq!(s2.system(), System::S2);
+        let s1 = parse_update_item(r#"<UpdateItem Version="57.19-41110" UpdateURL="https://update.example/57.upd"/>"#).unwrap().unwrap();
+        assert_eq!(s1.system(), System::S1);
+        assert_eq!(parse_update_item(r#"<UpdateItem Version="" UpdateURL=""/>"#).unwrap(), None, "an empty offer means up to date");
+        assert!(parse_update_item("<broken").is_err());
+    }
+
+    #[test]
+    fn account_numbers_in_addresses() {
+        assert_eq!(sn_in("x-sonos-spotify:abc?sid=9&flags=8224&sn=3", 9), Some(3));
+        assert_eq!(sn_in("x-sonos-spotify:abc?sid=9&flags=8224&sn=3", 2), None);
+        assert_eq!(sn_in("x-sonosapi-radio:abc?sid=204&flags=1&sn=12", 204), Some(12));
+        assert_eq!(sn_in("x-file-cifs://nas/a.mp3", 9), None);
+    }
+
+    #[test]
+    fn queue_address() {
+        assert_eq!(queue_uri("RINCON_1"), "x-rincon-queue:RINCON_1#0");
+    }
 }

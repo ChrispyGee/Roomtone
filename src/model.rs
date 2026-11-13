@@ -573,3 +573,200 @@ impl AppState {
         }
     }
 }
+
+#[cfg(test)]
+mod unit {
+    use super::*;
+
+    fn room(uuid: &str, name: &str, model: &str) -> Room {
+        Room {
+            uuid: uuid.into(),
+            name: name.into(),
+            ip: format!("10.0.0.{}", uuid.len()),
+            model: model.into(),
+            version: String::new(),
+            volume: 20,
+            muted: false,
+            settings: None,
+            online: None,
+            last_seen: None,
+            problem: String::new(),
+        }
+    }
+
+    fn home() -> Household {
+        Household {
+            id: "H1".into(),
+            system: System::S2,
+            rooms: vec![room("A", "Kitchen", "Port"), room("BB", "Lounge", "Beam"), room("CCC", "Study", "One")],
+            groups: vec![
+                Group { id: "A".into(), coordinator: "A".into(), members: vec!["A".into(), "BB".into()], ..Default::default() },
+                Group { id: "CCC".into(), coordinator: "CCC".into(), members: vec!["CCC".into()], ..Default::default() },
+            ],
+        }
+    }
+
+    #[test]
+    fn play_modes_round_trip() {
+        for shuffle in [false, true] {
+            for repeat in [Repeat::Off, Repeat::All, Repeat::One] {
+                assert_eq!(parse_play_mode(play_mode(shuffle, repeat)), (shuffle, repeat));
+            }
+        }
+        assert_eq!(parse_play_mode("SOMETHING_NEW"), (false, Repeat::Off));
+        assert_eq!(play_mode(true, Repeat::All), "SHUFFLE");
+    }
+
+    #[test]
+    fn repeat_cycles_off_all_one() {
+        assert_eq!(Repeat::Off.next(), Repeat::All);
+        assert_eq!(Repeat::All.next(), Repeat::One);
+        assert_eq!(Repeat::One.next(), Repeat::Off);
+    }
+
+    #[test]
+    fn alarm_days_read_naturally() {
+        crate::test_support::isolate();
+        assert_eq!(recurrence_label("DAILY"), "Every day");
+        assert_eq!(recurrence_label("WEEKDAYS"), "Weekdays");
+        assert_eq!(recurrence_label("ON_135"), "Mon, Wed, Fri");
+        assert_eq!(recurrence_label("ON_06"), "Sun, Sat");
+        assert_eq!(recurrence_label("ODD"), "ODD");
+    }
+
+    #[test]
+    fn kinds_of_items() {
+        crate::test_support::isolate();
+        let it = |class: &str| Item { class: class.into(), ..Default::default() };
+        assert_eq!(item_type(&it("object.container.person.musicArtist")), "Artists");
+        assert_eq!(item_type(&it("object.container.album.musicAlbum")), "Albums");
+        assert_eq!(item_type(&it("object.item.audioItem.musicTrack")), "Songs");
+        assert_eq!(item_type(&it("object.container.playlistContainer")), "Playlists");
+        assert_eq!(item_type(&it("object.item.audioItem.audioBroadcast")), "Stations");
+        let show = Item { source: "podcasts".into(), is_container: true, ..Default::default() };
+        assert_eq!(item_type(&show), "Podcasts");
+        let episode = Item { source: "podcasts".into(), ..Default::default() };
+        assert_eq!(item_type(&episode), "Episodes");
+        assert_eq!(kind_label("object.item.audioItem.musicTrack"), "Song");
+        assert_eq!(kind_label("object.container"), "Folder");
+        assert!(ITEM_TYPES.contains(&"Other"));
+    }
+
+    #[test]
+    fn streams_and_favorites() {
+        let radio = Item { uri: "x-sonosapi-stream:s123?sid=254".into(), ..Default::default() };
+        assert!(radio.is_stream());
+        let song = Item { uri: "x-file-cifs://nas/music/a.flac".into(), class: "object.item.audioItem.musicTrack".into(), ..Default::default() };
+        assert!(!song.is_stream());
+        assert!(song.can_favorite());
+        let queue = Item { uri: "x-rincon-queue:RINCON_1#0".into(), ..Default::default() };
+        assert!(!queue.can_favorite());
+        let fav = Item { id: "FV:2/7".into(), uri: "x-sonosapi-radio:x".into(), ..Default::default() };
+        assert!(fav.is_favorite());
+        assert!(!fav.can_favorite(), "already a favorite");
+        let local_album = Item { id: "LOCAL:ALBUM/x".into(), is_container: true, ..Default::default() };
+        assert!(local_album.can_keep_in_app());
+        assert!(local_album.can_be_favorite());
+        assert!(local_album.browsable());
+    }
+
+    #[test]
+    fn subtitles() {
+        crate::test_support::isolate();
+        let a = Item { artist: "Nova".into(), album: "Moon".into(), title: "Song".into(), ..Default::default() };
+        assert_eq!(a.subtitle(), "Nova · Moon");
+        let b = Item { description: "Radio · Jazz".into(), ..Default::default() };
+        assert_eq!(b.subtitle(), "Radio · Jazz");
+        let c = Item { class: "object.container.album.musicAlbum".into(), ..Default::default() };
+        assert_eq!(c.subtitle(), "Album");
+    }
+
+    #[test]
+    fn live_position_runs_while_playing_and_stops_at_the_end() {
+        let mut n = NowPlaying {
+            title: "x".into(),
+            position: 10.0,
+            duration: 200.0,
+            transport: Transport::Paused,
+            stamp: Some(Instant::now() - std::time::Duration::from_secs(5)),
+            ..Default::default()
+        };
+        assert_eq!(n.live_position(), 10.0);
+        n.transport = Transport::Playing;
+        assert!(n.live_position() >= 14.9);
+        n.duration = 12.0;
+        assert_eq!(n.live_position(), 12.0);
+        assert!(!n.is_empty());
+        assert!(NowPlaying::default().is_empty());
+    }
+
+    #[test]
+    fn what_is_playing_as_a_favorite() {
+        let stream = NowPlaying { title: "Live".into(), source: "Jazz FM".into(), is_stream: true, media_uri: "x-sonosapi-stream:s1?sid=254".into(), ..Default::default() };
+        let item = stream.as_item().expect("a station can be saved");
+        assert_eq!(item.title, "Jazz FM");
+        assert!(item.class.contains("audioBroadcast"));
+        let line_in = NowPlaying { title: "Line-In".into(), is_stream: true, media_uri: "x-rincon-stream:RINCON_1".into(), ..Default::default() };
+        assert!(line_in.as_item().is_none());
+        let track = NowPlaying { title: "Song".into(), artist: "A".into(), uri: "x-file-cifs://nas/a.mp3".into(), duration: 100.0, ..Default::default() };
+        assert_eq!(track.as_item().map(|i| i.title), Some("Song".to_string()));
+        assert!(NowPlaying::default().as_item().is_none());
+    }
+
+    #[test]
+    fn group_names() {
+        crate::test_support::isolate();
+        let h = home();
+        assert_eq!(h.group_name(&h.groups[0]), "Kitchen + 1");
+        assert_eq!(h.group_name(&h.groups[1]), "Study");
+        let ghost = Group { members: vec!["nobody".into()], ..Default::default() };
+        assert_eq!(h.group_name(&ghost), "Unknown room");
+    }
+
+    #[test]
+    fn inputs_guessed_from_model() {
+        let h = home();
+        assert!(h.room("A").unwrap().has_line_in());
+        assert!(h.room("BB").unwrap().has_tv());
+        assert!(!h.room("CCC").unwrap().has_tv());
+    }
+
+    #[test]
+    fn app_state_lookups() {
+        let mut s = AppState { households: vec![home()], ..Default::default() };
+        assert_eq!(s.find_group("A").map(|(_, g)| g.members.len()), Some(2));
+        assert_eq!(s.find_room("BB").map(|(_, r)| r.name.clone()), Some("Lounge".into()));
+        assert_eq!(s.coordinator_ip("A"), Some("10.0.0.1".into()));
+        assert_eq!(s.room_ip("CCC"), Some("10.0.0.3".into()));
+        assert!(s.any_ip().is_some());
+        s.links.push(("A".into(), "Z".into()));
+        assert_eq!(s.linked_with("A"), Some("Z"));
+        assert_eq!(s.linked_with("Z"), Some("A"));
+        assert_eq!(s.linked_with("CCC"), None);
+    }
+
+    #[test]
+    fn selection_prefers_a_playing_group() {
+        let mut h = home();
+        h.groups[1].now.transport = Transport::Playing;
+        let mut s = AppState { households: vec![h], ..Default::default() };
+        s.ensure_selection();
+        assert_eq!(s.selected_group.as_deref(), Some("CCC"));
+        s.selected_group = Some("gone".into());
+        s.ensure_selection();
+        assert_eq!(s.selected_group.as_deref(), Some("CCC"));
+        let mut empty = AppState::default();
+        empty.ensure_selection();
+        assert!(empty.selected_group.is_none());
+    }
+
+    #[test]
+    fn toasts_keep_the_latest_four() {
+        let mut s = AppState::default();
+        for i in 0..6 {
+            s.toast(format!("note {i}"), false);
+        }
+        assert_eq!(s.toasts.len(), 4);
+        assert_eq!(s.toasts.last().map(|t| t.text.as_str()), Some("note 5"));
+    }
+}

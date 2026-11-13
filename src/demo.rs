@@ -475,7 +475,8 @@ pub fn apply(s: &mut AppState, cmd: &Cmd) {
         | Cmd::LinkGroups(..)
         | Cmd::Unlink(_)
         | Cmd::CheckUpdates(_)
-        | Cmd::InstallUpdate(_) => {}
+        | Cmd::InstallUpdate(_)
+        | Cmd::SetTheme(_) => {}
         Cmd::AddFolder(_) | Cmd::RemoveFolder(_) | Cmd::Rescan | Cmd::AddStation(_) | Cmd::RemoveStation(_) | Cmd::Subscribe(_) | Cmd::Unsubscribe(_) | Cmd::SetService(..) => {}
         Cmd::PlayItem(gid, item, how) => {
             if item.is_stream() {
@@ -732,5 +733,59 @@ pub fn tick(s: &mut AppState) {
             g.now.position = g.now.live_position();
             g.now.transport = Transport::Paused;
         }
+    }
+}
+
+#[cfg(test)]
+mod unit {
+    use super::*;
+
+    fn state() -> AppState {
+        let mut s = AppState::default();
+        load(&mut s);
+        s
+    }
+
+    #[test]
+    fn one_s2_and_one_s1_system() {
+        let s = state();
+        assert_eq!(s.households.len(), 2);
+        assert_eq!(s.households[0].system, System::S2);
+        assert_eq!(s.households[1].system, System::S1);
+        assert_eq!(s.households[0].rooms.len(), 5);
+        assert_eq!(s.households[1].rooms.len(), 3);
+        assert_eq!(s.phase, Phase::Demo);
+        for h in &s.households {
+            for g in &h.groups {
+                assert!(g.members.contains(&g.coordinator), "every group contains its lead");
+            }
+        }
+    }
+
+    #[test]
+    fn next_and_previous_move_through_the_queue() {
+        let mut s = state();
+        let g = s.households[0].groups.iter().find(|g| g.queue.as_ref().is_some_and(|q| q.len() > 2)).unwrap().id.clone();
+        let first = s.find_group(&g).unwrap().1.now.track_no;
+        apply(&mut s, &Cmd::Next(g.clone()));
+        assert_eq!(s.find_group(&g).unwrap().1.now.track_no, first + 1);
+        apply(&mut s, &Cmd::PlayQueueIndex(g.clone(), 0));
+        assert_eq!(s.find_group(&g).unwrap().1.now.track_no, 1);
+    }
+
+    #[test]
+    fn browsing_and_tracks() {
+        assert!(!browse("FV:2").is_empty());
+        assert!(!browse("SQ:").is_empty());
+        let albums = browse("A:ALBUM");
+        assert!(!albums.is_empty());
+        assert!(!tracks_for(&albums[0]).is_empty(), "an album has songs");
+    }
+
+    #[test]
+    fn time_moves_on() {
+        let mut s = state();
+        tick(&mut s);
+        assert!(s.households.iter().all(|h| h.groups.iter().all(|g| g.now.live_position() >= 0.0)));
     }
 }

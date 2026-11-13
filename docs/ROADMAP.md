@@ -30,12 +30,11 @@ These work on the demo system but haven't been confirmed on real hardware. Repor
 
 Roughly in order of value. Discuss in an issue before starting the big ones.
 
-1. **Packaging**: a signed macOS `.app`/`.dmg` (gives a proper bundle name and Local Network prompt text), a Windows installer, and Linux AppImage/Flatpak. (Plain release builds from CI already attach to each GitHub release.)
+1. **Signed packaging**: the macOS `.dmg`, Windows setup and Linux `.deb` already attach to each release but aren't signed or notarised (Apple Developer ID, Windows code-signing certificate), so macOS and SmartScreen warn on first run. Also an Intel Mac build, and Linux AppImage/Flatpak.
 2. **Speaker-side events** (UPnP `SUBSCRIBE`) instead of polling, for instant updates and less network traffic.
 3. **Saved play-along links**, and play along for more than two systems.
 4. **More languages**: see "Adding a language" in [CONTRIBUTING.md](../CONTRIBUTING.md).
 5. **Home-theatre settings**: surround and sub levels, where the speakers allow it locally.
 6. **Accessibility pass**: keyboard navigation through every page, screen-reader labels (egui's AccessKit support).
-7. **Unit tests** for the protocol parsers (`net::didl`, topology, `CheckForUpdate` replies) using recorded speaker replies, with any personal names and addresses removed.
-8. **MCP resources**: expose now-playing and the queue as MCP resources with change notifications.
-9. **Light theme**.
+7. **Recorded replies from real speakers** as test cases (with names and addresses removed), to complement the hand-written samples in the unit tests.
+8. **MCP change notifications**: let assistants subscribe to the now-playing and queue resources.

@@ -146,3 +146,89 @@ xmlns:r=\"urn:schemas-rinconnetworks-com:metadata-1-0/\" xmlns=\"urn:schemas-upn
         escape(class)
     )
 }
+
+#[cfg(test)]
+mod unit {
+    use super::*;
+
+    const LIST: &str = r#"<DIDL-Lite xmlns:dc="http://purl.org/dc/elements/1.1/" xmlns:upnp="urn:schemas-upnp-org:metadata-1-0/upnp/" xmlns:r="urn:schemas-rinconnetworks-com:metadata-1-0/" xmlns="urn:schemas-upnp-org:metadata-1-0/DIDL-Lite/">
+<item id="Q:0/1" parentID="Q:0" restricted="true"><res protocolInfo="x-file-cifs:*:audio/flac:*" duration="0:03:21.000">x-file-cifs://nas/Music/a.flac</res><upnp:albumArtURI>/getaa?u=x</upnp:albumArtURI><dc:title>Morning Fog</dc:title><upnp:class>object.item.audioItem.musicTrack</upnp:class><dc:creator>Marlow Quartet</dc:creator><upnp:album>Low Tide</upnp:album></item>
+<container id="A:ALBUM/Low Tide" parentID="A:ALBUM" restricted="true"><dc:title>Low Tide</dc:title><upnp:class>object.container.album.musicAlbum</upnp:class><upnp:albumArtURI>https://art.example/x.jpg</upnp:albumArtURI></container>
+</DIDL-Lite>"#;
+
+    #[test]
+    fn reads_items_and_containers() {
+        let items = parse(LIST, "http://10.0.0.5:1400");
+        assert_eq!(items.len(), 2);
+        let t = &items[0];
+        assert_eq!((t.title.as_str(), t.artist.as_str(), t.album.as_str()), ("Morning Fog", "Marlow Quartet", "Low Tide"));
+        assert_eq!(t.uri, "x-file-cifs://nas/Music/a.flac");
+        assert_eq!(t.duration, 201.0);
+        assert_eq!(t.art.as_deref(), Some("http://10.0.0.5:1400/getaa?u=x"), "relative art becomes absolute");
+        assert!(!t.is_container);
+        let c = &items[1];
+        assert!(c.is_container);
+        assert_eq!(c.art.as_deref(), Some("https://art.example/x.jpg"));
+    }
+
+    #[test]
+    fn radio_stream_content_becomes_title_and_artist() {
+        let meta = |sc: &str| {
+            format!(
+                r#"<DIDL-Lite xmlns:dc="http://purl.org/dc/elements/1.1/" xmlns:r="urn:schemas-rinconnetworks-com:metadata-1-0/" xmlns="urn:schemas-upnp-org:metadata-1-0/DIDL-Lite/"><item id="-1" parentID="-1"><dc:title>Jazz FM</dc:title><r:streamContent>{sc}</r:streamContent></item></DIDL-Lite>"#
+            )
+        };
+        let a = parse_one(&meta("Nina Simone - Feeling Good"), "").unwrap();
+        assert_eq!((a.artist.as_str(), a.title.as_str(), a.album.as_str()), ("Nina Simone", "Feeling Good", "Jazz FM"));
+        let b = parse_one(&meta("BR P|TYPE=SNG|TITLE Blue in Green|ARTIST Miles Davis|ALBUM Kind of Blue"), "").unwrap();
+        assert_eq!((b.title.as_str(), b.artist.as_str()), ("Blue in Green", "Miles Davis"));
+        let c = parse_one(&meta("ZPSTR_CONNECTING"), "").unwrap();
+        assert_eq!(c.title, "Jazz FM", "status codes are ignored");
+    }
+
+    #[test]
+    fn empty_and_unsupported_metadata() {
+        assert!(parse_one("", "").is_none());
+        assert!(parse_one("NOT_IMPLEMENTED", "").is_none());
+        assert!(parse("not xml at all", "").is_empty());
+    }
+
+    #[test]
+    fn times() {
+        assert_eq!(parse_time("0:03:21"), 201.0);
+        assert_eq!(parse_time("01:00:00.500"), 3600.0);
+        assert_eq!(parse_time("3:05"), 185.0);
+        assert_eq!(format_hms(3725.0), "1:02:05");
+        assert_eq!(format_hms(-5.0), "0:00:00");
+    }
+
+    #[test]
+    fn addresses() {
+        assert_eq!(absolute("http://a/b", "http://x"), "http://a/b");
+        assert_eq!(absolute("/b", "http://x"), "http://x/b");
+        assert_eq!(absolute("b", "http://x"), "http://x/b");
+    }
+
+    #[test]
+    fn metadata_written_for_the_speakers() {
+        let item = Item {
+            id: "A:TRACKS/x".into(),
+            parent_id: "A:TRACKS".into(),
+            title: "Rock & Roll <live>".into(),
+            artist: "Band".into(),
+            uri: "x-file-cifs://nas/a.mp3".into(),
+            ..Default::default()
+        };
+        let m = metadata_for(&item);
+        assert!(m.contains("Rock &amp; Roll &lt;live&gt;"), "titles are escaped");
+        assert!(m.contains("<dc:creator>Band</dc:creator>"));
+        assert!(m.contains("RINCON_AssociatedZPUDN"));
+        assert!(parse_one(&m, "").is_some(), "what we write, we can read back");
+        let web = Item { title: "Ep".into(), uri: "https://cdn.example/ep.mp3".into(), id: "POD:EP/x".into(), ..Default::default() };
+        let w = metadata_for(&web);
+        assert!(!w.contains("RINCON_AssociatedZPUDN"), "web addresses carry no service descriptor");
+        assert!(w.contains("id=\"-1\""), "the app's own ids aren't sent to the speakers");
+        let fav = Item { meta: "<DIDL-Lite>kept</DIDL-Lite>".into(), ..Default::default() };
+        assert_eq!(metadata_for(&fav), "<DIDL-Lite>kept</DIDL-Lite>");
+    }
+}

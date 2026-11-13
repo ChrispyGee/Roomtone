@@ -46,6 +46,8 @@ For MCP tests, set `HOME` (Windows: `APPDATA`) to a scratch folder such as `targ
 - [ ] New `config.json` fields use `#[serde(default)]`; never rename or remove fields.
 - [ ] Irreversible actions (speaker software updates) require confirmation; never send S2 software to an S1 system; re-check guards just before acting.
 - [ ] MCP: changing tools are marked as changing (they're hidden in look-only mode); keep the off switch, access key, Origin and Host checks intact. Update SPEC.md §6.3 and the counts in §11.
+- [ ] Colours come from the palette in `src/ui/theme.rs` (`TEXT()`, `SURFACE()`, `overlay(a)`…), never fixed values, so light and dark both work. Check with `--theme light` and `--theme dark`.
+- [ ] New parsers and rules get unit tests; behaviour tests drive `test_support::demo_backend()`, never real speakers. `cargo test` must stay green on every platform.
 - [ ] Keep `--screenshot` working: it must save a non-blank picture of the demo window without taking focus.
 - [ ] Update SPEC.md, CHANGELOG.md (*Unreleased*) and, for protocol changes, docs/PROTOCOL.md.
 - [ ] No telemetry; no new network destinations without listing them in SPEC.md §9.
@@ -62,4 +64,4 @@ Read-only probes are fine: the ignored tests (`ROOMTONE_SPEAKER=<ip> cargo test 
 
 ## Definition of done
 
-Build, tests, fmt and clippy are clean. A screenshot of the affected screen looks right in English and in one longer language (`--lang de`). The demo works. SPEC.md and CHANGELOG.md are updated. What was verified on real speakers versus the demo only is stated in the pull request and, if it's still open, in docs/ROADMAP.md.
+Build, tests, fmt and clippy are clean. A screenshot of the affected screen looks right in English and in one longer language (`--lang de`), in light and dark (`--theme`). The demo works. SPEC.md and CHANGELOG.md are updated. What was verified on real speakers versus the demo only is stated in the pull request and, if it's still open, in docs/ROADMAP.md.

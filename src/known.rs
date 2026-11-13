@@ -108,3 +108,31 @@ pub fn load() -> Vec<Household> {
         .filter(|h| !h.rooms.is_empty())
         .collect()
 }
+
+#[cfg(test)]
+mod unit {
+    use super::*;
+
+    #[test]
+    fn speakers_are_remembered() {
+        crate::test_support::isolate();
+        let mut s = crate::model::AppState::default();
+        crate::demo::load(&mut s);
+        // Demo rooms have no address, and rooms without one are never remembered.
+        let path = path().unwrap();
+        let _ = std::fs::remove_file(&path);
+        save(&s.households);
+        assert!(!path.exists(), "nothing to remember without addresses");
+        for (i, r) in s.households.iter_mut().flat_map(|h| h.rooms.iter_mut()).enumerate() {
+            r.ip = format!("192.168.1.{}", 20 + i);
+        }
+        save(&s.households);
+        let back = load();
+        assert_eq!(back.len(), s.households.len());
+        for (a, b) in back.iter().zip(&s.households) {
+            assert_eq!(a.system, b.system);
+            assert_eq!(a.rooms.iter().map(|r| &r.name).collect::<Vec<_>>(), b.rooms.iter().map(|r| &r.name).collect::<Vec<_>>());
+            assert_eq!(a.groups.len(), b.groups.len());
+        }
+    }
+}

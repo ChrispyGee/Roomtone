@@ -87,6 +87,8 @@ pub enum Cmd {
     InstallUpdate(String),
     /// Try a connected streaming service without playing anything.
     CheckService(u32),
+    /// Switch the appearance: "auto", "light" or "dark".
+    SetTheme(String),
     /// Switch the app's language ("auto" follows the computer).
     SetLanguage(String),
     /// Change the assistant link (MCP) settings.
@@ -742,7 +744,8 @@ fn run_live(b: &Backend, ctx: &Waker, cmd: Cmd) -> Result<(), String> {
         | Cmd::LinkGroups(..)
         | Cmd::Unlink(_)
         | Cmd::CheckUpdates(_)
-        | Cmd::InstallUpdate(_) => Ok(()),
+        | Cmd::InstallUpdate(_)
+        | Cmd::SetTheme(_) => Ok(()),
         Cmd::PlayItem(g, item, how) => {
             let ip = coord(&g)?;
             let item = adapt_for_system(b, &g, item);
@@ -1201,6 +1204,11 @@ fn run_common(b: &Backend, ctx: &Waker, cmd: Cmd) -> Result<Option<Cmd>, String>
                 b2.lock().service_checks.insert(sid, result);
                 ctx2.request_repaint();
             });
+            Ok(None)
+        }
+        Cmd::SetTheme(code) => {
+            b.lock().config.theme = if ["auto", "light", "dark"].contains(&code.as_str()) { code } else { "auto".into() };
+            save(b);
             Ok(None)
         }
         Cmd::SetLanguage(code) => {
@@ -2029,5 +2037,155 @@ fn poller(b: Backend, ctx: Waker) {
             s.toasts.retain(|t| t.at.elapsed() < Duration::from_secs(6));
         }
         ctx.request_repaint();
+    }
+}
+
+#[cfg(test)]
+mod unit {
+    use super::*;
+    use crate::test_support::{demo_backend, isolate, wait_for};
+
+    #[test]
+    fn group_volume_scales_rooms_proportionally() {
+        assert_eq!(scale_volume(20, 40, 20), 10);
+        assert_eq!(scale_volume(30, 30, 60), 60);
+        assert_eq!(scale_volume(80, 40, 100), 100, "never above 100");
+        assert_eq!(scale_volume(10, 0, 25), 25, "from silence every room takes the new level");
+    }
+
+    #[test]
+    fn slider_drags_fold_into_the_latest() {
+        assert_eq!(Cmd::GroupVolume("g".into(), 3).coalesce_key(), Cmd::GroupVolume("g".into(), 9).coalesce_key());
+        assert_ne!(Cmd::RoomVolume("a".into(), 3).coalesce_key(), Cmd::RoomVolume("b".into(), 3).coalesce_key());
+        assert!(Cmd::Play("g".into()).coalesce_key().is_none());
+    }
+
+    #[test]
+    fn service_numbers_and_accounts_in_addresses() {
+        assert_eq!(service_of("x-sonos-spotify:spotify%3atrack%3a1?sid=9&flags=8224&sn=3"), Some(9));
+        assert_eq!(service_of("x-sonosapi-stream:s1?sid=254"), Some(254));
+        assert_eq!(service_of("x-file-cifs://nas/a.mp3"), None);
+        assert_eq!(with_account_number("x?sid=9&flags=1&sn=3", 5), "x?sid=9&flags=1&sn=5");
+        assert_eq!(with_account_number("x?sid=9&sn=12&z=1", 2), "x?sid=9&sn=2&z=1");
+        assert_eq!(with_account_number("x?sid=9", 4), "x?sid=9&sn=4");
+    }
+
+    #[test]
+    fn notes_after_playing() {
+        isolate();
+        assert_eq!(played(PlayHow::Now, "Song"), "Playing Song");
+        assert_eq!(played(PlayHow::Next, "Song"), "Playing next: Song");
+        assert_eq!(played(PlayHow::End, "Song"), "Added to queue: Song");
+    }
+
+    fn two_groups() -> AppState {
+        let mut s = AppState::default();
+        crate::demo::load(&mut s);
+        s
+    }
+
+    #[test]
+    fn play_along_copies_controls_to_the_following_group() {
+        let mut s = two_groups();
+        let lead = s.households[0].groups[0].id.clone();
+        let follow = s.households[1].groups[0].id.clone();
+        assert!(mirror(&s, &Cmd::Pause(lead.clone())).is_empty(), "nothing is linked yet");
+        s.links.push((lead.clone(), follow.clone()));
+        let out = mirror(&s, &Cmd::Next(lead.clone()));
+        assert!(matches!(out.as_slice(), [Cmd::Next(g)] if g == &follow));
+        assert!(matches!(mirror(&s, &Cmd::Seek(lead.clone(), 42.0)).as_slice(), [Cmd::Seek(g, p)] if g == &follow && *p == 42.0));
+        assert!(mirror(&s, &Cmd::GroupVolume(lead.clone(), 10)).is_empty(), "volumes stay separate");
+        assert!(mirror(&s, &Cmd::Pause(follow)).is_empty(), "the follower doesn't lead back");
+    }
+
+    #[test]
+    fn screen_reacts_before_the_speakers_answer() {
+        let mut s = two_groups();
+        let g = s.households[0].groups[0].clone();
+        optimistic(&mut s, &Cmd::GroupVolume(g.id.clone(), 0));
+        let after = s.find_group(&g.id).unwrap().1.clone();
+        assert_eq!(after.volume, 0);
+        for m in &g.members {
+            assert_eq!(s.find_room(m).unwrap().1.volume, 0);
+        }
+        optimistic(&mut s, &Cmd::Pause(g.id.clone()));
+        assert_eq!(s.find_group(&g.id).unwrap().1.now.transport, Transport::Paused);
+        optimistic(&mut s, &Cmd::SetPlayMode(g.id.clone(), true, Repeat::One));
+        let gr = s.find_group(&g.id).unwrap().1;
+        assert!(gr.shuffle && gr.repeat == Repeat::One);
+        optimistic(&mut s, &Cmd::Search("blue".into()));
+        assert!(crate::sources::SEARCH_SOURCES.iter().all(|src| matches!(s.browse.get(&format!("search:{src}:blue")), Some(Browse::Loading))));
+    }
+
+    #[test]
+    fn room_volume_updates_the_group_average() {
+        let mut s = two_groups();
+        let g = s.households[0].groups.iter().find(|g| g.members.len() > 1).unwrap().clone();
+        for m in &g.members {
+            optimistic(&mut s, &Cmd::RoomVolume(m.clone(), 50));
+        }
+        assert_eq!(s.find_group(&g.id).unwrap().1.volume, 50);
+    }
+
+    #[test]
+    fn demo_commands_run_and_report_when_done() {
+        let b = demo_backend();
+        let gid = b.lock().households[0].groups[0].id.clone();
+        let before = b.lock().find_group(&gid).unwrap().1.now.title.clone();
+        b.send_and_wait(Cmd::Next(gid.clone()), Duration::from_secs(5)).unwrap();
+        assert!(wait_for(3, || b.lock().find_group(&gid).unwrap().1.now.title != before), "next track");
+        assert!(b.lock().done_seq > 0);
+    }
+
+    #[test]
+    fn play_along_refuses_rooms_of_the_same_system() {
+        let b = demo_backend();
+        let (a, c) = {
+            let s = b.lock();
+            (s.households[0].groups[0].id.clone(), s.households[0].groups[1].id.clone())
+        };
+        assert!(b.send_and_wait(Cmd::LinkGroups(a.clone(), c), Duration::from_secs(5)).is_err());
+        let other = b.lock().households[1].groups[0].id.clone();
+        b.send_and_wait(Cmd::LinkGroups(a.clone(), other.clone()), Duration::from_secs(5)).unwrap();
+        assert_eq!(b.lock().linked_with(&a), Some(other.as_str()));
+        b.send_and_wait(Cmd::Unlink(a.clone()), Duration::from_secs(5)).unwrap();
+        assert!(b.lock().linked_with(&a).is_none());
+    }
+
+    #[test]
+    fn demo_updates_offer_s2_only_and_install() {
+        let b = demo_backend();
+        let (s2, s1) = {
+            let s = b.lock();
+            let id = |sys| s.households.iter().find(|h| h.system == sys).unwrap().id.clone();
+            (id(System::S2), id(System::S1))
+        };
+        for h in [&s2, &s1] {
+            b.send_and_wait(Cmd::CheckUpdates(h.clone()), Duration::from_secs(5)).unwrap();
+        }
+        assert!(wait_for(5, || !matches!(b.lock().updates.get(&s2), Some(UpdateState::Checking) | None)));
+        assert!(wait_for(5, || !matches!(b.lock().updates.get(&s1), Some(UpdateState::Checking) | None)));
+        assert!(matches!(b.lock().updates.get(&s2), Some(UpdateState::Available(o)) if o.system() == System::S2));
+        assert_eq!(b.lock().updates.get(&s1), Some(&UpdateState::UpToDate), "S1 is never offered S2 software");
+        b.send_and_wait(Cmd::InstallUpdate(s2.clone()), Duration::from_secs(5)).unwrap();
+        assert!(wait_for(15, || b.lock().updates.get(&s2) == Some(&UpdateState::UpToDate)));
+        let s = b.lock();
+        assert!(s.households.iter().find(|h| h.id == s2).unwrap().rooms.iter().all(|r| r.version == "16.5"));
+    }
+
+    #[test]
+    fn install_needs_a_checked_offer_first() {
+        let b = demo_backend();
+        let s2 = b.lock().households[0].id.clone();
+        assert!(b.send_and_wait(Cmd::InstallUpdate(s2), Duration::from_secs(5)).is_err());
+    }
+
+    #[test]
+    fn appearance_setting_accepts_known_values_only() {
+        let b = demo_backend();
+        b.send_and_wait(Cmd::SetTheme("light".into()), Duration::from_secs(5)).unwrap();
+        assert_eq!(b.lock().config.theme, "light");
+        b.send_and_wait(Cmd::SetTheme("purple".into()), Duration::from_secs(5)).unwrap();
+        assert_eq!(b.lock().config.theme, "auto");
     }
 }

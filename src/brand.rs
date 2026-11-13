@@ -34,13 +34,38 @@ pub fn icon_rgba(size: u32) -> Vec<u8> {
     out
 }
 
-/// The icon as PNG bytes (for the macOS About box).
-#[cfg_attr(not(target_os = "macos"), allow(dead_code))]
+/// The icon as PNG bytes (for the macOS About box and the installers).
 pub fn icon_png(size: u32) -> Vec<u8> {
     let mut png = Vec::new();
     let img = image::RgbaImage::from_raw(size, size, icon_rgba(size)).unwrap_or_default();
     let _ = image::DynamicImage::ImageRgba8(img).write_to(&mut std::io::Cursor::new(&mut png), image::ImageFormat::Png);
     png
+}
+
+/// The icon as a Windows `.ico` file: PNG pictures at the usual sizes.
+pub fn icon_ico() -> Vec<u8> {
+    let sizes = [16u32, 32, 48, 64, 128, 256];
+    let pngs: Vec<Vec<u8>> = sizes.iter().map(|&s| icon_png(s)).collect();
+    let mut out = vec![0, 0, 1, 0];
+    out.extend((sizes.len() as u16).to_le_bytes());
+    let mut offset = 6 + 16 * sizes.len() as u32;
+    for (s, png) in sizes.iter().zip(&pngs) {
+        let dim = if *s >= 256 { 0 } else { *s as u8 };
+        out.extend([dim, dim, 0, 0, 1, 0, 32, 0]);
+        out.extend((png.len() as u32).to_le_bytes());
+        out.extend(offset.to_le_bytes());
+        offset += png.len() as u32;
+    }
+    for png in pngs {
+        out.extend(png);
+    }
+    out
+}
+
+/// Save the icon for the installers: `.ico` for Windows, otherwise a PNG of `size` pixels.
+pub fn write_icon(path: &std::path::Path, size: u32) -> std::io::Result<()> {
+    let is_ico = path.extension().is_some_and(|e| e.eq_ignore_ascii_case("ico"));
+    std::fs::write(path, if is_ico { icon_ico() } else { icon_png(size.clamp(16, 1024)) })
 }
 
 /// The colour at a point of the icon (0..1 on both axes): RGBA, 0..1.
@@ -76,4 +101,24 @@ fn sample(x: f32, y: f32) -> [f32; 4] {
 
 fn lerp(a: f32, b: f32, t: f32) -> f32 {
     a + (b - a) * t.clamp(0.0, 1.0)
+}
+
+#[cfg(test)]
+mod unit {
+    use super::*;
+
+    #[test]
+    fn icon_has_clear_corners_and_an_orange_middle() {
+        let n = 64usize;
+        let px = icon_rgba(n as u32);
+        assert_eq!(px.len(), n * n * 4);
+        assert_eq!(px[3], 0, "the top-left corner is transparent");
+        let mid = ((n / 2) * n + n / 2 + 6) * 4;
+        assert_eq!(px[mid + 3], 255);
+        assert!(px[mid] > 200 && px[mid + 2] < 160, "orange in the middle");
+        assert!(icon_png(32).starts_with(&[0x89, b'P', b'N', b'G']));
+        let ico = icon_ico();
+        assert_eq!(&ico[..6], &[0, 0, 1, 0, 6, 0], "an icon file holding six pictures");
+        assert_eq!(&ico[6 + 6 * 16 + 1..][..3], b"PNG", "the first picture follows the directory");
+    }
 }

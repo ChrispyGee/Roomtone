@@ -290,10 +290,10 @@ pub fn paint_icon(painter: &egui::Painter, rect: Rect, icon: Icon, color: Color3
 pub fn icon_button(ui: &mut Ui, icon: Icon, size: f32, color: Color32) -> Response {
     let (rect, resp) = ui.allocate_exact_size(vec2(size + 12.0, size + 12.0), Sense::click());
     if resp.hovered() {
-        ui.painter().circle_filled(rect.center(), rect.width() / 2.0, SURFACE_HOVER);
+        ui.painter().circle_filled(rect.center(), rect.width() / 2.0, SURFACE_HOVER());
     }
     let r = Rect::from_center_size(rect.center(), vec2(size, size));
-    paint_icon(ui.painter(), r, icon, if resp.hovered() { TEXT } else { color });
+    paint_icon(ui.painter(), r, icon, if resp.hovered() { TEXT() } else { color });
     resp.on_hover_cursor(egui::CursorIcon::PointingHand)
 }
 
@@ -311,24 +311,24 @@ pub fn round_button(ui: &mut Ui, icon: Icon, diameter: f32, fill: Color32, fg: C
 /// A rounded "pill" button with optional icon.
 pub fn pill(ui: &mut Ui, icon: Option<Icon>, text: &str, primary: bool) -> Response {
     let font = egui::FontId::proportional(14.0);
-    let galley = ui.painter().layout_no_wrap(text.to_string(), font, if primary { Color32::BLACK } else { TEXT });
+    let galley = ui.painter().layout_no_wrap(text.to_string(), font, if primary { Color32::BLACK } else { TEXT() });
     let icon_w = if icon.is_some() { 22.0 } else { 0.0 };
     let size = vec2(galley.size().x + 32.0 + icon_w, 36.0);
     let (rect, resp) = ui.allocate_exact_size(size, Sense::click());
     let fill = match (primary, resp.hovered()) {
-        (true, false) => ACCENT,
+        (true, false) => ACCENT(),
         (true, true) => Color32::from_rgb(255, 160, 110),
-        (false, false) => SURFACE_HI,
-        (false, true) => SURFACE_HOVER,
+        (false, false) => SURFACE_HI(),
+        (false, true) => SURFACE_HOVER(),
     };
     ui.painter().rect_filled(rect, 18.0, fill);
     let mut x = rect.min.x + 16.0;
     if let Some(i) = icon {
         let r = Rect::from_center_size(pos2(x + 8.0, rect.center().y), vec2(16.0, 16.0));
-        paint_icon(ui.painter(), r, i, if primary { Color32::BLACK } else { TEXT });
+        paint_icon(ui.painter(), r, i, if primary { Color32::BLACK } else { TEXT() });
         x += icon_w;
     }
-    ui.painter().galley(pos2(x, rect.center().y - galley.size().y / 2.0), galley, TEXT);
+    ui.painter().galley(pos2(x, rect.center().y - galley.size().y / 2.0), galley, TEXT());
     resp.on_hover_cursor(egui::CursorIcon::PointingHand)
 }
 
@@ -350,11 +350,11 @@ pub fn slider(ui: &mut Ui, id: impl std::hash::Hash, value: &mut f32, width: f32
     let h = if hot { 6.0 } else { 4.0 };
     let track = Rect::from_center_size(rect.center(), vec2(rect.width(), h));
     let p = ui.painter();
-    p.rect_filled(track, h / 2.0, Color32::from_white_alpha(28));
+    p.rect_filled(track, h / 2.0, overlay(28));
     let filled = Rect::from_min_max(track.min, pos2(track.min.x + track.width() * value.clamp(0.0, 1.0), track.max.y));
     p.rect_filled(filled, h / 2.0, color);
     if hot {
-        p.circle_filled(pos2(filled.max.x, rect.center().y), 7.0, TEXT);
+        p.circle_filled(pos2(filled.max.x, rect.center().y), 7.0, TEXT());
     }
     (resp.on_hover_cursor(egui::CursorIcon::PointingHand), changed)
 }
@@ -367,10 +367,10 @@ pub fn toggle(ui: &mut Ui, on: &mut bool) -> Response {
         resp.mark_changed();
     }
     let t = ui.ctx().animate_bool(resp.id, *on);
-    let fill = lerp_color(SURFACE_HOVER, ACCENT, t);
+    let fill = lerp_color(SURFACE_HOVER(), ACCENT(), t);
     ui.painter().rect_filled(rect, 11.0, fill);
     let x = egui::lerp(rect.min.x + 11.0..=rect.max.x - 11.0, t);
-    ui.painter().circle_filled(pos2(x, rect.center().y), 8.0, TEXT);
+    ui.painter().circle_filled(pos2(x, rect.center().y), 8.0, Color32::WHITE);
     resp.on_hover_cursor(egui::CursorIcon::PointingHand)
 }
 
@@ -382,18 +382,18 @@ pub fn lerp_color(a: Color32, b: Color32, t: f32) -> Color32 {
 /// Segmented control; returns the newly picked index.
 pub fn segmented(ui: &mut Ui, options: &[&str], selected: usize, width: f32) -> Option<usize> {
     let (rect, _) = ui.allocate_exact_size(vec2(width, 32.0), Sense::hover());
-    ui.painter().rect_filled(rect, 16.0, SURFACE);
+    ui.painter().rect_filled(rect, 16.0, SURFACE());
     let w = rect.width() / options.len() as f32;
     let mut picked = None;
     for (i, label) in options.iter().enumerate() {
         let r = Rect::from_min_size(pos2(rect.min.x + w * i as f32, rect.min.y), vec2(w, rect.height())).shrink(3.0);
         let resp = ui.interact(r, ui.scope_id().with(("seg", label)), Sense::click());
         if i == selected {
-            ui.painter().rect_filled(r, 13.0, SURFACE_HOVER);
+            ui.painter().rect_filled(r, 13.0, SURFACE_HOVER());
         } else if resp.hovered() {
-            ui.painter().rect_filled(r, 13.0, Color32::from_white_alpha(8));
+            ui.painter().rect_filled(r, 13.0, overlay(8));
         }
-        ui.painter().text(r.center(), egui::Align2::CENTER_CENTER, *label, egui::FontId::proportional(13.0), if i == selected { TEXT } else { TEXT_DIM });
+        ui.painter().text(r.center(), egui::Align2::CENTER_CENTER, *label, egui::FontId::proportional(13.0), if i == selected { TEXT() } else { TEXT_DIM() });
         if resp.clicked() && i != selected {
             picked = Some(i);
         }
@@ -441,12 +441,12 @@ pub fn clipped_label(ui: &mut Ui, text: &str, size: f32, color: Color32, width: 
 
 pub fn section_title(ui: &mut Ui, text: &str) {
     ui.add_space(6.0);
-    ui.label(egui::RichText::new(text).size(19.0).color(TEXT).strong());
+    ui.label(egui::RichText::new(text).size(19.0).color(TEXT()).strong());
     ui.add_space(4.0);
 }
 
 pub fn card_frame() -> egui::Frame {
-    egui::Frame::new().fill(SURFACE).corner_radius(14.0).inner_margin(16.0)
+    egui::Frame::new().fill(SURFACE()).corner_radius(14.0).inner_margin(16.0)
 }
 
 pub fn fmt_time(secs: f32) -> String {
@@ -471,15 +471,15 @@ pub fn spinner_dots(ui: &mut Ui, color: Color32) {
 /// A rounded filter chip that can be switched on and off.
 pub fn filter_chip(ui: &mut Ui, text: &str, on: bool) -> Response {
     let font = egui::FontId::proportional(12.5);
-    let color = if on { Color32::BLACK } else { TEXT_DIM };
+    let color = if on { Color32::BLACK } else { TEXT_DIM() };
     let galley = ui.painter().layout_no_wrap(text.to_string(), font, color);
     let (rect, resp) = ui.allocate_exact_size(galley.size() + vec2(22.0, 12.0), Sense::click());
     let fill = if on {
-        ACCENT
+        ACCENT()
     } else if resp.hovered() {
-        SURFACE_HOVER
+        SURFACE_HOVER()
     } else {
-        SURFACE_HI
+        SURFACE_HI()
     };
     ui.painter().rect_filled(rect, rect.height() / 2.0, fill);
     ui.painter().galley(rect.min + vec2(11.0, 6.0), galley, color);
