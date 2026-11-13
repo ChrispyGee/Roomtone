@@ -175,7 +175,7 @@ Complete `config.json`, with every field at its default (the access key is made 
 | `accounts` | list | `[]` | Streaming services you signed in to. Secrets; managed by the app. |
 | `favorites` | list | `[]` | Favorites Roomtone keeps itself. Managed by the app. |
 | `groups` | list | `[]` | Saved groups of rooms. Each: `name`, `household` (which system), `rooms` (room names). |
-| `scenes` | list | `[]` | Scenes. Each: `name`, `household`, `rooms` (a list of `{ "room": name, "volume": 0-100 or null }`; the first leads), `group` (play together, default true), `play` (a favorite or playlist name, or empty), `sleep_minutes` (0 for none). |
+| `scenes` | list | `[]` | Scenes. Each: `name`, `household`, `rooms` (a list of `{ "room": name, "volume": 0-100 or null }`; a room that's already playing leads the group, otherwise the first), `group` (play together, default true), `play` (a favorite or playlist name, or empty), `sleep_minutes` (0 for none). |
 | `language` | text | `"auto"` | `auto`, or `en`, `de`, `fr`, `es`, `it`, `nl`. |
 | `theme` | text | `"auto"` | `auto`, `light` or `dark`. |
 | `speaker_events` | true/false | `false` | Instant updates from the speakers. |
