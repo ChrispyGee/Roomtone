@@ -5,6 +5,9 @@ All notable changes to Roomtone. The format follows [Keep a Changelog](https://k
 ## [Unreleased]
 
 ### Added
+- **New versions** (Settings › New versions, off by default): an optional once-a-day look at this project's latest release on GitHub, with *Check now* and an *Open download page* button when a newer Roomtone is out. Nothing is sent about you and nothing is downloaded or installed. A new network destination (`api.github.com`), listed in SPEC §9. New `check_new_versions` and `last_version_check` fields in `config.json`.
+
+### Added
 - **Arrange the rooms**: *Arrange* in the Rooms panel shows up and down arrows on each room card, so you can put your rooms in the order you like. The order is remembered per system (`room_order` in `config.json`); a group stands where its earliest-listed room is, and new rooms come after.
 - **Sorting and jumping in long lists**: three more sort choices (*Title Z–A*, *Album A–Z*, *Shortest first*) on the library, favorites, playlists and radio lists; an **A–Z strip** above any list of 40 or more songs that's in alphabetical order (by title, artist or album), which scrolls to the first entry under that letter; and a **search box for the queue** (shown when it holds more than 8 songs). *Rescan* for the music folders was already in Music Library.
 

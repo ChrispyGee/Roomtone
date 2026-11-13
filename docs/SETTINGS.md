@@ -68,6 +68,10 @@ File: `language` (`"auto"` or `"en"`, `"de"`, `"fr"`, `"es"`, `"it"`, `"nl"`). D
 
 File: `speaker_events` (`true` / `false`). Default `false`.
 
+### New versions
+*Tell me when a new version of Roomtone is out*: when on, about once a day Roomtone reads this project's latest release on GitHub (one plain request to `api.github.com`; the only thing that identifies the app is its normal `User-Agent` with the version number, and nothing about you or your speakers is sent). If a newer version is out, this section says so and *Open download page* takes you there; there's also a one-time pop-up. Nothing is downloaded or installed for you. *Check now* looks straight away, whether or not the switch is on. A look that fails (offline, rate limit) is simply tried again later.
+File: `check_new_versions` (`true` / `false`), default `false`; `last_version_check` (seconds since 1970) is kept by the app so it only looks once a day.
+
 ### Assistant link (MCP)
 Lets AI assistants that support MCP see and control your speakers. **Off until you switch it on.** Details and per-platform setup: [HEADLESS_AND_MCP.md](HEADLESS_AND_MCP.md).
 
@@ -138,7 +142,9 @@ Complete `config.json`, with every field at its default (the access key is made 
   },
   "theme": "auto",
   "speaker_events": false,
-  "room_order": []
+  "room_order": [],
+  "check_new_versions": false,
+  "last_version_check": 0
 }
 ```
 
@@ -155,6 +161,8 @@ Complete `config.json`, with every field at its default (the access key is made 
 | `theme` | text | `"auto"` | `auto`, `light` or `dark`. |
 | `speaker_events` | true/false | `false` | Instant updates from the speakers. |
 | `room_order` | list of text | `[]` | The order you arranged your rooms in (room ids, first to last). Rooms not listed come after, in the speakers' own order. Managed by *Arrange* in the Rooms panel. |
+| `check_new_versions` | true/false | `false` | Look for a newer Roomtone about once a day. |
+| `last_version_check` | number | `0` | When the last good look was (seconds since 1970). Kept by the app. |
 | `mcp.enabled` | true/false | `false` | Assistant link on. |
 | `mcp.allow_control` | true/false | `true` | Assistants may change things. |
 | `mcp.allow_network` | true/false | `false` | Other computers may connect. |

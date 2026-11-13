@@ -497,6 +497,11 @@ pub struct AppState {
     pub config_problem: Option<crate::config::Problem>,
     /// How speaker events are going (empty when switched off); see `net::events::Summary`.
     pub events: crate::net::events::Summary,
+    /// What the last look for a newer Roomtone found.
+    pub new_version: crate::version::Outcome,
+    pub version_checking: bool,
+    /// A check was asked for (*Check now*) and hasn't run yet.
+    pub version_check_asked: bool,
     /// Results of "Check" on the Music Services page, by service number (empty: checking).
     pub service_checks: HashMap<u32, String>,
     /// Groups in different systems playing the same thing: (leading group, following group).
@@ -557,6 +562,9 @@ impl Default for AppState {
             backup_result: None,
             config_problem: None,
             events: Default::default(),
+            new_version: Default::default(),
+            version_checking: false,
+            version_check_asked: false,
             service_checks: HashMap::new(),
             links: vec![],
             updates: HashMap::new(),

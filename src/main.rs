@@ -44,6 +44,7 @@ mod sources;
 #[cfg(test)]
 mod test_support;
 mod ui;
+mod version;
 
 use std::path::PathBuf;
 use std::time::Duration;

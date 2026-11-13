@@ -2018,6 +2018,8 @@ impl App {
         ui.add_space(14.0);
         self.events_card(ui, s);
         ui.add_space(14.0);
+        self.new_version_card(ui, s);
+        ui.add_space(14.0);
         self.backup_card(ui, s);
         ui.add_space(14.0);
         self.assistant_card(ui, s);
@@ -2358,6 +2360,66 @@ impl App {
                 None => {}
             }
         });
+    }
+
+    /// An optional once-a-day look for a newer Roomtone, and a *Check now* button.
+    fn new_version_card(&mut self, ui: &mut Ui, s: &AppState) {
+        use crate::version::Outcome;
+        section_title(ui, t!("New versions"));
+        let mut on = s.config.check_new_versions;
+        card_frame().show(ui, |ui| {
+            ui.set_width(ui.available_width());
+            ui.horizontal(|ui| {
+                ui.set_min_height(40.0);
+                ui.vertical(|ui| {
+                    ui.set_max_width((ui.available_width() - 64.0).max(120.0));
+                    ui.label(RichText::new(t!("Tell me when a new version of Roomtone is out")).color(TEXT()));
+                    ui.label(
+                        RichText::new(t!(
+                            "Once a day Roomtone looks at this project's release page on GitHub. Nothing is sent about you, and nothing is installed or downloaded for you."
+                        ))
+                        .size(12.0)
+                        .color(TEXT_DIM()),
+                    );
+                });
+                ui.with_layout(Layout::right_to_left(Align::Center), |ui| {
+                    toggle(ui, &mut on);
+                });
+            });
+            ui.add_space(6.0);
+            ui.horizontal_wrapped(|ui| {
+                let current = env!("CARGO_PKG_VERSION");
+                if s.version_checking {
+                    spinner_dots(ui, TEXT_DIM());
+                    ui.label(RichText::new(t!("Looking…")).size(12.5).color(TEXT_DIM()));
+                } else {
+                    match &s.new_version {
+                        Outcome::Newer(r) => {
+                            ui.label(RichText::new(t!("Version {version} is available (you have {current})", version = r.version, current = current)).size(12.5).color(ACCENT()));
+                            let url = if r.url.is_empty() { format!("{}/releases/latest", crate::help::REPO_URL) } else { r.url.clone() };
+                            if pill(ui, None, t!("Open download page"), true).clicked() {
+                                ui.ctx().open_url(egui::OpenUrl::new_tab(url));
+                            }
+                        }
+                        Outcome::UpToDate => {
+                            ui.label(RichText::new(t!("You have the latest version ({current})", current = current)).size(12.5).color(GOOD()));
+                        }
+                        Outcome::Failed(e) => {
+                            ui.label(RichText::new(t!("Couldn't check: {error}", error = e)).size(12.5).color(BAD()));
+                        }
+                        Outcome::Unknown => {
+                            ui.label(RichText::new(t!("You have version {current}", current = current)).size(12.5).color(TEXT_DIM()));
+                        }
+                    }
+                    if pill(ui, Some(Icon::Refresh), t!("Check now"), false).clicked() {
+                        self.send(Cmd::CheckVersionNow);
+                    }
+                }
+            });
+        });
+        if on != s.config.check_new_versions {
+            self.send(Cmd::SetVersionCheck(on));
+        }
     }
 
     /// Instant updates from the speakers (UPnP events) instead of asking again and again.

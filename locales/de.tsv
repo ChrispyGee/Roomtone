@@ -624,3 +624,14 @@ Album A–Z	Album A–Z
 Shortest first	Kürzeste zuerst
 Search this queue	Diese Warteschlange durchsuchen
 Jump to {letter}	Zu {letter} springen
+New versions	Neue Versionen
+Tell me when a new version of Roomtone is out	Sag mir Bescheid, wenn eine neue Version von Roomtone erscheint
+Once a day Roomtone looks at this project's release page on GitHub. Nothing is sent about you, and nothing is installed or downloaded for you.	Einmal am Tag sieht Roomtone auf der Release-Seite dieses Projekts bei GitHub nach. Es wird nichts über dich gesendet, und nichts wird für dich installiert oder heruntergeladen.
+Looking…	Suche läuft…
+Version {version} is available (you have {current})	Version {version} ist verfügbar (du hast {current})
+Open download page	Download-Seite öffnen
+You have the latest version ({current})	Du hast die neueste Version ({current})
+Couldn't check: {error}	Prüfung nicht möglich: {error}
+You have version {current}	Du hast Version {current}
+Check now	Jetzt prüfen
+Roomtone {version} is available. See Settings.	Roomtone {version} ist verfügbar. Siehe Einstellungen.
