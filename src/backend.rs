@@ -94,6 +94,8 @@ pub enum Cmd {
     SetEvents(bool),
     /// Ask each speaker of a system whether it could move to S2 (read-only).
     CheckS2(String),
+    /// Switch the keyboard media keys and the system's Now Playing on or off.
+    SetMediaKeys(bool),
     /// Switch listening history on or off (what's already kept stays until cleared).
     SetHistory(bool),
     /// Forget everything in the listening history.
@@ -779,6 +781,7 @@ fn run_live(b: &Backend, ctx: &Waker, cmd: Cmd) -> Result<(), String> {
         | Cmd::SetTheme(_)
         | Cmd::SetEvents(_)
         | Cmd::CheckS2(_)
+        | Cmd::SetMediaKeys(_)
         | Cmd::SetHistory(_)
         | Cmd::ClearHistory
         | Cmd::MarkEpisode(..)
@@ -1373,6 +1376,11 @@ fn run_common(b: &Backend, ctx: &Waker, cmd: Cmd) -> Result<Option<Cmd>, String>
         }
         Cmd::SetMcp(m) => {
             b.lock().config.mcp = m;
+            save(b);
+            Ok(None)
+        }
+        Cmd::SetMediaKeys(on) => {
+            b.lock().config.media_keys = on;
             save(b);
             Ok(None)
         }

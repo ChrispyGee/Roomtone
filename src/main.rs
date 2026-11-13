@@ -38,6 +38,7 @@ mod m3u;
 #[cfg(target_os = "macos")]
 mod macos_about;
 mod mcp;
+mod media_keys;
 mod model;
 mod net;
 mod quality;
@@ -46,6 +47,7 @@ mod sources;
 #[cfg(test)]
 mod test_support;
 mod ui;
+mod window;
 
 use std::path::PathBuf;
 use std::time::Duration;
@@ -129,6 +131,18 @@ fn main() {
         .with_inner_size([1320.0, 840.0])
         .with_min_inner_size([1040.0, 660.0])
         .with_icon(eframe::egui::IconData { rgba: brand::icon_rgba(256), width: 256, height: 256 });
+    if !quiet {
+        // Open where and how the window was left.
+        if let Some(w) = window::load() {
+            viewport = viewport.with_inner_size([w.width, w.height]);
+            if let (Some(x), Some(y)) = (w.x, w.y) {
+                viewport = viewport.with_position([x, y]);
+            }
+            if w.maximized {
+                viewport = viewport.with_maximized(true);
+            }
+        }
+    }
     if quiet {
         // A check mustn't take focus from whatever the person is doing.
         viewport = viewport.with_active(false);
