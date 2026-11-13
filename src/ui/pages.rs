@@ -456,7 +456,7 @@ impl App {
         if id == "SQ:" {
             ui.horizontal(|ui| {
                 if pill(ui, Some(Icon::Plus), t!("Import playlist"), false)
-                    .on_hover_text(t!("Add a playlist from an M3U or CSV file, or a file saved with Export playlist or Save backup"))
+                    .on_hover_text(t!("Add a playlist from an M3U, PLS, XSPF or CSV file, or a file saved with Export playlist or Save backup"))
                     .clicked()
                 {
                     if let Some(path) =
@@ -2127,9 +2127,9 @@ impl App {
             ui.add_space(6.0);
             ui.label(RichText::new(t!("What's new in this version")).color(TEXT()).strong());
             for line in [
-                t!("Media keys and Now Playing control your music, and the window remembers its size"),
-                t!("A History page lists everything you've played"),
-                t!("Check which S1 speakers can move to S2, and optionally look for new versions"),
+                t!("Control Roomtone from a terminal or script, and let assistants follow changes"),
+                t!("PLS and XSPF playlists, and backups from the command line"),
+                t!("A guided check for when your speakers can't be found"),
             ] {
                 ui.horizontal_wrapped(|ui| {
                     ui.label(RichText::new("•").color(ACCENT()));

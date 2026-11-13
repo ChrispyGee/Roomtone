@@ -610,11 +610,9 @@ Import playlist	Playlist importieren
 Connect to your speakers first	Verbinde dich zuerst mit deinen Lautsprechern
 “{title}” has no songs to export	„{title}“ enthält keine Titel zum Exportieren
 Saved playlist “{title}” as {file}	Playlist „{title}“ als {file} gespeichert
-Add a playlist from an M3U or CSV file, or a file saved with Export playlist or Save backup	Eine Playlist aus einer M3U- oder CSV-Datei oder einer mit „Playlist exportieren“ oder „Sicherung speichern“ erstellten Datei hinzufügen
 Back up and restore your favorites, playlists and alarms, and export or import a single playlist (M3U, CSV)	Favoriten, Playlists und Wecker sichern und wiederherstellen, einzelne Playlists exportieren oder importieren (M3U, CSV)
 Podcasts remember where you stopped, show what's played, and have 15 and 30 second skip buttons	Podcasts merken sich, wo du aufgehört hast, zeigen, was gehört ist, und haben Sprungtasten für 15 und 30 Sekunden
 The format, sample rate and bit depth of what's playing, where the speaker says	Format, Samplerate und Bittiefe des laufenden Titels, soweit der Lautsprecher sie meldet
-Choose the file type when you pick the name: M3U playlist, CSV spreadsheet or Roomtone backup (.json)	Wähle den Dateityp beim Festlegen des Namens: M3U-Playlist, CSV-Tabelle oder Roomtone-Sicherung (.json)
 Arrange	Anordnen
 Change the order of the rooms. The order is remembered on this computer.	Reihenfolge der Räume ändern. Die Reihenfolge wird auf diesem Computer gemerkt.
 Move up	Nach oben
@@ -671,9 +669,6 @@ yesterday	gestern
 1 play	1 Wiedergabe
 {n} plays	{n} Wiedergaben
 History cleared	Verlauf gelöscht
-Media keys and Now Playing control your music, and the window remembers its size	Medientasten und „Jetzt läuft“ steuern deine Musik, und das Fenster merkt sich seine Größe
-A History page lists everything you've played	Eine Verlaufsseite zeigt alles, was du gehört hast
-Check which S1 speakers can move to S2, and optionally look for new versions	Prüfe, welche S1-Lautsprecher auf S2 wechseln können, und suche optional nach neuen Versionen
 1 speaker answered the search	1 Lautsprecher hat auf die Suche geantwortet
 A short summary with no room names or addresses, to paste into a bug report	Eine kurze Zusammenfassung ohne Raumnamen und Adressen, zum Einfügen in eine Fehlermeldung
 A speaker	Ein Lautsprecher
@@ -698,3 +693,8 @@ Windows: when asked, allow Roomtone on private networks (Windows Defender Firewa
 Your speakers answer when asked directly, but the search for them didn't get through. Some routers and Wi-Fi extenders block it. Adding a speaker by its address below works around that.	Deine Lautsprecher antworten auf direkte Anfragen, aber die Suche ist nicht durchgekommen. Manche Router und WLAN-Repeater blockieren sie. Das Hinzufügen eines Lautsprechers über seine Adresse (unten) umgeht das.
 macOS: open System Settings › Privacy & Security › Local Network and switch Roomtone on.	macOS: Öffne Systemeinstellungen › Datenschutz & Sicherheit › Lokales Netzwerk und schalte Roomtone ein.
 {n} speakers answered the search	{n} Lautsprecher haben auf die Suche geantwortet
+Choose the file type when you pick the name: M3U, PLS or XSPF playlist, CSV spreadsheet or Roomtone backup (.json)	Wähle den Dateityp beim Festlegen des Namens: M3U-, PLS- oder XSPF-Playlist, CSV-Tabelle oder Roomtone-Backup (.json)
+Add a playlist from an M3U, PLS, XSPF or CSV file, or a file saved with Export playlist or Save backup	Eine Playlist aus einer M3U-, PLS-, XSPF- oder CSV-Datei oder einer mit „Playlist exportieren“ oder „Backup speichern“ gespeicherten Datei hinzufügen
+Control Roomtone from a terminal or script, and let assistants follow changes	Roomtone von einem Terminal oder Skript aus steuern, und Assistenten können Änderungen verfolgen
+PLS and XSPF playlists, and backups from the command line	PLS- und XSPF-Playlists sowie Backups über die Befehlszeile
+A guided check for when your speakers can't be found	Eine geführte Prüfung, wenn deine Lautsprecher nicht gefunden werden
