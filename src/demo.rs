@@ -518,6 +518,7 @@ pub fn apply(s: &mut AppState, cmd: &Cmd) {
         | Cmd::SetMcp(_)
         | Cmd::SetEvents(_)
         | Cmd::MarkEpisode(..)
+        | Cmd::MoveGroup(..)
         | Cmd::SaveBackup(..)
         | Cmd::ReadBackup(_)
         | Cmd::RestoreBackup(..)

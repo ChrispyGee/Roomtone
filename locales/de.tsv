@@ -615,6 +615,10 @@ Back up and restore your favorites, playlists and alarms, and export or import a
 Podcasts remember where you stopped, show what's played, and have 15 and 30 second skip buttons	Podcasts merken sich, wo du aufgehört hast, zeigen, was gehört ist, und haben Sprungtasten für 15 und 30 Sekunden
 The format, sample rate and bit depth of what's playing, where the speaker says	Format, Samplerate und Bittiefe des laufenden Titels, soweit der Lautsprecher sie meldet
 Choose the file type when you pick the name: M3U playlist, CSV spreadsheet or Roomtone backup (.json)	Wähle den Dateityp beim Festlegen des Namens: M3U-Playlist, CSV-Tabelle oder Roomtone-Sicherung (.json)
+Arrange	Anordnen
+Change the order of the rooms. The order is remembered on this computer.	Reihenfolge der Räume ändern. Die Reihenfolge wird auf diesem Computer gemerkt.
+Move up	Nach oben
+Move down	Nach unten
 Title Z–A	Titel Z–A
 Album A–Z	Album A–Z
 Shortest first	Kürzeste zuerst

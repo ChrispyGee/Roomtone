@@ -35,6 +35,9 @@ How the file behaves:
 
 Open it from the sidebar. Sections, top to bottom:
 
+### Arranging the rooms
+In the Rooms panel (right-hand side), *Arrange* shows up and down arrows on every room card; use them to put the rooms in the order you like, then choose *Done*. The order is remembered on this computer for each system (saved as `room_order`). A group of rooms stands where its earliest-listed room is, and new rooms appear after the ones you've arranged. Nothing changes on the speakers.
+
 ### Systems and rooms
 Each system (S1 and S2 are shown separately) lists its rooms with their model and speaker software version. Choose a room to open its own settings ([kept on the speakers](#settings-kept-on-the-speakers)).
 
@@ -134,7 +137,8 @@ Complete `config.json`, with every field at its default (the access key is made 
     "token": "0123456789abcdef0123456789abcdef"
   },
   "theme": "auto",
-  "speaker_events": false
+  "speaker_events": false,
+  "room_order": []
 }
 ```
 
@@ -150,6 +154,7 @@ Complete `config.json`, with every field at its default (the access key is made 
 | `language` | text | `"auto"` | `auto`, or `en`, `de`, `fr`, `es`, `it`, `nl`. |
 | `theme` | text | `"auto"` | `auto`, `light` or `dark`. |
 | `speaker_events` | true/false | `false` | Instant updates from the speakers. |
+| `room_order` | list of text | `[]` | The order you arranged your rooms in (room ids, first to last). Rooms not listed come after, in the speakers' own order. Managed by *Arrange* in the Rooms panel. |
 | `mcp.enabled` | true/false | `false` | Assistant link on. |
 | `mcp.allow_control` | true/false | `true` | Assistants may change things. |
 | `mcp.allow_network` | true/false | `false` | Other computers may connect. |

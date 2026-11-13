@@ -47,7 +47,7 @@ The source of truth for **what Roomtone does**. Code, tests and docs should agre
 | --- | --- |
 | Sidebar | Home, Search, Favorites, Playlists, Music Library, Radio, Music Services, Line-In & TV, Alarms, Settings; then the **Systems** list (S1/S2, room count, how many are playing); connection status at the bottom (opens the speaker status list) |
 | Page area | The selected page; opened items stack, with a back button |
-| Right panel | **Rooms** tab: a card per group (art, track, play/pause, volume, group button, "Plays along with …"), then Group all, Pause all, Ungroup, and the **Groups** section of saved groups. **Queue** tab: the selected group's queue |
+| Right panel | **Rooms** tab: a card per group, in the order the person arranged them (*Arrange* shows up/down arrows on each card; the order is kept as `room_order` in `config.json`, a group standing where its earliest-listed room is, unlisted rooms after, in the speakers' order) (art, track, play/pause, volume, group button, "Plays along with …"), then Group all, Pause all, Ungroup, and the **Groups** section of saved groups. **Queue** tab: the selected group's queue |
 | Bottom bar | Art, title, artist, room and system; shuffle, previous, play/pause, next, repeat; position slider with times (or "Live" for streams); favorite star, queue, group, volume, open player |
 
 - The space bar toggles play/pause when no text field has focus.
@@ -250,7 +250,7 @@ All in the app's data folder: `~/Library/Application Support/Roomtone/` (macOS),
 
 | File | Contents |
 | --- | --- |
-| `config.json` (mode 600 on Unix) | `folders` (paths), `stations` [{`name`, `url`, `genre`}], `podcasts` [{`title`, `author`, `feed`, `art`}], `services` (switched-on free sources: `local`, `radio`, `podcasts`, `archive`), `accounts` [{`sid`, `name`, `uri`, `manifest`, `household`, `device_id`, `token`, `key`, `sn`}], `favorites` (items kept in the app), `groups` [{`name`, `household`, `rooms`}], `language` (`auto` or a code), `theme` (`auto`, `light` or `dark`), `speaker_events` (`true` or `false`), `mcp` {`enabled`, `allow_control`, `allow_network`, `port`, `token`} |
+| `config.json` (mode 600 on Unix) | `folders` (paths), `stations` [{`name`, `url`, `genre`}], `podcasts` [{`title`, `author`, `feed`, `art`}], `services` (switched-on free sources: `local`, `radio`, `podcasts`, `archive`), `accounts` [{`sid`, `name`, `uri`, `manifest`, `household`, `device_id`, `token`, `key`, `sn`}], `favorites` (items kept in the app), `groups` [{`name`, `household`, `rooms`}], `language` (`auto` or a code), `theme` (`auto`, `light` or `dark`), `speaker_events` (`true` or `false`), `room_order` (room ids, first to last), `mcp` {`enabled`, `allow_control`, `allow_network`, `port`, `token`} |
 | `speakers.json` | Systems from last time: [{`id`, `s1`, `rooms` [{`uuid`, `name`, `ip`, `model`, `version`}], `groups` [{`coordinator`, `members`}]}] |
 | `songs.json` | `songs`: details (title, artist, album, art) by address, for songs the speakers know only by address; `relays`: relay codes for S1 and the https address each stands for |
 
