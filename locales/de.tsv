@@ -573,3 +573,6 @@ Mark as not played	Als nicht gehört markieren
 Marked “{title}” as played	„{title}“ als gehört markiert
 Marked “{title}” as not played	„{title}“ als nicht gehört markiert
 Resuming where you left off	Weiter an der Stelle, an der du aufgehört hast
+Instant updates from the speakers, switched on in Settings	Sofortige Updates von den Lautsprechern, in den Einstellungen einschaltbar
+A guide to every setting, linked from the About section	Ein Leitfaden zu allen Einstellungen, verlinkt im Bereich „Über“
+A settings file that can't be read is kept aside instead of being replaced	Eine nicht lesbare Einstellungsdatei wird beiseitegelegt, statt ersetzt zu werden

@@ -7,6 +7,8 @@ All notable changes to Roomtone. The format follows [Keep a Changelog](https://k
 ### Added
 - **Podcast niceties**: episodes remember where you stopped and pick up a few seconds earlier next time; they're marked *Played* automatically near the end (or by hand with *Mark as played* / *Mark as not played* in the item menu) and lists show *Played* or *N min left*; **Continue listening** on Home lists episodes you've started; and **−15 s / +30 s** buttons appear on the Home player and the Now Playing page while an episode plays. Progress is kept in `podcast-progress.json`. Not yet tried on real speakers.
 
+## [0.5.3] — 2026-11-13
+
 ### Fixed
 - A settings file that can't be read (a typo from editing by hand, a half-written file) is no longer silently replaced by the defaults: it is moved to `config.json.broken-<n>`, a notice at the top of Settings says where it went, and if it can't be moved nothing is saved that run. Background readers never touch it.
 
