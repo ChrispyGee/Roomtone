@@ -87,6 +87,16 @@ Assistant link (MCP) settings — each saves and quits
   --mcp-port <port>         port for the HTTP link (default 8790)
   --mcp-info                show the link's settings, address and access key
 
+Control from a terminal or script (talks to the Roomtone that's already running, with
+its assistant link switched on)
+  {e} play | pause | toggle | next | previous      [--room NAME]
+  {e} play NAME                                    a favorite or playlist, by name
+  {e} volume 30 | +5 | -5                          [--room NAME] [--group]
+  {e} mute | unmute | sleep MINUTES | ungroup      [--room NAME]
+  {e} group ROOM ROOM …                            play these rooms together
+  {e} status | now | queue | favorites | alarms    look only
+  Exit code 0 done, 1 refused, 2 not understood, 3 can't reach Roomtone.
+
 Help
   --help                    this text
   --help mcp                how to run without a window and connect an assistant on {platform}

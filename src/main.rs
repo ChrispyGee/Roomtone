@@ -28,6 +28,7 @@ mod i18n;
 mod backend;
 mod backup;
 mod brand;
+mod cli;
 mod config;
 mod csv;
 mod demo;
@@ -55,6 +56,13 @@ use std::time::Duration;
 
 fn main() {
     let mut args = std::env::args().skip(1);
+    // `roomtone play`, `roomtone volume 30 --room Kitchen`: control the running Roomtone.
+    {
+        let words: Vec<String> = std::env::args().skip(1).collect();
+        if words.first().is_some_and(|w| cli::is_command(w)) {
+            std::process::exit(cli::run(&words));
+        }
+    }
     let mut shot: Option<PathBuf> = None;
     let mut demo = false;
     let mut view: Option<String> = None;
