@@ -218,6 +218,33 @@ impl Household {
     pub fn room_mut(&mut self, uuid: &str) -> Option<&mut Room> {
         self.rooms.iter_mut().find(|r| r.uuid == uuid)
     }
+    /// The groups in the order the person arranged their rooms: a group goes where its
+    /// earliest-listed room is. Rooms not in `order` keep the speakers' order, after the others.
+    pub fn ordered_groups(&self, order: &[String]) -> Vec<&Group> {
+        let rank = |g: &Group| g.members.iter().filter_map(|m| order.iter().position(|o| o == m)).min().unwrap_or(usize::MAX);
+        let mut v: Vec<&Group> = self.groups.iter().collect();
+        v.sort_by_key(|g| rank(g));
+        v
+    }
+
+    /// `order` after moving one group up (`-1`) or down (`1`) in what's shown. Rooms of other
+    /// systems keep their place in the list. `None` if it can't move that way.
+    pub fn order_after_move(&self, order: &[String], group_id: &str, delta: i32) -> Option<Vec<String>> {
+        let shown = self.ordered_groups(order);
+        let at = shown.iter().position(|g| g.id == group_id)?;
+        let to = at as i32 + delta;
+        if to < 0 || to as usize >= shown.len() {
+            return None;
+        }
+        let mut ids: Vec<&Group> = shown;
+        ids.swap(at, to as usize);
+        // The whole order of this system, spelled out so nothing depends on the speakers' order.
+        let mine: Vec<String> = ids.iter().flat_map(|g| g.members.iter().cloned()).collect();
+        let mut out: Vec<String> = order.iter().filter(|o| !self.rooms.iter().any(|r| &r.uuid == *o)).cloned().collect();
+        out.extend(mine);
+        Some(out)
+    }
+
     pub fn group_name(&self, g: &Group) -> String {
         let names: Vec<&str> = g.members.iter().filter_map(|m| self.room(m).map(|r| r.name.as_str())).collect();
         match names.len() {

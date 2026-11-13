@@ -157,6 +157,10 @@ pub struct Config {
     /// over. Off until the person switches it on: it needs an incoming connection.
     #[serde(default)]
     pub speaker_events: bool,
+    /// The order the person arranged their rooms in (room ids, first to last). Rooms not listed
+    /// come after, in the speakers' own order.
+    #[serde(default)]
+    pub room_order: Vec<String>,
 }
 
 fn default_theme() -> String {
@@ -177,6 +181,7 @@ impl Default for Config {
             mcp: McpConfig::default(),
             theme: default_theme(),
             speaker_events: false,
+            room_order: vec![],
         }
     }
 }

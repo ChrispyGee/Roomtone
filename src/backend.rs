@@ -94,6 +94,8 @@ pub enum Cmd {
     SetEvents(bool),
     /// Mark a podcast episode as played or not played.
     MarkEpisode(Item, bool),
+    /// Move a room card up (-1) or down (1) in the Rooms panel; the order is remembered.
+    MoveGroup(String, i32),
     /// Save a backup file (favorites, playlists, alarms, Roomtone's own lists and settings).
     SaveBackup(std::path::PathBuf, crate::backup::Sections),
     /// Read a backup file and show what's in it, ready to restore.
@@ -768,6 +770,7 @@ fn run_live(b: &Backend, ctx: &Waker, cmd: Cmd) -> Result<(), String> {
         | Cmd::SetTheme(_)
         | Cmd::SetEvents(_)
         | Cmd::MarkEpisode(..)
+        | Cmd::MoveGroup(..)
         | Cmd::SaveBackup(..)
         | Cmd::ReadBackup(_)
         | Cmd::RestoreBackup(..)
@@ -900,6 +903,19 @@ fn run_common(b: &Backend, ctx: &Waker, cmd: Cmd) -> Result<Option<Cmd>, String>
         }
     };
     match cmd {
+        Cmd::MoveGroup(gid, delta) => {
+            {
+                let mut s = b.lock();
+                let Some(h) = s.households.iter().find(|h| h.groups.iter().any(|g| g.id == gid)) else { return Ok(None) };
+                if let Some(new_order) = h.order_after_move(&s.config.room_order, &gid, delta) {
+                    s.config.room_order = new_order;
+                } else {
+                    return Ok(None);
+                }
+            }
+            save(b);
+            Ok(None)
+        }
         Cmd::DismissBackup => {
             let mut s = b.lock();
             s.backup_preview = None;
@@ -2681,6 +2697,48 @@ mod unit {
         // Not a song list: refused with a message.
         std::fs::write(&file, "Colour,Size\nred,3\n").unwrap();
         assert!(b.send_and_wait(Cmd::ReadBackup(file), wait).is_err());
+    }
+
+    #[test]
+    fn rooms_can_be_arranged_and_the_order_is_kept() {
+        let b = demo_backend();
+        let wait = Duration::from_secs(10);
+        // Work on a copy of the demo's first system to check the ordering rules themselves.
+        let h = b.lock().households[0].clone();
+        let ids: Vec<String> = h.groups.iter().map(|g| g.id.clone()).collect();
+        assert!(ids.len() >= 3, "the demo has several groups");
+        let names = |order: &[String]| -> Vec<String> { h.ordered_groups(order).iter().map(|g| g.id.clone()).collect() };
+        assert_eq!(names(&[]), ids, "no order chosen: the speakers' own");
+        let last_room = h.groups.last().unwrap().members[0].clone();
+        let mut shown = names(std::slice::from_ref(&last_room));
+        assert_eq!(shown[0], h.groups.last().unwrap().id, "a listed room comes first, the others follow in their own order");
+        shown.remove(0);
+        assert_eq!(shown, ids[..ids.len() - 1], "the rest keep their order");
+        assert!(h.order_after_move(&[], &ids[0], -1).is_none(), "the first can't go up");
+        assert!(h.order_after_move(&[], ids.last().unwrap(), 1).is_none(), "the last can't go down");
+        assert!(h.order_after_move(&[], "nope", 1).is_none());
+
+        // Moving through the app: the second card goes up, and that sticks.
+        let second = ids[1].clone();
+        b.send_and_wait(Cmd::MoveGroup(second.clone(), -1), wait).unwrap();
+        let (shown, saved) = {
+            let s = b.lock();
+            let h = &s.households[0];
+            (h.ordered_groups(&s.config.room_order).iter().map(|g| g.id.clone()).collect::<Vec<_>>(), s.config.room_order.clone())
+        };
+        assert_eq!(shown[0], second);
+        assert_eq!(shown[1], ids[0]);
+        assert!(!saved.is_empty());
+        // (It's saved with the rest of the settings; the settings file is shared by every test
+        // here, so its contents aren't checked, only that the order is in the app's config.)
+        // The other system is untouched by moving rooms in this one.
+        let other: Vec<String> = b.lock().households[1].groups.iter().map(|g| g.id.clone()).collect();
+        let s = b.lock();
+        let still: Vec<String> = s.households[1].ordered_groups(&s.config.room_order).iter().map(|g| g.id.clone()).collect();
+        assert_eq!(still, other);
+        drop(s);
+        // Put it back so other tests see the speakers' own order.
+        b.send_and_wait(Cmd::MoveGroup(second, 1), wait).unwrap();
     }
 
     /// The demo rooms have no network address; give each a made-up one.

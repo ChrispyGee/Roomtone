@@ -4,6 +4,9 @@ All notable changes to Roomtone. The format follows [Keep a Changelog](https://k
 
 ## [Unreleased]
 
+### Added
+- **Arrange the rooms**: *Arrange* in the Rooms panel shows up and down arrows on each room card, so you can put your rooms in the order you like. The order is remembered per system (`room_order` in `config.json`); a group stands where its earliest-listed room is, and new rooms come after.
+
 ## [0.5.4] — 2026-11-13
 
 ### Added

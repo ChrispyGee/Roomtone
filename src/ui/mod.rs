@@ -43,6 +43,8 @@ pub struct App {
     searched: String,
     search_edit_at: Option<Instant>,
     right_tab: usize,
+    /// Arranging the order of the room cards (the up/down buttons are showing).
+    arranging: bool,
     group_editor: Option<(String, Vec<String>)>,
     alarm_editor: Option<Alarm>,
     rename: Option<(String, String)>,
@@ -144,6 +146,7 @@ impl App {
             searched: String::new(),
             search_edit_at: preset_search.map(|_| Instant::now() - Duration::from_secs(2)),
             right_tab: 0,
+            arranging: false,
             group_editor: None,
             alarm_editor: None,
             rename: None,
@@ -244,6 +247,9 @@ impl App {
             }
         }
         // Test hook: open the group editor for the selected room.
+        if self.frame == 20 && std::env::var_os("ROOMTONE_TEST_ARRANGE").is_some() {
+            self.arranging = true;
+        }
         if self.frame == 20 && std::env::var_os("ROOMTONE_TEST_EDITOR").is_some() {
             let s = self.backend.lock();
             if let Some((_, g)) = s.selected_group.as_ref().and_then(|g| s.find_group(g)) {
@@ -429,13 +435,23 @@ impl App {
         ui.add_space(10.0);
         if self.right_tab == 0 {
             egui::ScrollArea::vertical().id_salt("rooms_scroll").auto_shrink([false, false]).show(ui, |ui| {
-                for g in &h.groups {
+                let shown = h.ordered_groups(&s.config.room_order);
+                let last = shown.len().saturating_sub(1);
+                for (i, g) in shown.iter().enumerate() {
                     let selected = s.selected_group.as_deref() == Some(g.id.as_str());
-                    self.room_card(ui, h, g, selected);
+                    let arrange = self.arranging.then_some((i > 0, i < last));
+                    self.room_card(ui, h, g, selected, arrange);
                     ui.add_space(8.0);
                 }
                 ui.add_space(4.0);
                 ui.horizontal_wrapped(|ui| {
+                    if h.groups.len() > 1
+                        && pill(ui, Some(Icon::Sliders), if self.arranging { t!("Done") } else { t!("Arrange") }, self.arranging)
+                            .on_hover_text(t!("Change the order of the rooms. The order is remembered on this computer."))
+                            .clicked()
+                    {
+                        self.arranging = !self.arranging;
+                    }
                     if h.groups.len() > 1 && pill(ui, Some(Icon::Rooms), t!("Group all"), false).clicked() {
                         if let Some(gid) = s.selected_group.clone() {
                             let all = h.rooms.iter().map(|r| r.uuid.clone()).collect();
@@ -464,7 +480,8 @@ impl App {
         }
     }
 
-    fn room_card(&mut self, ui: &mut egui::Ui, h: &Household, g: &Group, selected: bool) {
+    /// `arrange` is `Some((can_move_up, can_move_down))` while the person is arranging the rooms.
+    fn room_card(&mut self, ui: &mut egui::Ui, h: &Household, g: &Group, selected: bool, arrange: Option<(bool, bool)>) {
         let frame = egui::Frame::new()
             .fill(if selected { SURFACE_HI() } else { SURFACE() })
             .corner_radius(16.0)
@@ -483,7 +500,8 @@ impl App {
                     paint_art(ui, &mut self.art, r, g.now.art.as_deref(), &seed, 10.0);
                 }
                 ui.vertical(|ui| {
-                    let w = ui.available_width() - 44.0;
+                    // Room for the play button, or for the two arrows while arranging.
+                    let w = ui.available_width() - if arrange.is_some() { 84.0 } else { 44.0 };
                     ui.add_space(3.0);
                     clipped_label(ui, &h.group_name(g), 15.0, TEXT(), w, true);
                     let line = if g.now.is_empty() {
@@ -503,6 +521,20 @@ impl App {
                     }
                 });
                 ui.with_layout(Layout::right_to_left(Align::Center), |ui| {
+                    if let Some((up, down)) = arrange {
+                        // Arranging: move the card instead of playing.
+                        let color = |on: bool| if on { TEXT() } else { TEXT_FAINT() };
+                        let d = icon_button(ui, Icon::Down, 20.0, color(down)).on_hover_text(t!("Move down"));
+                        if d.clicked() && down {
+                            self.send(Cmd::MoveGroup(g.id.clone(), 1));
+                        }
+                        let u = icon_button(ui, Icon::Up, 20.0, color(up)).on_hover_text(t!("Move up"));
+                        if u.clicked() && up {
+                            self.send(Cmd::MoveGroup(g.id.clone(), -1));
+                        }
+                        inner_hot |= d.hovered() || u.hovered();
+                        return;
+                    }
                     let playing = g.now.transport == Transport::Playing;
                     let b = round_button(
                         ui,
