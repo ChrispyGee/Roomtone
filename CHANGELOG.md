@@ -4,6 +4,9 @@ All notable changes to Roomtone. The format follows [Keep a Changelog](https://k
 
 ## [Unreleased]
 
+### Added
+- **Assistants can follow changes** (`resources/subscribe`): an assistant can subscribe to the status, now-playing, alarms or a room's queue and is sent `notifications/resources/updated` when it changes, over stdout (`--mcp`) or an event stream on the HTTP link (`GET /mcp`, with the new `Mcp-Session-Id`), instead of asking again and again. Checked over stdio on the demo system.
+
 ## [0.6.0] — 2026-11-13
 
 ### Added

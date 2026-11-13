@@ -174,9 +174,9 @@ Command line, each one saves and quits: `--mcp-on`, `--mcp-off`, `--mcp-read-onl
 
 ### 6.2 Protocol
 - JSON-RPC 2.0 with MCP protocol versions `2025-06-18`, `2025-03-26` and `2024-11-05` (the client's choice if supported, otherwise the newest).
-- Methods: `initialize`, `ping`, `tools/list`, `tools/call`, `resources/list`, `resources/templates/list`, `resources/read`, `prompts/list`, `prompts/get` and `completion/complete`. Notifications get no reply. Batches are accepted. Capabilities: tools, resources, prompts and completions (none of them send change notifications).
+- Methods: `initialize`, `ping`, `tools/list`, `tools/call`, `resources/list`, `resources/templates/list`, `resources/read`, `resources/subscribe`, `resources/unsubscribe`, `prompts/list`, `prompts/get` and `completion/complete`. Notifications get no reply. Batches are accepted. Capabilities: tools, resources, prompts and completions (none of them send change notifications).
 - HTTP (Streamable HTTP, JSON responses only):
-  - `POST /mcp` only; `GET` and `DELETE` return 405.
+  - `POST /mcp` for requests. `initialize` is answered with an `Mcp-Session-Id` header; an assistant that sends it back on later requests has its own change subscriptions (§6.4). `GET /mcp` with `Accept: text/event-stream` and that header opens an event stream carrying `notifications/resources/updated`; `DELETE` with the header ends the session. Other `GET`s return 405.
   - Requires `Content-Type: application/json` (otherwise 415) and a valid key (otherwise 401).
   - Refuses an `Origin` other than localhost (403), and with *Allow other computers* off, a non-local `Host` (403).
   - Bodies up to 1 MB. A notification-only request returns 202.
@@ -228,6 +228,8 @@ Rooms are given by name (exact, or a unique part of a name) or id. Leaving the r
 | `roomtone://now-playing` | What every group is playing (JSON) |
 | `roomtone://favorites`, `roomtone://alarms` | As `list_favorites` / `list_alarms` |
 | `roomtone://queue/{room}` (template) | A room's queue; the room name is URL-encoded |
+
+**Change notifications.** `resources/subscribe` (capability `resources.subscribe: true`) follows `roomtone://status`, `roomtone://now-playing`, `roomtone://alarms` or `roomtone://queue/{room}` (favorites can't be followed). When one changes, the assistant gets `notifications/resources/updated` with its URI, on a line of stdout (`--mcp`) or on the event stream (HTTP). Roomtone looks once a second at what it already knows and leaves out values that tick on their own (the song position, sleep-timer minutes), so a playing song sends nothing; queues and alarms are asked for again every 10 and 30 seconds while followed. At most 20 resources per assistant and 64 assistants at once.
 
 Prompts (ready-made instructions an assistant can offer the person): `play_for_mood` (mood, room), `bedtime` (room, minutes), `whole_home` (what), `morning_alarm` (room, time). `completion/complete` suggests room names, saved-group names, alarm days and moods while an argument is typed.
 
