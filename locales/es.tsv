@@ -573,6 +573,38 @@ Mark as not played	Marcar como no escuchado
 Marked “{title}” as played	«{title}» marcado como escuchado
 Marked “{title}” as not played	«{title}» marcado como no escuchado
 Resuming where you left off	Continuando donde lo dejaste
+Added: {counts}	Añadido: {counts}
+Adds what's in a backup file to this system. Nothing that's already there is changed or removed.	Añade a este sistema lo que hay en un archivo de copia. No se cambia ni se quita nada de lo que ya está.
+Alarms ({n})	Alarmas ({n})
+Alarms are matched to rooms by name. Things already on this system are skipped.	Las alarmas se asocian a las habitaciones por su nombre. Lo que ya está en este sistema se omite.
+Already there, left alone: {counts}	Ya estaba, sin cambios: {counts}
+Backup and restore	Copia de seguridad y restauración
+Backup made on {date}	Copia hecha el {date}
+Backup saved as {file}	Copia guardada como {file}
+Choose a backup	Elegir una copia
+Couldn't open the backup: {error}	No se pudo abrir la copia: {error}
+Couldn't restore: {counts}	No se pudo restaurar: {counts}
+Couldn't save the backup: {error}	No se pudo guardar la copia: {error}
+Couldn't use that file: {error}	No se puede usar ese archivo: {error}
+Details	Detalles
+Favorites ({n})	Favoritos ({n})
+Nothing new to add: everything was already there.	Nada nuevo que añadir: todo ya estaba.
+Playlists ({n})	Listas de reproducción ({n})
+Restore	Restaurar
+Restore from a backup	Restaurar desde una copia
+Roomtone's own lists and settings ({n})	Listas y ajustes propios de Roomtone ({n})
+Save a backup	Guardar una copia
+Save backup	Guardar copia
+Saves this system's favorites, playlists and alarms, and Roomtone's own lists and settings, to one file. Sign-ins and the access key are never included.	Guarda en un archivo los favoritos, listas y alarmas de este sistema, y las listas y ajustes propios de Roomtone. Nunca incluye inicios de sesión ni la clave de acceso.
+{favorites} favorites · {playlists} playlists · {alarms} alarms · {app} of Roomtone's own	{favorites} favoritos · {playlists} listas · {alarms} alarmas · {app} propios de Roomtone
 Instant updates from the speakers, switched on in Settings	Actualizaciones instantáneas de los altavoces, que se activan en Ajustes
 A guide to every setting, linked from the About section	Una guía de todos los ajustes, enlazada en el apartado Acerca de
 A settings file that can't be read is kept aside instead of being replaced	Un archivo de ajustes ilegible se conserva aparte en lugar de reemplazarse
+Export playlist…	Exportar lista de reproducción…
+Import playlist	Importar lista de reproducción
+Connect to your speakers first	Conéctate primero a tus altavoces
+“{title}” has no songs to export	«{title}» no tiene canciones que exportar
+Saved playlist “{title}” as {file}	Lista «{title}» guardada como {file}
+Export as M3U…	Exportar como M3U…
+Export as CSV…	Exportar como CSV…
+Add a playlist from an M3U or CSV file, or a file saved with Export playlist or Save backup	Añadir una lista desde un archivo M3U o CSV, o uno guardado con Exportar lista o Guardar copia

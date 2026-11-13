@@ -232,7 +232,7 @@ impl Household {
 }
 
 /// One entry from the speakers' content directory (favourite, playlist, track, album...).
-#[derive(Clone, Debug, Default, serde::Serialize, serde::Deserialize)]
+#[derive(Clone, Debug, Default, PartialEq, serde::Serialize, serde::Deserialize)]
 #[serde(default)]
 pub struct Item {
     pub id: String,
@@ -415,6 +415,13 @@ pub fn recurrence_label(r: &str) -> String {
     }
 }
 
+/// What the last backup action did.
+#[derive(Clone, Debug, PartialEq)]
+pub enum BackupResult {
+    Saved { file: String, counts: crate::backup::Counts, notes: Vec<String> },
+    Restored(crate::backup::Report),
+}
+
 #[derive(Clone, Copy, Debug, PartialEq, Eq)]
 pub enum Phase {
     Searching,
@@ -455,6 +462,10 @@ pub struct AppState {
     pub errors: Vec<(u64, String)>,
     /// Is the assistant link (MCP) listening right now, and where.
     pub mcp_status: String,
+    /// A backup file the person chose to restore, shown for them to look over.
+    pub backup_preview: Option<(std::path::PathBuf, crate::backup::Summary)>,
+    /// What the last save or restore did.
+    pub backup_result: Option<BackupResult>,
     /// The settings file couldn't be read at start-up (it was kept aside); shown in Settings.
     pub config_problem: Option<crate::config::Problem>,
     /// How speaker events are going (empty when switched off); see `net::events::Summary`.
@@ -515,6 +526,8 @@ impl Default for AppState {
             done_seq: 0,
             errors: vec![],
             mcp_status: String::new(),
+            backup_preview: None,
+            backup_result: None,
             config_problem: None,
             events: Default::default(),
             service_checks: HashMap::new(),

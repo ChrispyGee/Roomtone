@@ -26,11 +26,14 @@
 #[macro_use]
 mod i18n;
 mod backend;
+mod backup;
 mod brand;
 mod config;
+mod csv;
 mod demo;
 mod help;
 mod known;
+mod m3u;
 #[cfg(target_os = "macos")]
 mod macos_about;
 mod mcp;

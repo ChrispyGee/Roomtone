@@ -78,6 +78,19 @@ Lets AI assistants that support MCP see and control your speakers. **Off until y
 
 The command line can change these too, each saving and quitting: `--mcp-on`, `--mcp-off`, `--mcp-read-only`, `--mcp-allow-control`, `--mcp-port <port>`, and `--mcp-info` to show them with the web address and key. *Copy setup*, *Copy web address* and *Copy access key* are conveniences and store nothing.
 
+### Backup and restore
+Saves what you've built up to one file, and puts it back, on this system or a new one. Not stored in `config.json`.
+
+- **Save backup** writes one `.json` file with: the system's **Sonos favorites**, **playlists** (with their songs) and **alarms**, plus Roomtone's own **lists and settings** (music folders, stations, podcasts, saved groups, favorites kept in the app, which sources are on, language, theme, speaker updates). It **never includes** streaming sign-ins or the assistant access key, so it's safe in a normal backup.
+- **Choose a backup** opens a backup file and shows what's in it, with a tick box for each part. **Restore** then only **adds**: anything already on the system (same favorite, same playlist name, same alarm) is skipped, and nothing existing is changed or removed. A summary says what was added, skipped and couldn't be restored.
+- It works on the system you're looking at (S1 and S2 are separate: choose the system in the sidebar first). Alarms are matched to rooms **by name**, so a room with a different name on the new system is reported and skipped. Saved groups move to the system you restore on.
+- **Moving between S1 and S2, or to new speakers:** favorites and playlists that point at your own music library or at radio stations come across. Items from a streaming service use that service's account number on your system, so you may need to be signed in to the same service on the new system (and re-add an item if its account differs).
+- **One playlist at a time:** on the Playlists page, a playlist's ⋯ (or right-click) menu has *Export playlist…*, which saves just that playlist and its songs to its own file; *Import playlist* at the top of the page opens a file and takes you to the summary above, where *Restore* adds it (skipped if a playlist of that name already exists). A single-playlist file is an ordinary backup file with one playlist in it, so *Choose a backup* opens it too.
+- **M3U playlists:** the same menu has *Export as M3U…*, which writes a standard extended M3U8 file (`.m3u8`, UTF-8) that most players can open: songs from this computer's music folders are written as their real file paths, songs on a network share as `smb://` addresses, and anything else as its web address. *Import playlist* also opens `.m3u` and `.m3u8` files: web addresses and shares are taken as they are, and file paths (absolute, relative to the playlist, or `file://`) are matched to songs in **your music folders** (Music Library › Add folder), also when the list was made on another computer, by the last folder and file name. Anything that can't be used (a file outside your music folders, a path on another computer's drive that matches nothing) is skipped and listed under *Details* after you restore. Songs from streaming services only mean something to speakers and are skipped by other players. Streaming (HLS) `.m3u8` files aren't song lists and are refused.
+- **CSV playlists:** *Export as CSV…* writes a spreadsheet-friendly list (UTF-8 with a byte-order mark so Excel shows accents correctly) with the columns *Title, Artist, Album, Duration (seconds), Address*; addresses are written the same way as in M3U. Cells that start with `=`, `+`, `-` or `@` get a leading apostrophe so a spreadsheet won't run them as formulas, and *Import* takes it off again. *Import playlist* reads `.csv` files with comma, semicolon or tab separators and the column names other services use (*Track Name*, *Artist Name(s)*, *Album Name*, *Duration (ms)*, *Track URI*…). A row's address is used if Roomtone can use it; otherwise (for example a Spotify export, whose addresses only work in Spotify) the song is looked up **by title and artist in your music folders**. Rows that match nothing are skipped and listed under *Details*, so a CSV from a streaming service helps you rebuild a playlist from music you have, but it can't bring the streaming songs themselves across.
+- With no speakers connected, only the Roomtone part is saved or restored.
+- The file format is described below; it's plain JSON, so it can also be read by other tools.
+
 ### About
 Version, platform, your systems, the language in use, the address your computer serves music from, the assistant link status, the settings folder (*Show*), what's new in this version, help commands, credits, and buttons for the project page, *Report a problem*, *Latest version* and this *Settings guide*. Nothing here is a setting.
 
@@ -164,6 +177,22 @@ For one run unless it says it saves. Full list: `roomtone --help`.
 
 Environment: `ROOMTONE_LANG` and `ROOMTONE_THEME` (what `--lang` and `--theme` set); when the language is `auto`, `LC_ALL`, `LC_MESSAGES` and `LANG` decide. The settings folder follows your home folder (`HOME` on macOS and Linux, `APPDATA` on Windows).
 
+## The backup file
+
+A backup is one JSON file. Top-level fields (every one optional when reading, so older and newer files keep working):
+
+| Field | Holds |
+| --- | --- |
+| `roomtone_backup` | The format number (1). How Roomtone recognises its own files; a file with a higher number is refused ("update Roomtone"). |
+| `created`, `app_version` | When (seconds since 1970) and by which version. |
+| `system` | `generation` ("S1" or "S2") and the `rooms` names it came from (for information). |
+| `sonos_favorites` | The speakers' favorites: title, address, description, artwork and the speakers' own details (`meta`). |
+| `sonos_playlists` | `{ "title", "tracks": [ … ] }` for each playlist, songs in order. |
+| `alarms` | Each alarm with its `room` **name**, time, repeat, what plays, volume and duration. |
+| `app` | `folders`, `stations`, `podcasts`, `services`, `favorites` (kept in the app), `groups` (`name`, `rooms`), `language`, `theme`, `speaker_events`. |
+
+Edit it by hand only if you know what you're doing; a file that can't be read is refused with a message and nothing is changed.
+
 ## Other files in the settings folder
 
 | File | What | Safe to delete? |
@@ -175,7 +204,8 @@ Environment: `ROOMTONE_LANG` and `ROOMTONE_THEME` (what `--lang` and `--theme` s
 
 ## Back up, move and reset
 
-- **Back up or move to another computer:** with Roomtone closed, copy `config.json` into the same folder on the other computer. Folders and stations come across; folder paths may need changing if the other computer's drives differ; streaming sign-ins are tied to your speakers' system and may need *Connect* again. Treat the copy like a password file. This hasn't been tried between different platforms.
+- **Favorites, playlists, alarms and Roomtone's lists:** use *Backup and restore* in Settings (above).
+- **Back up or move the settings file to another computer:** with Roomtone closed, copy `config.json` into the same folder on the other computer. Folders and stations come across; folder paths may need changing if the other computer's drives differ; streaming sign-ins are tied to your speakers' system and may need *Connect* again. Treat the copy like a password file. This hasn't been tried between different platforms.
 - **Keep sign-ins out of a shared backup:** remove the `accounts` list and `mcp.token` first.
 - **Reset one setting:** delete its field (or set the default from the table above) with Roomtone closed.
 - **Reset everything:** close Roomtone and move `config.json` away (or let a broken file be set aside for you). The next start uses the defaults (and makes a new access key).
