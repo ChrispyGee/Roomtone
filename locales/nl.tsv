@@ -695,9 +695,9 @@ macOS: open System Settings › Privacy & Security › Local Network and switch 
 {n} speakers answered the search	{n} speakers antwoordden op het zoeken
 Choose the file type when you pick the name: M3U, PLS or XSPF playlist, CSV spreadsheet or Roomtone backup (.json)	Kies het bestandstype bij het invullen van de naam: M3U-, PLS- of XSPF-afspeellijst, CSV-spreadsheet of Roomtone-back-up (.json)
 Add a playlist from an M3U, PLS, XSPF or CSV file, or a file saved with Export playlist or Save backup	Een afspeellijst toevoegen uit een M3U-, PLS-, XSPF- of CSV-bestand, of een bestand dat met 'Afspeellijst exporteren' of 'Back-up opslaan' is bewaard
-Control Roomtone from a terminal or script, and let assistants follow changes	Bestuur Roomtone vanuit een terminal of script, en assistenten kunnen wijzigingen volgen
-PLS and XSPF playlists, and backups from the command line	PLS- en XSPF-afspeellijsten en back-ups via de opdrachtregel
-A guided check for when your speakers can't be found	Een begeleide controle als je speakers niet gevonden worden
 How this speaker reaches your network, from its own network counters	Hoe deze speaker je netwerk bereikt, volgens zijn eigen netwerktellers
 Wired	Bekabeld
 Wireless	Draadloos
+Your speakers shows whether each one is wired or wireless	'Je speakers' toont of elke speaker bekabeld of draadloos is
+Export a playlist from its own page	Exporteer een afspeellijst vanaf zijn eigen pagina
+Install on a Mac with Homebrew	Installeren op een Mac met Homebrew
