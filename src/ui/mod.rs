@@ -525,6 +525,8 @@ impl App {
                 Phase::NothingFound => (BAD(), t!("No speakers found").to_string()),
             };
             let (rect, resp) = ui.allocate_exact_size(vec2(ui.available_width(), 30.0), Sense::click());
+            describe(&resp, egui::Role::Button, t!("Show your speakers and their status"));
+            focus_ring(ui, &resp, rect, 8.0);
             if resp.hovered() {
                 ui.painter().rect_filled(rect, 8.0, SURFACE());
             }
@@ -679,7 +681,7 @@ impl App {
                 let key = format!("g:{}", g.id);
                 let mut v = self.shown_volume(&key, g.volume);
                 let w = ui.available_width() - 76.0;
-                let (sr, changed) = slider(ui, &key, &mut v, w, if selected { ACCENT() } else { TEXT_DIM() });
+                let (sr, changed) = slider(ui, &key, t!("Volume"), &mut v, w, if selected { ACCENT() } else { TEXT_DIM() });
                 inner_hot |= sr.hovered() || sr.dragged();
                 if changed {
                     self.local_vol.insert(key.clone(), (v, Instant::now()));
@@ -755,6 +757,8 @@ impl App {
                 let is_current = current == i + 1;
                 let w = ui.available_width();
                 let (rect, resp) = ui.allocate_exact_size(vec2(w, 50.0), Sense::click());
+                describe(&resp, egui::Role::Button, &format!("{} — {}", it.title, it.artist));
+                focus_ring(ui, &resp, rect, 10.0);
                 if resp.hovered() || is_current {
                     ui.painter().rect_filled(rect, 10.0, if is_current { ACCENT_SOFT() } else { SURFACE() });
                 }
@@ -770,6 +774,16 @@ impl App {
                     for (icon, action) in [(Icon::Close, 0), (Icon::Down, 1), (Icon::Up, 2)] {
                         let br = Rect::from_center_size(pos2(x, rect.center().y), vec2(26.0, 26.0));
                         let b = ui.interact(br, ui.scope_id().with(("q", i, action)), Sense::click());
+                        describe(
+                            &b,
+                            egui::Role::Button,
+                            match action {
+                                0 => t!("Remove from queue"),
+                                1 => t!("Move down"),
+                                _ => t!("Move up"),
+                            },
+                        );
+                        focus_ring(ui, &b, br, 13.0);
                         if b.hovered() {
                             ui.painter().circle_filled(br.center(), 13.0, SURFACE_HOVER());
                         }
@@ -823,6 +837,7 @@ impl App {
             paint_art(ui, &mut self.art, art_r, g.now.art.as_deref(), &seed, 10.0);
         }
         let art_click = ui.interact(art_r, ui.scope_id().with("np_art"), Sense::click()).on_hover_cursor(egui::CursorIcon::PointingHand);
+        describe(&art_click, egui::Role::Button, t!("Open Now Playing"));
         if art_click.clicked() {
             self.go(View::NowPlaying);
         }
@@ -869,7 +884,7 @@ impl App {
             let mut v = if dur > 0.0 { self.seek_drag.unwrap_or(pos / dur) } else { 0.0 };
             let w = ui.available_width() - label_w - 10.0;
             if dur > 0.0 {
-                let (r, changed) = slider(ui, "seek", &mut v, w, TEXT());
+                let (r, changed) = slider(ui, "seek", t!("Playback position"), &mut v, w, TEXT());
                 if changed {
                     self.seek_drag = Some(v);
                 }
@@ -898,7 +913,7 @@ impl App {
         let key = format!("g:{gid}");
         let mut v = self.shown_volume(&key, g.volume);
         let sw = (right.width() - 150.0).clamp(80.0, 150.0);
-        let (_, changed) = slider(&mut rui, "bar_vol", &mut v, sw, TEXT());
+        let (_, changed) = slider(&mut rui, "bar_vol", t!("Volume"), &mut v, sw, TEXT());
         if changed {
             self.local_vol.insert(key, (v, Instant::now()));
             self.send(Cmd::GroupVolume(gid.clone(), (v * 100.0).round() as u8));
@@ -957,7 +972,7 @@ impl App {
                             if is_lead {
                                 paint_icon(ui.painter(), Rect::from_min_size(ui.cursor().min + vec2(-26.0, 10.0), vec2(20.0, 20.0)), Icon::Check, ACCENT());
                                 ui.add_space(30.0);
-                            } else if toggle(ui, &mut on).changed() {
+                            } else if toggle(ui, &mut on, &r.name).changed() {
                                 if on {
                                     members.push(r.uuid.clone());
                                 } else {
@@ -992,7 +1007,7 @@ impl App {
                                 ui.add_space(4.0);
                                 ui.label(RichText::new(o.group_name(og)).color(if taken { TEXT_FAINT() } else { TEXT() }));
                                 ui.with_layout(Layout::right_to_left(Align::Center), |ui| {
-                                    if !taken && toggle(ui, &mut on).changed() {
+                                    if !taken && toggle(ui, &mut on, &o.group_name(og)).changed() {
                                         self.out.push(if on { Cmd::LinkGroups(gid.clone(), og.id.clone()) } else { Cmd::Unlink(og.id.clone()) });
                                     }
                                 });
@@ -1231,7 +1246,7 @@ impl App {
                     paint_icon(ui.painter(), ir, Icon::Speaker, TEXT_DIM());
                     ui.label(RichText::new(&r.name).color(TEXT()));
                     ui.with_layout(Layout::right_to_left(Align::Center), |ui| {
-                        if toggle(ui, &mut on).changed() {
+                        if toggle(ui, &mut on, &r.name).changed() {
                             if on {
                                 g.rooms.push(r.uuid.clone());
                             } else {
@@ -1790,10 +1805,36 @@ impl eframe::App for App {
         let backend = self.backend.clone();
         {
             let s = backend.lock();
-            if !ctx.egui_wants_keyboard_input() && ctx.input(|i| i.key_pressed(egui::Key::Space)) {
+            // Space plays or pauses, unless a text box is being typed in or a button has the keyboard focus (then Space presses that button).
+            if !ctx.egui_wants_keyboard_input() && ctx.memory(|m| m.focused().is_none()) && ctx.input(|i| i.key_pressed(egui::Key::Space)) {
                 if let Some((_, g)) = s.selected_group.as_ref().and_then(|g| s.find_group(g)) {
                     let cmd = if g.now.transport == Transport::Playing { Cmd::Pause(g.id.clone()) } else { Cmd::Play(g.id.clone()) };
                     self.out.push(cmd);
+                }
+            }
+            // Ctrl (Cmd on a Mac) with the arrow keys: right and left for next and previous song,
+            // up and down for the volume. Not while typing in a text box.
+            if !ctx.egui_wants_keyboard_input() {
+                use egui::{Key, Modifiers};
+                let (next, prev, up, down) = ctx.input_mut(|i| {
+                    (
+                        i.consume_key(Modifiers::COMMAND, Key::ArrowRight),
+                        i.consume_key(Modifiers::COMMAND, Key::ArrowLeft),
+                        i.consume_key(Modifiers::COMMAND, Key::ArrowUp),
+                        i.consume_key(Modifiers::COMMAND, Key::ArrowDown),
+                    )
+                });
+                if let Some((_, g)) = s.selected_group.as_ref().and_then(|g| s.find_group(g)) {
+                    if next {
+                        self.out.push(Cmd::Next(g.id.clone()));
+                    }
+                    if prev {
+                        self.out.push(Cmd::Previous(g.id.clone()));
+                    }
+                    if up || down {
+                        let v = (g.volume as i32 + if up { 5 } else { -5 }).clamp(0, 100) as u8;
+                        self.out.push(Cmd::GroupVolume(g.id.clone(), v));
+                    }
                 }
             }
             self.subscribed = s.config.podcasts.iter().map(|p| p.feed.clone()).collect();
@@ -1847,6 +1888,9 @@ fn modal_frame() -> egui::Frame {
 
 fn nav_item(ui: &mut egui::Ui, icon: Icon, label: &str, active: bool) -> egui::Response {
     let (rect, resp) = ui.allocate_exact_size(vec2(ui.available_width(), 38.0), Sense::click());
+    let name = label.to_string();
+    resp.widget_info(move || egui::WidgetInfo::selected(egui::Role::Button, true, active, name.clone()));
+    focus_ring(ui, &resp, rect, 10.0);
     if active {
         ui.painter().rect_filled(rect, 10.0, SURFACE_HI());
         ui.painter().rect_filled(Rect::from_min_size(rect.min + vec2(0.0, 10.0), vec2(3.0, 18.0)), 2.0, ACCENT());
@@ -1861,6 +1905,9 @@ fn nav_item(ui: &mut egui::Ui, icon: Icon, label: &str, active: bool) -> egui::R
 
 fn system_item(ui: &mut egui::Ui, label: &str, sub: &str, tint: Color32, active: bool) -> egui::Response {
     let (rect, resp) = ui.allocate_exact_size(vec2(ui.available_width(), 48.0), Sense::click());
+    let name = format!("{label} {sub}");
+    resp.widget_info(move || egui::WidgetInfo::selected(egui::Role::Button, true, active, name.clone()));
+    focus_ring(ui, &resp, rect, 10.0);
     if active {
         ui.painter().rect_filled(rect, 10.0, SURFACE_HI());
     } else if resp.hovered() {

@@ -4,6 +4,9 @@ All notable changes to Roomtone. The format follows [Keep a Changelog](https://k
 
 ## [Unreleased]
 
+### Added
+- **Keyboard and screen-reader support**: every hand-drawn button, icon button, switch, slider, filter chip, segmented control and list row now has a name and role for screen readers (VoiceOver, Narrator, NVDA, Orca) and shows an orange focus ring when you Tab to it; arrow keys move a focused slider; Ctrl/Cmd with the arrow keys skips songs and changes the volume. Space anywhere else still plays or pauses, but no longer fires while a button has the focus. **Not yet tried with a real screen reader.**
+
 ## [0.6.2] — 2026-11-13
 
 ### Added

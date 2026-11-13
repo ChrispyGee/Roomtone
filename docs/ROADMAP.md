@@ -25,6 +25,7 @@ These work on the demo system but haven't been confirmed on real hardware. Repor
 | **PLS and XSPF** (0.6.1): do other players (VLC, foobar2000, Winamp…) open what Roomtone exports, and does Roomtone read their files? | Export a playlist as `.pls` / `.xspf`, open it elsewhere; import a file saved by another player | Low |
 | **Can't find your speakers?** (0.6.1): are the advice and the report right on a genuinely failing network (guest Wi-Fi, blocked search, VPN)? Only the all-fine case was seen, on the demo | Run the check from a computer on the wrong network or with the firewall blocking the search | Medium |
 | **Homebrew** (0.6.1): `brew install --cask ChrispyGee/roomtone/roomtone` worked on a Mac with Apple silicon (2026-11-13). Untried: `brew upgrade` when a new version is out, and `brew uninstall --zap` | After the next release, update the cask in the tap and run `brew upgrade --cask roomtone` | Low |
+| **Screen readers and keyboard** (merged for the next release): are the names, roles and order right with VoiceOver, Narrator/NVDA and Orca, and is every control reachable with Tab? Only an automated check of the accessibility tree has been run | Turn a screen reader on, Tab through Home, Now Playing, Settings and the group editor; note anything unnamed, out of order or unreachable | High |
 | **Speaker updates** (events): S2 speakers, grouped rooms, bonded pairs, and a speaker restarting. Checked once on one S1 speaker (3 subscriptions, ~5 s to first notice, 1800 s lease) | Switch it on in Settings and watch the status line while changing things from another app | Medium |
 
 ## Known limits (by design, for now)
@@ -57,6 +58,6 @@ Roughly in order of value. Discuss in an issue before starting the big ones.
 10. **Saved play-along links**, and play along for more than two systems.
 11. **More languages**: see "Adding a language" in [CONTRIBUTING.md](../CONTRIBUTING.md).
 12. **Home-theatre settings**: surround and sub levels, where the speakers allow it locally.
-13. **Accessibility pass**: keyboard navigation through every page, screen-reader labels (egui's AccessKit support).
+13. **Accessibility follow-ups**: names and roles and keyboard focus are in (0.6.3), but nothing has been tried with a real screen reader yet; still to do: describe artwork and decorative icons, announce changes (a new song, an error toast), a keyboard way to open the ⋯ menus and drag-free reordering, and a high-contrast theme check.
 14. **Recorded replies from real speakers** as test cases (with names and addresses removed), to complement the hand-written samples in the unit tests.
 

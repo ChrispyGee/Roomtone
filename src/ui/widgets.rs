@@ -1,6 +1,6 @@
 //! Hand-drawn icons and controls: sliders, switches, pills, artwork tiles.
 
-use eframe::egui::{self, pos2, vec2, Color32, Pos2, Rect, Response, Sense, Shape, Stroke, Ui};
+use eframe::egui::{self, pos2, vec2, Color32, Pos2, Rect, Response, Role, Sense, Shape, Stroke, Ui, WidgetInfo};
 
 use super::art::ArtCache;
 use super::theme::*;
@@ -286,6 +286,65 @@ pub fn paint_icon(painter: &egui::Painter, rect: Rect, icon: Icon, color: Color3
     }
 }
 
+/// Tell screen readers what a hand-drawn control is called and what it does. The built-in
+/// widgets do this themselves; anything drawn with the painter needs it said.
+pub fn describe(resp: &Response, kind: Role, label: &str) {
+    let label = label.to_string();
+    resp.widget_info(move || WidgetInfo::labeled(kind, true, label.clone()));
+}
+
+/// A ring round a hand-drawn control while the keyboard focus is on it (Tab moves it).
+pub fn focus_ring(ui: &Ui, resp: &Response, rect: Rect, radius: f32) {
+    if resp.has_focus() {
+        ui.painter().rect_stroke(rect.expand(2.0), radius + 2.0, Stroke::new(2.0, ACCENT()), egui::StrokeKind::Outside);
+    }
+}
+
+/// What a button that only shows a picture is called, for screen readers and tooltips.
+pub fn icon_name(icon: Icon) -> String {
+    match icon {
+        Icon::Play => t!("Play"),
+        Icon::Pause => t!("Pause"),
+        Icon::Next => t!("Next"),
+        Icon::Prev => t!("Previous"),
+        Icon::Shuffle => t!("Shuffle"),
+        Icon::Repeat => t!("Repeat"),
+        Icon::RepeatOne => t!("Repeat one"),
+        Icon::Speaker => t!("Mute"),
+        Icon::Muted => t!("Unmute"),
+        Icon::Home => t!("Home"),
+        Icon::Search => t!("Search"),
+        Icon::Star => t!("Favorite"),
+        Icon::Playlist => t!("Playlists"),
+        Icon::Library => t!("Music library"),
+        Icon::Radio => t!("Radio"),
+        Icon::Input => t!("Line-in"),
+        Icon::Tv => t!("TV"),
+        Icon::Alarm => t!("Alarms"),
+        Icon::Gear => t!("Settings"),
+        Icon::Plus => t!("Add"),
+        Icon::Close => t!("Close"),
+        Icon::Dots => t!("More"),
+        Icon::Rooms => t!("Rooms"),
+        Icon::Queue => t!("Queue"),
+        Icon::Back => t!("Back"),
+        Icon::Chevron => t!("Open"),
+        Icon::Up => t!("Up"),
+        Icon::Down => t!("Down"),
+        Icon::Moon => t!("Sleep timer"),
+        Icon::Crossfade => t!("Crossfade"),
+        Icon::Sliders => t!("Sound settings"),
+        Icon::Check => t!("Selected"),
+        Icon::Refresh => t!("Refresh"),
+        Icon::Save => t!("Save"),
+        Icon::Trash => t!("Delete"),
+        Icon::Services => t!("Music services"),
+        Icon::Folder => t!("Folder"),
+        Icon::Filter => t!("Filter"),
+    }
+    .to_string()
+}
+
 /// A round, quiet icon button that lights up on hover.
 pub fn icon_button(ui: &mut Ui, icon: Icon, size: f32, color: Color32) -> Response {
     let (rect, resp) = ui.allocate_exact_size(vec2(size + 12.0, size + 12.0), Sense::click());
@@ -294,6 +353,8 @@ pub fn icon_button(ui: &mut Ui, icon: Icon, size: f32, color: Color32) -> Respon
     }
     let r = Rect::from_center_size(rect.center(), vec2(size, size));
     paint_icon(ui.painter(), r, icon, if resp.hovered() { TEXT() } else { color });
+    describe(&resp, Role::Button, &icon_name(icon));
+    focus_ring(ui, &resp, rect, rect.width() / 2.0);
     resp.on_hover_cursor(egui::CursorIcon::PointingHand)
 }
 
@@ -305,6 +366,8 @@ pub fn round_button(ui: &mut Ui, icon: Icon, diameter: f32, fill: Color32, fg: C
     let s = diameter * 0.46;
     let offset = if icon == Icon::Play { vec2(diameter * 0.03, 0.0) } else { vec2(0.0, 0.0) };
     paint_icon(ui.painter(), Rect::from_center_size(rect.center() + offset, vec2(s, s)), icon, fg);
+    describe(&resp, Role::Button, &icon_name(icon));
+    focus_ring(ui, &resp, rect, diameter / 2.0);
     resp.on_hover_cursor(egui::CursorIcon::PointingHand)
 }
 
@@ -329,11 +392,14 @@ pub fn pill(ui: &mut Ui, icon: Option<Icon>, text: &str, primary: bool) -> Respo
         x += icon_w;
     }
     ui.painter().galley(pos2(x, rect.center().y - galley.size().y / 2.0), galley, TEXT());
+    describe(&resp, Role::Button, text);
+    focus_ring(ui, &resp, rect, 18.0);
     resp.on_hover_cursor(egui::CursorIcon::PointingHand)
 }
 
 /// A slim slider with a knob that appears on hover. `value` is 0..=1.
-pub fn slider(ui: &mut Ui, id: impl std::hash::Hash, value: &mut f32, width: f32, color: Color32) -> (Response, bool) {
+/// Arrow keys move it by a hundredth (a tenth with Shift) while it has the keyboard focus.
+pub fn slider(ui: &mut Ui, id: impl std::hash::Hash, name: &str, value: &mut f32, width: f32, color: Color32) -> (Response, bool) {
     let (rect, resp) = ui.allocate_exact_size(vec2(width, 20.0), Sense::click_and_drag());
     let _ = id;
     let mut changed = false;
@@ -346,6 +412,27 @@ pub fn slider(ui: &mut Ui, id: impl std::hash::Hash, value: &mut f32, width: f32
             }
         }
     }
+    if resp.has_focus() {
+        let step = ui.input(|i| {
+            let big = if i.modifiers.shift { 10.0 } else { 1.0 };
+            let mut s = 0.0;
+            if i.key_pressed(egui::Key::ArrowRight) || i.key_pressed(egui::Key::ArrowUp) {
+                s += 0.01 * big;
+            }
+            if i.key_pressed(egui::Key::ArrowLeft) || i.key_pressed(egui::Key::ArrowDown) {
+                s -= 0.01 * big;
+            }
+            s
+        });
+        if step != 0.0 {
+            *value = (*value + step).clamp(0.0, 1.0);
+            changed = true;
+        }
+    }
+    let current = *value as f64;
+    let label = name.to_string();
+    resp.widget_info(move || WidgetInfo::slider(true, current, label.clone()));
+    focus_ring(ui, &resp, rect, 8.0);
     let hot = resp.hovered() || resp.dragged();
     let h = if hot { 6.0 } else { 4.0 };
     let track = Rect::from_center_size(rect.center(), vec2(rect.width(), h));
@@ -360,7 +447,7 @@ pub fn slider(ui: &mut Ui, id: impl std::hash::Hash, value: &mut f32, width: f32
 }
 
 /// An on/off switch.
-pub fn toggle(ui: &mut Ui, on: &mut bool) -> Response {
+pub fn toggle(ui: &mut Ui, on: &mut bool, name: &str) -> Response {
     let (rect, mut resp) = ui.allocate_exact_size(vec2(40.0, 22.0), Sense::click());
     if resp.clicked() {
         *on = !*on;
@@ -371,6 +458,9 @@ pub fn toggle(ui: &mut Ui, on: &mut bool) -> Response {
     ui.painter().rect_filled(rect, 11.0, fill);
     let x = egui::lerp(rect.min.x + 11.0..=rect.max.x - 11.0, t);
     ui.painter().circle_filled(pos2(x, rect.center().y), 8.0, Color32::WHITE);
+    let (state, label) = (*on, name.to_string());
+    resp.widget_info(move || WidgetInfo::selected(Role::CheckBox, true, state, label.clone()));
+    focus_ring(ui, &resp, rect, 11.0);
     resp.on_hover_cursor(egui::CursorIcon::PointingHand)
 }
 
@@ -394,6 +484,9 @@ pub fn segmented(ui: &mut Ui, options: &[&str], selected: usize, width: f32) -> 
             ui.painter().rect_filled(r, 13.0, overlay(8));
         }
         ui.painter().text(r.center(), egui::Align2::CENTER_CENTER, *label, egui::FontId::proportional(13.0), if i == selected { TEXT() } else { TEXT_DIM() });
+        let (on, text) = (i == selected, label.to_string());
+        resp.widget_info(move || WidgetInfo::selected(Role::RadioButton, true, on, text.clone()));
+        focus_ring(ui, &resp, r, 13.0);
         if resp.clicked() && i != selected {
             picked = Some(i);
         }
@@ -483,6 +576,9 @@ pub fn filter_chip(ui: &mut Ui, text: &str, on: bool) -> Response {
     };
     ui.painter().rect_filled(rect, rect.height() / 2.0, fill);
     ui.painter().galley(rect.min + vec2(11.0, 6.0), galley, color);
+    let label = text.to_string();
+    resp.widget_info(move || WidgetInfo::selected(Role::CheckBox, true, on, label.clone()));
+    focus_ring(ui, &resp, rect, rect.height() / 2.0);
     resp.on_hover_cursor(egui::CursorIcon::PointingHand)
 }
 
@@ -494,4 +590,64 @@ pub fn source_badge(ui: &Ui, pos: Pos2, text: &str) -> f32 {
     ui.painter().rect_filled(r, 7.0, color.gamma_multiply(0.16));
     ui.painter().galley(r.min + vec2(5.0, 2.0), galley, color);
     r.width()
+}
+
+#[cfg(test)]
+mod unit {
+    use super::*;
+
+    /// Draw one frame with the controls and return what a screen reader would be told:
+    /// (role, name) for every node that has a name.
+    fn tree(draw: impl FnOnce(&mut Ui)) -> Vec<(egui::Role, String)> {
+        let ctx = egui::Context::default();
+        ctx.enable_accesskit();
+        let mut draw = Some(draw);
+        let out = ctx.run_ui(egui::RawInput::default(), |ui| {
+            if let Some(d) = draw.take() {
+                d(ui);
+            }
+        });
+        let mut out = out;
+        out.textures_delta.clear();
+        let update = out.platform_output.accesskit_update.expect("accessibility is on");
+        update.nodes.iter().filter_map(|(_, n)| n.label().map(|l| (n.role(), l.to_string()))).collect()
+    }
+
+    #[test]
+    fn hand_drawn_controls_have_names_for_screen_readers() {
+        let seen = tree(|ui| {
+            pill(ui, None, "Play along", false);
+            icon_button(ui, Icon::Next, 18.0, TEXT());
+            round_button(ui, Icon::Pause, 40.0, ACCENT(), TEXT());
+            let mut on = true;
+            toggle(ui, &mut on, "Crossfade");
+            let mut v = 0.4;
+            slider(ui, "v", "Volume", &mut v, 120.0, ACCENT());
+            filter_chip(ui, "Jazz", true);
+            segmented(ui, &["Rooms", "Queue"], 0, 160.0);
+        });
+        for (role, name) in [
+            (egui::Role::Button, "Play along"),
+            (egui::Role::Button, icon_name(Icon::Next).as_str()),
+            (egui::Role::Button, icon_name(Icon::Pause).as_str()),
+            (egui::Role::CheckBox, "Crossfade"),
+            (egui::Role::Slider, "Volume"),
+            (egui::Role::CheckBox, "Jazz"),
+            (egui::Role::RadioButton, "Rooms"),
+            (egui::Role::RadioButton, "Queue"),
+        ] {
+            assert!(seen.iter().any(|(r, n)| *r == role && n == name), "{role:?} {name:?} missing in {seen:?}");
+        }
+    }
+
+    #[test]
+    fn every_icon_has_a_name() {
+        use Icon::*;
+        for i in [
+            Play, Pause, Next, Prev, Shuffle, Repeat, RepeatOne, Speaker, Muted, Home, Search, Star, Playlist, Library, Radio, Input, Tv, Alarm, Gear, Plus, Close, Dots, Rooms,
+            Queue, Back, Chevron, Up, Down, Moon, Crossfade, Sliders, Check, Refresh, Save, Trash, Services, Folder, Filter,
+        ] {
+            assert!(!icon_name(i).trim().is_empty(), "{i:?}");
+        }
+    }
 }
