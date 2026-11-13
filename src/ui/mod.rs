@@ -1,6 +1,7 @@
 //! The window: sidebar, page area, rooms/queue panel and the now-playing bar.
 
 mod art;
+mod lists;
 mod pages;
 pub mod theme;
 pub mod widgets;
@@ -58,6 +59,10 @@ pub struct App {
     frame: u64,
     list_filter: String,
     list_sort: usize,
+    /// A letter was clicked in the A–Z strip: scroll to this row of the list being drawn.
+    jump_to: Option<usize>,
+    /// What's typed in the queue's search box.
+    queue_filter: String,
     list_genre: Option<String>,
     list_key: String,
     search_sources: std::collections::HashSet<String>,
@@ -159,6 +164,8 @@ impl App {
             frame: 0,
             list_filter: String::new(),
             list_sort: 0,
+            jump_to: None,
+            queue_filter: String::new(),
             list_genre: None,
             list_key: String::new(),
             search_sources: Default::default(),
@@ -235,6 +242,8 @@ impl App {
     fn handle_screenshot(&mut self, ctx: &egui::Context) {
         let Some(path) = self.shot.clone() else { return };
         self.frame += 1;
+        // A jump only lasts for the frame it was asked in.
+        self.jump_to = None;
         ctx.request_repaint();
         let at = std::env::var("ROOMTONE_SHOT_FRAME").ok().and_then(|v| v.parse().ok()).unwrap_or(if std::env::var_os("ROOMTONE_LIVE").is_some() { 600 } else { 120 });
         // Test hook: group some rooms early in a screenshot run (comma-separated room ids).
@@ -244,6 +253,13 @@ impl App {
             }
         }
         // Test hook: open the group editor for the selected room.
+        if self.frame == 10 {
+            // Picture checks: open a list of the library, e.g. ROOMTONE_TEST_OPEN=ALL:TRACKS.
+            if let Ok(id) = std::env::var("ROOMTONE_TEST_OPEN") {
+                self.view = View::Library;
+                self.open(&Item { id: id.clone(), title: id, is_container: true, ..Default::default() });
+            }
+        }
         if self.frame == 20 && std::env::var_os("ROOMTONE_TEST_EDITOR").is_some() {
             let s = self.backend.lock();
             if let Some((_, g)) = s.selected_group.as_ref().and_then(|g| s.find_group(g)) {
@@ -586,9 +602,20 @@ impl App {
             return;
         }
         let current = if g.now.source == "Queue" { g.now.track_no as usize } else { 0 };
-        ui.label(RichText::new(tn!(queue.len(), "1 song", "{n} songs")).size(12.0).color(TEXT_FAINT()));
+        let matching = queue.iter().filter(|it| lists::queue_matches(it, &self.queue_filter)).count();
+        if queue.len() > 8 || !self.queue_filter.is_empty() {
+            ui.add(egui::TextEdit::singleline(&mut self.queue_filter).hint_text(t!("Search this queue")).desired_width(f32::INFINITY));
+        }
+        if matching == queue.len() {
+            ui.label(RichText::new(tn!(queue.len(), "1 song", "{n} songs")).size(12.0).color(TEXT_FAINT()));
+        } else {
+            ui.label(RichText::new(t!("Showing {shown} of {total}", shown = matching, total = queue.len())).size(12.0).color(TEXT_FAINT()));
+        }
         egui::ScrollArea::vertical().id_salt("queue_scroll").auto_shrink([false, false]).show(ui, |ui| {
             for (i, it) in queue.iter().enumerate() {
+                if !lists::queue_matches(it, &self.queue_filter) {
+                    continue;
+                }
                 let is_current = current == i + 1;
                 let w = ui.available_width();
                 let (rect, resp) = ui.allocate_exact_size(vec2(w, 50.0), Sense::click());

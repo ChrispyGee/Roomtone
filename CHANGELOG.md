@@ -4,6 +4,9 @@ All notable changes to Roomtone. The format follows [Keep a Changelog](https://k
 
 ## [Unreleased]
 
+### Added
+- **Sorting and jumping in long lists**: three more sort choices (*Title Z–A*, *Album A–Z*, *Shortest first*) on the library, favorites, playlists and radio lists; an **A–Z strip** above any list of 40 or more songs that's in alphabetical order (by title, artist or album), which scrolls to the first entry under that letter; and a **search box for the queue** (shown when it holds more than 8 songs). *Rescan* for the music folders was already in Music Library.
+
 ## [0.5.4] — 2026-11-13
 
 ### Added
