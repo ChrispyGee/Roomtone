@@ -20,7 +20,11 @@ These work on the demo system but haven't been confirmed on real hardware. Repor
 | **Media keys and Now Playing** (0.6.0): do the keyboard keys, headphone buttons and the system's Now Playing show and control the selected room? Only starting up was checked, on macOS | Play something, press the keys, look at Control Center, the Windows media overlay or an MPRIS widget (`playerctl`) | Medium |
 | **S2 check** (0.6.0): what do real Connect, Connect:Amp and Play:5 speakers report so the first and second generations can be told apart? One S1 Connect:Amp reported *Check* | Settings › Software updates › *Check my speakers*; attach the result to a Speaker report | Medium |
 | **New-version check** (0.6.0): does it read GitHub's latest release correctly on every system, including behind a proxy? | Switch it on in Settings › New versions and press *Check now* | Low |
-| **Connection type** (0.6.2): is *Wired* / *Wireless* right on every model, and on Wi-Fi-only speakers? Only one wired S1 Connect:Amp has been checked (reports Wired) | Open *Your speakers*; compare with how each speaker is actually connected. `ROOMTONE_SPEAKER=<ip> cargo test real_speaker_connection -- --ignored --nocapture` | Low |
+| **Connection type** (merged since 0.6.1): is *Wired* / *Wireless* right on every model, and on Wi-Fi-only speakers? Only one wired S1 Connect:Amp has been checked (reports Wired) | Open *Your speakers*; compare with how each speaker is actually connected. `ROOMTONE_SPEAKER=<ip> cargo test real_speaker_connection -- --ignored --nocapture` | Low |
+| **Command line and assistant notifications** (0.6.1): do `roomtone play`, `volume`, `backup` etc. behave on a real system, and does a real assistant client act on `notifications/resources/updated`? Both were checked only on the demo system (notifications seen over stdout) | Switch the assistant link on, run the commands against a spare room; subscribe from an assistant that supports resource subscriptions | Medium |
+| **PLS and XSPF** (0.6.1): do other players (VLC, foobar2000, Winamp…) open what Roomtone exports, and does Roomtone read their files? | Export a playlist as `.pls` / `.xspf`, open it elsewhere; import a file saved by another player | Low |
+| **Can't find your speakers?** (0.6.1): are the advice and the report right on a genuinely failing network (guest Wi-Fi, blocked search, VPN)? Only the all-fine case was seen, on the demo | Run the check from a computer on the wrong network or with the firewall blocking the search | Medium |
+| **Homebrew** (0.6.1): `brew install --cask ChrispyGee/roomtone/roomtone` worked on a Mac with Apple silicon (2026-11-13). Untried: `brew upgrade` when a new version is out, and `brew uninstall --zap` | After the next release, update the cask in the tap and run `brew upgrade --cask roomtone` | Low |
 | **Speaker updates** (events): S2 speakers, grouped rooms, bonded pairs, and a speaker restarting. Checked once on one S1 speaker (3 subscriptions, ~5 s to first notice, 1800 s lease) | Switch it on in Settings and watch the status line while changing things from another app | Medium |
 
 ## Known limits (by design, for now)
@@ -31,7 +35,7 @@ These work on the demo system but haven't been confirmed on real hardware. Repor
 - "Automatic" language on Windows reads only environment variables.
 - Translations need native-speaker review (de, fr, es, it, nl).
 - The details under a restore summary (why something couldn't be restored) are in English only.
-- Importing an M3U or CSV matches songs only to your music folders (Music Library › Add folder); songs from streaming services can't be brought across from other apps' lists.
+- Importing an M3U, PLS, XSPF or CSV matches songs only to your music folders (Music Library › Add folder); songs from streaming services can't be brought across from other apps' lists.
 
 ## Maintenance
 
@@ -47,7 +51,7 @@ Roughly in order of value. Discuss in an issue before starting the big ones.
 4. **Scenes**: one click does several things at once: group these rooms, set each room's volume, choose the source and EQ or night sound, and optionally start a sleep timer ("Movie night", "Dinner", "Good night"). Builds on saved groups; also available from the command line and to assistants. Would also add a `scene` command to the command line.
 5. **Menu-bar or tray mini player**: an optional small player in the menu bar or system tray. (Media keys, Now Playing and the remembered window size shipped in 0.6.0.)
 6. **More streaming services, and more for the favorites-only ones**: add services beyond Spotify, Amazon Music, Deezer, TIDAL and Qobuz, and find legitimate ways to do more than play saved favorites with Apple Music, YouTube Music and SoundCloud (browsing and search where a service allows it). Open question: which services let a third-party controller sign in at all.
-8. **Package managers**: the Homebrew tap (`ChrispyGee/homebrew-roomtone`) is live for 0.6.1; the winget manifest and Arch `PKGBUILD` are made for each release (see `docs/RELEASING.md`) but not published yet (a winget-pkgs pull request, the AUR package). The Homebrew install was tried for real (macOS, 0.6.1); winget and Arch haven't been. Flathub is separate. The main Homebrew cask list waits for signing.
+7. **Package managers**: the Homebrew tap (`ChrispyGee/homebrew-roomtone`) is live for 0.6.1; the winget manifest and Arch `PKGBUILD` are made for each release (see `docs/RELEASING.md`) but not published yet (a winget-pkgs pull request, the AUR package). The Homebrew install was tried for real (macOS, 0.6.1); winget and Arch haven't been. Flathub is separate. The main Homebrew cask list waits for signing.
 8. **Gentler alarms**: a volume fade-in, snooze, alarms in several rooms at once, duplicating an alarm, and one-off timers per room.
 9. **Lyrics (maybe)**: show lyrics for what's playing. Needs an outside lyrics source, so it would be opt-in and add a network destination; it may not be worth it.
 10. **Saved play-along links**, and play along for more than two systems.
