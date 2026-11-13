@@ -533,4 +533,47 @@ mod unit {
         assert!(!s.last_error.is_empty());
         ev.stop(dead);
     }
+
+    /// Silent, read-only check against a real speaker:
+    /// `ROOMTONE_SPEAKER=<ip> cargo test real_speaker_events -- --ignored --nocapture`.
+    /// Subscribes to all three kinds, waits for the speaker's notices, renews once, cancels.
+    #[test]
+    #[ignore]
+    fn real_speaker_events() {
+        let Ok(ip) = std::env::var("ROOMTONE_SPEAKER") else {
+            eprintln!("Set ROOMTONE_SPEAKER=<ip> to run this.");
+            return;
+        };
+        let hub = hub();
+        let wanted: Vec<(String, Kind)> = [Kind::Transport, Kind::Rendering, Kind::Topology].iter().map(|k| (ip.clone(), *k)).collect();
+        assert!(hub.sync(&wanted, 1400), "the listener should start");
+        let s = hub.summary();
+        eprintln!("after subscribing: working={} silent={} failed={} error={:?}", s.working, s.silent, s.failed, s.last_error);
+        let mut heard: Vec<Kind> = vec![];
+        let until = Instant::now() + Duration::from_secs(15);
+        while Instant::now() < until && heard.len() < 3 {
+            thread::sleep(Duration::from_millis(250));
+            for n in hub.take_notices() {
+                if !heard.contains(&n.kind) {
+                    eprintln!("first notice for {:?} after {:?}", n.kind, Instant::now() + Duration::from_secs(15) - until);
+                    heard.push(n.kind);
+                }
+            }
+        }
+        eprintln!("heard from: {heard:?}");
+        let subs: Vec<(Kind, String, Duration)> = {
+            let st = hub.state.lock().unwrap();
+            st.subs.iter().map(|((_, k), sub)| (*k, sub.sid.clone(), sub.expires.saturating_duration_since(Instant::now()))).collect()
+        };
+        for (k, sid, left) in &subs {
+            eprintln!("{k:?}: granted about {}s, sid has {} characters", left.as_secs(), sid.len());
+            match renew(&format!("{ip}:1400"), k.path(), sid) {
+                Ok(ttl) => eprintln!("{k:?}: renewing works, granted {}s", ttl.as_secs()),
+                Err(e) => eprintln!("{k:?}: renewing failed: {e}"),
+            }
+        }
+        hub.stop(1400);
+        eprintln!("cancelled; listener closed: {}", hub.port().is_none());
+        assert_eq!(subs.len(), 3, "all three subscriptions should have been accepted");
+    }
 }

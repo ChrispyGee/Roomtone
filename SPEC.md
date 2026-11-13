@@ -123,11 +123,12 @@ Create, edit, enable/disable and delete alarms. Each has a time, how often it re
 - **Language**: *Automatic* (follows the computer) or a fixed language. It changes at once.
 - **Speaker updates**: a switch for *Instant updates from the speakers* (§2) with a status line (how many speakers are sending updates, or a hint if they can't reach this computer).
 - **Assistant link (MCP)**: §6.
+- Every setting, its place in the app, its `config.json` name, defaults, options and back-up advice is written up in [docs/SETTINGS.md](docs/SETTINGS.md); the About section and `--help` link to it (*Settings guide*). Keep that file in step with this section.
 - **About**:
   - version and platform; each system with its room count and speaker software versions;
   - the language in use, the address this computer serves music from, and the assistant link status;
   - the settings folder, with *Show* to open it in the file browser;
-  - what's new in this version, help commands to copy, and buttons for the project page, *Report a problem* and *Latest version* (on GitHub);
+  - what's new in this version, help commands to copy, and buttons for the project page, *Settings guide*, *Report a problem* and *Latest version* (on GitHub);
   - credits (Radio Browser, the Apple Podcasts directory search, the Internet Archive, the open-source libraries) and a note that the app is independent of the speaker maker and the music services.
 
 ### 4.9 Languages
@@ -271,7 +272,7 @@ All in the app's data folder: `~/Library/Application Support/Roomtone/` (macOS),
 | Streaming **playback** and the account-number retry | Not yet heard on real speakers |
 | Play along between real S1 and S2 speakers | Demo system only |
 | Software updates (check and install) | Demo system only |
-| Speaker updates (UPnP events) | Unit tests against a pretend speaker (subscribe, notice, renew, cancel, refusals); **not yet tried with real speakers** |
+| Speaker updates (UPnP events) | Unit tests against a pretend speaker (subscribe, notice, renew, cancel, refusals); tried once with a real S1 speaker (Connect:Amp, firmware 11.16): all three subscriptions accepted, a first notice for each within about 5 s, a 1800 s lease, renewing and cancelling work; no S2 or multi-room tests yet |
 | Assistant link: every tool, on/off, look-only, key, origin check | Demo system, stdio and HTTP |
 | Translations | Automated completeness test; not reviewed by native speakers |
 | Logic without speakers (parsers, rules, settings, demo system, assistant link incl. HTTP security) | 103 unit tests (`cargo test`), run on every platform in CI |

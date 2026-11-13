@@ -102,7 +102,7 @@ Used by `net::events` when *Speaker updates* is on. Plain HTTP on port 1400:
 | Cancel | `UNSUBSCRIBE <path>` with `SID` |
 | Notice | The speaker sends `NOTIFY /` to the callback with `SID`, `NT: upnp:event`, `NTS: upnp:propchange`, `SEQ` and an XML property set; we answer `200` |
 
-Paths: `/MediaRenderer/AVTransport/Event` (a group's coordinator), `/MediaRenderer/RenderingControl/Event` (each room), `/ZoneGroupTopology/Event` (one room per system). The body (`LastChange` XML) is deliberately not parsed: a notice only triggers the usual read of that group, so there is one way of reading state. Not yet checked against real speakers: the exact lifetime they grant, whether S1 and S2 differ, and whether every speaker sends an initial notice on subscribing (the app counts a subscription as working only after the first notice).
+Paths: `/MediaRenderer/AVTransport/Event` (a group's coordinator), `/MediaRenderer/RenderingControl/Event` (each room), `/ZoneGroupTopology/Event` (one room per system). The body (`LastChange` XML) is deliberately not parsed: a notice only triggers the usual read of that group, so there is one way of reading state. Checked once against a real S1 speaker (Connect:Amp, firmware 11.16.1, 2026-11-13) with the ignored test `real_speaker_events`: all three subscriptions were accepted, each sent its first notice about 4–5 s after subscribing, the lease was 1800 s and renewing and cancelling worked. Not yet checked: S2 speakers, bonded pairs and groups, and what happens when a speaker restarts. The app counts a subscription as working only after the first notice.
 
 ## 7. Things that are guesses
 

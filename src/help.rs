@@ -7,6 +7,11 @@ use crate::config::{Config, McpConfig};
 /// Where the project lives: source code, issues, releases.
 pub const REPO_URL: &str = env!("CARGO_PKG_REPOSITORY");
 
+/// Where every setting is explained (the settings guide on the project page).
+pub fn settings_guide_url() -> String {
+    format!("{REPO_URL}/blob/main/docs/SETTINGS.md")
+}
+
 /// This program's own path, quoted if it has spaces, for commands the person can paste.
 pub fn exe() -> String {
     let p = std::env::current_exe().map(|p| p.display().to_string()).unwrap_or_else(|_| "roomtone".into());
@@ -87,11 +92,13 @@ Help
   --help mcp                how to run without a window and connect an assistant on {platform}
 
 Settings are kept in: {dir}
+Every setting explained: {guide}
 Source code, issues and releases: {repo}
 ",
         version = env!("CARGO_PKG_VERSION"),
         platform = platform(),
         dir = data_dir(),
+        guide = settings_guide_url(),
         repo = REPO_URL,
     )
 }

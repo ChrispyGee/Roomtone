@@ -1974,6 +1974,9 @@ impl App {
                 if pill(ui, None, t!("Open project page"), false).on_hover_text(crate::help::REPO_URL).clicked() {
                     ui.ctx().open_url(egui::OpenUrl::new_tab(crate::help::REPO_URL));
                 }
+                if pill(ui, None, t!("Settings guide"), false).on_hover_text(t!("Every setting explained, and how to back them up")).clicked() {
+                    ui.ctx().open_url(egui::OpenUrl::new_tab(crate::help::settings_guide_url()));
+                }
                 if pill(ui, None, t!("Report a problem"), false).clicked() {
                     ui.ctx().open_url(egui::OpenUrl::new_tab(format!("{}/issues/new/choose", crate::help::REPO_URL)));
                 }

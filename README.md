@@ -78,6 +78,7 @@ Step-by-step guides for macOS, Windows and Linux (including starting it automati
 
 | Document | What's in it |
 | --- | --- |
+| [docs/SETTINGS.md](docs/SETTINGS.md) | **Every setting**: what it does, where it is in the app, its name in `config.json`, defaults, command-line options, and how to back up, move or reset |
 | [SPEC.md](SPEC.md) | What the app does: every feature, setting, option, stored file and port, what's verified, and acceptance checks |
 | [docs/ARCHITECTURE.md](docs/ARCHITECTURE.md) | How the code fits together, conventions, and how to add features, languages and assistant tools |
 | [docs/PROTOCOL.md](docs/PROTOCOL.md) | How the app talks to the speakers and streaming services |
@@ -97,7 +98,7 @@ Step-by-step guides for macOS, Windows and Linux (including starting it automati
 | Windows | `%APPDATA%\Roomtone\` |
 | Linux | `~/.config/roomtone/` |
 
-`config.json` holds your settings, sign-ins and the assistant access key, readable only by you. `speakers.json` remembers your speakers for a fast start, and `songs.json` keeps song details. Nothing is sent anywhere except to your speakers, the music sources you use and the services you sign in to. There's no telemetry.
+`config.json` holds your settings, sign-ins and the assistant access key, readable only by you; every setting is explained in the [settings guide](docs/SETTINGS.md). `speakers.json` remembers your speakers for a fast start, and `songs.json` keeps song details. Nothing is sent anywhere except to your speakers, the music sources you use and the services you sign in to. There's no telemetry.
 
 ## Contributing
 
