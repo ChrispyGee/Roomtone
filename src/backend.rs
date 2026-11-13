@@ -2295,7 +2295,10 @@ impl ActiveSystem {
     /// The songs of one playlist (an item from the system's playlist list).
     fn playlist_tracks(&self, playlist: &Item) -> Result<Vec<Item>, String> {
         match &self.ip {
-            Some(ip) => speaker::browse(ip, &playlist.id),
+            Some(ip) => speaker::browse(ip, &playlist.id).map(|mut tracks| {
+                crate::sources::memory::enrich(&mut tracks);
+                tracks
+            }),
             None => Ok(match self.b.lock().browse.get(&playlist.id) {
                 Some(Browse::Ready(v)) => v.clone(),
                 _ => demo::browse(&playlist.id),
