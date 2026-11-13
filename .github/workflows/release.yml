@@ -1,7 +1,7 @@
 name: Release
 
 # Pushing a tag like v0.5.1 builds Roomtone on each platform (a zip/tar.gz plus an installer:
-# .dmg, Windows setup .exe, Linux .deb) and attaches them to a GitHub release, with that
+# .dmg, Windows setup .exe, Linux .deb and .rpm) and attaches them to a GitHub release, with that
 # version's section of CHANGELOG.md as notes.
 # "Run workflow" on a branch builds the same files and keeps them as workflow artifacts,
 # without publishing a release (a way to try the installers).
