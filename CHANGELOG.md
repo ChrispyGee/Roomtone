@@ -6,6 +6,9 @@ All notable changes to Roomtone. The format follows [Keep a Changelog](https://k
 
 ### Added
 - **New versions** (Settings › New versions, off by default): an optional once-a-day look at this project's latest release on GitHub, with *Check now* and an *Open download page* button when a newer Roomtone is out. Nothing is sent about you and nothing is downloaded or installed. A new network destination (`api.github.com`), listed in SPEC §9. New `check_new_versions` and `last_version_check` fields in `config.json`.
+- **Listening history** (on by default, on this computer only): songs and stations played for about 20 seconds are remembered in `history.json`, so *Recently played* survives restarts and includes what was played from other apps, and a new **History** page lists everything with how often and how long ago, ready to play again. Switch it off or *Clear history* in Settings › Listening history. New `remember_history` field in `config.json`.
+
+## [0.5.5] — 2026-11-13
 
 ### Added
 - **Arrange the rooms**: *Arrange* in the Rooms panel shows up and down arrows on each room card, so you can put your rooms in the order you like. The order is remembered per system (`room_order` in `config.json`); a group stands where its earliest-listed room is, and new rooms come after.
@@ -13,8 +16,6 @@ All notable changes to Roomtone. The format follows [Keep a Changelog](https://k
 
 ### Fixed
 - Podcasts (and other https audio) on S1 speakers failed with "AddURIToQueue was refused (HTTP 500, code 804)". The relay address this computer gives S1 speakers (`…/p/<code>`) had no file ending, and the speakers decide what kind of audio a plain web address is from its ending, so they refused it. Relay addresses now end like the original (`.mp3`, `.m4a`…, or `.mp3` when it has none). Not yet confirmed on a real S1 speaker.
-
-### Fixed
 - Backups and playlist exports (JSON, M3U, CSV) now give songs that came from a computer's music folders their remembered titles and artists, as the Playlists page does; before, such songs could be exported with only a code as the title (found by exporting a real playlist).
 
 ### Changed

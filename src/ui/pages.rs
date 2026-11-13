@@ -78,6 +78,7 @@ impl App {
             View::NowPlaying => self.now_playing_page(ui, s),
             View::Room(uuid) => self.room_page(ui, s, &uuid),
             View::Services => self.services_page(ui, s),
+            View::History => self.history_page(ui, s),
         }
     }
 
@@ -144,7 +145,13 @@ impl App {
             ui.add_space(18.0);
         }
         if !s.recent.is_empty() {
-            section_title(ui, t!("Recently played"));
+            if s.config.remember_history && crate::history::count() > 0 {
+                if self.section_with_link(ui, t!("Recently played"), t!("History")) {
+                    self.go(View::History);
+                }
+            } else {
+                section_title(ui, t!("Recently played"));
+            }
             self.tile_row(ui, &s.recent, gid.as_deref(), "home_recent");
             ui.add_space(18.0);
         }
@@ -2018,6 +2025,8 @@ impl App {
         ui.add_space(14.0);
         self.events_card(ui, s);
         ui.add_space(14.0);
+        self.history_card(ui, s);
+        ui.add_space(14.0);
         self.new_version_card(ui, s);
         ui.add_space(14.0);
         self.backup_card(ui, s);
@@ -2111,9 +2120,9 @@ impl App {
             ui.add_space(6.0);
             ui.label(RichText::new(t!("What's new in this version")).color(TEXT()).strong());
             for line in [
-                t!("Back up and restore your favorites, playlists and alarms, and export or import a single playlist (M3U, CSV)"),
-                t!("Podcasts remember where you stopped, show what's played, and have 15 and 30 second skip buttons"),
-                t!("The format, sample rate and bit depth of what's playing, where the speaker says"),
+                t!("Podcasts and other web audio now play on S1 speakers"),
+                t!("Arrange your rooms in the order you like"),
+                t!("More ways to sort long lists, an A–Z jump strip, and a search box for the queue"),
             ] {
                 ui.horizontal_wrapped(|ui| {
                     ui.label(RichText::new("•").color(ACCENT()));
@@ -2419,6 +2428,81 @@ impl App {
         });
         if on != s.config.check_new_versions {
             self.send(Cmd::SetVersionCheck(on));
+        }
+    }
+
+    /// Switch listening history on or off, see it, or clear it.
+    fn history_card(&mut self, ui: &mut Ui, s: &AppState) {
+        section_title(ui, t!("Listening history"));
+        let mut on = s.config.remember_history;
+        card_frame().show(ui, |ui| {
+            ui.set_width(ui.available_width());
+            ui.horizontal(|ui| {
+                ui.set_min_height(40.0);
+                ui.vertical(|ui| {
+                    ui.set_max_width((ui.available_width() - 64.0).max(120.0));
+                    ui.label(RichText::new(t!("Remember what I've played")).color(TEXT()));
+                    ui.label(
+                        RichText::new(t!("Songs and stations you've played for a little while are kept on this computer, so Recently played and History work after a restart. Nothing is sent anywhere."))
+                            .size(12.0)
+                            .color(TEXT_DIM()),
+                    );
+                });
+                ui.with_layout(Layout::right_to_left(Align::Center), |ui| {
+                    toggle(ui, &mut on);
+                });
+            });
+            let n = crate::history::count();
+            ui.add_space(6.0);
+            ui.horizontal_wrapped(|ui| {
+                ui.label(RichText::new(tn!(n, "1 song remembered", "{n} songs remembered")).size(12.5).color(TEXT_DIM()));
+                if n > 0 && pill(ui, None, t!("See history"), false).clicked() {
+                    self.go(View::History);
+                }
+                if n > 0 && pill(ui, Some(Icon::Trash), t!("Clear history"), false).clicked() {
+                    self.send(Cmd::ClearHistory);
+                }
+            });
+        });
+        if on != s.config.remember_history {
+            self.send(Cmd::SetHistory(on));
+        }
+    }
+
+    /// Everything that's been played, newest first, with how often and how long ago.
+    fn history_page(&mut self, ui: &mut Ui, s: &AppState) {
+        use crate::history::Ago;
+        self.header(ui, t!("History"), t!("What you've played, kept on this computer"));
+        let gid = s.selected_group.clone();
+        let entries = crate::history::all();
+        ui.horizontal(|ui| {
+            if !s.config.remember_history {
+                ui.label(RichText::new(t!("History is switched off in Settings, so nothing new is being added.")).size(12.5).color(TEXT_DIM()));
+            }
+            if !entries.is_empty() && pill(ui, Some(Icon::Trash), t!("Clear history"), false).clicked() {
+                self.send(Cmd::ClearHistory);
+            }
+        });
+        ui.add_space(8.0);
+        if entries.is_empty() {
+            ui.label(RichText::new(t!("Nothing yet. Songs and stations you play for a little while will show up here.")).color(TEXT_DIM()));
+            return;
+        }
+        let now = std::time::SystemTime::now().duration_since(std::time::UNIX_EPOCH).map(|d| d.as_secs()).unwrap_or(0);
+        for (i, e) in entries.iter().take(300).enumerate() {
+            let when = match crate::history::ago(e.last_played, now) {
+                Ago::JustNow => t!("just now").to_string(),
+                Ago::Minutes(n) => t!("{n} min ago", n = n).to_string(),
+                Ago::Hours(n) => tn!(n, "1 hour ago", "{n} hours ago"),
+                Ago::Yesterday => t!("yesterday").to_string(),
+                Ago::Days(n) => t!("{n} days ago", n = n).to_string(),
+                Ago::Date(d) => d,
+            };
+            let mut it = e.item.clone();
+            let base = it.subtitle();
+            let plays = if e.plays > 1 { format!(" · {}", tn!(e.plays, "1 play", "{n} plays")) } else { String::new() };
+            it.description = format!("{base} · {when}{plays}");
+            self.row(ui, &it, gid.as_deref(), ("history", i), None);
         }
     }
 

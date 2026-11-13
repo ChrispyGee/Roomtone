@@ -635,3 +635,26 @@ Couldn't check: {error}	Vérification impossible : {error}
 You have version {current}	Vous avez la version {current}
 Check now	Vérifier maintenant
 Roomtone {version} is available. See Settings.	Roomtone {version} est disponible. Voir les Réglages.
+Podcasts and other web audio now play on S1 speakers	Les podcasts et autres contenus audio web fonctionnent maintenant sur les enceintes S1
+Arrange your rooms in the order you like	Organisez vos pièces dans l’ordre que vous voulez
+More ways to sort long lists, an A–Z jump strip, and a search box for the queue	Plus de façons de trier les longues listes, une barre de saut A–Z et un champ de recherche pour la file d’attente
+Listening history	Historique d’écoute
+Remember what I've played	Mémoriser ce que j’écoute
+Songs and stations you've played for a little while are kept on this computer, so Recently played and History work after a restart. Nothing is sent anywhere.	Les morceaux et stations écoutés un moment sont conservés sur cet ordinateur, pour que Écoutés récemment et l’historique fonctionnent après un redémarrage. Rien n’est envoyé.
+1 song remembered	1 morceau mémorisé
+{n} songs remembered	{n} morceaux mémorisés
+See history	Voir l’historique
+Clear history	Effacer l’historique
+History	Historique
+What you've played, kept on this computer	Ce que vous avez écouté, conservé sur cet ordinateur
+History is switched off in Settings, so nothing new is being added.	L’historique est désactivé dans les Réglages, rien de nouveau n’est donc ajouté.
+Nothing yet. Songs and stations you play for a little while will show up here.	Rien pour l’instant. Les morceaux et stations écoutés un moment apparaîtront ici.
+just now	à l’instant
+{n} min ago	il y a {n} min
+1 hour ago	il y a 1 heure
+{n} hours ago	il y a {n} heures
+yesterday	hier
+{n} days ago	il y a {n} jours
+1 play	1 lecture
+{n} plays	{n} lectures
+History cleared	Historique effacé

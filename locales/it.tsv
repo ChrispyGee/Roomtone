@@ -635,3 +635,26 @@ Couldn't check: {error}	Impossibile controllare: {error}
 You have version {current}	Hai la versione {current}
 Check now	Controlla ora
 Roomtone {version} is available. See Settings.	Roomtone {version} è disponibile. Vedi Impostazioni.
+Podcasts and other web audio now play on S1 speakers	I podcast e altro audio web ora funzionano sugli altoparlanti S1
+Arrange your rooms in the order you like	Riordina le tue stanze come preferisci
+More ways to sort long lists, an A–Z jump strip, and a search box for the queue	Più modi di ordinare le liste lunghe, una barra di salto A–Z e un campo di ricerca per la coda
+Listening history	Cronologia di ascolto
+Remember what I've played	Ricorda cosa ho ascoltato
+Songs and stations you've played for a little while are kept on this computer, so Recently played and History work after a restart. Nothing is sent anywhere.	I brani e le stazioni ascoltati per un po’ vengono conservati su questo computer, così Ascoltati di recente e la Cronologia funzionano dopo un riavvio. Non viene inviato nulla.
+1 song remembered	1 brano ricordato
+{n} songs remembered	{n} brani ricordati
+See history	Vedi cronologia
+Clear history	Cancella cronologia
+History	Cronologia
+What you've played, kept on this computer	Cosa hai ascoltato, conservato su questo computer
+History is switched off in Settings, so nothing new is being added.	La cronologia è disattivata nelle Impostazioni, quindi non viene aggiunto nulla di nuovo.
+Nothing yet. Songs and stations you play for a little while will show up here.	Ancora niente. I brani e le stazioni che ascolti per un po’ compariranno qui.
+just now	adesso
+{n} min ago	{n} min fa
+1 hour ago	1 ora fa
+{n} hours ago	{n} ore fa
+yesterday	ieri
+{n} days ago	{n} giorni fa
+1 play	1 riproduzione
+{n} plays	{n} riproduzioni
+History cleared	Cronologia cancellata

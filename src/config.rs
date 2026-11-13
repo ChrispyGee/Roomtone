@@ -163,6 +163,9 @@ pub struct Config {
     /// When the last check was made (seconds since 1970), so it isn't repeated within a day.
     #[serde(default)]
     pub last_version_check: u64,
+    /// Remember what was played (on this computer only) for Recently played and History.
+    #[serde(default = "yes")]
+    pub remember_history: bool,
     /// The order the person arranged their rooms in (room ids, first to last). Rooms not listed
     /// come after, in the speakers' own order.
     #[serde(default)]
@@ -189,6 +192,7 @@ impl Default for Config {
             speaker_events: false,
             check_new_versions: false,
             last_version_check: 0,
+            remember_history: true,
             room_order: vec![],
         }
     }
