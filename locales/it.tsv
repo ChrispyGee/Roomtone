@@ -561,6 +561,38 @@ Every setting explained, and how to back them up	Tutte le impostazioni spiegate 
 Your settings file couldn't be read	Impossibile leggere il file delle impostazioni
 It was kept as {file} in the settings folder, and Roomtone started with the defaults. Fix it or copy back what you need, then rename it to config.json to use it again.	È stato conservato come {file} nella cartella delle impostazioni e Roomtone è partito con i valori predefiniti. Riparalo o copia ciò che ti serve, poi rinominalo in config.json per riusarlo.
 It couldn't be set aside either ({error}), so changes won't be saved this time. Fix or move the file, then start Roomtone again.	Non è stato possibile nemmeno metterlo da parte ({error}), quindi questa volta le modifiche non verranno salvate. Ripara o sposta il file e riavvia Roomtone.
+Added: {counts}	Aggiunto: {counts}
+Adds what's in a backup file to this system. Nothing that's already there is changed or removed.	Aggiunge a questo sistema ciò che c’è in un file di backup. Nulla di ciò che c’è già viene modificato o rimosso.
+Alarms ({n})	Sveglie ({n})
+Alarms are matched to rooms by name. Things already on this system are skipped.	Le sveglie sono abbinate alle stanze in base al nome. Ciò che è già su questo sistema viene saltato.
+Already there, left alone: {counts}	Già presente, lasciato invariato: {counts}
+Backup and restore	Backup e ripristino
+Backup made on {date}	Backup del {date}
+Backup saved as {file}	Backup salvato come {file}
+Choose a backup	Scegli un backup
+Couldn't open the backup: {error}	Impossibile aprire il backup: {error}
+Couldn't restore: {counts}	Non ripristinato: {counts}
+Couldn't save the backup: {error}	Impossibile salvare il backup: {error}
+Couldn't use that file: {error}	Impossibile usare quel file: {error}
+Details	Dettagli
+Favorites ({n})	Preferiti ({n})
+Nothing new to add: everything was already there.	Niente di nuovo da aggiungere: c’era già tutto.
+Playlists ({n})	Playlist ({n})
+Restore	Ripristina
+Restore from a backup	Ripristina da un backup
+Roomtone's own lists and settings ({n})	Elenchi e impostazioni propri di Roomtone ({n})
+Save a backup	Salva un backup
+Save backup	Salva backup
+Saves this system's favorites, playlists and alarms, and Roomtone's own lists and settings, to one file. Sign-ins and the access key are never included.	Salva in un file i preferiti, le playlist e le sveglie di questo sistema, più gli elenchi e le impostazioni propri di Roomtone. Gli accessi e la chiave di accesso non sono mai inclusi.
+{favorites} favorites · {playlists} playlists · {alarms} alarms · {app} of Roomtone's own	{favorites} preferiti · {playlists} playlist · {alarms} sveglie · {app} propri di Roomtone
 Instant updates from the speakers, switched on in Settings	Aggiornamenti immediati dagli altoparlanti, da attivare nelle Impostazioni
 A guide to every setting, linked from the About section	Una guida a tutte le impostazioni, collegata nella sezione Informazioni
 A settings file that can't be read is kept aside instead of being replaced	Un file delle impostazioni illeggibile viene messo da parte invece di essere sostituito
+Export playlist…	Esporta playlist…
+Import playlist	Importa playlist
+Connect to your speakers first	Collegati prima ai tuoi altoparlanti
+“{title}” has no songs to export	«{title}» non ha brani da esportare
+Saved playlist “{title}” as {file}	Playlist «{title}» salvata come {file}
+Export as M3U…	Esporta come M3U…
+Export as CSV…	Esporta come CSV…
+Add a playlist from an M3U or CSV file, or a file saved with Export playlist or Save backup	Aggiungi una playlist da un file M3U o CSV, o da un file salvato con Esporta playlist o Salva backup

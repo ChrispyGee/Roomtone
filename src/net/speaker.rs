@@ -312,6 +312,35 @@ pub fn remove_favorite(ip: &str, id: &str) -> R<()> {
     call(ip, CONTENT_DIRECTORY, "DestroyObject", &[("ObjectID", id)]).map(|_| ())
 }
 
+/// Every saved playlist with its songs (for a backup). Songs past the first 1000 aren't read.
+pub fn playlists_with_tracks(ip: &str) -> R<Vec<crate::backup::PlaylistBackup>> {
+    let mut out = vec![];
+    for p in browse(ip, "SQ:")? {
+        let tracks = browse(ip, &p.id)?;
+        out.push(crate::backup::PlaylistBackup { title: p.title, tracks });
+    }
+    Ok(out)
+}
+
+/// Make a new saved playlist from `tracks` without touching what's playing: create it with the
+/// first song, then add the rest. (Action names as in the speakers' AVTransport service;
+/// not yet tried against real speakers.)
+pub fn create_playlist(ip: &str, title: &str, tracks: &[Item]) -> R<()> {
+    let Some(first) = tracks.first() else { return Err("a playlist needs at least one song".into()) };
+    let made = avt(ip, "CreateSavedQueue", &[("Title", title), ("EnqueuedURI", &first.uri), ("EnqueuedURIMetaData", &didl::metadata_for(first))])?;
+    let id = made.get("AssignedObjectID").cloned().filter(|i| !i.is_empty()).ok_or("the speaker didn't say where the playlist went")?;
+    let mut update: u64 = made.get("NewUpdateID").and_then(|u| u.parse().ok()).unwrap_or(0);
+    for t in &tracks[1..] {
+        let r = avt(
+            ip,
+            "AddURIToSavedQueue",
+            &[("ObjectID", &id), ("UpdateID", &update.to_string()), ("EnqueuedURI", &t.uri), ("EnqueuedURIMetaData", &didl::metadata_for(t)), ("AddAtIndex", "4294967295")],
+        )?;
+        update = r.get("NewUpdateID").and_then(|u| u.parse().ok()).unwrap_or(update);
+    }
+    Ok(())
+}
+
 pub fn save_queue(ip: &str, title: &str) -> R<()> {
     avt(ip, "SaveQueue", &[("Title", title), ("ObjectID", "")]).map(|_| ())
 }

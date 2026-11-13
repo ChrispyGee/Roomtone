@@ -92,6 +92,16 @@ pub enum Cmd {
     SetTheme(String),
     /// Switch speaker events (instant updates instead of polling) on or off.
     SetEvents(bool),
+    /// Save a backup file (favorites, playlists, alarms, Roomtone's own lists and settings).
+    SaveBackup(std::path::PathBuf, crate::backup::Sections),
+    /// Read a backup file and show what's in it, ready to restore.
+    ReadBackup(std::path::PathBuf),
+    /// Add what's in a backup file to this system and to Roomtone's settings.
+    RestoreBackup(std::path::PathBuf, crate::backup::Sections),
+    /// Save one playlist (with its songs) to its own file; it restores like any backup.
+    ExportPlaylist(Item, std::path::PathBuf),
+    /// Close the backup panel.
+    DismissBackup,
     /// Switch the app's language ("auto" follows the computer).
     SetLanguage(String),
     /// Change the assistant link (MCP) settings.
@@ -754,7 +764,12 @@ fn run_live(b: &Backend, ctx: &Waker, cmd: Cmd) -> Result<(), String> {
         | Cmd::CheckUpdates(_)
         | Cmd::InstallUpdate(_)
         | Cmd::SetTheme(_)
-        | Cmd::SetEvents(_) => Ok(()),
+        | Cmd::SetEvents(_)
+        | Cmd::SaveBackup(..)
+        | Cmd::ReadBackup(_)
+        | Cmd::RestoreBackup(..)
+        | Cmd::ExportPlaylist(..)
+        | Cmd::DismissBackup => Ok(()),
         Cmd::PlayItem(g, item, how) => {
             let ip = coord(&g)?;
             let item = adapt_for_system(b, &g, item);
@@ -878,6 +893,95 @@ fn run_common(b: &Backend, ctx: &Waker, cmd: Cmd) -> Result<Option<Cmd>, String>
         }
     };
     match cmd {
+        Cmd::DismissBackup => {
+            let mut s = b.lock();
+            s.backup_preview = None;
+            s.backup_result = None;
+            Ok(None)
+        }
+        Cmd::SaveBackup(path, sections) => {
+            let system = active_system(b);
+            let cfg = b.lock().config.clone();
+            let now = std::time::SystemTime::now().duration_since(std::time::UNIX_EPOCH).map(|d| d.as_secs()).unwrap_or(0);
+            let (backup, notes) = crate::backup::Backup::build(system.as_ref().map(|s| s as &dyn crate::backup::SystemAccess), &cfg, sections, now);
+            let json = backup.to_json()?;
+            std::fs::write(&path, json).map_err(|e| crate::t!("Couldn't save the backup: {error}", error = e))?;
+            let file = path.file_name().map(|n| n.to_string_lossy().to_string()).unwrap_or_default();
+            let counts = backup.summary().counts;
+            let mut s = b.lock();
+            s.backup_preview = None;
+            s.backup_result = Some(BackupResult::Saved { file, counts, notes });
+            Ok(None)
+        }
+        Cmd::ExportPlaylist(playlist, path) => {
+            let system = active_system(b).ok_or_else(|| crate::t!("Connect to your speakers first").to_string())?;
+            let tracks = system.playlist_tracks(&playlist)?;
+            if tracks.is_empty() {
+                return Err(crate::t!("“{title}” has no songs to export", title = playlist.title).to_string());
+            }
+            if crate::csv::is_csv(&path) {
+                let text = crate::csv::write(&tracks, &crate::sources::local::path_of_address);
+                std::fs::write(&path, text).map_err(|e| crate::t!("Couldn't save the backup: {error}", error = e))?;
+                let file = path.file_name().map(|n| n.to_string_lossy().to_string()).unwrap_or_default();
+                b.lock().toast(crate::t!("Saved playlist “{title}” as {file}", title = playlist.title, file = file), false);
+                return Ok(None);
+            }
+            if crate::m3u::is_m3u(&path) {
+                let text = crate::m3u::write(&playlist.title, &tracks, &crate::sources::local::path_of_address);
+                std::fs::write(&path, text).map_err(|e| crate::t!("Couldn't save the backup: {error}", error = e))?;
+                let file = path.file_name().map(|n| n.to_string_lossy().to_string()).unwrap_or_default();
+                b.lock().toast(crate::t!("Saved playlist “{title}” as {file}", title = playlist.title, file = file), false);
+                return Ok(None);
+            }
+            let now = std::time::SystemTime::now().duration_since(std::time::UNIX_EPOCH).map(|d| d.as_secs()).unwrap_or(0);
+            let backup = crate::backup::Backup {
+                roomtone_backup: crate::backup::FORMAT,
+                created: now,
+                app_version: env!("CARGO_PKG_VERSION").to_string(),
+                system: crate::backup::SystemInfo { generation: crate::backup::SystemAccess::generation(&system), rooms: vec![] },
+                sonos_playlists: vec![crate::backup::PlaylistBackup { title: playlist.title.clone(), tracks }],
+                ..Default::default()
+            };
+            std::fs::write(&path, backup.to_json()?).map_err(|e| crate::t!("Couldn't save the backup: {error}", error = e))?;
+            let file = path.file_name().map(|n| n.to_string_lossy().to_string()).unwrap_or_default();
+            let mut s = b.lock();
+            s.toast(crate::t!("Saved playlist “{title}” as {file}", title = playlist.title, file = file), false);
+            Ok(None)
+        }
+        Cmd::ReadBackup(path) => {
+            let backup = load_backup_file(&path)?;
+            let mut s = b.lock();
+            s.backup_result = None;
+            s.backup_preview = Some((path, backup.summary()));
+            Ok(None)
+        }
+        Cmd::RestoreBackup(path, sections) => {
+            let backup = load_backup_file(&path)?;
+            let system = active_system(b);
+            let (mut cfg, household) = {
+                let s = b.lock();
+                (s.config.clone(), s.household().map(|h| h.id.clone()).unwrap_or_default())
+            };
+            let report = backup.restore(system.as_ref().map(|s| s as &dyn crate::backup::SystemAccess), &mut cfg, sections, &household);
+            {
+                let mut s = b.lock();
+                s.config = cfg;
+                // The demo system keeps its lists in this cache; real speakers are asked again.
+                if s.phase != Phase::Demo {
+                    s.browse.remove("FV:2");
+                    s.browse.remove("SQ:");
+                }
+                s.backup_preview = None;
+                s.backup_result = Some(BackupResult::Restored(report));
+            }
+            save(b);
+            if let Some(sys) = &system {
+                if let Ok(list) = crate::backup::SystemAccess::alarms(sys) {
+                    b.lock().alarms = Some(list);
+                }
+            }
+            Ok(None)
+        }
         Cmd::Browse(id) if id.starts_with("ARTIST:") => {
             let (b2, ctx2) = (b.clone(), ctx.clone());
             thread::spawn(move || {
@@ -2064,6 +2168,138 @@ fn poller(b: Backend, ctx: Waker) {
     }
 }
 
+/// A backup file, or a playlist file (M3U or CSV) read as a backup with one playlist in it.
+fn load_backup_file(path: &std::path::Path) -> Result<crate::backup::Backup, String> {
+    if crate::m3u::is_m3u(path) || crate::csv::is_csv(path) {
+        let bytes = std::fs::read(path).map_err(|e| crate::t!("Couldn't open the backup: {error}", error = e))?;
+        let text = String::from_utf8_lossy(&bytes);
+        let parsed = if crate::csv::is_csv(path) {
+            crate::csv::parse(&text, path.parent(), &crate::sources::local::item_for_path, &crate::sources::local::item_for_name)
+        } else {
+            crate::m3u::parse(&text, path.parent(), &crate::sources::local::item_for_path)
+        }
+        .map_err(|e| crate::t!("Couldn't use that file: {error}", error = e))?;
+        let title = parsed.title.unwrap_or_else(|| path.file_stem().map(|s| s.to_string_lossy().to_string()).unwrap_or_default());
+        let now = std::time::SystemTime::now().duration_since(std::time::UNIX_EPOCH).map(|d| d.as_secs()).unwrap_or(0);
+        return Ok(crate::backup::Backup {
+            roomtone_backup: crate::backup::FORMAT,
+            created: now,
+            app_version: env!("CARGO_PKG_VERSION").to_string(),
+            sonos_playlists: vec![crate::backup::PlaylistBackup { title, tracks: parsed.tracks }],
+            import_notes: parsed.notes,
+            ..Default::default()
+        });
+    }
+    let text = std::fs::read_to_string(path).map_err(|e| crate::t!("Couldn't open the backup: {error}", error = e))?;
+    crate::backup::Backup::parse(&text).map_err(|e| crate::t!("Couldn't use that file: {error}", error = e))
+}
+
+/// The active system as the backup code sees it: the real speakers, or the demo system.
+struct ActiveSystem {
+    b: Backend,
+    /// `None` for the demo system.
+    ip: Option<String>,
+    generation: String,
+    rooms: Vec<(String, String)>,
+}
+
+/// The system a backup or restore works on, if there is one.
+fn active_system(b: &Backend) -> Option<ActiveSystem> {
+    let s = b.lock();
+    let h = s.household()?;
+    let demo = s.phase == Phase::Demo;
+    let ip = if demo { None } else { Some(s.any_ip()?) };
+    if !demo && s.phase != Phase::Live {
+        return None;
+    }
+    Some(ActiveSystem { b: b.clone(), ip, generation: h.system.label().to_string(), rooms: h.rooms.iter().map(|r| (r.uuid.clone(), r.name.clone())).collect() })
+}
+
+impl ActiveSystem {
+    /// The songs of one playlist (an item from the system's playlist list).
+    fn playlist_tracks(&self, playlist: &Item) -> Result<Vec<Item>, String> {
+        match &self.ip {
+            Some(ip) => speaker::browse(ip, &playlist.id),
+            None => Ok(match self.b.lock().browse.get(&playlist.id) {
+                Some(Browse::Ready(v)) => v.clone(),
+                _ => demo::browse(&playlist.id),
+            }),
+        }
+    }
+}
+
+impl crate::backup::SystemAccess for ActiveSystem {
+    fn generation(&self) -> String {
+        self.generation.clone()
+    }
+    fn rooms(&self) -> Vec<(String, String)> {
+        self.rooms.clone()
+    }
+    fn favorites(&self) -> Result<Vec<Item>, String> {
+        match &self.ip {
+            Some(ip) => speaker::browse(ip, "FV:2"),
+            None => Ok(match self.b.lock().browse.get("FV:2") {
+                Some(Browse::Ready(v)) => v.clone(),
+                _ => demo::browse("FV:2"),
+            }),
+        }
+    }
+    fn playlists(&self) -> Result<Vec<crate::backup::PlaylistBackup>, String> {
+        match &self.ip {
+            Some(ip) => speaker::playlists_with_tracks(ip),
+            None => {
+                let list = match self.b.lock().browse.get("SQ:") {
+                    Some(Browse::Ready(v)) => v.clone(),
+                    _ => demo::browse("SQ:"),
+                };
+                Ok(list
+                    .into_iter()
+                    .map(|p| {
+                        let tracks = match self.b.lock().browse.get(&p.id) {
+                            Some(Browse::Ready(v)) => v.clone(),
+                            _ => demo::browse(&p.id),
+                        };
+                        crate::backup::PlaylistBackup { title: p.title, tracks }
+                    })
+                    .collect())
+            }
+        }
+    }
+    fn alarms(&self) -> Result<Vec<Alarm>, String> {
+        match &self.ip {
+            Some(ip) => speaker::alarms(ip),
+            None => Ok(self.b.lock().alarms.clone().unwrap_or_default()),
+        }
+    }
+    fn add_favorite(&self, item: &Item) -> Result<(), String> {
+        match &self.ip {
+            Some(ip) => speaker::add_favorite(ip, item),
+            None => {
+                demo::add_favorite_quiet(&mut self.b.lock(), item);
+                Ok(())
+            }
+        }
+    }
+    fn create_playlist(&self, title: &str, tracks: &[Item]) -> Result<(), String> {
+        match &self.ip {
+            Some(ip) => speaker::create_playlist(ip, title, tracks),
+            None => {
+                demo::add_playlist_quiet(&mut self.b.lock(), title, tracks);
+                Ok(())
+            }
+        }
+    }
+    fn save_alarm(&self, alarm: &Alarm) -> Result<(), String> {
+        match &self.ip {
+            Some(ip) => speaker::save_alarm(ip, alarm),
+            None => {
+                demo::apply(&mut self.b.lock(), &Cmd::SaveAlarm(alarm.clone()));
+                Ok(())
+            }
+        }
+    }
+}
+
 /// With speaker events working, a group is asked about this often (in seconds) as a safety net
 /// (the playback position is counted on the screen between answers).
 const SAFETY_NET_SELECTED: u64 = 10;
@@ -2196,6 +2432,164 @@ fn events_manager(b: Backend, ctx: Waker) {
 mod unit {
     use super::*;
     use crate::test_support::{demo_backend, isolate, wait_for};
+
+    #[test]
+    fn a_backup_can_be_saved_read_and_restored_on_the_demo_system() {
+        use crate::backup::{Backup, Sections};
+        let b = demo_backend();
+        let dir = std::path::Path::new(env!("CARGO_MANIFEST_DIR")).join("target").join("backup-tests");
+        std::fs::create_dir_all(&dir).unwrap();
+        let file = dir.join("demo.json");
+        let wait = Duration::from_secs(10);
+
+        b.send_and_wait(Cmd::SaveBackup(file.clone(), Sections::default()), wait).unwrap();
+        let saved = Backup::parse(&std::fs::read_to_string(&file).unwrap()).unwrap();
+        assert!(!saved.sonos_favorites.is_empty() && !saved.sonos_playlists.is_empty() && !saved.alarms.is_empty(), "the demo system has all three");
+        assert!(matches!(b.lock().backup_result, Some(BackupResult::Saved { .. })));
+
+        // Restoring what's already there adds nothing.
+        b.send_and_wait(Cmd::RestoreBackup(file.clone(), Sections::default()), wait).unwrap();
+        match &b.lock().backup_result {
+            Some(BackupResult::Restored(r)) => assert_eq!(r.added.favorites + r.added.playlists + r.added.alarms, 0, "{r:?}"),
+            other => panic!("{other:?}"),
+        }
+
+        // A backup with something new in it: read it (preview), then restore.
+        let mut more = saved.clone();
+        more.sonos_favorites.push(Item { title: "Restored radio".into(), uri: "x-rincon-mp3radio://restored".into(), ..Default::default() });
+        more.sonos_playlists
+            .push(crate::backup::PlaylistBackup { title: "Restored mix".into(), tracks: vec![Item { title: "Song".into(), uri: "x://song".into(), ..Default::default() }] });
+        // The test settings folder lasts between runs, so make the station new every time.
+        let unique = format!("http://restored/{}", std::time::SystemTime::now().duration_since(std::time::UNIX_EPOCH).map(|d| d.as_nanos()).unwrap_or(0));
+        more.app.stations.push(crate::config::Station { name: "Restored station".into(), url: unique.clone(), genre: String::new() });
+        std::fs::write(&file, more.to_json().unwrap()).unwrap();
+        b.send_and_wait(Cmd::ReadBackup(file.clone()), wait).unwrap();
+        let counts = b.lock().backup_preview.as_ref().map(|(_, s)| s.counts).expect("a preview is shown");
+        assert_eq!(counts.favorites, saved.sonos_favorites.len() + 1);
+        b.send_and_wait(Cmd::RestoreBackup(file.clone(), Sections::default()), wait).unwrap();
+        {
+            let s = b.lock();
+            assert!(s.backup_preview.is_none());
+            match &s.backup_result {
+                Some(BackupResult::Restored(r)) => {
+                    assert_eq!((r.added.favorites, r.added.playlists, r.added.app), (1, 1, 1), "{r:?}");
+                    assert_eq!(r.failed.total(), 0, "{r:?}");
+                }
+                other => panic!("{other:?}"),
+            }
+            assert!(s.config.stations.iter().any(|x| x.url == unique));
+            let favs = match s.browse.get("FV:2") {
+                Some(Browse::Ready(v)) => v.clone(),
+                _ => demo::browse("FV:2"),
+            };
+            assert!(favs.iter().any(|f| f.title == "Restored radio"));
+        }
+        b.send_and_wait(Cmd::DismissBackup, wait).unwrap();
+        assert!(b.lock().backup_result.is_none());
+        // A file that isn't a backup is refused with a message, not a crash.
+        std::fs::write(&file, "{\"hello\": 1}").unwrap();
+        assert!(b.send_and_wait(Cmd::ReadBackup(file), wait).is_err());
+    }
+
+    #[test]
+    fn one_playlist_can_be_exported_and_imported() {
+        use crate::backup::Backup;
+        let b = demo_backend();
+        let wait = Duration::from_secs(10);
+        let dir = std::path::Path::new(env!("CARGO_MANIFEST_DIR")).join("target").join("backup-tests");
+        std::fs::create_dir_all(&dir).unwrap();
+        let file = dir.join("one-playlist.json");
+        let playlist = demo::browse("SQ:").into_iter().next().expect("the demo has playlists");
+
+        b.send_and_wait(Cmd::ExportPlaylist(playlist.clone(), file.clone()), wait).unwrap();
+        let saved = Backup::parse(&std::fs::read_to_string(&file).unwrap()).unwrap();
+        assert_eq!(saved.sonos_playlists.len(), 1, "just the one playlist");
+        assert_eq!(saved.sonos_playlists[0].title, playlist.title);
+        assert!(!saved.sonos_playlists[0].tracks.is_empty());
+        assert!(saved.sonos_favorites.is_empty() && saved.alarms.is_empty() && saved.app == Default::default(), "nothing else comes with it");
+
+        // As a file to import: it's recognised, and since the demo already has it, it's skipped.
+        b.send_and_wait(Cmd::ReadBackup(file.clone()), wait).unwrap();
+        assert_eq!(b.lock().backup_preview.as_ref().map(|(_, s)| s.counts.playlists), Some(1));
+        b.send_and_wait(Cmd::RestoreBackup(file.clone(), crate::backup::Sections::default()), wait).unwrap();
+        match &b.lock().backup_result {
+            Some(BackupResult::Restored(r)) => assert_eq!((r.added.playlists, r.skipped.playlists), (0, 1), "{r:?}"),
+            other => panic!("{other:?}"),
+        }
+        // A playlist that isn't there yet is added, songs and all.
+        let mut renamed = saved.clone();
+        renamed.sonos_playlists[0].title = format!("Copy {}", std::time::SystemTime::now().duration_since(std::time::UNIX_EPOCH).map(|d| d.as_nanos()).unwrap_or(0));
+        std::fs::write(&file, renamed.to_json().unwrap()).unwrap();
+        b.send_and_wait(Cmd::RestoreBackup(file, crate::backup::Sections::default()), wait).unwrap();
+        let result = b.lock().backup_result.clone();
+        match result {
+            Some(BackupResult::Restored(r)) => assert_eq!(r.added.playlists, 1, "{r:?}"),
+            other => panic!("{other:?}"),
+        }
+    }
+
+    #[test]
+    fn a_playlist_can_be_exported_as_m3u_and_imported_again() {
+        use crate::backup::Sections;
+        let b = demo_backend();
+        let wait = Duration::from_secs(10);
+        let dir = std::path::Path::new(env!("CARGO_MANIFEST_DIR")).join("target").join("backup-tests");
+        std::fs::create_dir_all(&dir).unwrap();
+        let file = dir.join("road trip.m3u8");
+        let playlist = demo::browse("SQ:").into_iter().next().expect("the demo has playlists");
+
+        b.send_and_wait(Cmd::ExportPlaylist(playlist.clone(), file.clone()), wait).unwrap();
+        let text = std::fs::read_to_string(&file).unwrap();
+        assert!(text.starts_with("#EXTM3U\n#PLAYLIST:"), "{text}");
+        assert!(text.contains("#EXTINF:"));
+
+        // Read it as an import: its songs come back under the playlist's name.
+        b.send_and_wait(Cmd::ReadBackup(file.clone()), wait).unwrap();
+        let counts = b.lock().backup_preview.as_ref().map(|(_, s)| s.counts).expect("a preview is shown");
+        assert_eq!((counts.playlists, counts.favorites, counts.alarms), (1, 0, 0));
+        // Same name as one that's already there: skipped, with nothing lost or duplicated.
+        b.send_and_wait(Cmd::RestoreBackup(file.clone(), Sections::default()), wait).unwrap();
+        let result = b.lock().backup_result.clone();
+        match result {
+            Some(BackupResult::Restored(r)) => assert_eq!(r.added.playlists + r.skipped.playlists, 1, "{r:?}"),
+            other => panic!("{other:?}"),
+        }
+        // A file that isn't a song list is refused with a message.
+        std::fs::write(&file, "#EXTM3U\n#EXT-X-VERSION:3\n").unwrap();
+        assert!(b.send_and_wait(Cmd::ReadBackup(file), wait).is_err());
+    }
+
+    #[test]
+    fn a_playlist_can_be_exported_as_csv_and_imported_again() {
+        use crate::backup::Sections;
+        let b = demo_backend();
+        let wait = Duration::from_secs(10);
+        let dir = std::path::Path::new(env!("CARGO_MANIFEST_DIR")).join("target").join("backup-tests");
+        std::fs::create_dir_all(&dir).unwrap();
+        let file = dir.join("spreadsheet list.csv");
+        let playlist = demo::browse("SQ:").into_iter().next().expect("the demo has playlists");
+
+        b.send_and_wait(Cmd::ExportPlaylist(playlist.clone(), file.clone()), wait).unwrap();
+        let text = std::fs::read_to_string(&file).unwrap();
+        assert!(text.starts_with("\u{feff}Title,Artist,Album,Duration (seconds),Address\r\n"), "{text}");
+
+        // The demo's songs have made-up addresses, so add one the app can use and read it back.
+        let with_address = format!("{text}Extra song,Some Band,,95,https://cdn.example/extra.mp3\r\n");
+        std::fs::write(&file, with_address).unwrap();
+        b.send_and_wait(Cmd::ReadBackup(file.clone()), wait).unwrap();
+        let counts = b.lock().backup_preview.as_ref().map(|(_, s)| s.counts).expect("a preview is shown");
+        assert_eq!((counts.playlists, counts.favorites, counts.alarms), (1, 0, 0));
+        b.send_and_wait(Cmd::RestoreBackup(file.clone(), Sections::default()), wait).unwrap();
+        let result = b.lock().backup_result.clone();
+        match result {
+            // Named after the file ("spreadsheet list"), so it's a new playlist.
+            Some(BackupResult::Restored(r)) if r.added.playlists + r.skipped.playlists == 1 => {}
+            other => panic!("{other:?}"),
+        }
+        // Not a song list: refused with a message.
+        std::fs::write(&file, "Colour,Size\nred,3\n").unwrap();
+        assert!(b.send_and_wait(Cmd::ReadBackup(file), wait).is_err());
+    }
 
     /// The demo rooms have no network address; give each a made-up one.
     fn give_rooms_addresses(b: &Backend) {
