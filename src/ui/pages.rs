@@ -2122,9 +2122,9 @@ impl App {
             ui.add_space(6.0);
             ui.label(RichText::new(t!("What's new in this version")).color(TEXT()).strong());
             for line in [
-                t!("Podcasts and other web audio now play on S1 speakers"),
-                t!("Arrange your rooms in the order you like"),
-                t!("More ways to sort long lists, an A–Z jump strip, and a search box for the queue"),
+                t!("Media keys and Now Playing control your music, and the window remembers its size"),
+                t!("A History page lists everything you've played"),
+                t!("Check which S1 speakers can move to S2, and optionally look for new versions"),
             ] {
                 ui.horizontal_wrapped(|ui| {
                     ui.label(RichText::new("•").color(ACCENT()));

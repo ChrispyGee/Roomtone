@@ -635,9 +635,6 @@ Couldn't check: {error}	Prüfung nicht möglich: {error}
 You have version {current}	Du hast Version {current}
 Check now	Jetzt prüfen
 Roomtone {version} is available. See Settings.	Roomtone {version} ist verfügbar. Siehe Einstellungen.
-Podcasts and other web audio now play on S1 speakers	Podcasts und andere Web-Audioquellen laufen jetzt auch auf S1-Lautsprechern
-Arrange your rooms in the order you like	Ordne deine Räume in der Reihenfolge an, die du magst
-More ways to sort long lists, an A–Z jump strip, and a search box for the queue	Mehr Sortiermöglichkeiten für lange Listen, eine A–Z-Sprungleiste und ein Suchfeld für die Warteschlange
 Can this system move to S2?	Kann dieses System auf S2 wechseln?
 Check again	Erneut prüfen
 Check my speakers	Meine Lautsprecher prüfen
@@ -674,3 +671,6 @@ yesterday	gestern
 1 play	1 Wiedergabe
 {n} plays	{n} Wiedergaben
 History cleared	Verlauf gelöscht
+Media keys and Now Playing control your music, and the window remembers its size	Medientasten und „Jetzt läuft“ steuern deine Musik, und das Fenster merkt sich seine Größe
+A History page lists everything you've played	Eine Verlaufsseite zeigt alles, was du gehört hast
+Check which S1 speakers can move to S2, and optionally look for new versions	Prüfe, welche S1-Lautsprecher auf S2 wechseln können, und suche optional nach neuen Versionen

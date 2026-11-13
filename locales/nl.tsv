@@ -635,9 +635,6 @@ Couldn't check: {error}	Controleren mislukt: {error}
 You have version {current}	Je hebt versie {current}
 Check now	Nu controleren
 Roomtone {version} is available. See Settings.	Roomtone {version} is beschikbaar. Zie Instellingen.
-Podcasts and other web audio now play on S1 speakers	Podcasts en andere webaudio werken nu ook op S1-speakers
-Arrange your rooms in the order you like	Rangschik je kamers in de volgorde die je wilt
-More ways to sort long lists, an A–Z jump strip, and a search box for the queue	Meer manieren om lange lijsten te sorteren, een A–Z-springbalk en een zoekvak voor de wachtrij
 Can this system move to S2?	Kan dit systeem naar S2?
 Check again	Opnieuw controleren
 Check my speakers	Mijn speakers controleren
@@ -674,3 +671,6 @@ yesterday	gisteren
 1 play	1 keer afgespeeld
 {n} plays	{n} keer afgespeeld
 History cleared	Geschiedenis gewist
+Media keys and Now Playing control your music, and the window remembers its size	Mediatoetsen en Now Playing bedienen je muziek, en het venster onthoudt zijn formaat
+A History page lists everything you've played	Een geschiedenispagina toont alles wat je hebt afgespeeld
+Check which S1 speakers can move to S2, and optionally look for new versions	Controleer welke S1-speakers naar S2 kunnen en zoek desgewenst naar nieuwe versies
