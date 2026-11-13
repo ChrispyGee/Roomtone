@@ -4,6 +4,8 @@ All notable changes to Roomtone. The format follows [Keep a Changelog](https://k
 
 ## [Unreleased]
 
+## [0.5.3] — 2026-11-13
+
 ### Fixed
 - A settings file that can't be read (a typo from editing by hand, a half-written file) is no longer silently replaced by the defaults: it is moved to `config.json.broken-<n>`, a notice at the top of Settings says where it went, and if it can't be moved nothing is saved that run. Background readers never touch it.
 

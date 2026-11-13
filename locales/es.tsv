@@ -561,3 +561,6 @@ Every setting explained, and how to back them up	Todos los ajustes explicados, y
 Your settings file couldn't be read	No se pudo leer tu archivo de ajustes
 It was kept as {file} in the settings folder, and Roomtone started with the defaults. Fix it or copy back what you need, then rename it to config.json to use it again.	Se guardó como {file} en la carpeta de ajustes y Roomtone arrancó con los valores predeterminados. Repáralo o copia lo que necesites y renómbralo a config.json para volver a usarlo.
 It couldn't be set aside either ({error}), so changes won't be saved this time. Fix or move the file, then start Roomtone again.	Tampoco se pudo apartar ({error}), así que esta vez no se guardarán los cambios. Repara o mueve el archivo y vuelve a iniciar Roomtone.
+Instant updates from the speakers, switched on in Settings	Actualizaciones instantáneas de los altavoces, que se activan en Ajustes
+A guide to every setting, linked from the About section	Una guía de todos los ajustes, enlazada en el apartado Acerca de
+A settings file that can't be read is kept aside instead of being replaced	Un archivo de ajustes ilegible se conserva aparte en lugar de reemplazarse

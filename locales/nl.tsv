@@ -561,3 +561,6 @@ Every setting explained, and how to back them up	Alle instellingen uitgelegd, en
 Your settings file couldn't be read	Je instellingenbestand kon niet worden gelezen
 It was kept as {file} in the settings folder, and Roomtone started with the defaults. Fix it or copy back what you need, then rename it to config.json to use it again.	Het is bewaard als {file} in de instellingenmap en Roomtone is met de standaardwaarden gestart. Herstel het of kopieer terug wat je nodig hebt en hernoem het dan naar config.json om het weer te gebruiken.
 It couldn't be set aside either ({error}), so changes won't be saved this time. Fix or move the file, then start Roomtone again.	Het kon ook niet opzij worden gezet ({error}), dus wijzigingen worden deze keer niet opgeslagen. Herstel of verplaats het bestand en start Roomtone opnieuw.
+Instant updates from the speakers, switched on in Settings	Directe updates van de speakers, in te schakelen bij Instellingen
+A guide to every setting, linked from the About section	Een gids voor alle instellingen, gelinkt in het onderdeel Over
+A settings file that can't be read is kept aside instead of being replaced	Een onleesbaar instellingenbestand wordt opzij gezet in plaats van vervangen
