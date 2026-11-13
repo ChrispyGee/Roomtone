@@ -71,7 +71,7 @@ Window
   --lang <code>             language for this run: en, de, fr, es, it, nl
   --theme <mode>            appearance for this run: auto, light, dark
   --view <page>             open a page first: home, search, favorites, playlists, library,
-                            radio, inputs, alarms, settings, nowplaying, services
+                            radio, inputs, alarms, settings, nowplaying, services, history, speakers, finder
   --screenshot <file.png>   draw about 120 frames, save a picture of the window, then quit
 
 Without a window

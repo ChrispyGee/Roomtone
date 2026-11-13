@@ -442,6 +442,13 @@ pub fn recurrence_label(r: &str) -> String {
     }
 }
 
+/// The state of the *Can't find my speakers?* check.
+#[derive(Clone, Debug, PartialEq)]
+pub enum DiagState {
+    Running,
+    Done(crate::diagnose::Diagnosis),
+}
+
 /// The state of the S2 compatibility look for one system.
 #[derive(Clone, Debug, PartialEq)]
 pub enum S2State {
@@ -520,6 +527,8 @@ pub struct AppState {
     pub updates: HashMap<String, UpdateState>,
     /// What the *Can it move to S2?* look found, by system.
     pub s2: HashMap<String, S2State>,
+    /// The latest *Can't find my speakers?* check.
+    pub diagnosis: Option<DiagState>,
 }
 
 /// Where a system's software update stands.
@@ -579,6 +588,7 @@ impl Default for AppState {
             links: vec![],
             updates: HashMap::new(),
             s2: HashMap::new(),
+            diagnosis: None,
         }
     }
 }

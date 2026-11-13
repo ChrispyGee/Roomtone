@@ -674,3 +674,27 @@ History cleared	Historial borrado
 Media keys and Now Playing control your music, and the window remembers its size	Las teclas multimedia y «Reproduciendo» controlan tu música, y la ventana recuerda su tamaño
 A History page lists everything you've played	Una página de historial muestra todo lo que has reproducido
 Check which S1 speakers can move to S2, and optionally look for new versions	Comprueba qué altavoces S1 pueden pasar a S2 y, si quieres, busca versiones nuevas
+1 speaker answered the search	1 altavoz respondió a la búsqueda
+A short summary with no room names or addresses, to paste into a bug report	Un resumen breve sin nombres de habitaciones ni direcciones, para pegar en un informe de error
+A speaker	Un altavoz
+A speaker is on a different network from this computer (for example a guest network or another router). Put both on the same network.	Un altavoz está en una red distinta a la de este ordenador (por ejemplo, una red de invitados u otro router). Pon ambos en la misma red.
+Answers	Responde
+Can't find your speakers?	¿No encuentras tus altavoces?
+Copy report	Copiar informe
+Different network	Otra red
+Doesn't answer	No responde
+Everything that was tried answers. If a room is still missing, try Search network again, or add it by its address.	Todo lo que se probó responde. Si aún falta una habitación, prueba «Buscar de nuevo en la red» o añádela por su dirección.
+Linux: allow Roomtone through the firewall (UDP 1900 for the search, TCP 1400 to the speakers).	Linux: permite Roomtone en el cortafuegos (UDP 1900 para la búsqueda, TCP 1400 hacia los altavoces).
+No speaker answered the search	Ningún altavoz respondió a la búsqueda
+Nothing answered. Check that the speakers are plugged in and on the same Wi-Fi or cable network as this computer (not a guest network), and that no VPN is running.	Nada respondió. Comprueba que los altavoces estén enchufados y en la misma red Wi-Fi o por cable que este ordenador (no en una red de invitados) y que no haya una VPN activa.
+Run the check	Ejecutar la comprobación
+Some speakers that were known don't answer. They may be off, restarting or out of Wi-Fi range.	Algunos altavoces conocidos no responden. Pueden estar apagados, reiniciándose o fuera del alcance del Wi-Fi.
+Speakers and this computer on the same Wi-Fi or cable network, not a guest network.	Los altavoces y este ordenador en la misma red Wi-Fi o por cable, no en una red de invitados.
+Things to check	Qué comprobar
+This checks the usual reasons. It only looks; nothing on your speakers is changed.	Esto revisa los motivos más habituales. Solo mira; no se cambia nada en tus altavoces.
+This computer doesn't seem to be on a home network. Connect to the same Wi-Fi or cable network as your speakers.	Este ordenador no parece estar en una red doméstica. Conéctalo a la misma red Wi-Fi o por cable que tus altavoces.
+Turn off any VPN while using Roomtone.	Desactiva cualquier VPN mientras uses Roomtone.
+Windows: when asked, allow Roomtone on private networks (Windows Defender Firewall › Allow an app).	Windows: cuando se te pregunte, permite Roomtone en redes privadas (Firewall de Windows Defender › Permitir una aplicación).
+Your speakers answer when asked directly, but the search for them didn't get through. Some routers and Wi-Fi extenders block it. Adding a speaker by its address below works around that.	Tus altavoces responden cuando se les pregunta directamente, pero la búsqueda no llegó. Algunos routers y repetidores Wi-Fi la bloquean. Añadir un altavoz por su dirección (abajo) lo soluciona.
+macOS: open System Settings › Privacy & Security › Local Network and switch Roomtone on.	macOS: abre Ajustes del Sistema › Privacidad y seguridad › Red local y activa Roomtone.
+{n} speakers answered the search	{n} altavoces respondieron a la búsqueda

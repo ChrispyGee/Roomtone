@@ -5,6 +5,7 @@ All notable changes to Roomtone. The format follows [Keep a Changelog](https://k
 ## [Unreleased]
 
 ### Added
+- **Can't find your speakers?** A guided check (button in *Your speakers* and Settings › Speakers): repeats the search, asks each speaker you have or added whether it answers, notices a different network or a blocked search, shows plain advice and the usual things to check on your system, lets you add a speaker by address, and *Copy report* gives a summary with no names or addresses to paste into a bug report. Read-only. Checked on the demo system; the real-network checks haven't been tried against a failing network yet.
 - **PLS and XSPF playlists**: *Export playlist…* can now save a playlist as `.pls` or `.xspf` (for other players), and *Import playlist* reads both, the same way as M3U and CSV (songs from your music folders are found again; XML files with a DTD are refused).
 - **Back up from the command line and for assistants**: `roomtone backup ~/roomtone-backup.json` (and the assistant tool `save_backup`) saves the same backup file as *Save backup*, into a new file; it never overwrites. Restoring stays in the app.
 - **Assistants can follow changes** (`resources/subscribe`): an assistant can subscribe to the status, now-playing, alarms or a room's queue and is sent `notifications/resources/updated` when it changes, over stdout (`--mcp`) or an event stream on the HTTP link (`GET /mcp`, with the new `Mcp-Session-Id`), instead of asking again and again. Checked over stdio on the demo system.

@@ -87,6 +87,8 @@ pub struct App {
     subscribed: std::collections::HashSet<String>,
     link_dismissed: bool,
     speakers_open: bool,
+    /// The *Can't find your speakers?* window.
+    finder_open: bool,
     merged_source: usize,
     current_group: Option<String>,
     /// Saved favorites this frame: (address, favorite id) on the speakers, and ids kept in the app.
@@ -127,6 +129,7 @@ impl App {
     pub fn new(cc: &eframe::CreationContext<'_>, shot: Option<PathBuf>, demo: bool, view: Option<&str>) -> App {
         let preset_search = view.and_then(|v| v.strip_prefix("search:")).map(String::from);
         let open_speakers = view == Some("speakers");
+        let open_finder = view == Some("finder");
         let open_new_group = view == Some("newgroup");
         // Test hook: "--view open:<list id>" opens that list in the library.
         let open_list = view.and_then(|v| v.strip_prefix("open:")).map(|id| Item {
@@ -211,6 +214,7 @@ impl App {
             subscribed: Default::default(),
             link_dismissed: false,
             speakers_open: open_speakers,
+            finder_open: open_finder,
             merged_source: 0,
             current_group: None,
             speaker_favs: vec![],
@@ -349,6 +353,9 @@ impl App {
                 self.backend.send(Cmd::CheckS2(hid));
             }
         }
+        if self.frame == 20 && std::env::var_os("ROOMTONE_TEST_FINDER").is_some() {
+            self.backend.send(Cmd::Diagnose);
+        }
         if self.frame == 20 && std::env::var_os("ROOMTONE_TEST_EDITOR").is_some() {
             let s = self.backend.lock();
             if let Some((_, g)) = s.selected_group.as_ref().and_then(|g| s.find_group(g)) {
@@ -432,6 +439,7 @@ impl App {
         self.station_modal(ctx);
         self.link_modal(ctx, s);
         self.speakers_modal(ctx, s);
+        self.finder_modal(ctx, s);
         self.group_preset_modal(ctx, s);
         self.update_modal(ctx);
         self.toasts(ctx, s);
@@ -1354,9 +1362,141 @@ impl App {
                     }
                 });
             });
+            // On its own line: with longer languages the buttons don't all fit in one row.
+            ui.add_space(6.0);
+            if pill(ui, None, t!("Can't find your speakers?"), false).clicked() {
+                self.finder_open = true;
+                close = true;
+            }
         });
         if modal.should_close() || close {
             self.speakers_open = false;
+        }
+    }
+
+    /// A guided look at why speakers might not be found, with a report that can be pasted into
+    /// a bug report (no names or addresses in it).
+    fn finder_modal(&mut self, ctx: &egui::Context, s: &AppState) {
+        use crate::diagnose::Advice;
+        if !self.finder_open {
+            return;
+        }
+        let mut close = false;
+        let modal = egui::Modal::new(egui::Id::unique("finder_modal")).frame(modal_frame()).show(ctx, |ui| {
+            ui.set_width(500.0);
+            ui.label(RichText::new(t!("Can't find your speakers?")).size(20.0).strong());
+            ui.label(RichText::new(t!("This checks the usual reasons. It only looks; nothing on your speakers is changed.")).size(12.5).color(TEXT_DIM()));
+            ui.add_space(10.0);
+            egui::ScrollArea::vertical().max_height(520.0).show(ui, |ui| {
+                match &s.diagnosis {
+                    None => {
+                        if pill(ui, Some(Icon::Search), t!("Run the check"), true).clicked() {
+                            self.out.push(Cmd::Diagnose);
+                        }
+                    }
+                    Some(DiagState::Running) => {
+                        ui.horizontal(|ui| {
+                            ui.add(egui::Spinner::new());
+                            ui.label(RichText::new(t!("Checking…")).color(TEXT_DIM()));
+                        });
+                    }
+                    Some(DiagState::Done(d)) => {
+                        let answered = if d.search_answers == 0 { t!("No speaker answered the search").to_string() } else { tn!(d.search_answers, "1 speaker answered the search", "{n} speakers answered the search") };
+                        ui.label(RichText::new(answered).color(if d.search_answers == 0 { BAD() } else { GOOD() }));
+                        ui.add_space(4.0);
+                        for p in &d.probes {
+                            ui.horizontal(|ui| {
+                                let name = [p.model.as_str(), p.version.as_str()].iter().filter(|x| !x.is_empty()).copied().collect::<Vec<_>>().join(" · ");
+                                ui.label(RichText::new(if name.is_empty() { t!("A speaker").to_string() } else { name }).color(TEXT()));
+                                if p.reachable {
+                                    chip(ui, t!("Answers"), GOOD());
+                                } else {
+                                    chip(ui, t!("Doesn't answer"), BAD());
+                                }
+                                if p.same_network == Some(false) {
+                                    chip(ui, t!("Different network"), BAD());
+                                }
+                            });
+                        }
+                        ui.add_space(6.0);
+                        for a in crate::diagnose::advice(d) {
+                            let (color, text) = match a {
+                                Advice::NoNetwork => (BAD(), t!("This computer doesn't seem to be on a home network. Connect to the same Wi-Fi or cable network as your speakers.")),
+                                Advice::NothingAnswered => (
+                                    BAD(),
+                                    t!("Nothing answered. Check that the speakers are plugged in and on the same Wi-Fi or cable network as this computer (not a guest network), and that no VPN is running."),
+                                ),
+                                Advice::SearchBlocked => (
+                                    BAD(),
+                                    t!("Your speakers answer when asked directly, but the search for them didn't get through. Some routers and Wi-Fi extenders block it. Adding a speaker by its address below works around that."),
+                                ),
+                                Advice::DifferentNetwork => (
+                                    BAD(),
+                                    t!("A speaker is on a different network from this computer (for example a guest network or another router). Put both on the same network."),
+                                ),
+                                Advice::SomeSilent => (BAD(), t!("Some speakers that were known don't answer. They may be off, restarting or out of Wi-Fi range.")),
+                                Advice::AllGood => (GOOD(), t!("Everything that was tried answers. If a room is still missing, try Search network again, or add it by its address.")),
+                            };
+                            ui.add(egui::Label::new(RichText::new(text).color(color)).wrap());
+                            ui.add_space(4.0);
+                        }
+                    }
+                }
+                ui.add_space(8.0);
+                ui.label(RichText::new(t!("Things to check")).color(TEXT()).strong());
+                let os_tip = if cfg!(target_os = "macos") {
+                    t!("macOS: open System Settings › Privacy & Security › Local Network and switch Roomtone on.")
+                } else if cfg!(target_os = "windows") {
+                    t!("Windows: when asked, allow Roomtone on private networks (Windows Defender Firewall › Allow an app).")
+                } else {
+                    t!("Linux: allow Roomtone through the firewall (UDP 1900 for the search, TCP 1400 to the speakers).")
+                };
+                for tip in [t!("Speakers and this computer on the same Wi-Fi or cable network, not a guest network."), t!("Turn off any VPN while using Roomtone."), os_tip] {
+                    ui.horizontal_wrapped(|ui| {
+                        ui.label(RichText::new("•").color(ACCENT()));
+                        ui.label(RichText::new(tip).size(12.5).color(TEXT_DIM()));
+                    });
+                }
+                ui.add_space(8.0);
+                ui.label(RichText::new(t!("Add a speaker by address")).color(TEXT()).strong());
+                ui.label(RichText::new(t!("If your network blocks discovery, type a speaker's IP address (find it in your router).")).size(12.0).color(TEXT_DIM()));
+                ui.horizontal(|ui| {
+                    ui.add(egui::TextEdit::singleline(&mut self.manual_ip).hint_text("192.168.1.20").desired_width(200.0).margin(vec2(10.0, 7.0)));
+                    if pill(ui, Some(Icon::Plus), t!("Add"), false).clicked() {
+                        let ip = self.manual_ip.trim().to_string();
+                        if ip.parse::<std::net::Ipv4Addr>().is_ok() {
+                            self.out.push(Cmd::AddManual(ip));
+                            self.manual_ip.clear();
+                        }
+                    }
+                });
+            });
+            ui.add_space(12.0);
+            ui.horizontal(|ui| {
+                let running = matches!(s.diagnosis, Some(DiagState::Running));
+                if matches!(s.diagnosis, Some(DiagState::Done(_))) && pill(ui, Some(Icon::Refresh), t!("Check again"), false).clicked() && !running {
+                    self.out.push(Cmd::Diagnose);
+                }
+                if let Some(DiagState::Done(d)) = &s.diagnosis {
+                    if pill(ui, None, t!("Copy report"), false)
+                        .on_hover_text(t!("A short summary with no room names or addresses, to paste into a bug report"))
+                        .clicked()
+                    {
+                        ui.ctx().copy_text(crate::diagnose::report(d, crate::help::platform(), env!("CARGO_PKG_VERSION")));
+                    }
+                }
+                ui.with_layout(Layout::right_to_left(Align::Center), |ui| {
+                    if pill(ui, None, t!("Close"), false).clicked() {
+                        close = true;
+                    }
+                    if pill(ui, None, t!("Report a problem"), false).clicked() {
+                        ui.ctx().open_url(egui::OpenUrl::new_tab(format!("{}/issues/new/choose", crate::help::REPO_URL)));
+                    }
+                });
+            });
+        });
+        if modal.should_close() || close {
+            self.finder_open = false;
         }
     }
 
