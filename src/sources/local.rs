@@ -256,6 +256,17 @@ pub fn item_for_path(path: &Path) -> Option<Item> {
     l.tracks.iter().find(|t| tail(&t.path.to_string_lossy()) == wanted).map(track_item)
 }
 
+/// A song in the music folders with this title (and artist, if one is given), ignoring case.
+pub fn item_for_name(title: &str, artist: &str) -> Option<Item> {
+    let l = lib().read().ok()?;
+    let (title, artist) = (title.trim().to_lowercase(), artist.trim().to_lowercase());
+    if title.is_empty() {
+        return None;
+    }
+    let same_artist = |t: &Track| artist.is_empty() || t.artist.to_lowercase() == artist;
+    l.tracks.iter().find(|t| t.title.to_lowercase() == title && same_artist(t)).map(track_item)
+}
+
 /// Details of a song from the folders, by its `/t/<code>` address part.
 pub fn known_track(key: &str) -> Option<super::memory::Known> {
     let id = key.strip_prefix("/t/")?;
@@ -621,5 +632,7 @@ mod playlist_files {
         assert!(found.uri.ends_with(&format!("/t/{id}.flac")));
         assert!(item_for_path(Path::new("/nowhere/Else/song.mp3")).is_none());
         assert!(item_for_path(Path::new("Morning Fog.flac")).is_none(), "a bare file name is too loose to trust");
+        assert_eq!(item_for_name("morning fog", "MARLOW QUARTET").map(|i| i.title), Some("Morning Fog".into()));
+        assert!(item_for_name("Morning Fog", "Someone Else").is_none() && item_for_name("", "").is_none());
     }
 }

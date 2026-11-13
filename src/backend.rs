@@ -919,6 +919,13 @@ fn run_common(b: &Backend, ctx: &Waker, cmd: Cmd) -> Result<Option<Cmd>, String>
             if tracks.is_empty() {
                 return Err(crate::t!("“{title}” has no songs to export", title = playlist.title).to_string());
             }
+            if crate::csv::is_csv(&path) {
+                let text = crate::csv::write(&tracks, &crate::sources::local::path_of_address);
+                std::fs::write(&path, text).map_err(|e| crate::t!("Couldn't save the backup: {error}", error = e))?;
+                let file = path.file_name().map(|n| n.to_string_lossy().to_string()).unwrap_or_default();
+                b.lock().toast(crate::t!("Saved playlist “{title}” as {file}", title = playlist.title, file = file), false);
+                return Ok(None);
+            }
             if crate::m3u::is_m3u(&path) {
                 let text = crate::m3u::write(&playlist.title, &tracks, &crate::sources::local::path_of_address);
                 std::fs::write(&path, text).map_err(|e| crate::t!("Couldn't save the backup: {error}", error = e))?;
@@ -2161,12 +2168,17 @@ fn poller(b: Backend, ctx: Waker) {
     }
 }
 
-/// A backup file, or a playlist file (M3U) read as a backup with one playlist in it.
+/// A backup file, or a playlist file (M3U or CSV) read as a backup with one playlist in it.
 fn load_backup_file(path: &std::path::Path) -> Result<crate::backup::Backup, String> {
-    if crate::m3u::is_m3u(path) {
+    if crate::m3u::is_m3u(path) || crate::csv::is_csv(path) {
         let bytes = std::fs::read(path).map_err(|e| crate::t!("Couldn't open the backup: {error}", error = e))?;
         let text = String::from_utf8_lossy(&bytes);
-        let parsed = crate::m3u::parse(&text, path.parent(), &crate::sources::local::item_for_path).map_err(|e| crate::t!("Couldn't use that file: {error}", error = e))?;
+        let parsed = if crate::csv::is_csv(path) {
+            crate::csv::parse(&text, path.parent(), &crate::sources::local::item_for_path, &crate::sources::local::item_for_name)
+        } else {
+            crate::m3u::parse(&text, path.parent(), &crate::sources::local::item_for_path)
+        }
+        .map_err(|e| crate::t!("Couldn't use that file: {error}", error = e))?;
         let title = parsed.title.unwrap_or_else(|| path.file_stem().map(|s| s.to_string_lossy().to_string()).unwrap_or_default());
         let now = std::time::SystemTime::now().duration_since(std::time::UNIX_EPOCH).map(|d| d.as_secs()).unwrap_or(0);
         return Ok(crate::backup::Backup {
@@ -2544,6 +2556,38 @@ mod unit {
         }
         // A file that isn't a song list is refused with a message.
         std::fs::write(&file, "#EXTM3U\n#EXT-X-VERSION:3\n").unwrap();
+        assert!(b.send_and_wait(Cmd::ReadBackup(file), wait).is_err());
+    }
+
+    #[test]
+    fn a_playlist_can_be_exported_as_csv_and_imported_again() {
+        use crate::backup::Sections;
+        let b = demo_backend();
+        let wait = Duration::from_secs(10);
+        let dir = std::path::Path::new(env!("CARGO_MANIFEST_DIR")).join("target").join("backup-tests");
+        std::fs::create_dir_all(&dir).unwrap();
+        let file = dir.join("spreadsheet list.csv");
+        let playlist = demo::browse("SQ:").into_iter().next().expect("the demo has playlists");
+
+        b.send_and_wait(Cmd::ExportPlaylist(playlist.clone(), file.clone()), wait).unwrap();
+        let text = std::fs::read_to_string(&file).unwrap();
+        assert!(text.starts_with("\u{feff}Title,Artist,Album,Duration (seconds),Address\r\n"), "{text}");
+
+        // The demo's songs have made-up addresses, so add one the app can use and read it back.
+        let with_address = format!("{text}Extra song,Some Band,,95,https://cdn.example/extra.mp3\r\n");
+        std::fs::write(&file, with_address).unwrap();
+        b.send_and_wait(Cmd::ReadBackup(file.clone()), wait).unwrap();
+        let counts = b.lock().backup_preview.as_ref().map(|(_, s)| s.counts).expect("a preview is shown");
+        assert_eq!((counts.playlists, counts.favorites, counts.alarms), (1, 0, 0));
+        b.send_and_wait(Cmd::RestoreBackup(file.clone(), Sections::default()), wait).unwrap();
+        let result = b.lock().backup_result.clone();
+        match result {
+            // Named after the file ("spreadsheet list"), so it's a new playlist.
+            Some(BackupResult::Restored(r)) if r.added.playlists + r.skipped.playlists == 1 => {}
+            other => panic!("{other:?}"),
+        }
+        // Not a song list: refused with a message.
+        std::fs::write(&file, "Colour,Size\nred,3\n").unwrap();
         assert!(b.send_and_wait(Cmd::ReadBackup(file), wait).is_err());
     }
 

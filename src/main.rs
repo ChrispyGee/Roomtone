@@ -29,6 +29,7 @@ mod backend;
 mod backup;
 mod brand;
 mod config;
+mod csv;
 mod demo;
 mod help;
 mod known;

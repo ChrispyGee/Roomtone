@@ -594,4 +594,5 @@ Connect to your speakers first	Connectez-vous d’abord à vos enceintes
 “{title}” has no songs to export	« {title} » ne contient aucun morceau à exporter
 Saved playlist “{title}” as {file}	Playlist « {title} » enregistrée sous {file}
 Export as M3U…	Exporter en M3U…
-Add a playlist from an M3U file, or a file saved with Export playlist or Save backup	Ajouter une playlist depuis un fichier M3U, ou un fichier enregistré avec Exporter la playlist ou Enregistrer la sauvegarde
+Export as CSV…	Exporter en CSV…
+Add a playlist from an M3U or CSV file, or a file saved with Export playlist or Save backup	Ajouter une playlist depuis un fichier M3U ou CSV, ou un fichier enregistré avec Exporter la playlist ou Enregistrer la sauvegarde

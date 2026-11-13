@@ -48,17 +48,22 @@ pub fn write(title: &str, tracks: &[Item], local_path: &dyn Fn(&str) -> Option<P
         if !t.album.is_empty() && !t.album.starts_with("http") {
             out.push_str(&format!("#EXTALB:{}\n", line(&t.album)));
         }
-        let place = match local_path(&t.uri) {
-            Some(p) => p.to_string_lossy().to_string(),
-            None => match t.uri.strip_prefix("x-file-cifs://") {
-                Some(rest) => format!("smb://{rest}"),
-                None => t.uri.clone(),
-            },
-        };
-        out.push_str(&line(&place));
+        out.push_str(&line(&location_of(t, local_path)));
         out.push('\n');
     }
     out
+}
+
+/// Where a song is, for a playlist file: its file path if it's on this computer, an `smb://`
+/// address for a network share, otherwise its own address.
+pub(crate) fn location_of(t: &Item, local_path: &dyn Fn(&str) -> Option<PathBuf>) -> String {
+    match local_path(&t.uri) {
+        Some(p) => p.to_string_lossy().to_string(),
+        None => match t.uri.strip_prefix("x-file-cifs://") {
+            Some(rest) => format!("smb://{rest}"),
+            None => t.uri.clone(),
+        },
+    }
 }
 
 /// Read M3U text. `base` is the folder the file is in (for relative paths); `resolve_local`
@@ -109,7 +114,7 @@ pub fn parse(text: &str, base: Option<&Path>, resolve_local: &dyn Fn(&Path) -> O
     Ok(p)
 }
 
-enum Place {
+pub(crate) enum Place {
     /// Something a speaker can fetch or play as it is.
     Address(String),
     /// A file on this computer.
@@ -117,7 +122,7 @@ enum Place {
     Unusable,
 }
 
-fn place(entry: &str, base: Option<&Path>) -> Place {
+pub(crate) fn place(entry: &str, base: Option<&Path>) -> Place {
     let lower = entry.to_lowercase();
     if lower.starts_with("http://") || lower.starts_with("https://") || lower.starts_with("x-") {
         return Place::Address(entry.to_string());
@@ -145,7 +150,7 @@ fn place(entry: &str, base: Option<&Path>) -> Place {
     }
 }
 
-fn file_name(path: &Path) -> String {
+pub(crate) fn file_name(path: &Path) -> String {
     let s = path.to_string_lossy();
     s.rsplit(['/', '\\']).next().unwrap_or(&s).to_string()
 }
@@ -170,7 +175,7 @@ fn percent_decode(s: &str) -> String {
     String::from_utf8_lossy(&out).to_string()
 }
 
-fn item_for(uri: &str, display: &str, secs: f32, album: &str) -> Item {
+pub(crate) fn item_for(uri: &str, display: &str, secs: f32, album: &str) -> Item {
     let (artist, title) = match display.split_once(" - ") {
         Some((a, t)) if !a.trim().is_empty() && !t.trim().is_empty() => (a.trim().to_string(), t.trim().to_string()),
         _ => (String::new(), display.to_string()),
