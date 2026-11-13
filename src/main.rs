@@ -39,6 +39,7 @@ mod macos_about;
 mod mcp;
 mod model;
 mod net;
+mod quality;
 mod sources;
 #[cfg(test)]
 mod test_support;

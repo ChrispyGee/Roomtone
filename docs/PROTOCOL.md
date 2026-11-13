@@ -97,6 +97,15 @@ Services seen refusing third-party sign-in (2026-11-11): Apple Music (`getAppLin
 - Creating (used by *Restore*, **not yet tried against real speakers**): `AVTransport#CreateSavedQueue(Title, EnqueuedURI, EnqueuedURIMetaData)` with the first song returns `AssignedObjectID` (`SQ:<n>`) and `NewUpdateID`; each further song is `AVTransport#AddURIToSavedQueue(ObjectID, UpdateID, EnqueuedURI, EnqueuedURIMetaData, AddAtIndex=4294967295)`, passing the previous call's `NewUpdateID`. This doesn't touch the queue that's playing.
 - Favorites are created with `ContentDirectory#CreateObject` in `FV:2` (`speaker::add_favorite`); alarms with `AlarmClock#CreateAlarm`.
 
+## 6c. Sound quality of what's playing
+
+Read from the track's address and its DIDL-Lite `TrackMetaData` (from `GetPositionInfo`), with no extra calls (`quality::of`):
+
+- `res@protocolInfo` third field is the MIME type: `audio/flac`, `audio/mpeg`, `audio/mp4`, `audio/ogg`, `audio/wav`… → format and whether it's lossless. **Seen on a real S1 system** for tracks from the music library (only the MIME type; no rate or depth).
+- Standard UPnP `res` attributes `sampleFrequency` (Hz), `bitsPerSample`, `nrAudioChannels` and `bitrate` (bytes per second by the standard; values above 64000 are treated as bits per second: an estimate) are used if a speaker sends them.
+- A `streamInfo` element, if present, is read as JSON or `key=value` pairs (`sampleRate`, `bitDepth`, `bitrate`, `codec`, `channels`); anything not understood is only listed in *Technical details*. **Not yet seen from a real speaker**: what S2 actually sends here is unconfirmed, which is why the details list and *Copy details* exist.
+- Without any of these the format falls back to the song address (file extension, `x-rincon-mp3radio:` is MP3, `x-sonosapi-hls*` is AAC).
+
 ## 6b. Events (UPnP `SUBSCRIBE`)
 
 Used by `net::events` when *Speaker updates* is on. Plain HTTP on port 1400:

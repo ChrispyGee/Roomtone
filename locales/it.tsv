@@ -561,6 +561,11 @@ Every setting explained, and how to back them up	Tutte le impostazioni spiegate 
 Your settings file couldn't be read	Impossibile leggere il file delle impostazioni
 It was kept as {file} in the settings folder, and Roomtone started with the defaults. Fix it or copy back what you need, then rename it to config.json to use it again.	È stato conservato come {file} nella cartella delle impostazioni e Roomtone è partito con i valori predefiniti. Riparalo o copia ciò che ti serve, poi rinominalo in config.json per riusarlo.
 It couldn't be set aside either ({error}), so changes won't be saved this time. Fix or move the file, then start Roomtone again.	Non è stato possibile nemmeno metterlo da parte ({error}), quindi questa volta le modifiche non verranno salvate. Ripara o sposta il file e riavvia Roomtone.
+Lossless	Senza perdita
+Technical details	Dettagli tecnici
+This is what the speaker told Roomtone about this song. Anything it doesn't send can't be shown.	Questo è ciò che l’altoparlante ha comunicato a Roomtone su questo brano. Ciò che non invia non può essere mostrato.
+Copy details	Copia i dettagli
+Details copied	Dettagli copiati
 Played	Ascoltato
 {n} min left	ancora {n} min
 −15 s	−15 s

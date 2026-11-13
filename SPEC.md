@@ -72,7 +72,7 @@ The source of truth for **what Roomtone does**. Code, tests and docs should agre
 
 ### 4.2 Playback
 - Play, pause, next, previous, seek, shuffle, repeat (off/all/one), crossfade, sleep timer (15, 30, 45 min, 1 h, 2 h, or off).
-- **Now Playing** page: large art, track details, artist link ("everything by this artist"), the group's room volumes, play mode, crossfade, sleep timer, upcoming queue.
+- **Now Playing** page: large art, track details, the **sound** of what's playing as small labels (format such as FLAC or MP3, sample rate, bit depth, bitrate, and *Lossless*) wherever the speaker says (nothing is shown that isn't reported; it's read from details fetched with each poll, so no extra traffic), with **Technical details** (what the speaker sent, with addresses reduced to their kind) and *Copy details* for reports, artist link ("everything by this artist"), the group's room volumes, play mode, crossfade, sleep timer, upcoming queue.
 - **Queue**: play from any position, move up or down, remove, clear, save as a playlist.
 - Play options on anything: *Play now*, *Play next*, *Add to end of queue*, *Replace queue*.
 
@@ -276,6 +276,7 @@ All in the app's data folder: `~/Library/Application Support/Roomtone/` (macOS),
 | Software updates (check and install) | Demo system only |
 | Backup: saving favorites, playlists and alarms | One real S1 system, read only (counts and round trip); demo system for everything else |
 | Backup: **restoring** favorites, playlists and alarms | Pretend system in unit tests and the demo system; **not yet tried on real speakers** (the playlist calls `CreateSavedQueue`/`AddURIToSavedQueue` are unverified) |
+| Sound quality labels | Unit tests on made-up and real-S1-library descriptions (format from the MIME type is what a real S1 system sends for library tracks); **sample rate, bit depth and bitrate from real speakers not yet seen** (nothing was playing when checked) |
 | Speaker updates (UPnP events) | Unit tests against a pretend speaker (subscribe, notice, renew, cancel, refusals); tried once with a real S1 speaker (Connect:Amp, firmware 11.16): all three subscriptions accepted, a first notice for each within about 5 s, a 1800 s lease, renewing and cancelling work; no S2 or multi-room tests yet |
 | Assistant link: every tool, on/off, look-only, key, origin check | Demo system, stdio and HTTP |
 | Translations | Automated completeness test; not reviewed by native speakers |
