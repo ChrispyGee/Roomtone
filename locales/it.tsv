@@ -635,9 +635,6 @@ Couldn't check: {error}	Impossibile controllare: {error}
 You have version {current}	Hai la versione {current}
 Check now	Controlla ora
 Roomtone {version} is available. See Settings.	Roomtone {version} è disponibile. Vedi Impostazioni.
-Podcasts and other web audio now play on S1 speakers	I podcast e altro audio web ora funzionano sugli altoparlanti S1
-Arrange your rooms in the order you like	Riordina le tue stanze come preferisci
-More ways to sort long lists, an A–Z jump strip, and a search box for the queue	Più modi di ordinare le liste lunghe, una barra di salto A–Z e un campo di ricerca per la coda
 Can this system move to S2?	Questo sistema può passare a S2?
 Check again	Controlla di nuovo
 Check my speakers	Controlla i miei altoparlanti
@@ -674,3 +671,6 @@ yesterday	ieri
 1 play	1 riproduzione
 {n} plays	{n} riproduzioni
 History cleared	Cronologia cancellata
+Media keys and Now Playing control your music, and the window remembers its size	I tasti multimediali e «In riproduzione» controllano la musica, e la finestra ricorda le sue dimensioni
+A History page lists everything you've played	Una pagina Cronologia elenca tutto ciò che hai ascoltato
+Check which S1 speakers can move to S2, and optionally look for new versions	Controlla quali altoparlanti S1 possono passare a S2 e, se vuoi, cerca nuove versioni

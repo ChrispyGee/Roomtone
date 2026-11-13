@@ -635,9 +635,6 @@ Couldn't check: {error}	Vérification impossible : {error}
 You have version {current}	Vous avez la version {current}
 Check now	Vérifier maintenant
 Roomtone {version} is available. See Settings.	Roomtone {version} est disponible. Voir les Réglages.
-Podcasts and other web audio now play on S1 speakers	Les podcasts et autres contenus audio web fonctionnent maintenant sur les enceintes S1
-Arrange your rooms in the order you like	Organisez vos pièces dans l’ordre que vous voulez
-More ways to sort long lists, an A–Z jump strip, and a search box for the queue	Plus de façons de trier les longues listes, une barre de saut A–Z et un champ de recherche pour la file d’attente
 Can this system move to S2?	Ce système peut-il passer à S2 ?
 Check again	Vérifier à nouveau
 Check my speakers	Vérifier mes enceintes
@@ -674,3 +671,6 @@ yesterday	hier
 1 play	1 lecture
 {n} plays	{n} lectures
 History cleared	Historique effacé
+Media keys and Now Playing control your music, and the window remembers its size	Les touches multimédia et « En lecture » commandent votre musique, et la fenêtre retient sa taille
+A History page lists everything you've played	Une page Historique liste tout ce que vous avez écouté
+Check which S1 speakers can move to S2, and optionally look for new versions	Vérifiez quelles enceintes S1 peuvent passer à S2 et, si vous le souhaitez, cherchez les nouvelles versions
