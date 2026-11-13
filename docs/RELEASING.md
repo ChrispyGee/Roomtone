@@ -61,3 +61,17 @@ After pushing, Dependabot closes its own pull requests when the same update is a
 9. To build by hand instead: `cargo build --release`; the program is `target/release/roomtone` (`roomtone.exe` on Windows). On a Mac, `packaging/macos/build-dmg.sh <version> <out.dmg>` makes the `.dmg`.
 
 The installers aren't signed or notarised; see the [roadmap](ROADMAP.md) for signing, an Intel Mac build and AppImage/Flatpak.
+
+## Package managers (Homebrew, winget, Arch)
+
+Each release also attaches `SHA256SUMS` (a checksum for every file) and `roomtone-vX.Y.Z-package-manifests.tar.gz`, made by `packaging/package-managers/render.sh` from the templates in `packaging/package-managers/`:
+
+| Channel | Files | Where they go |
+| --- | --- | --- |
+| Homebrew (macOS) | `homebrew/roomtone.rb`, a cask | The tap `ChrispyGee/homebrew-roomtone` (created for 0.6.1; `brew install --cask ChrispyGee/roomtone/roomtone`). For each release, replace `Casks/roomtone.rb` there with the new file and commit. The main `homebrew-cask` repository asks for a notarised app, so it has to wait for signing |
+| winget (Windows) | `winget/*.yaml`, three files | A pull request to [microsoft/winget-pkgs](https://github.com/microsoft/winget-pkgs) under `manifests/c/ChrispyGee/Roomtone/<version>/` (`wingetcreate` or `winget validate` checks it first) |
+| Arch User Repository | `aur/PKGBUILD` (`roomtone-bin`) | The AUR package `roomtone-bin`: `git clone ssh://aur@aur.archlinux.org/roomtone-bin.git`, copy `PKGBUILD`, run `makepkg --printsrcinfo > .SRCINFO`, commit and push. Fill in the maintainer line first |
+
+Nothing is published automatically: each of these puts the project's name on someone else's service and needs an account, so a person does it, once per release, after the release is out and its files are downloadable. To make the files by hand for any release: `gh release download vX.Y.Z -p '*' -D dist && (cd dist && sha256sum -- * > ../SHA256SUMS) && packaging/package-managers/render.sh X.Y.Z SHA256SUMS out`.
+
+The installers aren't signed, so macOS and Windows still ask for confirmation the first time whichever way Roomtone is installed.

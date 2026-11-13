@@ -54,3 +54,15 @@ jobs:
         env:
           RUSTDOCFLAGS: -D warnings
         run: cargo doc --locked --no-deps
+
+      - name: Package-manager files can be filled in
+        if: runner.os == 'Linux'
+        run: |
+          v=9.9.9
+          for n in macos-arm64.dmg windows-x64-setup.exe linux-x64.tar.gz; do
+            printf '%064d  roomtone-v%s-%s\n' 0 "$v" "$n"
+          done > sums
+          packaging/package-managers/render.sh "$v" sums out
+          grep -q 'version "9.9.9"' out/homebrew/roomtone.rb
+          grep -q 'PackageVersion: 9.9.9' out/winget/ChrispyGee.Roomtone.yaml
+          grep -q 'pkgver=9.9.9' out/aur/PKGBUILD

@@ -1,0 +1,28 @@
+# Maintainer: <fill in the AUR maintainer's name and address when submitting>
+pkgname=roomtone-bin
+_name=roomtone
+pkgver=@VERSION@
+pkgrel=1
+pkgdesc='Controller for S1 and S2 wireless speaker systems, with a headless mode and an MCP link for AI assistants'
+arch=('x86_64')
+url='https://github.com/ChrispyGee/Roomtone'
+license=('MIT' 'Apache-2.0')
+depends=('gcc-libs' 'glibc' 'openssl' 'libxcb' 'libxkbcommon' 'wayland' 'libgl' 'fontconfig')
+optdepends=('xdg-desktop-portal: file dialogs')
+provides=("$_name")
+conflicts=("$_name")
+source=("$_name-$pkgver.tar.gz::$url/releases/download/v$pkgver/roomtone-v$pkgver-linux-x64.tar.gz"
+        "$_name-$pkgver.desktop::https://raw.githubusercontent.com/ChrispyGee/Roomtone/v$pkgver/packaging/linux/roomtone.desktop")
+sha256sums=('@SHA_LINUX@'
+            '@SHA_DESKTOP@')
+
+package() {
+  cd "$srcdir/roomtone-v$pkgver-linux-x64"
+  install -Dm755 roomtone "$pkgdir/usr/bin/roomtone"
+  install -Dm644 LICENSE-MIT "$pkgdir/usr/share/licenses/$pkgname/LICENSE-MIT"
+  install -Dm644 LICENSE-APACHE "$pkgdir/usr/share/licenses/$pkgname/LICENSE-APACHE"
+  install -Dm644 "$srcdir/$_name-$pkgver.desktop" "$pkgdir/usr/share/applications/roomtone.desktop"
+  # The program makes its own icon.
+  ./roomtone --write-icon roomtone.png 512
+  install -Dm644 roomtone.png "$pkgdir/usr/share/icons/hicolor/512x512/apps/roomtone.png"
+}
