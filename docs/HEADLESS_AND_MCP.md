@@ -200,13 +200,18 @@ printf '%s\n' '{"jsonrpc":"2.0","id":1,"method":"initialize","params":{}}' \
 | "Couldn't open port 8790" in Settings | Another program, or another copy of Roomtone, already uses the port; pick another with `--mcp-port` |
 | Tools list without play/volume tools | *Assistants can change things* is off (look-only) |
 
-## 4. Safety
+## 4. Following changes, and the command line
+
+- **Change notifications**: an assistant can `resources/subscribe` to `roomtone://status`, `roomtone://now-playing`, `roomtone://alarms` or `roomtone://queue/<room>` and is told with `notifications/resources/updated` when it changes, instead of asking again and again. Over stdin/stdout the notice is a line of its own; over HTTP the assistant sends back the `Mcp-Session-Id` it was given at `initialize` and opens `GET /mcp` with `Accept: text/event-stream`. Ticking values (the song position) don't count as changes. See [SPEC.md §6.4](../SPEC.md).
+- **Command line**: with the link on (and control allowed), `roomtone play`, `pause`, `next`, `volume 30 --room Kitchen`, `volume +5 --group`, `mute`, `sleep 30`, `group Kitchen Den`, `scene "Movie night"`, `scenes`, `status`, `now`, `queue`, `favorites`, `alarms` and `backup file.json` talk to the Roomtone that's already running (window or `--headless`) on this computer. Exit code 0 done, 1 refused, 2 not understood, 3 can't reach Roomtone. `roomtone --help` lists them.
+
+## 5. Safety
 
 - Off by default; switching it off takes effect at once.
 - HTTP listens on this computer only (`127.0.0.1`) unless you allow other computers. It always requires the access key, refuses requests from web pages (checked by `Origin`, and JSON only), and with other computers off it also refuses other host names.
 - Look-only mode hides and refuses every tool that changes something.
 - The access key is in `config.json`, readable only by you. **New key** in Settings replaces it.
 
-## 5. What assistants can do
+## 6. What assistants can do
 
 See the tool table in [SPEC.md §6.3](../SPEC.md#63-tools): status, now playing, playback, volume and mute, play mode, seek, sleep timer, favorites, playlists, search and play, queue, grouping and saved groups, play along across S1/S2, line-in/TV, sound settings and alarms.

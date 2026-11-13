@@ -271,10 +271,12 @@ All in the app's data folder: `~/Library/Application Support/Roomtone/` (macOS),
 
 | File | Contents |
 | --- | --- |
-| `config.json` (mode 600 on Unix) | `folders` (paths), `stations` [{`name`, `url`, `genre`}], `podcasts` [{`title`, `author`, `feed`, `art`}], `services` (switched-on free sources: `local`, `radio`, `podcasts`, `archive`), `accounts` [{`sid`, `name`, `uri`, `manifest`, `household`, `device_id`, `token`, `key`, `sn`}], `favorites` (items kept in the app), `groups` [{`name`, `household`, `rooms`}], `language` (`auto` or a code), `theme` (`auto`, `light` or `dark`), `speaker_events` (`true` or `false`), `room_order` (room ids, first to last), `check_new_versions` (`true` or `false`), `last_version_check` (seconds since 1970), `mcp` {`enabled`, `allow_control`, `allow_network`, `port`, `token`} |
-| `config.json` (mode 600 on Unix) | `folders` (paths), `stations` [{`name`, `url`, `genre`}], `podcasts` [{`title`, `author`, `feed`, `art`}], `services` (switched-on free sources: `local`, `radio`, `podcasts`, `archive`), `accounts` [{`sid`, `name`, `uri`, `manifest`, `household`, `device_id`, `token`, `key`, `sn`}], `favorites` (items kept in the app), `groups` [{`name`, `household`, `rooms`}], `language` (`auto` or a code), `theme` (`auto`, `light` or `dark`), `speaker_events` (`true` or `false`), `room_order` (room ids, first to last), `remember_history` (`true` or `false`), `media_keys` (`true` or `false`), `mcp` {`enabled`, `allow_control`, `allow_network`, `port`, `token`} |
+| `config.json` (mode 600 on Unix) | `folders` (paths), `stations` [{`name`, `url`, `genre`}], `podcasts` [{`title`, `author`, `feed`, `art`}], `services` (switched-on free sources: `local`, `radio`, `podcasts`, `archive`), `accounts` [{`sid`, `name`, `uri`, `manifest`, `household`, `device_id`, `token`, `key`, `sn`}], `favorites` (items kept in the app), `groups` [{`name`, `household`, `rooms`}], `language` (`auto` or a code), `theme` (`auto`, `light` or `dark`), `speaker_events` (`true` or `false`), `scenes` [{`name`, `household`, `rooms` [{`room`, `volume`}], `group`, `play`, `sleep_minutes`}], `room_order` (room ids, first to last), `remember_history` (`true` or `false`), `media_keys` (`true` or `false`), `check_new_versions` (`true` or `false`), `last_version_check` (seconds since 1970), `mcp` {`enabled`, `allow_control`, `allow_network`, `port`, `token`} |
 | `speakers.json` | Systems from last time: [{`id`, `s1`, `rooms` [{`uuid`, `name`, `ip`, `model`, `version`}], `groups` [{`coordinator`, `members`}]}] |
 | `songs.json` | `songs`: details (title, artist, album, art) by address, for songs the speakers know only by address; `relays`: relay codes for S1 and the https address each stands for |
+| `window.json` | The window's size, position and maximised state (§4.8) |
+| `history.json` | The listening history: up to 500 entries (song or station, address, play count, last played) (§4.8) |
+| `podcast-progress.json` | Where you stopped in each podcast episode and which are played (newest 300) |
 
 ## 9. Network, security and privacy
 
@@ -309,8 +311,17 @@ All in the app's data folder: `~/Library/Application Support/Roomtone/` (macOS),
 | Sound quality labels | Unit tests on made-up and real-S1-library descriptions (format from the MIME type is what a real S1 system sends for library tracks); **sample rate, bit depth and bitrate from real speakers not yet seen** (nothing was playing when checked) |
 | Speaker updates (UPnP events) | Unit tests against a pretend speaker (subscribe, notice, renew, cancel, refusals); tried once with a real S1 speaker (Connect:Amp, firmware 11.16): all three subscriptions accepted, a first notice for each within about 5 s, a 1800 s lease, renewing and cancelling work; no S2 or multi-room tests yet |
 | Assistant link: every tool, on/off, look-only, key, origin check | Demo system, stdio and HTTP |
+| Assistant change notifications (`resources/subscribe`) | Unit tests and a stdio run on the demo system; **not yet tried with a real assistant client** |
+| Command line (`roomtone play`, `volume`, `scene`, `backup`…) | Unit tests and a headless demo instance; **not yet run against a real system** |
+| Scenes | Unit tests and the demo system; once on two rooms of a real S1 system (grouping, volumes, a station, a sleep timer); **not yet on S2, with an album or playlist, or with an offline room** |
+| Speaker status (wired or wireless) | One real S1 Connect:Amp (wired); **Wireless not yet seen** |
+| *Can't find your speakers?* | Unit tests and the demo system; **not yet on a genuinely failing network** |
+| PLS and XSPF playlist files | Unit tests; **not yet opened in other players** |
+| Keyboard focus and screen-reader names | Unit test of the accessibility tree and screenshots; **not yet tried with a real screen reader** |
+| Media keys and Now Playing | Started on macOS; **Windows and Linux compile only** |
+| Homebrew install and upgrade | Real Mac (0.6.2 installed and upgraded through the tap) |
 | Translations | Automated completeness test; not reviewed by native speakers |
-| Logic without speakers (parsers, rules, settings, demo system, assistant link incl. HTTP security) | 103 unit tests (`cargo test`), run on every platform in CI |
+| Logic without speakers (parsers, rules, settings, demo system, assistant link incl. HTTP security) | About 220 unit tests (`cargo test`), run on every platform in CI |
 | Light mode | Screenshots of every page in the demo system |
 | Windows and Linux builds | Continuous integration (`.github/workflows/ci.yml`); not run by hand |
 

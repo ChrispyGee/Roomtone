@@ -23,13 +23,22 @@ There are no ads, no call-homes and you can run it completely offline.
 - **Playback**: queue editing, shuffle, repeat, crossfade, sleep timer, line-in and TV inputs, alarms, room sound settings.
 - **Music from everywhere**: the system's library, folders on this computer, favorites and playlists, internet radio, podcasts, the Internet Archive, and streaming services (sign in to Spotify, Amazon Music, Deezer, TIDAL or Qobuz; favorites from Apple Music, YouTube Music and SoundCloud). One search box covers them all.
 - **Software updates** for each system, with S1 kept on S1.
-- **Assistant link (MCP)**: 48 tools (status, playback, volume, browse and search, favorites, queue, grouping, alarms, rooms, services, stations, podcasts and updates), live resources, ready-made prompts and name suggestions. Off by default, with look-only mode and an access key.
+- **Scenes**: one click sets up a set of rooms: who plays together, how loud, what plays and when it stops ("Movie night"). On a Scenes page, as buttons on Home, from the command line and for assistants.
+- **Assistant link (MCP)**: 51 tools (status, playback, volume, browse and search, favorites, queue, grouping, scenes, alarms, rooms, services, stations, podcasts, backups and updates), live resources that assistants can follow for changes, ready-made prompts and name suggestions. Off by default, with look-only mode and an access key.
+- **Command line**: `roomtone play`, `volume 30 --room Kitchen`, `scene "Movie night"`, `backup file.json` and more control the running app, for scripts, Stream Deck and Shortcuts.
+- **Backup and restore** of favorites, playlists and alarms, and playlists as M3U, PLS, XSPF or CSV files, to move between S1 and S2 or between apps.
+- **Podcasts that remember**: skip back and forward, where you stopped, *Continue listening*. **Listening history** kept on this computer only, with a History page.
+- **Keyboard media keys and Now Playing** (macOS Control Center, Windows media overlay, Linux MPRIS), and a window that remembers its size and position.
+- **Keyboard and screen readers**: Tab reaches every control with a visible focus ring, sliders take arrow keys, and every hand-drawn control is named for VoiceOver, Narrator, NVDA and Orca (not yet tried with a real screen reader).
+- **When something's wrong**: *Can't find your speakers?* runs a read-only check with plain advice and a report with no names or addresses; *Your speakers* shows whether each room is wired or wireless; a check tells you which of your speakers could move to S2; an optional, off-by-default check for new Roomtone versions.
 - **Light, dark or automatic** appearance.
 - A **demo system** with made-up rooms, so you can try everything without speakers.
 
 ![The Now Playing page](docs/images/roomtone-now-playing.png)
 
 ![The home screen in light mode](docs/images/roomtone-home-light.png)
+
+![Scenes: one click sets up your rooms](docs/images/roomtone-scenes.png)
 
 ## Install
 
@@ -69,7 +78,8 @@ roomtone --theme light   # appearance for this run (auto, light, dark)
 roomtone --headless      # no window: keep the speakers up to date and serve the assistant link over HTTP
 roomtone --mcp           # no window: serve the assistant link on stdin/stdout
 roomtone --mcp-on        # switch the assistant link on (it's off until you do)
-roomtone --help          # every option
+roomtone play            # control the running app: play, pause, next, volume 30, scene "Movie night" …
+roomtone --help          # every option (and the control commands)
 roomtone --help mcp      # how to connect an assistant, written for the computer you're on
 ```
 
@@ -99,7 +109,7 @@ Step-by-step guides for macOS, Windows and Linux (including starting it automati
 | Windows | `%APPDATA%\Roomtone\` |
 | Linux | `~/.config/roomtone/` |
 
-`config.json` holds your settings, sign-ins and the assistant access key, readable only by you; every setting is explained in the [settings guide](docs/SETTINGS.md). `speakers.json` remembers your speakers for a fast start, and `songs.json` keeps song details. Nothing is sent anywhere except to your speakers, the music sources you use and the services you sign in to. There's no telemetry.
+`config.json` holds your settings, scenes, sign-ins and the assistant access key, readable only by you; every setting is explained in the [settings guide](docs/SETTINGS.md). `speakers.json` remembers your speakers for a fast start, `songs.json` keeps song details, `history.json` your listening history, `podcast-progress.json` where you stopped in episodes and `window.json` the window's size and position. Nothing is sent anywhere except to your speakers, the music sources you use and the services you sign in to. There's no telemetry.
 
 ## Contributing
 
