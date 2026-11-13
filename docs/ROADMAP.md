@@ -13,6 +13,10 @@ These work on the demo system but haven't been confirmed on real hardware. Repor
 | Do *Check for updates* and *Update all speakers* behave as expected? Is one `BeginSoftwareUpdate` per system enough? | Check for updates (changes nothing). Install only on a system you can afford to restart | Medium |
 | Line-in/TV detection from model names | Try every model you own; note which are wrong | Low |
 | Windows and Linux by hand (discovery through the firewall, tray behaviour, file dialogs) | Run the app on each | Medium |
+| **Restoring a backup** (0.5.4): does *Restore* create Sonos favorites, playlists (`CreateSavedQueue` / `AddURIToSavedQueue`) and alarms correctly, on S1 and on S2, and between them? | On a system you can spare: save a backup, delete a test playlist and favorite, restore, and check they're back. Saving was only checked read-only on one S1 system | High |
+| **Podcast resume** (0.5.4): do speakers accept a seek about 1.5 s after an episode starts, so *Resume where you left off* works? | Play an episode for a minute, stop, play it again | Medium |
+| **Sound quality** (0.5.4): what do S2 speakers send for sample rate, bit depth and bitrate? Only the format is confirmed (S1 library track: MIME type) | Play a song on an S2 speaker, open Now Playing › Technical details › Copy details, and attach it to a Speaker report | Medium |
+| **Speaker updates** (events): S2 speakers, grouped rooms, bonded pairs, and a speaker restarting. Checked once on one S1 speaker (3 subscriptions, ~5 s to first notice, 1800 s lease) | Switch it on in Settings and watch the status line while changing things from another app | Medium |
 
 ## Known limits (by design, for now)
 
@@ -21,6 +25,8 @@ These work on the demo system but haven't been confirmed on real hardware. Repor
 - *Play along* links aren't saved between runs.
 - "Automatic" language on Windows reads only environment variables.
 - Translations need native-speaker review (de, fr, es, it, nl).
+- The details under a restore summary (why something couldn't be restored) are in English only.
+- Importing an M3U or CSV matches songs only to your music folders (Music Library › Add folder); songs from streaming services can't be brought across from other apps' lists.
 
 ## Maintenance
 
