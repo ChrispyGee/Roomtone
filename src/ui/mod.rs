@@ -1421,28 +1421,24 @@ impl App {
                 ui.close();
             }
         }
-        if item.parent_id == "SQ:" && item.is_container && item.id.starts_with("SQ:") && ui.button(t!("Export as CSV…")).clicked() {
+        if item.parent_id == "SQ:"
+            && item.is_container
+            && item.id.starts_with("SQ:")
+            && ui
+                .button(t!("Export playlist…"))
+                .on_hover_text(t!("Choose the file type when you pick the name: M3U playlist, CSV spreadsheet or Roomtone backup (.json)"))
+                .clicked()
+        {
             let name: String = item.title.chars().map(|c| if c.is_alphanumeric() || c == ' ' || c == '-' { c } else { '_' }).collect();
-            let file = rfd::FileDialog::new().set_title(t!("Export as CSV…")).set_file_name(format!("{}.csv", name.trim())).add_filter("CSV spreadsheet", &["csv"]).save_file();
+            let file = rfd::FileDialog::new()
+                .set_title(t!("Export playlist…"))
+                .set_file_name(format!("{}.m3u8", name.trim()))
+                .add_filter("M3U playlist (.m3u8)", &["m3u8", "m3u"])
+                .add_filter("CSV spreadsheet (.csv)", &["csv"])
+                .add_filter("Roomtone backup (.json)", &["json"])
+                .save_file();
             if let Some(path) = file {
-                self.out.push(Cmd::ExportPlaylist(item.clone(), path));
-            }
-            ui.close();
-        }
-        if item.parent_id == "SQ:" && item.is_container && item.id.starts_with("SQ:") && ui.button(t!("Export as M3U…")).clicked() {
-            let name: String = item.title.chars().map(|c| if c.is_alphanumeric() || c == ' ' || c == '-' { c } else { '_' }).collect();
-            let file =
-                rfd::FileDialog::new().set_title(t!("Export as M3U…")).set_file_name(format!("{}.m3u8", name.trim())).add_filter("M3U playlist", &["m3u8", "m3u"]).save_file();
-            if let Some(path) = file {
-                self.out.push(Cmd::ExportPlaylist(item.clone(), path));
-            }
-            ui.close();
-        }
-        if item.parent_id == "SQ:" && item.is_container && item.id.starts_with("SQ:") && ui.button(t!("Export playlist…")).clicked() {
-            let name: String = item.title.chars().map(|c| if c.is_alphanumeric() || c == ' ' || c == '-' { c } else { '_' }).collect();
-            let file = rfd::FileDialog::new().set_title(t!("Export playlist…")).set_file_name(format!("{}.json", name.trim())).add_filter("Roomtone backup", &["json"]).save_file();
-            if let Some(path) = file {
-                self.out.push(Cmd::ExportPlaylist(item.clone(), path));
+                self.out.push(Cmd::ExportPlaylist(item.clone(), crate::backup::playlist_export_path(path)));
             }
             ui.close();
         }
