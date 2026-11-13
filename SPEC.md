@@ -88,7 +88,7 @@ The source of truth for **what Roomtone does**. Code, tests and docs should agre
 | Internet Archive | Featured collections, search, play whole recordings | Internet |
 | Streaming services | Browse, search and play through the speakers' own music-service connection | Sign-in (§4.4) |
 
-On S1 systems, `https` addresses are relayed through this computer as plain `http`, because S1 speakers can't play some secure streams.
+On S1 systems, `https` addresses are relayed through this computer as plain `http`, because S1 speakers can't play some secure streams. The relayed address (`http://<this computer>:<port>/p/<code>.<ending>`) carries the original's audio file ending, or `.mp3`, because speakers refuse a plain web address that has none.
 
 ### 4.4 Streaming services
 Sign-in happens on the service's own web page, with a code when the service uses one. Status as tested on 2026-11-11 against a real S2 system:
