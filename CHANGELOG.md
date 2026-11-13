@@ -4,6 +4,12 @@ All notable changes to Roomtone. The format follows [Keep a Changelog](https://k
 
 ## [Unreleased]
 
+### Fixed
+- Backups and playlist exports (JSON, M3U, CSV) now give songs that came from a computer's music folders their remembered titles and artists, as the Playlists page does; before, such songs could be exported with only a code as the title (found by exporting a real playlist).
+
+### Changed
+- Read-only checks against real speakers are kept as ignored tests (`real_speaker_events`, `real_speaker_backup_export`, `real_speaker_quality`, `real_speaker_playlist_files`; see `docs/ROADMAP.md`).
+
 ## [0.5.4] — 2026-11-13
 
 ### Added

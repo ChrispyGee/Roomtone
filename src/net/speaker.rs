@@ -316,7 +316,10 @@ pub fn remove_favorite(ip: &str, id: &str) -> R<()> {
 pub fn playlists_with_tracks(ip: &str) -> R<Vec<crate::backup::PlaylistBackup>> {
     let mut out = vec![];
     for p in browse(ip, "SQ:")? {
-        let tracks = browse(ip, &p.id)?;
+        let mut tracks = browse(ip, &p.id)?;
+        // Songs from a computer's music folders reach the speakers with only an address; give them
+        // back the titles and artists this app remembers, as the Playlists page does.
+        crate::sources::memory::enrich(&mut tracks);
         out.push(crate::backup::PlaylistBackup { title: p.title, tracks });
     }
     Ok(out)
