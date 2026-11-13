@@ -17,6 +17,7 @@
 //!   --mcp-read-only / --mcp-allow-control
 //!                            let assistants only look, or also change things, and quit
 //!   --mcp-info               show the assistant link's settings and how to connect
+//!   --write-icon <file> [px] save the app icon (a PNG, or a Windows .ico) for the installers
 //!   --help [mcp]             options, or the assistant guide for this platform
 //! ```
 //!
@@ -36,6 +37,8 @@ mod mcp;
 mod model;
 mod net;
 mod sources;
+#[cfg(test)]
+mod test_support;
 mod ui;
 
 use std::path::PathBuf;
@@ -55,9 +58,28 @@ fn main() {
     while let Some(a) = args.next() {
         match a.as_str() {
             "--screenshot" => shot = args.next().map(PathBuf::from),
+            "--write-icon" => {
+                let Some(path) = args.next() else {
+                    eprintln!("--write-icon needs a file name");
+                    std::process::exit(2);
+                };
+                let size = args.next().and_then(|n| n.parse().ok()).unwrap_or(512);
+                match brand::write_icon(std::path::Path::new(&path), size) {
+                    Ok(()) => return,
+                    Err(e) => {
+                        eprintln!("Couldn't save {path}: {e}");
+                        std::process::exit(1);
+                    }
+                }
+            }
             "--demo" => demo = true,
             "--view" => view = args.next(),
             "--lang" => lang = args.next(),
+            "--theme" => {
+                if let Some(t) = args.next() {
+                    std::env::set_var("ROOMTONE_THEME", t);
+                }
+            }
             "--headless" => headless = true,
             "--mcp" | "--mcp-stdio" => stdio = true,
             "--mcp-on" | "--mcp-off" | "--mcp-read-only" | "--mcp-allow-control" => edits.push(a.clone()),

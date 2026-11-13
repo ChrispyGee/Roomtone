@@ -477,3 +477,76 @@ mod home_tests {
         }
     }
 }
+
+#[cfg(test)]
+mod unit {
+    use super::*;
+
+    fn spotify() -> Account {
+        Account { sid: 9, name: "Spotify".into(), sn: 3, ..Default::default() }
+    }
+
+    const REPLY: &str = r#"<s:Envelope xmlns:s="http://schemas.xmlsoap.org/soap/envelope/"><s:Body><getMetadataResponse xmlns="http://www.sonos.com/Services/1.1"><getMetadataResult>
+<index>0</index><count>5</count><total>5</total>
+<mediaCollection><id>album:1</id><itemType>album</itemType><title>Blue</title><artist>Joni</artist><canPlay>true</canPlay><albumArtURI>https://i/1.jpg</albumArtURI></mediaCollection>
+<mediaCollection><id>playlist:2</id><itemType>playlist</itemType><title>Focus</title></mediaCollection>
+<mediaCollection><id>artist:3</id><itemType>artist</itemType><title>Joni</title></mediaCollection>
+<mediaCollection><id>station:4</id><itemType>program</itemType><title>Radio Joni</title></mediaCollection>
+<mediaMetadata><id>track:5</id><itemType>track</itemType><title>River</title><mimeType>audio/x-spotify</mimeType><trackMetadata><artist>Joni</artist><duration>240</duration></trackMetadata></mediaMetadata>
+</getMetadataResult></getMetadataResponse></s:Body></s:Envelope>"#;
+
+    #[test]
+    fn percent_encoding_matches_the_speakers() {
+        assert_eq!(quote("spotify:track:1"), "spotify%3atrack%3a1");
+        assert_eq!(quote("a b/c"), "a%20b%2fc");
+        assert_eq!(quote("Az09-_.~"), "Az09-_.~");
+    }
+
+    #[test]
+    fn service_entries_become_playable_items() {
+        let items = items_from(&spotify(), REPLY);
+        assert_eq!(items.len(), 5);
+        let album = &items[0];
+        assert!(album.is_container);
+        assert_eq!(album.class, "object.container.album.musicAlbum");
+        assert!(album.uri.starts_with("x-rincon-cpcontainer:1004206calbum%3a1?sid=9"));
+        assert!(album.uri.ends_with("&sn=3"), "uses the system's account number");
+        assert_eq!(album.id, "SVC:9/album:1");
+        let playlist = &items[1];
+        assert!(playlist.uri.starts_with("x-rincon-cpcontainer:1006206c"));
+        let artist = &items[2];
+        assert!(artist.uri.is_empty(), "artists are opened, not played");
+        let station = &items[3];
+        assert!(station.uri.starts_with("x-sonosapi-radio:"));
+        assert!(!station.is_container);
+        let track = &items[4];
+        assert!(track.uri.starts_with("x-sonos-spotify:track%3a5?sid=9"));
+        assert!(track.meta.contains("SA_RINCON2311_X_#Svc2311-0-Token"), "9 × 256 + 7 = 2311");
+        assert_eq!(track.source, "svc:9");
+    }
+
+    #[test]
+    fn other_services_use_http_tracks() {
+        let deezer = Account { sid: 2, name: "Deezer".into(), sn: 1, ..Default::default() };
+        let xml = r#"<r><mediaMetadata><id>t1</id><itemType>track</itemType><title>T</title><mimeType>audio/mp4</mimeType></mediaMetadata></r>"#;
+        let items = items_from(&deezer, xml);
+        assert!(items[0].uri.starts_with("x-sonos-http:t1.mp4?sid=2"));
+        assert!(items_from(&deezer, "not xml").is_empty());
+    }
+
+    #[test]
+    fn reading_fields() {
+        assert_eq!(field("<a><regUrl>https://x/link</regUrl><linkCode>ABCD</linkCode></a>", "linkCode").as_deref(), Some("ABCD"));
+        assert_eq!(field("<a/>", "linkCode"), None);
+    }
+
+    #[test]
+    fn sign_in_requests_name_this_app_and_household() {
+        let env = envelope("DEV1", None, "getDeviceLinkCode", &[("householdId", "HH<1>")]);
+        assert!(env.contains("<deviceId>DEV1</deviceId>"));
+        assert!(env.contains("<householdId>HH&lt;1&gt;</householdId>"), "values are escaped");
+        assert!(!env.contains("loginToken"));
+        let signed_in = envelope("DEV1", Some(("tok", "key", "HH")), "getMetadata", &[]);
+        assert!(signed_in.contains("<loginToken><token>tok</token><key>key</key><householdId>HH</householdId></loginToken>"));
+    }
+}

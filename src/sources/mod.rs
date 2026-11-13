@@ -224,3 +224,71 @@ pub fn all_search_sources(config: &Config) -> Vec<String> {
     v.extend(config.accounts.iter().map(|a| format!("svc:{}", a.sid)));
     v
 }
+
+#[cfg(test)]
+mod unit {
+    use super::*;
+
+    #[test]
+    fn hashing_is_stable() {
+        assert_eq!(hash("abc"), hash("abc"));
+        assert_ne!(hash("abc"), hash("abd"));
+    }
+
+    #[test]
+    fn source_ids_and_labels() {
+        crate::test_support::isolate();
+        for id in ["LOCAL:ALBUMS", "RADIO:TOP", "POD:SUBS", "IA:FEATURED", "SVC:9/root", "ARTIST:Nova"] {
+            assert!(is_source_id(id), "{id}");
+        }
+        assert!(!is_source_id("A:ALBUM"));
+        assert_eq!(source_label("local"), "This computer");
+        assert_eq!(source_label("svc:9"), "Spotify");
+        assert_eq!(source_label("svc:99999"), "Streaming service");
+        assert_eq!(favorites_id(204), "FVSVC:204");
+    }
+
+    #[test]
+    fn which_service_a_favorite_comes_from() {
+        let apple = Item { uri: "x-rincon-cpcontainer:1006206cplaylist?sid=204&flags=8300&sn=2".into(), ..Default::default() };
+        assert!(from_service(&apple, 204));
+        assert!(!from_service(&apple, 20), "sid=204 isn't sid=20");
+        assert_eq!(service_of_item(&apple).map(|s| s.name), Some("Apple Music"));
+        let by_desc = Item { meta: "<desc>SA_RINCON52231_X_#Svc52231-0-Token</desc>".into(), ..Default::default() };
+        assert!(from_service(&by_desc, 204), "204 × 256 + 7 = 52231");
+        let plain = Item { uri: "x-file-cifs://nas/a.mp3".into(), ..Default::default() };
+        assert!(service_of_item(&plain).is_none());
+    }
+
+    #[test]
+    fn switched_on_sources_and_search_places() {
+        let mut c = Config::default();
+        assert!(enabled(&c, "radio"));
+        c.services.retain(|s| s != "radio");
+        assert!(!enabled(&c, "radio"));
+        assert!(enabled(&c, "favorites"), "the speakers' own lists are always on");
+        assert!(!enabled(&c, "svc:9"));
+        c.accounts.push(crate::config::Account { sid: 9, name: "Spotify".into(), ..Default::default() });
+        assert!(enabled(&c, "svc:9"));
+        assert!(all_search_sources(&c).contains(&"svc:9".to_string()));
+    }
+
+    #[test]
+    fn services_list_is_consistent() {
+        let mut ids: Vec<&str> = SERVICES.iter().map(|s| s.id).collect();
+        ids.sort();
+        ids.dedup();
+        assert_eq!(ids.len(), SERVICES.len(), "service ids are unique");
+        for s in SERVICES.iter().filter(|s| s.sid > 0) {
+            assert_eq!(s.id, format!("svc:{}", s.sid));
+        }
+    }
+
+    #[test]
+    fn a_single_item_plays_as_itself() {
+        let song = Item { uri: "x-file-cifs://a".into(), title: "A".into(), ..Default::default() };
+        let tracks = tracks_for(&song, &Config::default()).unwrap();
+        assert_eq!(tracks.len(), 1);
+        assert_eq!(tracks[0].title, "A");
+    }
+}

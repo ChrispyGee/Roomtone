@@ -266,3 +266,37 @@ mod tests {
         }
     }
 }
+
+#[cfg(test)]
+mod unit {
+    use super::*;
+
+    #[test]
+    fn placeholders_and_plurals() {
+        crate::test_support::isolate();
+        assert_eq!(tf("Playing in {room}", &[("room", &"Kitchen")]), "Playing in Kitchen");
+        assert_eq!(plural(1, "1 room", "{n} rooms"), "1 room");
+        assert_eq!(plural(3, "1 room", "{n} rooms"), "3 rooms");
+        assert_eq!(tr("A phrase nobody translated"), "A phrase nobody translated");
+    }
+
+    #[test]
+    fn every_language_has_a_table() {
+        assert_eq!(LANGUAGES.len(), TABLES_TSV.len());
+        assert_eq!(LANGUAGES[0].0, "en");
+        for (i, t) in TABLES_TSV.iter().enumerate().skip(1) {
+            assert!(t.lines().filter(|l| l.contains('\t')).count() > 400, "{} looks incomplete", LANGUAGES[i].0);
+        }
+    }
+
+    #[test]
+    fn tables_have_no_broken_lines() {
+        for (i, t) in TABLES_TSV.iter().enumerate().skip(1) {
+            for line in t.lines().filter(|l| !l.is_empty() && !l.starts_with('#')) {
+                let parts: Vec<&str> = line.split('\t').collect();
+                assert_eq!(parts.len(), 2, "{}: “{line}” should be English<TAB>translation", LANGUAGES[i].0);
+                assert!(!parts[1].trim().is_empty(), "{}: empty translation for “{}”", LANGUAGES[i].0, parts[0]);
+            }
+        }
+    }
+}

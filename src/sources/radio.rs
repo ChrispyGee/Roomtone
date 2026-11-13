@@ -136,12 +136,72 @@ pub fn resolve_stream(url: &str) -> String {
     }
     let Ok(resp) = agent().get(url).call() else { return url.to_string() };
     let Ok(text) = resp.into_string() else { return url.to_string() };
+    first_stream_in(&text).unwrap_or_else(|| url.to_string())
+}
+
+/// The first stream address in a .pls, .m3u or .asx playlist.
+pub(crate) fn first_stream_in(text: &str) -> Option<String> {
     for line in text.lines() {
         let line = line.trim();
         let candidate = line.split_once('=').filter(|(k, _)| k.to_lowercase().starts_with("file")).map(|(_, v)| v).unwrap_or(line);
+        // .asx: <ref href="http://..."/>
+        let candidate = candidate.split("href=\"").nth(1).and_then(|r| r.split('"').next()).unwrap_or(candidate);
         if candidate.starts_with("http://") || candidate.starts_with("https://") {
-            return candidate.to_string();
+            return Some(candidate.to_string());
         }
     }
-    url.to_string()
+    None
+}
+
+#[cfg(test)]
+mod unit {
+    use super::*;
+
+    #[test]
+    fn plain_http_streams_use_the_radio_scheme() {
+        assert_eq!(speaker_uri("http://stream.example.com/live.mp3"), "x-rincon-mp3radio://stream.example.com/live.mp3");
+        assert_eq!(speaker_uri("https://secure.example.com/live"), "https://secure.example.com/live");
+    }
+
+    #[test]
+    fn stations_carry_their_original_address() {
+        let it = my_station_item(&Station { name: "Jazz".into(), url: "http://x/jazz".into(), genre: "Jazz".into() });
+        assert_eq!(it.title, "Jazz");
+        assert_eq!(it.album, "http://x/jazz");
+        assert_eq!(it.source, "mystations");
+        assert!(it.is_stream());
+        assert_eq!(it.description, "My station · Jazz");
+        assert!(it.meta.contains("<dc:title>Jazz</dc:title>"));
+    }
+
+    #[test]
+    fn directory_results() {
+        let v = serde_json::json!([
+            {"name": "Jazz FM", "url": "http://a/jazz.pls", "url_resolved": "http://a/jazz.mp3", "country": "UK", "codec": "MP3", "bitrate": 128, "tags": "jazz,smooth", "favicon": "https://a/icon.png"},
+            {"name": "Jazz FM", "url": "http://b/dup"},
+            {"name": "", "url": "http://c/nameless"},
+            {"name": "Talk", "url": "http://d/talk"}
+        ]);
+        let items = parse(&v);
+        assert_eq!(items.len(), 2, "duplicates and nameless stations are skipped");
+        assert_eq!(items[0].album, "http://a/jazz.mp3", "the resolved address wins");
+        assert_eq!(items[0].description, "Radio · UK · MP3 128k");
+        assert_eq!(items[0].genre, "jazz");
+        assert_eq!(items[0].art.as_deref(), Some("https://a/icon.png"));
+        assert!(parse(&serde_json::json!({"not": "a list"})).is_empty());
+    }
+
+    #[test]
+    fn streams_inside_playlist_files() {
+        assert_eq!(first_stream_in("[playlist]\nNumberOfEntries=1\nFile1=http://a/live\nTitle1=x").as_deref(), Some("http://a/live"));
+        assert_eq!(first_stream_in("#EXTM3U\n#EXTINF:-1,Jazz\nhttps://b/jazz.aac\n").as_deref(), Some("https://b/jazz.aac"));
+        assert_eq!(first_stream_in(r#"<asx version="3.0"><entry><ref href="http://c/stream"/></entry></asx>"#).as_deref(), Some("http://c/stream"));
+        assert_eq!(first_stream_in("nothing here"), None);
+    }
+
+    #[test]
+    fn non_playlist_addresses_are_left_alone() {
+        assert_eq!(resolve_stream("http://a/live.mp3"), "http://a/live.mp3");
+        assert_eq!(resolve_stream("http://a/hls.m3u8"), "http://a/hls.m3u8");
+    }
 }

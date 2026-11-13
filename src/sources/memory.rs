@@ -185,3 +185,26 @@ mod tests {
         }
     }
 }
+
+#[cfg(test)]
+mod unit {
+    use super::*;
+
+    #[test]
+    fn addresses_from_this_computer_survive_an_address_change() {
+        assert_eq!(key("http://192.168.1.5:52880/t/abc123.mp3"), "/t/abc123");
+        assert_eq!(key("http://10.0.0.9:52880/t/abc123.mp3?x=1"), "/t/abc123");
+        assert_eq!(key("x-rincon-mp3radio://stream.example.com/live"), "stream.example.com/live");
+        assert_eq!(key("https://cdn.example/ep.mp3"), "cdn.example/ep.mp3");
+    }
+
+    #[test]
+    fn spotting_titles_that_are_really_addresses() {
+        let it = |t: &str, uri: &str| Item { title: t.into(), uri: uri.into(), ..Default::default() };
+        assert!(looks_unnamed(&it("", "x")));
+        assert!(looks_unnamed(&it("http://a/b.mp3", "x")));
+        assert!(looks_unnamed(&it("deadbeef00.mp3", "x")));
+        assert!(looks_unnamed(&it("12345", "x")));
+        assert!(!looks_unnamed(&it("Morning Fog", "x")));
+    }
+}

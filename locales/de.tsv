@@ -538,3 +538,8 @@ Latest version	Neueste Version
 Refreshed to the latest interface toolkit, with the same look and layout	Auf das neueste Oberflächen-Toolkit aktualisiert, mit gleichem Aussehen und Layout
 Fixes a Windows build problem and a warning on Windows and Linux	Behebt ein Build-Problem unter Windows und eine Warnung unter Windows und Linux
 The project page and Report a problem are linked from Settings › About	Projektseite und „Problem melden“ sind in Einstellungen › Über verlinkt
+Appearance	Darstellung
+Light or dark	Hell oder dunkel
+Automatic follows your computer's setting.	Automatisch folgt der Einstellung deines Computers.
+Light	Hell
+Dark	Dunkel

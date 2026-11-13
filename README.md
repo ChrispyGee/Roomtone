@@ -23,12 +23,27 @@ There are no ads, no call-homes and you can run it completely offline.
 - **Playback**: queue editing, shuffle, repeat, crossfade, sleep timer, line-in and TV inputs, alarms, room sound settings.
 - **Music from everywhere**: the system's library, folders on this computer, favorites and playlists, internet radio, podcasts, the Internet Archive, and streaming services (sign in to Spotify, Amazon Music, Deezer, TIDAL or Qobuz; favorites from Apple Music, YouTube Music and SoundCloud). One search box covers them all.
 - **Software updates** for each system, with S1 kept on S1.
-- **Assistant link (MCP)**: 29 tools for status, playback, volume, search, queue, grouping, alarms and updates. Off by default, with look-only mode and an access key.
+- **Assistant link (MCP)**: 48 tools (status, playback, volume, browse and search, favorites, queue, grouping, alarms, rooms, services, stations, podcasts and updates), live resources, ready-made prompts and name suggestions. Off by default, with look-only mode and an access key.
+- **Light, dark or automatic** appearance.
 - A **demo system** with made-up rooms, so you can try everything without speakers.
 
 ![The Now Playing page](docs/images/roomtone-now-playing.png)
 
-## Get started
+![The home screen in light mode](docs/images/roomtone-home-light.png)
+
+## Install
+
+Download the latest from the [Releases page](https://github.com/ChrispyGee/Roomtone/releases/latest):
+
+| System | File | How |
+| --- | --- | --- |
+| macOS (Apple silicon) | `roomtone-v…-macos-arm64.dmg` | Open it and drag Roomtone to Applications. The app isn't signed by Apple yet: the first time, right-click it and choose *Open*. |
+| Windows 10/11 | `roomtone-v…-windows-x64-setup.exe` | Run it. It installs for your user only. SmartScreen may warn because the installer isn't signed: choose *More info*, then *Run anyway*. |
+| Debian, Ubuntu and similar | `roomtone-v…-linux-x64.deb` | `sudo apt install ./roomtone-v…-linux-x64.deb` |
+| Fedora, openSUSE, RHEL and similar | `roomtone-v…-linux-x64.rpm` | `sudo dnf install ./roomtone-v…-linux-x64.rpm` |
+| Any | the `.zip` / `.tar.gz` | Just the program, README and licences; unpack and run. |
+
+## Build it yourself
 
 You need a recent stable Rust toolchain from <https://rustup.rs> (developed and tested with Rust 1.99).
 
@@ -49,6 +64,7 @@ On macOS, allow Local Network access when asked (System Settings › Privacy & S
 
 ```sh
 roomtone --lang de       # language for this run (en, de, fr, es, it, nl)
+roomtone --theme light   # appearance for this run (auto, light, dark)
 roomtone --headless      # no window: keep the speakers up to date and serve the assistant link over HTTP
 roomtone --mcp           # no window: serve the assistant link on stdin/stdout
 roomtone --mcp-on        # switch the assistant link on (it's off until you do)

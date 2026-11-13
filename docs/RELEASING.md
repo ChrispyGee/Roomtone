@@ -56,7 +56,8 @@ After pushing, Dependabot closes its own pull requests when the same update is a
 4. Update the version in the title of `SPEC.md`, and the "What's new in this version" list in Settings › About (`src/ui/pages.rs`, `about_card`), translated.
 5. Commit the version change through a pull request, wait for CI, and merge it.
 6. Tag the merge commit and push the tag: `git tag vX.Y.Z && git push origin vX.Y.Z`.
-7. The *Release* workflow (`.github/workflows/release.yml`) builds macOS (Apple silicon), Windows and Linux programs, zips them with the README and licences, and creates the GitHub release with that version's `CHANGELOG.md` section as notes. It fails if the changelog has no section for the tag.
-8. To build by hand instead: `cargo build --release`; the program is `target/release/roomtone` (`roomtone.exe` on Windows).
+7. The *Release* workflow (`.github/workflows/release.yml`) builds macOS (Apple silicon), Windows and Linux programs, and for each platform makes an installer: a `.dmg` (`packaging/macos/build-dmg.sh`), a Windows setup `.exe` (Inno Setup, `packaging/windows/roomtone.iss`) a `.deb` (cargo-deb) and an `.rpm` (cargo-generate-rpm), with their settings in `Cargo.toml`. It attaches them and the `.zip`/`.tar.gz` to a GitHub release, with that version's `CHANGELOG.md` section as notes. It fails if the changelog has no section for the tag.
+8. To try the installers without releasing, run the workflow by hand (Actions › Release › Run workflow) on a branch: the files are kept as workflow artifacts and no release is made.
+9. To build by hand instead: `cargo build --release`; the program is `target/release/roomtone` (`roomtone.exe` on Windows). On a Mac, `packaging/macos/build-dmg.sh <version> <out.dmg>` makes the `.dmg`.
 
-Packaged installers (a macOS `.app`/`.dmg`, a Windows installer, Linux AppImage/Flatpak) and signed builds are on the [roadmap](ROADMAP.md).
+The installers aren't signed or notarised; see the [roadmap](ROADMAP.md) for signing, an Intel Mac build and AppImage/Flatpak.

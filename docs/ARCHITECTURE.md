@@ -52,7 +52,9 @@ This is the map of the code. What the app should do is in [SPEC.md](../SPEC.md);
 | `sources/memory.rs` | `songs.json`: details of songs the speakers only know by address |
 | `ui/mod.rs` | The window frame: sidebar, rooms/queue panel, bottom bar, dialogs, toasts, the screenshot option |
 | `ui/pages.rs` | Every page: home, search, library, radio, services, inputs, now playing, alarms, settings, room settings |
-| `ui/widgets.rs`, `theme.rs`, `art.rs` | Drawn icons and controls, colours, album art |
+| `ui/widgets.rs`, `theme.rs`, `art.rs` | Drawn icons and controls, the dark and light palettes (`TEXT()`, `SURFACE()`… switch with the appearance), album art |
+| `mcp/extra.rs` | More assistant tools (browse, favorites, queue editing, rooms, alarms, saved groups, services, stations, podcasts), resources, prompts and completions |
+| `test_support.rs` | Test helpers: a scratch settings folder, English wording, a running demo backend |
 | `brand.rs` | The app icon, drawn in code (RGBA and PNG) |
 | `macos_about.rs` | macOS only: the filled-in About box, the Dock icon and translated application-menu titles |
 
@@ -87,6 +89,8 @@ Slow work (discovery, browsing, search, service sign-in) runs on its own short-l
 - **Same behaviour everywhere**: the window, `--headless` and the assistant link share `Cmd`s. Don't put speaker logic in `ui/` or `mcp.rs`.
 - **Irreversible actions** (software updates, anything that could move S1 to S2) need an explicit confirmation in the window and `confirm: true` for assistants. Re-check guards just before acting.
 - **Stored files** (`config.json` and friends) must stay readable by older and newer versions: new fields get `#[serde(default)]`, and nothing is renamed.
+- **Colours**: always use the palette functions in `ui/theme.rs` (`TEXT()`, `SURFACE()`, `overlay(a)` for faint washes), never fixed colours, so light and dark both work. Check new screens with `--theme light` and `--theme dark`.
+- **Tests**: add a unit test for every parser and rule; drive behaviour through the demo backend (`test_support::demo_backend()`), never real speakers.
 - **Style**: `cargo fmt` (see `rustfmt.toml`: lines up to 180 characters) and `cargo clippy --all-targets` with no warnings. Comments explain *why*; every file starts with a `//!` summary.
 - **Platform code** uses `cfg!(target_os = ...)` where all branches compile everywhere, and `#[cfg]` only for platform crates (`macos_about.rs`, `objc2`).
 
@@ -110,7 +114,7 @@ Slow work (discovery, browsing, search, service sign-in) runs on its own short-l
 
 | Command | Checks |
 | --- | --- |
-| `cargo test` | Translations complete; placeholders kept |
+| `cargo test` | 97 unit tests: protocol parsers (DIDL, topology, SOAP replies, update offers, streaming-service replies, podcast feeds, radio playlists), rules (volume scaling, play-along mirroring, account numbers, S1/S2 update guard), settings compatibility, translations, the demo system, and the assistant link end to end, including its HTTP security checks |
 | `cargo test -- --ignored --nocapture` with `ROOMTONE_SPEAKER=<ip>` | Read-only checks against real speakers: discovery, sign-in pages for each service, account numbers |
 | `cargo test service_deep -- --ignored --nocapture` | Read-only: home, one level down and a search on each connected service (uses your real settings) |
 | `roomtone --mcp --demo` with JSON-RPC lines on stdin | The assistant tools against the demo system |

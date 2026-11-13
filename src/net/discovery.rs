@@ -80,11 +80,13 @@ pub fn system_from(display_version: &str, software_version: &str) -> System {
     }
 }
 
-/// Ask one speaker for its whole system: rooms and who is grouped with whom.
-pub fn household_from(ip: &str, household_id: Option<String>) -> Result<Household, String> {
-    let reply = soap::call(ip, soap::ZONE_TOPOLOGY, "GetZoneGroupState", &[])?;
-    let state = reply.get("ZoneGroupState").cloned().unwrap_or_default();
-    let doc = roxmltree::Document::parse(&state).map_err(|e| format!("topology: {e}"))?;
+/// The visible rooms, the groups and each room's build number.
+pub(crate) type ZoneGroups = (Vec<Room>, Vec<Group>, Vec<String>);
+
+/// Read a `GetZoneGroupState` reply: the visible rooms, the groups (coordinator first) and each
+/// room's build number. Hidden members (bonded surrounds, subs) and bridges are left out.
+pub(crate) fn parse_zone_groups(state: &str) -> Result<ZoneGroups, String> {
+    let doc = roxmltree::Document::parse(state).map_err(|e| format!("topology: {e}"))?;
     let mut rooms = vec![];
     let mut groups = vec![];
     let mut versions = vec![];
@@ -127,6 +129,14 @@ pub fn household_from(ip: &str, household_id: Option<String>) -> Result<Househol
     if rooms.is_empty() {
         return Err("The speaker reported no rooms".into());
     }
+    Ok((rooms, groups, versions))
+}
+
+/// Ask one speaker for its whole system: rooms and who is grouped with whom.
+pub fn household_from(ip: &str, household_id: Option<String>) -> Result<Household, String> {
+    let reply = soap::call(ip, soap::ZONE_TOPOLOGY, "GetZoneGroupState", &[])?;
+    let state = reply.get("ZoneGroupState").cloned().unwrap_or_default();
+    let (mut rooms, mut groups, versions) = parse_zone_groups(&state)?;
     let mut system = None;
     for room in rooms.iter_mut() {
         if let Some(d) = describe(&room.ip) {
@@ -161,5 +171,53 @@ mod tests {
                 Err(e) => println!("topology error: {e}"),
             }
         }
+    }
+}
+
+#[cfg(test)]
+mod unit {
+    use super::*;
+
+    #[test]
+    fn s1_or_s2_from_versions() {
+        assert_eq!(system_from("11.15", ""), System::S1);
+        assert_eq!(system_from("16.4", ""), System::S2);
+        assert_eq!(system_from("12.0", ""), System::S2);
+        assert_eq!(system_from("", "57.19-41110"), System::S1);
+        assert_eq!(system_from("", "86.3-61160"), System::S2);
+        assert_eq!(system_from("", ""), System::S2, "unknown: assume the current generation");
+    }
+
+    const STATE: &str = r#"<ZoneGroupState><ZoneGroups>
+<ZoneGroup Coordinator="RINCON_B" ID="RINCON_B:1">
+  <ZoneGroupMember UUID="RINCON_A" Location="http://192.168.1.11:1400/xml/device_description.xml" ZoneName="Kitchen" SoftwareVersion="86.3-61160"/>
+  <ZoneGroupMember UUID="RINCON_B" Location="http://192.168.1.12:1400/xml/device_description.xml" ZoneName="Living Room" SoftwareVersion="86.3-61160"/>
+  <ZoneGroupMember UUID="RINCON_SUB" Location="http://192.168.1.13:1400/xml/device_description.xml" ZoneName="Living Room" Invisible="1"/>
+</ZoneGroup>
+<ZoneGroup Coordinator="RINCON_C" ID="RINCON_C:2">
+  <ZoneGroupMember UUID="RINCON_C" Location="http://192.168.1.14:1400/xml/device_description.xml" ZoneName="Bedroom" SoftwareVersion="86.3-61160"/>
+</ZoneGroup>
+<ZoneGroup Coordinator="RINCON_BRIDGE" ID="RINCON_BRIDGE:3">
+  <ZoneGroupMember UUID="RINCON_BRIDGE" Location="http://192.168.1.15:1400/x" ZoneName="Bridge" IsZoneBridge="1"/>
+</ZoneGroup>
+</ZoneGroups></ZoneGroupState>"#;
+
+    #[test]
+    fn reads_rooms_and_groups() {
+        let (rooms, groups, versions) = parse_zone_groups(STATE).unwrap();
+        let names: Vec<&str> = rooms.iter().map(|r| r.name.as_str()).collect();
+        assert_eq!(names, ["Kitchen", "Living Room", "Bedroom"], "hidden surrounds/subs and bridges are left out");
+        assert_eq!(rooms[0].ip, "192.168.1.11");
+        assert_eq!(groups.len(), 2);
+        assert_eq!(groups[0].coordinator, "RINCON_B");
+        assert_eq!(groups[0].members, vec!["RINCON_B".to_string(), "RINCON_A".to_string()], "coordinator first");
+        assert_eq!(groups[0].id, "RINCON_B");
+        assert_eq!(versions.len(), 3);
+    }
+
+    #[test]
+    fn no_rooms_is_an_error() {
+        assert!(parse_zone_groups("<ZoneGroupState><ZoneGroups/></ZoneGroupState>").is_err());
+        assert!(parse_zone_groups("not xml").is_err());
     }
 }

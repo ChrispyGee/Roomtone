@@ -32,3 +32,34 @@ opt-level = 1
 
 [profile.dev.package."*"]
 opt-level = 2
+
+# Linux .deb package, built in CI with `cargo deb --no-build` (see docs/RELEASING.md).
+[package.metadata.deb]
+name = "roomtone"
+maintainer = "Roomtone contributors"
+section = "sound"
+priority = "optional"
+depends = "$auto"
+extended-description = "Control S1 and S2 wireless speaker systems on your home network, with a headless mode and an MCP server for AI assistants."
+assets = [
+  ["target/release/roomtone", "usr/bin/", "755"],
+  ["packaging/linux/roomtone.desktop", "usr/share/applications/", "644"],
+  ["dist/roomtone.png", "usr/share/icons/hicolor/512x512/apps/roomtone.png", "644"],
+  ["README.md", "usr/share/doc/roomtone/", "644"],
+  ["LICENSE-MIT", "usr/share/doc/roomtone/", "644"],
+  ["LICENSE-APACHE", "usr/share/doc/roomtone/", "644"],
+]
+
+# Linux .rpm package, built in CI with `cargo generate-rpm` (see docs/RELEASING.md).
+[package.metadata.generate-rpm]
+name = "roomtone"
+summary = "Controller for S1 and S2 wireless speaker systems"
+group = "Applications/Multimedia"
+assets = [
+  { source = "target/release/roomtone", dest = "/usr/bin/roomtone", mode = "755" },
+  { source = "packaging/linux/roomtone.desktop", dest = "/usr/share/applications/roomtone.desktop", mode = "644" },
+  { source = "dist/roomtone.png", dest = "/usr/share/icons/hicolor/512x512/apps/roomtone.png", mode = "644" },
+  { source = "README.md", dest = "/usr/share/doc/roomtone/README.md", mode = "644", doc = true },
+  { source = "LICENSE-MIT", dest = "/usr/share/doc/roomtone/LICENSE-MIT", mode = "644", doc = true },
+  { source = "LICENSE-APACHE", dest = "/usr/share/doc/roomtone/LICENSE-APACHE", mode = "644", doc = true },
+]

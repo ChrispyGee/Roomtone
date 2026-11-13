@@ -81,6 +81,8 @@ pub struct App {
     group_preset: Option<(Option<String>, crate::config::SavedGroup)>,
     /// Short notes to show once the shared state is free again.
     notes: Vec<String>,
+    /// The appearance last applied ("auto", "light", "dark").
+    applied_theme: String,
     /// Set once the `--screenshot` picture has been saved.
     shot_saved: std::sync::Arc<std::sync::atomic::AtomicBool>,
     /// For each group playing along with one in another system: "S1 · Office".
@@ -176,6 +178,7 @@ impl App {
             notes: vec![],
             along: HashMap::new(),
             shot_saved: Default::default(),
+            applied_theme: String::new(),
             update_confirm: None,
             group_preset: open_new_group
                 .then(|| (None, crate::config::SavedGroup { name: "Downstairs".into(), household: "demo-s2".into(), rooms: vec!["D-LIVING".into(), "D-KITCHEN".into()] })),
@@ -286,21 +289,21 @@ impl App {
         egui::Panel::left("sidebar")
             .exact_size(232.0)
             .resizable(false)
-            .frame(egui::Frame::new().fill(SIDEBAR).inner_margin(egui::Margin { left: 16, right: 16, top: 22, bottom: 16 }))
+            .frame(egui::Frame::new().fill(SIDEBAR()).inner_margin(egui::Margin { left: 16, right: 16, top: 22, bottom: 16 }))
             .show(root, |ui| self.sidebar(ui, s));
 
         egui::Panel::bottom("nowbar")
             .exact_size(92.0)
-            .frame(egui::Frame::new().fill(SIDEBAR).stroke(Stroke::new(1.0_f32, LINE)).inner_margin(egui::Margin { left: 18, right: 22, top: 12, bottom: 12 }))
+            .frame(egui::Frame::new().fill(SIDEBAR()).stroke(Stroke::new(1.0_f32, LINE())).inner_margin(egui::Margin { left: 18, right: 22, top: 12, bottom: 12 }))
             .show(root, |ui| self.now_bar(ui, s, group));
 
         egui::Panel::right("rooms")
             .exact_size(340.0)
             .resizable(false)
-            .frame(egui::Frame::new().fill(BG).inner_margin(egui::Margin { left: 8, right: 18, top: 22, bottom: 12 }))
+            .frame(egui::Frame::new().fill(BG()).inner_margin(egui::Margin { left: 8, right: 18, top: 22, bottom: 12 }))
             .show(root, |ui| self.right_panel(ui, s));
 
-        egui::CentralPanel::default().frame(egui::Frame::new().fill(BG).inner_margin(egui::Margin { left: 30, right: 22, top: 22, bottom: 0 })).show(root, |ui| {
+        egui::CentralPanel::default().frame(egui::Frame::new().fill(BG()).inner_margin(egui::Margin { left: 30, right: 22, top: 22, bottom: 0 })).show(root, |ui| {
             if household.is_none() {
                 self.searching_page(ui, s);
                 return;
@@ -330,11 +333,11 @@ impl App {
         // Brand mark: a soft gradient orb and the app's name.
         ui.horizontal(|ui| {
             let (r, _) = ui.allocate_exact_size(vec2(30.0, 30.0), Sense::hover());
-            ui.painter().circle_filled(r.center(), 15.0, ACCENT);
+            ui.painter().circle_filled(r.center(), 15.0, ACCENT());
             ui.painter().circle_filled(r.center() + vec2(4.0, -4.0), 8.0, Color32::from_rgb(255, 196, 140));
             ui.painter().circle_stroke(r.center(), 15.0, Stroke::new(1.0_f32, Color32::from_white_alpha(40)));
             ui.add_space(2.0);
-            ui.label(RichText::new(t!("Roomtone")).size(20.0).strong().color(TEXT));
+            ui.label(RichText::new(t!("Roomtone")).size(20.0).strong().color(TEXT()));
         });
         ui.add_space(22.0);
 
@@ -358,7 +361,7 @@ impl App {
         }
 
         ui.add_space(18.0);
-        ui.label(RichText::new(t!("SYSTEMS")).size(11.0).color(TEXT_FAINT).strong());
+        ui.label(RichText::new(t!("SYSTEMS")).size(11.0).color(TEXT_FAINT()).strong());
         ui.add_space(4.0);
         let mut counts: HashMap<System, usize> = HashMap::new();
         for (i, h) in s.households.iter().enumerate() {
@@ -376,29 +379,29 @@ impl App {
 
         ui.with_layout(Layout::bottom_up(Align::Min), |ui| {
             let (dot, text) = match s.phase {
-                Phase::Searching => (TEXT_DIM, t!("Looking for speakers…").to_string()),
-                Phase::Live if s.reconnecting => (ACCENT, t!("Reconnecting…").to_string()),
+                Phase::Searching => (TEXT_DIM(), t!("Looking for speakers…").to_string()),
+                Phase::Live if s.reconnecting => (ACCENT(), t!("Reconnecting…").to_string()),
                 Phase::Live => {
                     let n: usize = s.households.iter().map(|h| h.rooms.len()).sum();
                     let answering = s.households.iter().flat_map(|h| h.rooms.iter()).filter(|r| r.online != Some(false)).count();
                     if answering == n {
-                        (GOOD, tn!(n, "Connected · 1 speaker", "Connected · {n} speakers"))
+                        (GOOD(), tn!(n, "Connected · 1 speaker", "Connected · {n} speakers"))
                     } else if answering == 0 {
-                        (BAD, t!("Speakers not responding").to_string())
+                        (BAD(), t!("Speakers not responding").to_string())
                     } else {
-                        (ACCENT, t!("{answering} of {n} speakers responding", answering = answering, n = n))
+                        (ACCENT(), t!("{answering} of {n} speakers responding", answering = answering, n = n))
                     }
                 }
-                Phase::Demo => (ACCENT, t!("Demo system").to_string()),
-                Phase::NothingFound => (BAD, t!("No speakers found").to_string()),
+                Phase::Demo => (ACCENT(), t!("Demo system").to_string()),
+                Phase::NothingFound => (BAD(), t!("No speakers found").to_string()),
             };
             let (rect, resp) = ui.allocate_exact_size(vec2(ui.available_width(), 30.0), Sense::click());
             if resp.hovered() {
-                ui.painter().rect_filled(rect, 8.0, SURFACE);
+                ui.painter().rect_filled(rect, 8.0, SURFACE());
             }
             ui.painter().circle_filled(pos2(rect.min.x + 10.0, rect.center().y), 4.0, dot);
-            paint_text(ui, pos2(rect.min.x + 22.0, rect.center().y - 8.0), &text, 12.0, TEXT_DIM, rect.width() - 40.0);
-            paint_icon(ui.painter(), Rect::from_center_size(pos2(rect.max.x - 12.0, rect.center().y), vec2(12.0, 12.0)), Icon::Up, TEXT_FAINT);
+            paint_text(ui, pos2(rect.min.x + 22.0, rect.center().y - 8.0), &text, 12.0, TEXT_DIM(), rect.width() - 40.0);
+            paint_icon(ui.painter(), Rect::from_center_size(pos2(rect.max.x - 12.0, rect.center().y), vec2(12.0, 12.0)), Icon::Up, TEXT_FAINT());
             if resp.on_hover_cursor(egui::CursorIcon::PointingHand).on_hover_text(t!("Show your speakers and their status")).clicked() {
                 self.speakers_open = true;
             }
@@ -409,11 +412,11 @@ impl App {
         let Some(h) = s.household() else {
             ui.label(RichText::new(t!("Rooms")).size(19.0).strong());
             ui.add_space(8.0);
-            spinner_dots(ui, TEXT_DIM);
+            spinner_dots(ui, TEXT_DIM());
             return;
         };
         ui.horizontal(|ui| {
-            ui.label(RichText::new(if self.right_tab == 0 { t!("Rooms") } else { t!("Queue") }).size(19.0).strong().color(TEXT));
+            ui.label(RichText::new(if self.right_tab == 0 { t!("Rooms") } else { t!("Queue") }).size(19.0).strong().color(TEXT()));
             ui.with_layout(Layout::right_to_left(Align::Center), |ui| {
                 if let Some(i) = segmented(ui, &[t!("Rooms"), t!("Queue")], self.right_tab, if crate::i18n::current() == "en" { 150.0 } else { 220.0 }) {
                     self.right_tab = i;
@@ -451,7 +454,7 @@ impl App {
                 ui.add_space(14.0);
                 self.saved_groups(ui, s, h);
                 ui.add_space(6.0);
-                ui.label(RichText::new(t!("{system} speakers can only be grouped with rooms in the same system.", system = h.system.label())).size(11.5).color(TEXT_FAINT));
+                ui.label(RichText::new(t!("{system} speakers can only be grouped with rooms in the same system.", system = h.system.label())).size(11.5).color(TEXT_FAINT()));
             });
         } else {
             self.queue_panel(ui, s);
@@ -460,9 +463,9 @@ impl App {
 
     fn room_card(&mut self, ui: &mut egui::Ui, h: &Household, g: &Group, selected: bool) {
         let frame = egui::Frame::new()
-            .fill(if selected { SURFACE_HI } else { SURFACE })
+            .fill(if selected { SURFACE_HI() } else { SURFACE() })
             .corner_radius(16.0)
-            .stroke(if selected { Stroke::new(1.5_f32, ACCENT.gamma_multiply(0.8)) } else { Stroke::NONE })
+            .stroke(if selected { Stroke::new(1.5_f32, ACCENT().gamma_multiply(0.8)) } else { Stroke::NONE })
             .inner_margin(12.0);
         let mut inner_hot = false;
         let resp = frame.show(ui, |ui| {
@@ -471,15 +474,15 @@ impl App {
                 let (r, _) = ui.allocate_exact_size(vec2(52.0, 52.0), Sense::hover());
                 let seed = if g.now.album.is_empty() { g.now.title.clone() } else { g.now.album.clone() };
                 if g.now.is_empty() {
-                    ui.painter().rect_filled(r, 10.0, SURFACE_HOVER);
-                    paint_icon(ui.painter(), Rect::from_center_size(r.center(), vec2(22.0, 22.0)), Icon::Speaker, TEXT_FAINT);
+                    ui.painter().rect_filled(r, 10.0, SURFACE_HOVER());
+                    paint_icon(ui.painter(), Rect::from_center_size(r.center(), vec2(22.0, 22.0)), Icon::Speaker, TEXT_FAINT());
                 } else {
                     paint_art(ui, &mut self.art, r, g.now.art.as_deref(), &seed, 10.0);
                 }
                 ui.vertical(|ui| {
                     let w = ui.available_width() - 44.0;
                     ui.add_space(3.0);
-                    clipped_label(ui, &h.group_name(g), 15.0, TEXT, w, true);
+                    clipped_label(ui, &h.group_name(g), 15.0, TEXT(), w, true);
                     let line = if g.now.is_empty() {
                         t!("Nothing playing").to_string()
                     } else if g.now.artist.is_empty() {
@@ -487,13 +490,13 @@ impl App {
                     } else {
                         format!("{} · {}", g.now.title, g.now.artist)
                     };
-                    clipped_label(ui, &line, 12.5, TEXT_DIM, w, false);
+                    clipped_label(ui, &line, 12.5, TEXT_DIM(), w, false);
                     if g.members.len() > 1 {
                         let names: Vec<&str> = g.members.iter().filter_map(|m| h.room(m).map(|r| r.name.as_str())).collect();
-                        clipped_label(ui, &names.join(", "), 11.5, TEXT_FAINT, w, false);
+                        clipped_label(ui, &names.join(", "), 11.5, TEXT_FAINT(), w, false);
                     }
                     if let Some(other) = self.along.get(&g.id) {
-                        clipped_label(ui, &t!("Plays along with {room}", room = other), 11.5, ACCENT, w, false);
+                        clipped_label(ui, &t!("Plays along with {room}", room = other), 11.5, ACCENT(), w, false);
                     }
                 });
                 ui.with_layout(Layout::right_to_left(Align::Center), |ui| {
@@ -502,8 +505,8 @@ impl App {
                         ui,
                         if playing { Icon::Pause } else { Icon::Play },
                         34.0,
-                        if selected { ACCENT } else { SURFACE_HOVER },
-                        if selected { Color32::BLACK } else { TEXT },
+                        if selected { ACCENT() } else { SURFACE_HOVER() },
+                        if selected { Color32::BLACK } else { TEXT() },
                     );
                     inner_hot |= b.hovered();
                     if b.clicked() {
@@ -513,7 +516,7 @@ impl App {
             });
             ui.add_space(6.0);
             ui.horizontal(|ui| {
-                let m = icon_button(ui, if g.muted { Icon::Muted } else { Icon::Speaker }, 16.0, if g.muted { BAD } else { TEXT_DIM });
+                let m = icon_button(ui, if g.muted { Icon::Muted } else { Icon::Speaker }, 16.0, if g.muted { BAD() } else { TEXT_DIM() });
                 inner_hot |= m.hovered();
                 if m.clicked() {
                     self.send(Cmd::GroupMute(g.id.clone(), !g.muted));
@@ -521,14 +524,14 @@ impl App {
                 let key = format!("g:{}", g.id);
                 let mut v = self.shown_volume(&key, g.volume);
                 let w = ui.available_width() - 76.0;
-                let (sr, changed) = slider(ui, &key, &mut v, w, if selected { ACCENT } else { TEXT_DIM });
+                let (sr, changed) = slider(ui, &key, &mut v, w, if selected { ACCENT() } else { TEXT_DIM() });
                 inner_hot |= sr.hovered() || sr.dragged();
                 if changed {
                     self.local_vol.insert(key.clone(), (v, Instant::now()));
                     self.send(Cmd::GroupVolume(g.id.clone(), (v * 100.0).round() as u8));
                 }
-                ui.label(RichText::new(format!("{}", (v * 100.0).round() as u8)).size(12.0).color(TEXT_DIM));
-                let gb = icon_button(ui, Icon::Rooms, 16.0, TEXT_DIM).on_hover_text(t!("Group rooms"));
+                ui.label(RichText::new(format!("{}", (v * 100.0).round() as u8)).size(12.0).color(TEXT_DIM()));
+                let gb = icon_button(ui, Icon::Rooms, 16.0, TEXT_DIM()).on_hover_text(t!("Group rooms"));
                 inner_hot |= gb.hovered();
                 if gb.clicked() {
                     self.group_editor = Some((g.id.clone(), g.members.clone()));
@@ -547,7 +550,7 @@ impl App {
 
     fn queue_panel(&mut self, ui: &mut egui::Ui, s: &AppState) {
         let Some(gid) = s.selected_group.clone() else {
-            ui.label(RichText::new(t!("Pick a room to see its queue.")).color(TEXT_DIM));
+            ui.label(RichText::new(t!("Pick a room to see its queue.")).color(TEXT_DIM()));
             return;
         };
         let Some((h, g)) = s.find_group(&gid) else { return };
@@ -555,56 +558,56 @@ impl App {
             self.ask_once(&format!("queue:{gid}"), Duration::from_secs(12), Cmd::LoadQueue(gid.clone()));
         }
         ui.horizontal(|ui| {
-            ui.label(RichText::new(h.group_name(g)).color(TEXT_DIM));
+            ui.label(RichText::new(h.group_name(g)).color(TEXT_DIM()));
             ui.with_layout(Layout::right_to_left(Align::Center), |ui| {
-                if icon_button(ui, Icon::Trash, 16.0, TEXT_DIM).on_hover_text(t!("Clear queue")).clicked() {
+                if icon_button(ui, Icon::Trash, 16.0, TEXT_DIM()).on_hover_text(t!("Clear queue")).clicked() {
                     self.send(Cmd::ClearQueue(gid.clone()));
                 }
-                if icon_button(ui, Icon::Save, 16.0, TEXT_DIM).on_hover_text(t!("Save as playlist")).clicked() {
+                if icon_button(ui, Icon::Save, 16.0, TEXT_DIM()).on_hover_text(t!("Save as playlist")).clicked() {
                     self.save_queue = Some((gid.clone(), String::from(t!("My playlist"))));
                 }
             });
         });
         let Some(queue) = &g.queue else {
-            spinner_dots(ui, TEXT_DIM);
+            spinner_dots(ui, TEXT_DIM());
             return;
         };
         if queue.is_empty() {
             ui.add_space(30.0);
             ui.vertical_centered(|ui| {
-                paint_icon(ui.painter(), Rect::from_center_size(ui.cursor().min + vec2(ui.available_width() / 2.0, 20.0), vec2(36.0, 36.0)), Icon::Queue, TEXT_FAINT);
+                paint_icon(ui.painter(), Rect::from_center_size(ui.cursor().min + vec2(ui.available_width() / 2.0, 20.0), vec2(36.0, 36.0)), Icon::Queue, TEXT_FAINT());
                 ui.add_space(48.0);
-                ui.label(RichText::new(t!("The queue is empty")).color(TEXT_DIM));
-                ui.label(RichText::new(t!("Add songs, albums or playlists from your music.")).size(12.0).color(TEXT_FAINT));
+                ui.label(RichText::new(t!("The queue is empty")).color(TEXT_DIM()));
+                ui.label(RichText::new(t!("Add songs, albums or playlists from your music.")).size(12.0).color(TEXT_FAINT()));
             });
             return;
         }
         let current = if g.now.source == "Queue" { g.now.track_no as usize } else { 0 };
-        ui.label(RichText::new(tn!(queue.len(), "1 song", "{n} songs")).size(12.0).color(TEXT_FAINT));
+        ui.label(RichText::new(tn!(queue.len(), "1 song", "{n} songs")).size(12.0).color(TEXT_FAINT()));
         egui::ScrollArea::vertical().id_salt("queue_scroll").auto_shrink([false, false]).show(ui, |ui| {
             for (i, it) in queue.iter().enumerate() {
                 let is_current = current == i + 1;
                 let w = ui.available_width();
                 let (rect, resp) = ui.allocate_exact_size(vec2(w, 50.0), Sense::click());
                 if resp.hovered() || is_current {
-                    ui.painter().rect_filled(rect, 10.0, if is_current { ACCENT_SOFT } else { SURFACE });
+                    ui.painter().rect_filled(rect, 10.0, if is_current { ACCENT_SOFT() } else { SURFACE() });
                 }
                 let art_r = Rect::from_min_size(rect.min + vec2(6.0, 7.0), vec2(36.0, 36.0));
                 let seed = if it.album.is_empty() { &it.title } else { &it.album };
                 paint_art(ui, &mut self.art, art_r, it.art.as_deref(), seed, 7.0);
                 let tx = art_r.max.x + 10.0;
                 let tw = rect.max.x - tx - if resp.hovered() { 92.0 } else { 46.0 };
-                paint_text(ui, pos2(tx, rect.min.y + 8.0), &it.title, 13.5, if is_current { ACCENT } else { TEXT }, tw);
-                paint_text(ui, pos2(tx, rect.min.y + 27.0), &it.artist, 12.0, TEXT_DIM, tw);
+                paint_text(ui, pos2(tx, rect.min.y + 8.0), &it.title, 13.5, if is_current { ACCENT() } else { TEXT() }, tw);
+                paint_text(ui, pos2(tx, rect.min.y + 27.0), &it.artist, 12.0, TEXT_DIM(), tw);
                 if resp.hovered() {
                     let mut x = rect.max.x - 30.0;
                     for (icon, action) in [(Icon::Close, 0), (Icon::Down, 1), (Icon::Up, 2)] {
                         let br = Rect::from_center_size(pos2(x, rect.center().y), vec2(26.0, 26.0));
                         let b = ui.interact(br, ui.scope_id().with(("q", i, action)), Sense::click());
                         if b.hovered() {
-                            ui.painter().circle_filled(br.center(), 13.0, SURFACE_HOVER);
+                            ui.painter().circle_filled(br.center(), 13.0, SURFACE_HOVER());
                         }
-                        paint_icon(ui.painter(), br.shrink(6.0), icon, TEXT_DIM);
+                        paint_icon(ui.painter(), br.shrink(6.0), icon, TEXT_DIM());
                         if b.clicked() {
                             match action {
                                 0 => self.send(Cmd::RemoveFromQueue(gid.clone(), i)),
@@ -616,7 +619,7 @@ impl App {
                         x -= 28.0;
                     }
                 } else if it.duration > 0.0 {
-                    ui.painter().text(pos2(rect.max.x - 10.0, rect.center().y), egui::Align2::RIGHT_CENTER, fmt_time(it.duration), egui::FontId::proportional(12.0), TEXT_FAINT);
+                    ui.painter().text(pos2(rect.max.x - 10.0, rect.center().y), egui::Align2::RIGHT_CENTER, fmt_time(it.duration), egui::FontId::proportional(12.0), TEXT_FAINT());
                 }
                 if resp.clicked() {
                     self.send(Cmd::PlayQueueIndex(gid.clone(), i));
@@ -638,7 +641,7 @@ impl App {
 
     fn now_bar(&mut self, ui: &mut egui::Ui, s: &AppState, group: Option<(&Household, &Group)>) {
         let Some((h, g)) = group else {
-            ui.centered_and_justified(|ui| ui.label(RichText::new(t!("Pick a room to start listening")).color(TEXT_DIM)));
+            ui.centered_and_justified(|ui| ui.label(RichText::new(t!("Pick a room to start listening")).color(TEXT_DIM())));
             return;
         };
         let full = ui.max_rect();
@@ -649,7 +652,7 @@ impl App {
         let art_r = Rect::from_min_size(left.min + vec2(0.0, 2.0), vec2(64.0, 64.0));
         let seed = if g.now.album.is_empty() { g.now.title.clone() } else { g.now.album.clone() };
         if g.now.is_empty() {
-            ui.painter().rect_filled(art_r, 10.0, SURFACE_HI);
+            ui.painter().rect_filled(art_r, 10.0, SURFACE_HI());
         } else {
             paint_art(ui, &mut self.art, art_r, g.now.art.as_deref(), &seed, 10.0);
         }
@@ -660,10 +663,10 @@ impl App {
         let tx = art_r.max.x + 14.0;
         let tw = left.max.x - tx - 10.0;
         let title = if g.now.is_empty() { t!("Nothing playing") } else { g.now.title.as_str() };
-        paint_text(ui, pos2(tx, full.min.y + 6.0), title, 15.0, TEXT, tw);
-        paint_text(ui, pos2(tx, full.min.y + 27.0), &g.now.artist, 13.0, TEXT_DIM, tw);
+        paint_text(ui, pos2(tx, full.min.y + 6.0), title, 15.0, TEXT(), tw);
+        paint_text(ui, pos2(tx, full.min.y + 27.0), &g.now.artist, 13.0, TEXT_DIM(), tw);
         let room_line = format!("{}  ·  {}", h.group_name(g), h.system.label());
-        paint_text(ui, pos2(tx, full.min.y + 47.0), &room_line, 11.5, ACCENT, tw);
+        paint_text(ui, pos2(tx, full.min.y + 47.0), &room_line, 11.5, ACCENT(), tw);
 
         // Centre: transport and progress.
         let cw = (full.width() * 0.4).clamp(320.0, 520.0);
@@ -672,21 +675,21 @@ impl App {
         cui.horizontal(|ui| {
             let total = 5.0 * 36.0 + 44.0;
             ui.add_space(((cw - total) / 2.0).max(0.0));
-            let sh = icon_button(ui, Icon::Shuffle, 18.0, if g.shuffle { ACCENT } else { TEXT_DIM }).on_hover_text(t!("Shuffle"));
+            let sh = icon_button(ui, Icon::Shuffle, 18.0, if g.shuffle { ACCENT() } else { TEXT_DIM() }).on_hover_text(t!("Shuffle"));
             if sh.clicked() {
                 self.send(Cmd::SetPlayMode(gid.clone(), !g.shuffle, g.repeat));
             }
-            if icon_button(ui, Icon::Prev, 18.0, TEXT).clicked() {
+            if icon_button(ui, Icon::Prev, 18.0, TEXT()).clicked() {
                 self.send(Cmd::Previous(gid.clone()));
             }
             let playing = g.now.transport == Transport::Playing;
-            if round_button(ui, if playing { Icon::Pause } else { Icon::Play }, 40.0, TEXT, Color32::BLACK).clicked() {
+            if round_button(ui, if playing { Icon::Pause } else { Icon::Play }, 40.0, TEXT(), ON_TEXT()).clicked() {
                 self.send(if playing { Cmd::Pause(gid.clone()) } else { Cmd::Play(gid.clone()) });
             }
-            if icon_button(ui, Icon::Next, 18.0, TEXT).clicked() {
+            if icon_button(ui, Icon::Next, 18.0, TEXT()).clicked() {
                 self.send(Cmd::Next(gid.clone()));
             }
-            let rp = icon_button(ui, if g.repeat == Repeat::One { Icon::RepeatOne } else { Icon::Repeat }, 18.0, if g.repeat != Repeat::Off { ACCENT } else { TEXT_DIM })
+            let rp = icon_button(ui, if g.repeat == Repeat::One { Icon::RepeatOne } else { Icon::Repeat }, 18.0, if g.repeat != Repeat::Off { ACCENT() } else { TEXT_DIM() })
                 .on_hover_text(t!("Repeat"));
             if rp.clicked() {
                 self.send(Cmd::SetPlayMode(gid.clone(), g.shuffle, g.repeat.next()));
@@ -696,11 +699,11 @@ impl App {
             let pos = g.now.live_position();
             let dur = g.now.duration;
             let label_w = 40.0;
-            ui.add_sized([label_w, 16.0], egui::Label::new(RichText::new(fmt_time(self.seek_drag.map(|v| v * dur).unwrap_or(pos))).size(11.5).color(TEXT_FAINT)));
+            ui.add_sized([label_w, 16.0], egui::Label::new(RichText::new(fmt_time(self.seek_drag.map(|v| v * dur).unwrap_or(pos))).size(11.5).color(TEXT_FAINT())));
             let mut v = if dur > 0.0 { self.seek_drag.unwrap_or(pos / dur) } else { 0.0 };
             let w = ui.available_width() - label_w - 10.0;
             if dur > 0.0 {
-                let (r, changed) = slider(ui, "seek", &mut v, w, TEXT);
+                let (r, changed) = slider(ui, "seek", &mut v, w, TEXT());
                 if changed {
                     self.seek_drag = Some(v);
                 }
@@ -712,35 +715,35 @@ impl App {
             } else {
                 let (r, _) = ui.allocate_exact_size(vec2(w, 20.0), Sense::hover());
                 let label = if g.now.is_stream { t!("Live") } else { "" };
-                ui.painter().rect_filled(Rect::from_center_size(r.center(), vec2(w, 4.0)), 2.0, Color32::from_white_alpha(18));
+                ui.painter().rect_filled(Rect::from_center_size(r.center(), vec2(w, 4.0)), 2.0, overlay(18));
                 if !label.is_empty() {
                     chip_at(ui, r.center(), label);
                 }
             }
-            ui.add_sized([label_w, 16.0], egui::Label::new(RichText::new(if dur > 0.0 { fmt_time(dur) } else { String::new() }).size(11.5).color(TEXT_FAINT)));
+            ui.add_sized([label_w, 16.0], egui::Label::new(RichText::new(if dur > 0.0 { fmt_time(dur) } else { String::new() }).size(11.5).color(TEXT_FAINT())));
         });
 
         // Right: queue, group, volume, expand.
         let right = Rect::from_min_max(pos2(full.max.x - full.width() * 0.28, full.min.y), full.max);
         let mut rui = ui.new_child(egui::UiBuilder::new().max_rect(right).layout(Layout::right_to_left(Align::Center)));
-        if icon_button(&mut rui, Icon::Up, 18.0, TEXT_DIM).on_hover_text(t!("Now playing")).clicked() {
+        if icon_button(&mut rui, Icon::Up, 18.0, TEXT_DIM()).on_hover_text(t!("Now playing")).clicked() {
             self.go(if self.view == View::NowPlaying { View::Home } else { View::NowPlaying });
         }
         let key = format!("g:{gid}");
         let mut v = self.shown_volume(&key, g.volume);
         let sw = (right.width() - 150.0).clamp(80.0, 150.0);
-        let (_, changed) = slider(&mut rui, "bar_vol", &mut v, sw, TEXT);
+        let (_, changed) = slider(&mut rui, "bar_vol", &mut v, sw, TEXT());
         if changed {
             self.local_vol.insert(key, (v, Instant::now()));
             self.send(Cmd::GroupVolume(gid.clone(), (v * 100.0).round() as u8));
         }
-        if icon_button(&mut rui, if g.muted { Icon::Muted } else { Icon::Speaker }, 18.0, if g.muted { BAD } else { TEXT_DIM }).clicked() {
+        if icon_button(&mut rui, if g.muted { Icon::Muted } else { Icon::Speaker }, 18.0, if g.muted { BAD() } else { TEXT_DIM() }).clicked() {
             self.send(Cmd::GroupMute(gid.clone(), !g.muted));
         }
-        if icon_button(&mut rui, Icon::Rooms, 18.0, TEXT_DIM).on_hover_text(t!("Group rooms")).clicked() {
+        if icon_button(&mut rui, Icon::Rooms, 18.0, TEXT_DIM()).on_hover_text(t!("Group rooms")).clicked() {
             self.group_editor = Some((gid.clone(), g.members.clone()));
         }
-        if icon_button(&mut rui, Icon::Queue, 18.0, if self.right_tab == 1 { ACCENT } else { TEXT_DIM }).on_hover_text(t!("Queue")).clicked() {
+        if icon_button(&mut rui, Icon::Queue, 18.0, if self.right_tab == 1 { ACCENT() } else { TEXT_DIM() }).on_hover_text(t!("Queue")).clicked() {
             self.right_tab = 1 - self.right_tab;
         }
         self.now_star(&mut rui, &g.now, 18.0);
@@ -750,11 +753,11 @@ impl App {
     fn searching_page(&mut self, ui: &mut egui::Ui, s: &AppState) {
         ui.add_space(ui.available_height() * 0.3);
         ui.vertical_centered(|ui| {
-            ui.label(RichText::new(t!("Looking for speakers on your network")).size(22.0).color(TEXT));
+            ui.label(RichText::new(t!("Looking for speakers on your network")).size(22.0).color(TEXT()));
             ui.add_space(8.0);
-            ui.label(RichText::new(t!("S1 and S2 systems are both found automatically.")).color(TEXT_DIM));
+            ui.label(RichText::new(t!("S1 and S2 systems are both found automatically.")).color(TEXT_DIM()));
             ui.add_space(18.0);
-            spinner_dots(ui, ACCENT);
+            spinner_dots(ui, ACCENT());
             let _ = s;
         });
     }
@@ -770,23 +773,23 @@ impl App {
                 };
                 ui.label(RichText::new(t!("Group rooms")).size(20.0).strong());
                 let lead = h.room(&gid).map(|r| r.name.clone()).unwrap_or_default();
-                ui.label(RichText::new(t!("Rooms play together with {lead}.", lead = lead)).color(TEXT_DIM));
+                ui.label(RichText::new(t!("Rooms play together with {lead}.", lead = lead)).color(TEXT_DIM()));
                 ui.add_space(10.0);
                 for r in &h.rooms {
                     let is_lead = r.uuid == gid;
                     let mut on = members.contains(&r.uuid);
                     ui.horizontal(|ui| {
                         ui.set_height(40.0);
-                        paint_icon(ui.painter(), Rect::from_min_size(ui.cursor().min + vec2(0.0, 10.0), vec2(20.0, 20.0)), Icon::Speaker, TEXT_DIM);
+                        paint_icon(ui.painter(), Rect::from_min_size(ui.cursor().min + vec2(0.0, 10.0), vec2(20.0, 20.0)), Icon::Speaker, TEXT_DIM());
                         ui.add_space(30.0);
                         ui.vertical(|ui| {
-                            ui.label(RichText::new(&r.name).color(TEXT));
+                            ui.label(RichText::new(&r.name).color(TEXT()));
                             let sub = if is_lead { t!("Playing source").to_string() } else { r.model.clone() };
-                            ui.label(RichText::new(sub).size(11.5).color(TEXT_FAINT));
+                            ui.label(RichText::new(sub).size(11.5).color(TEXT_FAINT()));
                         });
                         ui.with_layout(Layout::right_to_left(Align::Center), |ui| {
                             if is_lead {
-                                paint_icon(ui.painter(), Rect::from_min_size(ui.cursor().min + vec2(-26.0, 10.0), vec2(20.0, 20.0)), Icon::Check, ACCENT);
+                                paint_icon(ui.painter(), Rect::from_min_size(ui.cursor().min + vec2(-26.0, 10.0), vec2(20.0, 20.0)), Icon::Check, ACCENT());
                                 ui.add_space(30.0);
                             } else if toggle(ui, &mut on).changed() {
                                 if on {
@@ -804,13 +807,13 @@ impl App {
                     ui.add_space(8.0);
                     ui.separator();
                     ui.add_space(4.0);
-                    ui.label(RichText::new(t!("Play along from your other system")).color(TEXT).strong());
+                    ui.label(RichText::new(t!("Play along from your other system")).color(TEXT()).strong());
                     ui.label(
                         RichText::new(t!(
                             "S1 and S2 speakers can't join one group, so these play the same music started at the same moment. They can drift up to a second or two apart."
                         ))
                         .size(11.5)
-                        .color(TEXT_FAINT),
+                        .color(TEXT_FAINT()),
                     );
                     ui.add_space(4.0);
                     for o in others {
@@ -821,7 +824,7 @@ impl App {
                                 ui.set_height(36.0);
                                 chip(ui, o.system.label(), system_tint(o.system));
                                 ui.add_space(4.0);
-                                ui.label(RichText::new(o.group_name(og)).color(if taken { TEXT_FAINT } else { TEXT }));
+                                ui.label(RichText::new(o.group_name(og)).color(if taken { TEXT_FAINT() } else { TEXT() }));
                                 ui.with_layout(Layout::right_to_left(Align::Center), |ui| {
                                     if !taken && toggle(ui, &mut on).changed() {
                                         self.out.push(if on { Cmd::LinkGroups(gid.clone(), og.id.clone()) } else { Cmd::Unlink(og.id.clone()) });
@@ -944,30 +947,30 @@ impl App {
             ui.label(RichText::new(t!("Connect {service}", service = link.name)).size(20.0).strong());
             ui.add_space(6.0);
             if !link.url.is_empty() && !link.done {
-                ui.label(RichText::new(t!("1. Open the sign-in page and log in to your account.")).color(TEXT));
+                ui.label(RichText::new(t!("1. Open the sign-in page and log in to your account.")).color(TEXT()));
                 ui.add_space(4.0);
                 if pill(ui, Some(Icon::Up), t!("Open sign-in page"), true).clicked() {
                     ctx.open_url(egui::OpenUrl::new_tab(link.url.clone()));
                 }
                 if !link.code.is_empty() {
                     ui.add_space(10.0);
-                    ui.label(RichText::new(t!("2. If the page asks for a code, enter:")).color(TEXT));
-                    ui.label(RichText::new(&link.code).size(28.0).strong().color(ACCENT));
+                    ui.label(RichText::new(t!("2. If the page asks for a code, enter:")).color(TEXT()));
+                    ui.label(RichText::new(&link.code).size(28.0).strong().color(ACCENT()));
                 }
                 ui.add_space(10.0);
-                ui.label(RichText::new(&link.url).size(11.0).color(TEXT_FAINT));
+                ui.label(RichText::new(&link.url).size(11.0).color(TEXT_FAINT()));
             }
             ui.add_space(10.0);
             ui.horizontal(|ui| {
                 if !link.done && !link.failed {
-                    spinner_dots(ui, TEXT_DIM);
+                    spinner_dots(ui, TEXT_DIM());
                 }
                 ui.label(RichText::new(&link.status).size(13.0).color(if link.failed {
-                    BAD
+                    BAD()
                 } else if link.done {
-                    GOOD
+                    GOOD()
                 } else {
-                    TEXT_DIM
+                    TEXT_DIM()
                 }));
             });
             ui.add_space(14.0);
@@ -989,7 +992,7 @@ impl App {
     /// The named groups for this system: group them with one click, edit or add more.
     fn saved_groups(&mut self, ui: &mut egui::Ui, s: &AppState, h: &Household) {
         ui.horizontal(|ui| {
-            ui.label(RichText::new(t!("Groups")).size(16.0).strong().color(TEXT));
+            ui.label(RichText::new(t!("Groups")).size(16.0).strong().color(TEXT()));
             ui.with_layout(Layout::right_to_left(Align::Center), |ui| {
                 if h.rooms.len() > 1 && pill(ui, Some(Icon::Plus), t!("New group"), false).clicked() {
                     self.group_preset = Some((None, crate::config::SavedGroup { name: String::new(), household: h.id.clone(), rooms: vec![] }));
@@ -998,7 +1001,7 @@ impl App {
         });
         let mine: Vec<&crate::config::SavedGroup> = s.config.groups.iter().filter(|g| g.household == h.id).collect();
         if mine.is_empty() {
-            ui.label(RichText::new(t!("Save sets of rooms you often play together, like “Downstairs” or “Party”.")).size(12.0).color(TEXT_FAINT));
+            ui.label(RichText::new(t!("Save sets of rooms you often play together, like “Downstairs” or “Party”.")).size(12.0).color(TEXT_FAINT()));
             return;
         }
         for g in mine {
@@ -1012,26 +1015,26 @@ impl App {
                 m == wanted
             });
             egui::Frame::new()
-                .fill(if active { SURFACE_HI } else { SURFACE })
+                .fill(if active { SURFACE_HI() } else { SURFACE() })
                 .corner_radius(14.0)
-                .stroke(if active { Stroke::new(1.0_f32, GOOD.gamma_multiply(0.6)) } else { Stroke::NONE })
+                .stroke(if active { Stroke::new(1.0_f32, GOOD().gamma_multiply(0.6)) } else { Stroke::NONE })
                 .inner_margin(egui::Margin::symmetric(12, 10))
                 .show(ui, |ui| {
                     ui.set_width(ui.available_width());
                     ui.horizontal(|ui| {
                         let (r, _) = ui.allocate_exact_size(vec2(20.0, 20.0), Sense::hover());
-                        paint_icon(ui.painter(), r, Icon::Rooms, if active { GOOD } else { TEXT_DIM });
+                        paint_icon(ui.painter(), r, Icon::Rooms, if active { GOOD() } else { TEXT_DIM() });
                         ui.vertical(|ui| {
                             let w = ui.available_width() - 120.0;
-                            clipped_label(ui, &g.name, 14.5, TEXT, w, true);
-                            clipped_label(ui, &names.join(", "), 11.5, TEXT_FAINT, w, false);
+                            clipped_label(ui, &g.name, 14.5, TEXT(), w, true);
+                            clipped_label(ui, &names.join(", "), 11.5, TEXT_FAINT(), w, false);
                         });
                         ui.with_layout(Layout::right_to_left(Align::Center), |ui| {
-                            if icon_button(ui, Icon::Sliders, 14.0, TEXT_DIM).on_hover_text(t!("Edit group")).clicked() {
+                            if icon_button(ui, Icon::Sliders, 14.0, TEXT_DIM()).on_hover_text(t!("Edit group")).clicked() {
                                 self.group_preset = Some((Some(g.name.clone()), g.clone()));
                             }
                             if active {
-                                chip(ui, t!("Grouped"), GOOD);
+                                chip(ui, t!("Grouped"), GOOD());
                             } else if rooms.len() > 1 && pill(ui, None, t!("Group"), true).on_hover_text(t!("Group these rooms now")).clicked() {
                                 self.send(Cmd::GroupRooms(rooms.clone()));
                             }
@@ -1050,7 +1053,7 @@ impl App {
         let modal = egui::Modal::new(egui::Id::unique("group_preset")).frame(modal_frame()).show(ctx, |ui| {
             ui.set_width(380.0);
             ui.label(RichText::new(if old.is_some() { t!("Edit group") } else { t!("New group") }).size(20.0).strong());
-            ui.label(RichText::new(t!("Pick the rooms that play together, and give them a name.")).size(12.5).color(TEXT_DIM));
+            ui.label(RichText::new(t!("Pick the rooms that play together, and give them a name.")).size(12.5).color(TEXT_DIM()));
             ui.add_space(10.0);
             ui.add(egui::TextEdit::singleline(&mut g.name).hint_text(t!("e.g. Downstairs")).desired_width(f32::INFINITY).margin(vec2(10.0, 8.0)));
             ui.add_space(8.0);
@@ -1059,8 +1062,8 @@ impl App {
                 ui.horizontal(|ui| {
                     ui.set_height(34.0);
                     let (ir, _) = ui.allocate_exact_size(vec2(18.0, 18.0), Sense::hover());
-                    paint_icon(ui.painter(), ir, Icon::Speaker, TEXT_DIM);
-                    ui.label(RichText::new(&r.name).color(TEXT));
+                    paint_icon(ui.painter(), ir, Icon::Speaker, TEXT_DIM());
+                    ui.label(RichText::new(&r.name).color(TEXT()));
                     ui.with_layout(Layout::right_to_left(Align::Center), |ui| {
                         if toggle(ui, &mut on).changed() {
                             if on {
@@ -1076,9 +1079,9 @@ impl App {
             let name_taken = s.config.groups.iter().any(|x| x.name.eq_ignore_ascii_case(g.name.trim()) && Some(&x.name) != old.as_ref());
             let valid = !g.name.trim().is_empty() && g.rooms.len() > 1 && !name_taken;
             if name_taken {
-                ui.label(RichText::new(t!("There's already a group with that name.")).size(12.0).color(BAD));
+                ui.label(RichText::new(t!("There's already a group with that name.")).size(12.0).color(BAD()));
             } else if g.rooms.len() < 2 {
-                ui.label(RichText::new(t!("Choose at least two rooms.")).size(12.0).color(TEXT_FAINT));
+                ui.label(RichText::new(t!("Choose at least two rooms.")).size(12.0).color(TEXT_FAINT()));
             }
             ui.horizontal(|ui| {
                 if let Some(name) = &old {
@@ -1132,27 +1135,27 @@ impl App {
                 _ if s.reconnecting => t!("Reconnecting to your speakers…").to_string(),
                 _ => t!("Speakers are checked every few seconds while the app is open.").to_string(),
             };
-            ui.label(RichText::new(summary).size(12.5).color(TEXT_DIM));
+            ui.label(RichText::new(summary).size(12.5).color(TEXT_DIM()));
             ui.add_space(10.0);
             egui::ScrollArea::vertical().max_height(360.0).show(ui, |ui| {
                 for h in &s.households {
                     ui.horizontal(|ui| {
-                        ui.label(RichText::new(t!("{system} system", system = h.system.label())).size(15.0).strong().color(TEXT));
+                        ui.label(RichText::new(t!("{system} system", system = h.system.label())).size(15.0).strong().color(TEXT()));
                         chip(ui, &tn!(h.rooms.len(), "1 room", "{n} rooms"), system_tint(h.system));
                     });
                     for r in &h.rooms {
                         let (color, state) = match (s.phase, r.online) {
-                            (Phase::Demo, _) => (ACCENT, t!("Demo").to_string()),
+                            (Phase::Demo, _) => (ACCENT(), t!("Demo").to_string()),
                             (_, Some(true)) => (
-                                GOOD,
+                                GOOD(),
                                 match r.last_seen {
                                     Some(t) if t.elapsed().as_secs() < 5 => t!("Responding").to_string(),
                                     Some(t) => t!("Responding · last reply {n} s ago", n = t.elapsed().as_secs()),
                                     None => t!("Responding").to_string(),
                                 },
                             ),
-                            (_, Some(false)) => (BAD, t!("Not responding").to_string()),
-                            (_, None) => (TEXT_FAINT, t!("Not checked yet").to_string()),
+                            (_, Some(false)) => (BAD(), t!("Not responding").to_string()),
+                            (_, None) => (TEXT_FAINT(), t!("Not checked yet").to_string()),
                         };
                         card_frame().show(ui, |ui| {
                             ui.set_width(ui.available_width());
@@ -1160,7 +1163,7 @@ impl App {
                                 let (d, _) = ui.allocate_exact_size(vec2(12.0, 36.0), Sense::hover());
                                 ui.painter().circle_filled(d.center(), 5.0, color);
                                 ui.vertical(|ui| {
-                                    ui.label(RichText::new(&r.name).size(14.5).color(TEXT));
+                                    ui.label(RichText::new(&r.name).size(14.5).color(TEXT()));
                                     let mut info = vec![];
                                     if !r.model.is_empty() {
                                         info.push(r.model.clone());
@@ -1171,10 +1174,10 @@ impl App {
                                     if !r.ip.is_empty() {
                                         info.push(r.ip.clone());
                                     }
-                                    ui.label(RichText::new(info.join(" · ")).size(12.0).color(TEXT_DIM));
+                                    ui.label(RichText::new(info.join(" · ")).size(12.0).color(TEXT_DIM()));
                                     ui.label(RichText::new(&state).size(12.0).color(color));
                                     if r.online == Some(false) && !r.problem.is_empty() {
-                                        ui.add(egui::Label::new(RichText::new(&r.problem).size(11.0).color(TEXT_FAINT)).wrap());
+                                        ui.add(egui::Label::new(RichText::new(&r.problem).size(11.0).color(TEXT_FAINT())).wrap());
                                     }
                                 });
                             });
@@ -1184,12 +1187,12 @@ impl App {
                     ui.add_space(6.0);
                 }
                 if s.households.is_empty() {
-                    ui.label(RichText::new(t!("No speakers yet.")).color(TEXT_DIM));
+                    ui.label(RichText::new(t!("No speakers yet.")).color(TEXT_DIM()));
                 }
             });
             if let Some(addr) = crate::sources::local::base_url() {
                 ui.add_space(4.0);
-                ui.label(RichText::new(t!("This computer plays your folders to the speakers from {address}", address = addr)).size(11.0).color(TEXT_FAINT));
+                ui.label(RichText::new(t!("This computer plays your folders to the speakers from {address}", address = addr)).size(11.0).color(TEXT_FAINT()));
             }
             ui.add_space(12.0);
             ui.horizontal(|ui| {
@@ -1218,16 +1221,16 @@ impl App {
         let modal = egui::Modal::new(egui::Id::unique("station_editor")).frame(modal_frame()).show(ctx, |ui| {
             ui.set_width(420.0);
             ui.label(RichText::new(t!("Add a station or stream")).size(20.0).strong());
-            ui.label(RichText::new(t!("Paste the stream's web address. Playlist links (.pls, .m3u) are followed automatically.")).size(12.5).color(TEXT_DIM));
+            ui.label(RichText::new(t!("Paste the stream's web address. Playlist links (.pls, .m3u) are followed automatically.")).size(12.5).color(TEXT_DIM()));
             ui.add_space(10.0);
             egui::Grid::new("station_grid").num_columns(2).spacing([14.0, 10.0]).show(ui, |ui| {
-                ui.label(RichText::new(t!("Name")).color(TEXT_DIM));
+                ui.label(RichText::new(t!("Name")).color(TEXT_DIM()));
                 ui.add(egui::TextEdit::singleline(&mut st.name).hint_text(t!("My favourite station")).desired_width(280.0).margin(vec2(10.0, 7.0)));
                 ui.end_row();
-                ui.label(RichText::new(t!("Address")).color(TEXT_DIM));
+                ui.label(RichText::new(t!("Address")).color(TEXT_DIM()));
                 ui.add(egui::TextEdit::singleline(&mut st.url).hint_text(t!("http://stream.example.com/live.mp3")).desired_width(280.0).margin(vec2(10.0, 7.0)));
                 ui.end_row();
-                ui.label(RichText::new(t!("Genre")).color(TEXT_DIM));
+                ui.label(RichText::new(t!("Genre")).color(TEXT_DIM()));
                 ui.add(egui::TextEdit::singleline(&mut st.genre).hint_text(t!("Optional, e.g. Jazz")).desired_width(280.0).margin(vec2(10.0, 7.0)));
                 ui.end_row();
             });
@@ -1235,7 +1238,7 @@ impl App {
             let valid = st.url.trim().starts_with("http://") || st.url.trim().starts_with("https://");
             ui.horizontal(|ui| {
                 if !valid && !st.url.trim().is_empty() {
-                    ui.label(RichText::new(t!("The address should start with http:// or https://")).size(12.0).color(BAD));
+                    ui.label(RichText::new(t!("The address should start with http:// or https://")).size(12.0).color(BAD()));
                 }
                 ui.with_layout(Layout::right_to_left(Align::Center), |ui| {
                     if pill(ui, None, t!("Save"), true).clicked() && valid {
@@ -1269,11 +1272,11 @@ impl App {
                     "Every speaker in this system downloads version {version} and restarts. Music stops for a few minutes. Keep the speakers plugged in until they're back.",
                     version = version
                 ))
-                .color(TEXT_DIM),
+                .color(TEXT_DIM()),
             );
             if system == System::S1 {
                 ui.add_space(4.0);
-                ui.label(RichText::new(t!("This is an S1 update, so your speakers stay on S1.")).size(12.5).color(TEXT_FAINT));
+                ui.label(RichText::new(t!("This is an S1 update, so your speakers stay on S1.")).size(12.5).color(TEXT_FAINT()));
             }
             ui.add_space(12.0);
             ui.horizontal(|ui| {
@@ -1300,14 +1303,14 @@ impl App {
         egui::Area::new(egui::Id::unique("toasts")).anchor(egui::Align2::RIGHT_BOTTOM, vec2(-360.0, -108.0)).order(egui::Order::Foreground).interactable(false).show(ctx, |ui| {
             for t in &s.toasts {
                 egui::Frame::new()
-                    .fill(SURFACE_HI)
+                    .fill(SURFACE_HI())
                     .corner_radius(12.0)
-                    .stroke(Stroke::new(1.0_f32, if t.error { BAD.gamma_multiply(0.6) } else { LINE }))
+                    .stroke(Stroke::new(1.0_f32, if t.error { BAD().gamma_multiply(0.6) } else { LINE() }))
                     .inner_margin(egui::Margin::symmetric(14, 10))
                     .shadow(egui::Shadow { offset: [0, 6], blur: 18, spread: 0, color: Color32::from_black_alpha(110) })
                     .show(ui, |ui| {
                         ui.set_max_width(340.0);
-                        ui.label(RichText::new(&t.text).size(13.0).color(TEXT));
+                        ui.label(RichText::new(&t.text).size(13.0).color(TEXT()));
                     });
                 ui.add_space(6.0);
             }
@@ -1384,7 +1387,8 @@ impl App {
     pub(super) fn now_star(&mut self, ui: &mut egui::Ui, now: &NowPlaying, size: f32) {
         let Some(item) = now.as_item() else { return };
         let saved = self.favorite_of(&item).is_some();
-        let r = icon_button(ui, Icon::Star, size, if saved { ACCENT } else { TEXT_DIM }).on_hover_text(if saved { t!("Remove from Favorites") } else { t!("Add to Favorites") });
+        let r =
+            icon_button(ui, Icon::Star, size, if saved { ACCENT() } else { TEXT_DIM() }).on_hover_text(if saved { t!("Remove from Favorites") } else { t!("Add to Favorites") });
         if r.clicked() {
             self.toggle_favorite(&item);
         }
@@ -1422,6 +1426,13 @@ impl App {
 impl eframe::App for App {
     fn ui(&mut self, root: &mut egui::Ui, _frame: &mut eframe::Frame) {
         let ctx = &root.ctx().clone();
+        // Appearance: the person's setting, or a one-off --theme; Automatic follows the computer.
+        let wanted = std::env::var("ROOMTONE_THEME").ok().unwrap_or_else(|| self.backend.lock().config.theme.clone());
+        if wanted != self.applied_theme {
+            theme::set_appearance(ctx, &wanted);
+            self.applied_theme = wanted;
+        }
+        theme::sync(ctx);
         self.handle_screenshot(ctx);
         #[cfg(target_os = "macos")]
         crate::macos_about::install();
@@ -1480,19 +1491,19 @@ impl eframe::App for App {
 }
 
 fn modal_frame() -> egui::Frame {
-    egui::Frame::new().fill(SURFACE).corner_radius(18.0).inner_margin(22.0).stroke(Stroke::new(1.0_f32, LINE))
+    egui::Frame::new().fill(SURFACE()).corner_radius(18.0).inner_margin(22.0).stroke(Stroke::new(1.0_f32, LINE()))
 }
 
 fn nav_item(ui: &mut egui::Ui, icon: Icon, label: &str, active: bool) -> egui::Response {
     let (rect, resp) = ui.allocate_exact_size(vec2(ui.available_width(), 38.0), Sense::click());
     if active {
-        ui.painter().rect_filled(rect, 10.0, SURFACE_HI);
-        ui.painter().rect_filled(Rect::from_min_size(rect.min + vec2(0.0, 10.0), vec2(3.0, 18.0)), 2.0, ACCENT);
+        ui.painter().rect_filled(rect, 10.0, SURFACE_HI());
+        ui.painter().rect_filled(Rect::from_min_size(rect.min + vec2(0.0, 10.0), vec2(3.0, 18.0)), 2.0, ACCENT());
     } else if resp.hovered() {
-        ui.painter().rect_filled(rect, 10.0, SURFACE);
+        ui.painter().rect_filled(rect, 10.0, SURFACE());
     }
-    let color = if active { TEXT } else { TEXT_DIM };
-    paint_icon(ui.painter(), Rect::from_min_size(rect.min + vec2(14.0, 10.0), vec2(18.0, 18.0)), icon, if active { ACCENT } else { color });
+    let color = if active { TEXT() } else { TEXT_DIM() };
+    paint_icon(ui.painter(), Rect::from_min_size(rect.min + vec2(14.0, 10.0), vec2(18.0, 18.0)), icon, if active { ACCENT() } else { color });
     ui.painter().text(pos2(rect.min.x + 44.0, rect.center().y), egui::Align2::LEFT_CENTER, label, egui::FontId::proportional(14.5), color);
     resp.on_hover_cursor(egui::CursorIcon::PointingHand)
 }
@@ -1500,16 +1511,16 @@ fn nav_item(ui: &mut egui::Ui, icon: Icon, label: &str, active: bool) -> egui::R
 fn system_item(ui: &mut egui::Ui, label: &str, sub: &str, tint: Color32, active: bool) -> egui::Response {
     let (rect, resp) = ui.allocate_exact_size(vec2(ui.available_width(), 48.0), Sense::click());
     if active {
-        ui.painter().rect_filled(rect, 10.0, SURFACE_HI);
+        ui.painter().rect_filled(rect, 10.0, SURFACE_HI());
     } else if resp.hovered() {
-        ui.painter().rect_filled(rect, 10.0, SURFACE);
+        ui.painter().rect_filled(rect, 10.0, SURFACE());
     }
     let badge = Rect::from_min_size(rect.min + vec2(10.0, 10.0), vec2(28.0, 28.0));
     ui.painter().rect_filled(badge, 8.0, tint.gamma_multiply(if active { 0.9 } else { 0.25 }));
     let short = if label.starts_with("S1") { "S1" } else { "S2" };
     ui.painter().text(badge.center(), egui::Align2::CENTER_CENTER, short, egui::FontId::proportional(11.5), if active { Color32::BLACK } else { tint });
-    ui.painter().text(pos2(rect.min.x + 48.0, rect.min.y + 16.0), egui::Align2::LEFT_CENTER, label, egui::FontId::proportional(14.0), if active { TEXT } else { TEXT_DIM });
-    ui.painter().text(pos2(rect.min.x + 48.0, rect.min.y + 33.0), egui::Align2::LEFT_CENTER, sub, egui::FontId::proportional(11.5), TEXT_FAINT);
+    ui.painter().text(pos2(rect.min.x + 48.0, rect.min.y + 16.0), egui::Align2::LEFT_CENTER, label, egui::FontId::proportional(14.0), if active { TEXT() } else { TEXT_DIM() });
+    ui.painter().text(pos2(rect.min.x + 48.0, rect.min.y + 33.0), egui::Align2::LEFT_CENTER, sub, egui::FontId::proportional(11.5), TEXT_FAINT());
     resp.on_hover_cursor(egui::CursorIcon::PointingHand)
 }
 
@@ -1527,6 +1538,6 @@ pub fn paint_text(ui: &egui::Ui, pos: egui::Pos2, text: &str, size: f32, color: 
 fn chip_at(ui: &egui::Ui, center: egui::Pos2, text: &str) {
     let galley = ui.painter().layout_no_wrap(text.to_string(), egui::FontId::proportional(10.5), Color32::BLACK);
     let r = Rect::from_center_size(center, galley.size() + vec2(12.0, 4.0));
-    ui.painter().rect_filled(r, 8.0, ACCENT);
+    ui.painter().rect_filled(r, 8.0, ACCENT());
     ui.painter().galley(r.min + vec2(6.0, 2.0), galley, Color32::BLACK);
 }

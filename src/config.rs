@@ -126,6 +126,13 @@ pub struct Config {
     pub language: String,
     #[serde(default)]
     pub mcp: McpConfig,
+    /// Appearance: "auto" follows the computer, or "light" / "dark".
+    #[serde(default = "default_theme")]
+    pub theme: String,
+}
+
+fn default_theme() -> String {
+    "auto".into()
 }
 
 impl Default for Config {
@@ -140,6 +147,7 @@ impl Default for Config {
             groups: vec![],
             language: default_language(),
             mcp: McpConfig::default(),
+            theme: default_theme(),
         }
     }
 }
@@ -200,5 +208,76 @@ impl Config {
 
     pub fn service_on(&self, id: &str) -> bool {
         self.services.iter().any(|s| s == id)
+    }
+}
+
+#[cfg(test)]
+mod unit {
+    use super::*;
+
+    #[test]
+    fn defaults_are_safe() {
+        let c = Config::default();
+        assert_eq!(c.language, "auto");
+        assert_eq!(c.theme, "auto");
+        assert!(!c.mcp.enabled, "the assistant link starts switched off");
+        assert!(c.mcp.allow_control);
+        assert!(!c.mcp.allow_network);
+        assert_eq!(c.mcp.port, 8790);
+        assert_eq!(c.mcp.token.len(), 32);
+        assert!(c.mcp.token.chars().all(|ch| ch.is_ascii_hexdigit()));
+        for s in ["local", "radio", "podcasts", "archive"] {
+            assert!(c.service_on(s));
+        }
+    }
+
+    #[test]
+    fn access_keys_differ() {
+        assert_ne!(new_token(), new_token());
+    }
+
+    #[test]
+    fn old_settings_files_still_load() {
+        // A file from before languages, themes and the assistant link existed.
+        let old = r#"{"folders": ["/music"], "stations": [{"name": "Jazz", "url": "http://x/jazz"}], "services": ["radio"]}"#;
+        let c: Config = serde_json::from_str(old).unwrap();
+        assert_eq!(c.folders, vec!["/music".to_string()]);
+        assert_eq!(c.stations[0].genre, "");
+        assert!(c.service_on("radio") && !c.service_on("local"));
+        assert_eq!(c.language, "auto");
+        assert_eq!(c.theme, "auto");
+        assert!(!c.mcp.enabled);
+    }
+
+    #[test]
+    fn unknown_fields_are_ignored() {
+        let c: Config = serde_json::from_str(r#"{"from_the_future": 1, "theme": "dark"}"#).unwrap();
+        assert_eq!(c.theme, "dark");
+    }
+
+    #[test]
+    fn settings_survive_a_round_trip() {
+        let mut c = Config::default();
+        c.groups.push(SavedGroup { name: "Downstairs".into(), household: "H".into(), rooms: vec!["A".into(), "B".into()] });
+        c.mcp.enabled = true;
+        let back: Config = serde_json::from_str(&serde_json::to_string(&c).unwrap()).unwrap();
+        assert_eq!(back.groups, c.groups);
+        assert_eq!(back.mcp, c.mcp);
+    }
+
+    #[test]
+    fn accounts_by_service_number() {
+        let mut c = Config::default();
+        c.accounts.push(Account { sid: 9, name: "Spotify".into(), ..Default::default() });
+        assert_eq!(c.account(9).map(|a| a.name.as_str()), Some("Spotify"));
+        assert!(c.account(2).is_none());
+    }
+
+    #[test]
+    fn data_folder_is_per_platform() {
+        crate::test_support::isolate();
+        let d = Config::data_dir().unwrap();
+        let s = d.to_string_lossy().to_lowercase();
+        assert!(s.contains("roomtone"));
     }
 }
