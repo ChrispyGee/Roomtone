@@ -1708,7 +1708,7 @@ impl App {
             && item.id.starts_with("SQ:")
             && ui
                 .button(t!("Export playlist…"))
-                .on_hover_text(t!("Choose the file type when you pick the name: M3U playlist, CSV spreadsheet or Roomtone backup (.json)"))
+                .on_hover_text(t!("Choose the file type when you pick the name: M3U, PLS or XSPF playlist, CSV spreadsheet or Roomtone backup (.json)"))
                 .clicked()
         {
             let name: String = item.title.chars().map(|c| if c.is_alphanumeric() || c == ' ' || c == '-' { c } else { '_' }).collect();
