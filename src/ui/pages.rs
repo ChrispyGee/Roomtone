@@ -2109,9 +2109,9 @@ impl App {
             ui.add_space(6.0);
             ui.label(RichText::new(t!("What's new in this version")).color(TEXT()).strong());
             for line in [
-                t!("Back up and restore your favorites, playlists and alarms, and export or import a single playlist (M3U, CSV)"),
-                t!("Podcasts remember where you stopped, show what's played, and have 15 and 30 second skip buttons"),
-                t!("The format, sample rate and bit depth of what's playing, where the speaker says"),
+                t!("Podcasts and other web audio now play on S1 speakers"),
+                t!("Arrange your rooms in the order you like"),
+                t!("More ways to sort long lists, an A–Z jump strip, and a search box for the queue"),
             ] {
                 ui.horizontal_wrapped(|ui| {
                     ui.label(RichText::new("•").color(ACCENT()));
