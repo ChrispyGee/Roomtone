@@ -226,6 +226,41 @@ impl App {
         }
     }
 
+    /// The sound of what's playing (format, sample rate, bit depth, bitrate) where the speaker says,
+    /// and a plain list of what it sent, to copy into a report.
+    fn quality_row(&mut self, ui: &mut Ui, now: &NowPlaying) {
+        let q = crate::quality::of(&now.uri, &now.media_uri, &now.track_meta);
+        if !q.is_empty() {
+            ui.add_space(8.0);
+            ui.horizontal_wrapped(|ui| {
+                for l in q.labels() {
+                    chip(ui, &l, TEXT_DIM());
+                }
+                if q.lossless {
+                    chip(ui, t!("Lossless"), GOOD());
+                }
+            });
+        }
+        if q.details.is_empty() {
+            return;
+        }
+        egui::CollapsingHeader::new(RichText::new(t!("Technical details")).size(12.5).color(TEXT_FAINT())).id_salt("np_quality").show(ui, |ui| {
+            ui.label(RichText::new(t!("This is what the speaker told Roomtone about this song. Anything it doesn't send can't be shown.")).size(12.0).color(TEXT_FAINT()));
+            ui.add_space(4.0);
+            for (k, v) in &q.details {
+                ui.horizontal_wrapped(|ui| {
+                    ui.label(RichText::new(k).size(12.0).color(TEXT_DIM()));
+                    ui.label(RichText::new(v).size(12.0).monospace().color(TEXT()));
+                });
+            }
+            ui.add_space(6.0);
+            if pill(ui, None, t!("Copy details"), false).clicked() {
+                ui.ctx().copy_text(q.report());
+                self.toast_here(t!("Details copied"));
+            }
+        });
+    }
+
     // ---------- Tiles and rows ----------
 
     fn tile_size(width: f32) -> (usize, f32) {
@@ -1449,6 +1484,9 @@ impl App {
                     }
                 }
                 clipped_label(ui, &g.now.album, 14.0, TEXT_FAINT(), cw, false);
+                if !g.now.is_empty() {
+                    self.quality_row(ui, &g.now);
+                }
                 ui.add_space(18.0);
                 let dur = g.now.duration;
                 let pos = g.now.live_position();

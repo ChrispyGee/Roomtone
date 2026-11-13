@@ -307,8 +307,20 @@ fn set_from_queue(g: &mut Group, idx: usize) {
         source: "Queue".into(),
         is_stream: false,
         uri: it.uri.clone(),
+        track_meta: demo_track_meta(idx),
         ..Default::default()
     };
+}
+
+/// Made-up sound details, so the Now Playing page has something to show in the demo:
+/// CD-quality FLAC, hi-res FLAC, or 320 kbps MP3, by turns.
+fn demo_track_meta(idx: usize) -> String {
+    let res = match idx % 3 {
+        0 => "<res protocolInfo=\"x-file-cifs:*:audio/flac:*\" sampleFrequency=\"44100\" bitsPerSample=\"16\" nrAudioChannels=\"2\"/>",
+        1 => "<res protocolInfo=\"x-sonos-http:*:audio/flac:*\" sampleFrequency=\"96000\" bitsPerSample=\"24\" nrAudioChannels=\"2\"/>",
+        _ => "<res protocolInfo=\"http-get:*:audio/mpeg:*\" bitrate=\"40000\" nrAudioChannels=\"2\"/>",
+    };
+    format!("<DIDL-Lite xmlns=\"urn:schemas-upnp-org:metadata-1-0/DIDL-Lite/\"><item id=\"-1\" parentID=\"-1\">{res}</item></DIDL-Lite>")
 }
 
 fn station_now(n: usize) -> NowPlaying {
