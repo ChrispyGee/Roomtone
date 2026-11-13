@@ -160,6 +160,9 @@ pub struct Config {
     /// Let the keyboard's media keys and the system's Now Playing control the selected room.
     #[serde(default = "yes")]
     pub media_keys: bool,
+    /// Remember what was played (on this computer only) for Recently played and History.
+    #[serde(default = "yes")]
+    pub remember_history: bool,
     /// The order the person arranged their rooms in (room ids, first to last). Rooms not listed
     /// come after, in the speakers' own order.
     #[serde(default)]
@@ -185,6 +188,7 @@ impl Default for Config {
             theme: default_theme(),
             speaker_events: false,
             media_keys: true,
+            remember_history: true,
             room_order: vec![],
         }
     }

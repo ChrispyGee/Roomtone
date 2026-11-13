@@ -7,6 +7,7 @@ All notable changes to Roomtone. The format follows [Keep a Changelog](https://k
 ### Added
 - **Media keys and Now Playing** (on by default; Settings › Media keys): the keyboard's play/pause, next and previous keys, headphone buttons and the system's Now Playing (macOS Control Center and lock screen, the Windows media overlay, Linux MPRIS) control the selected room and show its song, artwork and progress. Checked starting up on macOS; **not yet confirmed on Windows and Linux**. New `media_keys` field in `config.json`.
 - **The window remembers its size and position** (`window.json`).
+- **Listening history** (on by default, on this computer only): songs and stations played for about 20 seconds are remembered in `history.json`, so *Recently played* survives restarts and includes what was played from other apps, and a new **History** page lists everything with how often and how long ago, ready to play again. Switch it off or *Clear history* in Settings › Listening history. New `remember_history` field in `config.json`.
 
 ## [0.5.5] — 2026-11-13
 
