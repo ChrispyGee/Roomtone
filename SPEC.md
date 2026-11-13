@@ -1,4 +1,4 @@
-# Roomtone — specification (v0.5.3)
+# Roomtone — specification (v0.5.4)
 
 Project home: <https://github.com/ChrispyGee/Roomtone>
 

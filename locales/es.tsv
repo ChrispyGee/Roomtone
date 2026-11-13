@@ -613,3 +613,6 @@ Saved playlist “{title}” as {file}	Lista «{title}» guardada como {file}
 Export as M3U…	Exportar como M3U…
 Export as CSV…	Exportar como CSV…
 Add a playlist from an M3U or CSV file, or a file saved with Export playlist or Save backup	Añadir una lista desde un archivo M3U o CSV, o uno guardado con Exportar lista o Guardar copia
+Back up and restore your favorites, playlists and alarms, and export or import a single playlist (M3U, CSV)	Copia de seguridad y restauración de favoritos, listas y alarmas, y exportar o importar una sola lista (M3U, CSV)
+Podcasts remember where you stopped, show what's played, and have 15 and 30 second skip buttons	Los podcasts recuerdan dónde lo dejaste, muestran lo escuchado y tienen botones para saltar 15 y 30 segundos
+The format, sample rate and bit depth of what's playing, where the speaker says	El formato, la frecuencia de muestreo y la profundidad de bits de lo que suena, cuando el altavoz lo indica
