@@ -42,6 +42,7 @@ mod mcp;
 mod media_keys;
 mod model;
 mod net;
+mod pls_xspf;
 mod quality;
 mod s2;
 mod sources;

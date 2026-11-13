@@ -442,10 +442,10 @@ impl Backup {
 }
 
 /// The path a playlist is exported to, with a file type Roomtone can write. The type is the one
-/// chosen in the Save dialog (or typed): `.m3u8`/`.m3u`, `.csv` or `.json`. Anything else, or
+/// chosen in the Save dialog (or typed): `.m3u8`/`.m3u`, `.pls`, `.xspf`, `.csv` or `.json`. Anything else, or
 /// no extension (some systems' dialogs don't add one), becomes an M3U8 file by adding `.m3u8`.
 pub fn playlist_export_path(path: std::path::PathBuf) -> std::path::PathBuf {
-    let known = path.extension().and_then(|e| e.to_str()).is_some_and(|e| ["m3u8", "m3u", "csv", "json"].contains(&e.to_lowercase().as_str()));
+    let known = path.extension().and_then(|e| e.to_str()).is_some_and(|e| ["m3u8", "m3u", "pls", "xspf", "csv", "json"].contains(&e.to_lowercase().as_str()));
     if known {
         return path;
     }
