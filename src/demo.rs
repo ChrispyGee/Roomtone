@@ -519,6 +519,7 @@ pub fn apply(s: &mut AppState, cmd: &Cmd) {
         | Cmd::SetEvents(_)
         | Cmd::SetVersionCheck(_)
         | Cmd::CheckVersionNow
+        | Cmd::SetMediaKeys(_)
         | Cmd::SetHistory(_)
         | Cmd::ClearHistory
         | Cmd::MarkEpisode(..)

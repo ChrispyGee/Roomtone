@@ -71,6 +71,9 @@ File: `speaker_events` (`true` / `false`). Default `false`.
 ### New versions
 *Tell me when a new version of Roomtone is out*: when on, about once a day Roomtone reads this project's latest release on GitHub (one plain request to `api.github.com`; the only thing that identifies the app is its normal `User-Agent` with the version number, and nothing about you or your speakers is sent). If a newer version is out, this section says so and *Open download page* takes you there; there's also a one-time pop-up. Nothing is downloaded or installed for you. *Check now* looks straight away, whether or not the switch is on. A look that fails (offline, rate limit) is simply tried again later.
 File: `check_new_versions` (`true` / `false`), default `false`; `last_version_check` (seconds since 1970) is kept by the app so it only looks once a day.
+### Media keys
+*Use the computer's media controls* (on by default): the keyboard's play/pause, next and previous keys, headphone buttons, and the system's **Now Playing** (macOS Control Center and lock screen, the Windows media overlay, Linux's MPRIS players list, which desktop shells and `playerctl` show) control **the room selected in Roomtone**, and show its song, artist, artwork and progress. Only the selected room is shown; switching it off hands the keys back. If the computer has no such interface (for example Linux without a D-Bus session), Roomtone just goes without and says so on the terminal.
+File: `media_keys` (`true` / `false`), default `true`.
 ### Listening history
 *Remember what I've played* (**on by default**): songs and stations that have played for about 20 seconds are kept on this computer in `history.json` (the newest 500, each with how often and when last), and **never sent anywhere**. They feed *Recently played* on Home (which now survives a restart and includes what was played from other apps) and the **History** page (Home › *History*, or *See history* here), where you can play any of them again. Skipping through songs counts none of them; demo-system songs are never kept. Switching it off stops adding to the history but keeps what's there; *Clear history* forgets everything (the file is emptied).
 File: `remember_history` (`true` / `false`), default `true`.
@@ -148,7 +151,8 @@ Complete `config.json`, with every field at its default (the access key is made 
   "room_order": [],
   "check_new_versions": false,
   "last_version_check": 0,
-  "remember_history": true
+  "remember_history": true,
+  "media_keys": true
 }
 ```
 
@@ -167,6 +171,7 @@ Complete `config.json`, with every field at its default (the access key is made 
 | `room_order` | list of text | `[]` | The order you arranged your rooms in (room ids, first to last). Rooms not listed come after, in the speakers' own order. Managed by *Arrange* in the Rooms panel. |
 | `check_new_versions` | true/false | `false` | Look for a newer Roomtone about once a day. |
 | `last_version_check` | number | `0` | When the last good look was (seconds since 1970). Kept by the app. |
+| `media_keys` | true/false | `true` | Let the keyboard's media keys and the system's Now Playing control the selected room. |
 | `remember_history` | true/false | `true` | Keep a listening history on this computer. |
 | `mcp.enabled` | true/false | `false` | Assistant link on. |
 | `mcp.allow_control` | true/false | `true` | Assistants may change things. |
@@ -218,6 +223,7 @@ Edit it by hand only if you know what you're doing; a file that can't be read is
 | `speakers.json` | Speakers found last time, for a fast start. | Yes: Roomtone searches again. |
 | `config.json.broken-…` | A settings file Roomtone couldn't read, kept for you. | Yes, once you've recovered what you need. |
 | `songs.json` | Details of songs played from this computer. | Yes: rebuilt as needed. |
+| `window.json` | The window's size and position (and whether it was maximised), so Roomtone opens as you left it. Written a moment after you stop moving or resizing it. | Yes: it opens at the default size. |
 | `history.json` | Your listening history (newest 500 songs and stations, with play counts). | Yes, or use *Clear history*. |
 | `podcast-progress.json` | Where you stopped in podcast episodes, and which are played (newest 300). Behind *Continue listening* and the *Played* labels. | Yes, but you lose your place in episodes. |
 

@@ -96,6 +96,8 @@ pub enum Cmd {
     SetVersionCheck(bool),
     /// Look for a newer Roomtone now.
     CheckVersionNow,
+    /// Switch the keyboard media keys and the system's Now Playing on or off.
+    SetMediaKeys(bool),
     /// Switch listening history on or off (what's already kept stays until cleared).
     SetHistory(bool),
     /// Forget everything in the listening history.
@@ -786,6 +788,7 @@ fn run_live(b: &Backend, ctx: &Waker, cmd: Cmd) -> Result<(), String> {
         | Cmd::SetEvents(_)
         | Cmd::SetVersionCheck(_)
         | Cmd::CheckVersionNow
+        | Cmd::SetMediaKeys(_)
         | Cmd::SetHistory(_)
         | Cmd::ClearHistory
         | Cmd::MarkEpisode(..)
@@ -1380,6 +1383,11 @@ fn run_common(b: &Backend, ctx: &Waker, cmd: Cmd) -> Result<Option<Cmd>, String>
         }
         Cmd::SetMcp(m) => {
             b.lock().config.mcp = m;
+            save(b);
+            Ok(None)
+        }
+        Cmd::SetMediaKeys(on) => {
+            b.lock().config.media_keys = on;
             save(b);
             Ok(None)
         }
@@ -2907,7 +2915,11 @@ mod unit {
     fn listening_history_can_be_switched_off_and_cleared() {
         let b = demo_backend();
         let wait = Duration::from_secs(10);
-        assert!(b.lock().config.remember_history, "on by default");
+        // (The test settings file is shared by every test and keeps what an earlier run left, so
+        // the default is checked on a fresh config, and the switch is set explicitly.)
+        assert!(crate::config::Config::default().remember_history, "on by default");
+        b.send_and_wait(Cmd::SetHistory(true), wait).unwrap();
+        assert!(b.lock().config.remember_history);
         b.send_and_wait(Cmd::SetHistory(false), wait).unwrap();
         assert!(!b.lock().config.remember_history);
         b.lock().recent.push(Item { title: "Song".into(), uri: "x://song".into(), ..Default::default() });

@@ -163,6 +163,9 @@ pub struct Config {
     /// When the last check was made (seconds since 1970), so it isn't repeated within a day.
     #[serde(default)]
     pub last_version_check: u64,
+    /// Let the keyboard's media keys and the system's Now Playing control the selected room.
+    #[serde(default = "yes")]
+    pub media_keys: bool,
     /// Remember what was played (on this computer only) for Recently played and History.
     #[serde(default = "yes")]
     pub remember_history: bool,
@@ -192,6 +195,7 @@ impl Default for Config {
             speaker_events: false,
             check_new_versions: false,
             last_version_check: 0,
+            media_keys: true,
             remember_history: true,
             room_order: vec![],
         }
