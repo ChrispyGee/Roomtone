@@ -765,4 +765,39 @@ mod unit {
         let json = b.to_json().unwrap();
         assert_eq!(Backup::parse(&json).unwrap(), b, "what was read comes back the same");
     }
+
+    /// Read-only: export every real playlist as M3U, CSV and JSON into a scratch folder, read each
+    /// back, and print counts only: `ROOMTONE_SPEAKER=<ip> ROOMTONE_OUT=<dir> cargo test real_speaker_playlist_files -- --ignored --nocapture`.
+    #[test]
+    #[ignore]
+    fn real_speaker_playlist_files() {
+        let (Ok(ip), Ok(out)) = (std::env::var("ROOMTONE_SPEAKER"), std::env::var("ROOMTONE_OUT")) else {
+            eprintln!("Set ROOMTONE_SPEAKER=<ip> and ROOMTONE_OUT=<folder> to run this.");
+            return;
+        };
+        let out = std::path::PathBuf::from(out);
+        std::fs::create_dir_all(&out).unwrap();
+        let none_path = |_: &std::path::Path| None;
+        let none_name = |_: &str, _: &str| None;
+        for (i, p) in crate::net::speaker::playlists_with_tracks(&ip).expect("playlists").into_iter().enumerate() {
+            let m3u = crate::m3u::write(&p.title, &p.tracks, &|_| None);
+            let csv = crate::csv::write(&p.tracks, &|_| None);
+            std::fs::write(out.join(format!("p{i}.m3u8")), &m3u).unwrap();
+            std::fs::write(out.join(format!("p{i}.csv")), &csv).unwrap();
+            let back_m3u = crate::m3u::parse(&m3u, None, &none_path).expect("M3U reads back");
+            let back_csv = crate::csv::parse(&csv, None, &none_path, &none_name).expect("CSV reads back");
+            let schemes: std::collections::BTreeSet<String> = p.tracks.iter().map(|t| t.uri.split(':').next().unwrap_or("").to_string()).collect();
+            eprintln!(
+                "playlist {i}: songs={} m3u_back={} (notes {}) csv_back={} (notes {}) address types={:?}",
+                p.tracks.len(),
+                back_m3u.tracks.len(),
+                back_m3u.notes.len(),
+                back_csv.tracks.len(),
+                back_csv.notes.len(),
+                schemes
+            );
+            let same = back_m3u.tracks.iter().zip(&p.tracks).all(|(a, b)| a.title == b.title && a.artist == b.artist);
+            eprintln!("playlist {i}: titles and artists survive the M3U round trip: {same}");
+        }
+    }
 }

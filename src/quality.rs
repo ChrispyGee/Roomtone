@@ -338,4 +338,21 @@ mod unit {
         assert_eq!(khz(48000), "48 kHz");
         assert_eq!(khz(192000), "192 kHz");
     }
+
+    /// Read-only check against a real speaker that is playing (prints the sound details only,
+    /// never titles or addresses): `ROOMTONE_SPEAKER=<ip> cargo test real_speaker_quality -- --ignored --nocapture`.
+    #[test]
+    #[ignore]
+    fn real_speaker_quality() {
+        let Ok(ip) = std::env::var("ROOMTONE_SPEAKER") else {
+            eprintln!("Set ROOMTONE_SPEAKER=<ip> to run this.");
+            return;
+        };
+        let poll = crate::net::speaker::poll_group(&ip, false).expect("the speaker answers");
+        let n = &poll.now;
+        eprintln!("transport={:?} stream={} source={:?}", n.transport, n.is_stream, n.source);
+        let q = of(&n.uri, &n.media_uri, &n.track_meta);
+        eprintln!("labels={:?} lossless={} channels={:?}", q.labels(), q.lossless, q.channels);
+        eprintln!("--- what the speaker sent (as Copy details would) ---\n{}", q.report());
+    }
 }
