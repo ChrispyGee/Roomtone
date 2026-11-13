@@ -15,6 +15,13 @@ pub(super) fn tools() -> Vec<(&'static str, &'static str, Value, bool)> {
             json!({"type": "object", "properties": {"ref": reff, "room": room}}),
             false,
         ),
+        ("list_scenes", "The scenes saved in the app (each is a one-click set-up: rooms, volumes, what to play, a sleep timer).", json!({"type": "object", "properties": {}}), false),
+        (
+            "apply_scene",
+            "Do a saved scene: group its rooms, set their volumes, start what it plays and set its sleep timer. This changes what's playing and how loud it is.",
+            json!({"type": "object", "properties": {"name": {"type": "string", "description": "The scene's name, as in list_scenes."}}, "required": ["name"]}),
+            true,
+        ),
         (
             "save_backup",
             "Save a backup file (.json) on this computer with the system's favorites, playlists and alarms and Roomtone's own lists and settings. Reads the speakers and writes only that file; restoring is done in the app.",
@@ -212,6 +219,41 @@ impl Mcp {
                     Ok(format!("{}:\n{}", item.title, self.list_text("b", &items, "Nothing here.")))
                 }
             },
+            "list_scenes" => {
+                let scenes = self.b.lock().config.scenes.clone();
+                if scenes.is_empty() {
+                    return Ok("No scenes saved yet. Make one in the app's Scenes page.".into());
+                }
+                Ok(scenes
+                    .iter()
+                    .map(|s| {
+                        let rooms: Vec<String> = s
+                            .rooms
+                            .iter()
+                            .map(|r| match r.volume {
+                                Some(v) => format!("{} at {v}", r.room),
+                                None => r.room.clone(),
+                            })
+                            .collect();
+                        let mut line = format!("{}: {}", s.name, rooms.join(", "));
+                        if !s.play.is_empty() {
+                            line.push_str(&format!("; plays {}", s.play));
+                        }
+                        if s.sleep_minutes > 0 {
+                            line.push_str(&format!("; stops after {} minutes", s.sleep_minutes));
+                        }
+                        line
+                    })
+                    .collect::<Vec<_>>()
+                    .join("\n"))
+            }
+            "apply_scene" => {
+                let name = str_arg("name").ok_or("Say which scene (name)")?;
+                let scene = self.b.lock().config.scenes.iter().find(|s| s.name.eq_ignore_ascii_case(&name)).cloned();
+                let scene = scene
+                    .ok_or_else(|| format!("No scene called “{name}”. Scenes: {}", self.b.lock().config.scenes.iter().map(|s| s.name.clone()).collect::<Vec<_>>().join(", ")))?;
+                crate::scene::apply(&self.b, &scene).map(|steps| format!("Scene “{}” is on. {}", scene.name, steps.join(" ")))
+            }
             "save_backup" => {
                 let file = str_arg("file").ok_or("Say where to save it (file)")?;
                 let file = match file.strip_prefix("~/") {

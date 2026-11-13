@@ -50,6 +50,10 @@ pub enum Cmd {
     /// Save (or replace, by the old name) a named group; delete one by name.
     SaveGroup(Option<String>, crate::config::SavedGroup),
     DeleteGroup(String),
+    /// Save (or replace, by the old name) a scene; delete one by name; do one.
+    SaveScene(Option<String>, crate::config::Scene),
+    DeleteScene(String),
+    ApplyScene(String),
     LineIn(String, String),
     Tv(String, String),
     SleepTimer(String, Option<u32>),
@@ -780,6 +784,9 @@ fn run_live(b: &Backend, ctx: &Waker, cmd: Cmd) -> Result<(), String> {
         | Cmd::GroupRooms(_)
         | Cmd::SaveGroup(..)
         | Cmd::DeleteGroup(_)
+        | Cmd::SaveScene(..)
+        | Cmd::DeleteScene(_)
+        | Cmd::ApplyScene(_)
         | Cmd::CancelLink
         | Cmd::DisconnectService(_)
         | Cmd::SetAccountNumber(..)
@@ -1255,6 +1262,45 @@ fn run_common(b: &Backend, ctx: &Waker, cmd: Cmd) -> Result<Option<Cmd>, String>
                 s.toast(crate::t!("Deleted group “{name}”", name = name), false);
             }
             save(b);
+            Ok(None)
+        }
+        Cmd::SaveScene(old, scene) => {
+            {
+                let mut s = b.lock();
+                let replace = old.unwrap_or_else(|| scene.name.clone());
+                s.config.scenes.retain(|x| x.name != replace && x.name != scene.name);
+                s.toast(crate::t!("Saved scene “{name}”", name = scene.name), false);
+                s.config.scenes.push(scene);
+                s.config.scenes.sort_by_key(|x| x.name.to_lowercase());
+            }
+            save(b);
+            Ok(None)
+        }
+        Cmd::DeleteScene(name) => {
+            {
+                let mut s = b.lock();
+                s.config.scenes.retain(|x| x.name != name);
+                s.toast(crate::t!("Deleted scene “{name}”", name = name), false);
+            }
+            save(b);
+            Ok(None)
+        }
+        Cmd::ApplyScene(name) => {
+            let scene = b.lock().config.scenes.iter().find(|x| x.name.eq_ignore_ascii_case(&name)).cloned();
+            let Some(scene) = scene else { return Err(crate::t!("There's no scene called “{name}”", name = name).to_string()) };
+            let (b2, ctx2) = (b.clone(), ctx.clone());
+            // A scene is a run of ordinary commands that each wait for the speakers, so it can't
+            // run on the worker itself.
+            thread::spawn(move || {
+                let result = crate::scene::apply(&b2, &scene);
+                let mut s = b2.lock();
+                match result {
+                    Ok(_) => s.toast(crate::t!("Scene “{name}” is on", name = scene.name), false),
+                    Err(e) => s.toast(crate::t!("Scene “{name}” stopped: {error}", name = scene.name, error = e), true),
+                }
+                drop(s);
+                ctx2.request_repaint();
+            });
             Ok(None)
         }
         Cmd::GroupRooms(rooms) => {

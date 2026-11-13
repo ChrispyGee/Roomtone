@@ -511,6 +511,9 @@ pub fn apply(s: &mut AppState, cmd: &Cmd) {
         | Cmd::GroupRooms(_)
         | Cmd::SaveGroup(..)
         | Cmd::DeleteGroup(_)
+        | Cmd::SaveScene(..)
+        | Cmd::DeleteScene(_)
+        | Cmd::ApplyScene(_)
         | Cmd::CancelLink
         | Cmd::DisconnectService(_)
         | Cmd::SetAccountNumber(..)

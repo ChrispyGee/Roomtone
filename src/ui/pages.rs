@@ -79,6 +79,7 @@ impl App {
             View::Room(uuid) => self.room_page(ui, s, &uuid),
             View::Services => self.services_page(ui, s),
             View::History => self.history_page(ui, s),
+            View::Scenes => self.scenes_page(ui, s),
         }
     }
 
@@ -98,7 +99,7 @@ impl App {
         ui.add_space(14.0);
     }
 
-    fn header(&mut self, ui: &mut Ui, title: &str, subtitle: &str) {
+    pub(super) fn header(&mut self, ui: &mut Ui, title: &str, subtitle: &str) {
         ui.label(RichText::new(title).size(30.0).strong().color(TEXT()));
         if !subtitle.is_empty() {
             ui.label(RichText::new(subtitle).size(14.0).color(TEXT_DIM()));
@@ -125,6 +126,7 @@ impl App {
             self.hero(ui, h, g);
             ui.add_space(22.0);
         }
+        self.scenes_row(ui, s);
         let gid = s.selected_group.clone();
         let mut favs: Vec<Item> = match self.browse(s, "FV:2") {
             Some(Browse::Ready(v)) => v.clone(),
@@ -165,7 +167,7 @@ impl App {
         }
     }
 
-    fn section_with_link(&mut self, ui: &mut Ui, title: &str, link: &str) -> bool {
+    pub(super) fn section_with_link(&mut self, ui: &mut Ui, title: &str, link: &str) -> bool {
         let mut clicked = false;
         ui.add_space(6.0);
         ui.horizontal(|ui| {

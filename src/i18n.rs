@@ -154,6 +154,7 @@ mod tests {
         include_str!("sources/mod.rs"),
         include_str!("ui/mod.rs"),
         include_str!("ui/pages.rs"),
+        include_str!("ui/scenes.rs"),
         include_str!("ui/widgets.rs"),
         include_str!("macos_about.rs"),
     ];

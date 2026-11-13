@@ -722,3 +722,27 @@ Selected	Geselecteerd
 Sound settings	Geluidsinstellingen
 Unmute	Dempen opheffen
 Up	Omhoog
+Delete scene	Scène verwijderen
+Deleted scene “{name}”	Scène '{name}' verwijderd
+Do it	Starten
+Edit scene	Scène bewerken
+Give it a name and pick at least one room.	Geef haar een naam en kies minstens één kamer.
+Manage	Beheren
+Name, e.g. Movie night	Naam, bijv. Filmavond
+New scene	Nieuwe scène
+No scenes yet. A scene might be “Movie night”: the living room and kitchen together, quiet, playing a playlist, stopping after two hours.	Nog geen scènes. Een scène kan 'Filmavond' zijn: woonkamer en keuken samen, zacht, met een afspeellijst, die na twee uur stopt.
+Nothing: leave what's playing	Niets: laat staan wat speelt
+One click sets up your rooms: who plays together, how loud, what plays, and when it stops	Eén klik zet je kamers klaar: wie samen speelt, hoe luid, wat er speelt en wanneer het stopt
+Play these rooms together	Deze kamers samen laten spelen
+Saved scene “{name}”	Scène '{name}' opgeslagen
+Scene “{name}” is on	Scène '{name}' is aan
+Scene “{name}” stopped: {error}	Scène '{name}' is gestopt: {error}
+Scenes	Scènes
+Set volume	Volume instellen
+Start	Starten met
+Stop the music after	Muziek stoppen na
+There's no scene called “{name}”	Er is geen scène met de naam '{name}'
+minutes	minuten
+plays {name}	speelt {name}
+stops after {n} min	stopt na {n} min
+{room} at {volume}	{room} op {volume}

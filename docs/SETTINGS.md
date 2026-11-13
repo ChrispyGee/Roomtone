@@ -125,6 +125,7 @@ Version, platform, your systems, the language in use, the address your computer 
 | Podcast shows you follow | a show's *Subscribe* button | `podcasts`: `{ "title", "author", "feed", "art" }` | none |
 | Streaming-service sign-ins | Music Services › *Connect*, *Disconnect*, and the account number if a service needs it | `accounts`: `{ "sid", "name", "uri", "manifest", "household", "device_id", "token", "key", "sn" }` | none |
 | Favorites kept in the app (albums, artists, folders, podcast shows, archive recordings the speakers can't store) | the star on those items | `favorites` | none |
+| Scenes ("Movie night") | *Scenes* in the sidebar (*New scene*, *Edit*, *Delete*; Home shows them as buttons) | `scenes`: `{ "name", "household", "rooms", "group", "play", "sleep_minutes" }` | none |
 | Saved groups of rooms ("Downstairs") | Home › *Groups* (add or edit), or *Save as group* after grouping rooms | `groups`: `{ "name", "household", "rooms" }` | none |
 
 Edit `accounts` and `favorites` in the app, not by hand: they hold tokens and details copied from the services.
@@ -146,6 +147,7 @@ Complete `config.json`, with every field at its default (the access key is made 
   "accounts": [],
   "favorites": [],
   "groups": [],
+  "scenes": [],
   "language": "auto",
   "mcp": {
     "enabled": false,
@@ -173,6 +175,7 @@ Complete `config.json`, with every field at its default (the access key is made 
 | `accounts` | list | `[]` | Streaming services you signed in to. Secrets; managed by the app. |
 | `favorites` | list | `[]` | Favorites Roomtone keeps itself. Managed by the app. |
 | `groups` | list | `[]` | Saved groups of rooms. Each: `name`, `household` (which system), `rooms` (room names). |
+| `scenes` | list | `[]` | Scenes. Each: `name`, `household`, `rooms` (a list of `{ "room": name, "volume": 0-100 or null }`; the first leads), `group` (play together, default true), `play` (a favorite or playlist name, or empty), `sleep_minutes` (0 for none). |
 | `language` | text | `"auto"` | `auto`, or `en`, `de`, `fr`, `es`, `it`, `nl`. |
 | `theme` | text | `"auto"` | `auto`, `light` or `dark`. |
 | `speaker_events` | true/false | `false` | Instant updates from the speakers. |
@@ -204,7 +207,7 @@ For one run unless it says it saves. Full list: `roomtone --help`.
 | `--mcp-on`, `--mcp-off`, `--mcp-read-only`, `--mcp-allow-control`, `--mcp-port <port>` | **Save** the assistant-link settings and quit. |
 | `--mcp-info` | Show the assistant-link settings, address and key. |
 | `--screenshot <file.png>`, `--write-icon <file> [size]` | Tools for documentation and installers. |
-| `backup <file.json>`, `play`, `pause`, `toggle`, `next`, `previous`, `play <name>`, `volume <n\|+n\|-n>`, `mute`, `unmute`, `sleep <min>`, `group <room> <room>…`, `ungroup`, `status`, `now`, `queue`, `favorites`, `alarms` (with `--room <name>`, `--group`) | Control the Roomtone that's already running, through its assistant link (switched on; control allowed for anything that changes things). Talks only to this computer. Exit code 0 done, 1 refused, 2 not understood, 3 can't reach Roomtone |
+| `scene <name>`, `scenes`, `backup <file.json>`, `play`, `pause`, `toggle`, `next`, `previous`, `play <name>`, `volume <n\|+n\|-n>`, `mute`, `unmute`, `sleep <min>`, `group <room> <room>…`, `ungroup`, `status`, `now`, `queue`, `favorites`, `alarms` (with `--room <name>`, `--group`) | Control the Roomtone that's already running, through its assistant link (switched on; control allowed for anything that changes things). Talks only to this computer. Exit code 0 done, 1 refused, 2 not understood, 3 can't reach Roomtone |
 | `--help`, `--help mcp` | Help, and how to connect an assistant on this computer. |
 
 Environment: `ROOMTONE_LANG` and `ROOMTONE_THEME` (what `--lang` and `--theme` set); when the language is `auto`, `LC_ALL`, `LC_MESSAGES` and `LANG` decide. The settings folder follows your home folder (`HOME` on macOS and Linux, `APPDATA` on Windows).

@@ -55,6 +55,36 @@ pub struct SavedGroup {
     pub rooms: Vec<String>,
 }
 
+/// One room in a scene: what to do with it.
+#[derive(Clone, Debug, Default, Serialize, Deserialize, PartialEq)]
+pub struct SceneRoom {
+    /// The room's name as the app shows it.
+    pub room: String,
+    /// Volume to set (0-100); `None` leaves it as it is.
+    #[serde(default)]
+    pub volume: Option<u8>,
+}
+
+/// A named set of things one click does ("Movie night"): play the rooms together, set their
+/// volumes, start something and set a sleep timer.
+#[derive(Clone, Debug, Default, Serialize, Deserialize, PartialEq)]
+pub struct Scene {
+    pub name: String,
+    /// Which system the rooms belong to (rooms can only group within one system).
+    #[serde(default)]
+    pub household: String,
+    pub rooms: Vec<SceneRoom>,
+    /// Play the rooms together (needs two or more rooms); off leaves the grouping alone.
+    #[serde(default = "yes")]
+    pub group: bool,
+    /// A favorite or playlist to start, by name; empty leaves what's playing.
+    #[serde(default)]
+    pub play: String,
+    /// Stop the music after this many minutes; 0 sets no timer.
+    #[serde(default)]
+    pub sleep_minutes: u32,
+}
+
 /// A streaming service this app has been signed in to.
 #[derive(Clone, Debug, Default, Serialize, Deserialize, PartialEq)]
 pub struct Account {
@@ -145,6 +175,9 @@ pub struct Config {
     pub favorites: Vec<crate::model::Item>,
     #[serde(default)]
     pub groups: Vec<SavedGroup>,
+    /// Named one-click set-ups (group these rooms, set volumes, start something, set a timer).
+    #[serde(default)]
+    pub scenes: Vec<Scene>,
     /// "auto" follows the computer's language; otherwise a code such as "de".
     #[serde(default = "default_language")]
     pub language: String,
@@ -189,6 +222,7 @@ impl Default for Config {
             accounts: vec![],
             favorites: vec![],
             groups: vec![],
+            scenes: vec![],
             language: default_language(),
             mcp: McpConfig::default(),
             theme: default_theme(),
