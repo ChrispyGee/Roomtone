@@ -698,9 +698,6 @@ Add a playlist from an M3U, PLS, XSPF or CSV file, or a file saved with Export p
 How this speaker reaches your network, from its own network counters	Hoe deze speaker je netwerk bereikt, volgens zijn eigen netwerktellers
 Wired	Bekabeld
 Wireless	Draadloos
-Your speakers shows whether each one is wired or wireless	'Je speakers' toont of elke speaker bekabeld of draadloos is
-Export a playlist from its own page	Exporteer een afspeellijst vanaf zijn eigen pagina
-Install on a Mac with Homebrew	Installeren op een Mac met Homebrew
 Alarm on	Wekker aan
 Back	Terug
 Down	Omlaag
@@ -746,3 +743,6 @@ minutes	minuten
 plays {name}	speelt {name}
 stops after {n} min	stopt na {n} min
 {room} at {volume}	{room} op {volume}
+Scenes: one click sets up your rooms, volumes, music and a sleep timer	Scènes: één klik zet kamers, volume, muziek en een slaaptimer klaar
+Keyboard and screen-reader support throughout	Ondersteuning voor toetsenbord en schermlezers overal
+Do scenes from the command line and from assistants	Start scènes via de opdrachtregel en vanuit assistenten

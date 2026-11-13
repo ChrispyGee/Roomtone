@@ -698,9 +698,6 @@ Add a playlist from an M3U, PLS, XSPF or CSV file, or a file saved with Export p
 How this speaker reaches your network, from its own network counters	Wie dieser Lautsprecher dein Netzwerk erreicht, nach seinen eigenen Netzwerkzählern
 Wired	Per Kabel
 Wireless	Drahtlos
-Your speakers shows whether each one is wired or wireless	„Deine Lautsprecher“ zeigt, ob jeder per Kabel oder drahtlos verbunden ist
-Export a playlist from its own page	Eine Playlist von ihrer eigenen Seite aus exportieren
-Install on a Mac with Homebrew	Auf dem Mac mit Homebrew installieren
 Alarm on	Wecker an
 Back	Zurück
 Down	Nach unten
@@ -746,3 +743,6 @@ minutes	Minuten
 plays {name}	spielt {name}
 stops after {n} min	stoppt nach {n} Min.
 {room} at {volume}	{room} auf {volume}
+Scenes: one click sets up your rooms, volumes, music and a sleep timer	Szenen: ein Klick richtet Räume, Lautstärke, Musik und einen Schlaf-Timer ein
+Keyboard and screen-reader support throughout	Tastatur- und Screenreader-Unterstützung überall
+Do scenes from the command line and from assistants	Szenen per Befehlszeile und von Assistenten aus starten

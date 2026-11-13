@@ -698,9 +698,6 @@ Add a playlist from an M3U, PLS, XSPF or CSV file, or a file saved with Export p
 How this speaker reaches your network, from its own network counters	Cómo llega este altavoz a tu red, según sus propios contadores de red
 Wired	Por cable
 Wireless	Inalámbrico
-Your speakers shows whether each one is wired or wireless	«Tus altavoces» muestra si cada uno está conectado por cable o de forma inalámbrica
-Export a playlist from its own page	Exporta una lista desde su propia página
-Install on a Mac with Homebrew	Instálalo en el Mac con Homebrew
 Alarm on	Alarma activada
 Back	Atrás
 Down	Bajar
@@ -746,3 +743,6 @@ minutes	minutos
 plays {name}	reproduce {name}
 stops after {n} min	para tras {n} min
 {room} at {volume}	{room} a {volume}
+Scenes: one click sets up your rooms, volumes, music and a sleep timer	Escenas: un clic prepara habitaciones, volumen, música y un temporizador de apagado
+Keyboard and screen-reader support throughout	Compatibilidad con teclado y lectores de pantalla en toda la app
+Do scenes from the command line and from assistants	Activa escenas desde la línea de comandos y desde asistentes

@@ -2150,9 +2150,9 @@ impl App {
             ui.add_space(6.0);
             ui.label(RichText::new(t!("What's new in this version")).color(TEXT()).strong());
             for line in [
-                t!("Your speakers shows whether each one is wired or wireless"),
-                t!("Export a playlist from its own page"),
-                t!("Install on a Mac with Homebrew"),
+                t!("Scenes: one click sets up your rooms, volumes, music and a sleep timer"),
+                t!("Keyboard and screen-reader support throughout"),
+                t!("Do scenes from the command line and from assistants"),
             ] {
                 ui.horizontal_wrapped(|ui| {
                     ui.label(RichText::new("•").color(ACCENT()));
