@@ -453,6 +453,8 @@ pub struct AppState {
     pub errors: Vec<(u64, String)>,
     /// Is the assistant link (MCP) listening right now, and where.
     pub mcp_status: String,
+    /// The settings file couldn't be read at start-up (it was kept aside); shown in Settings.
+    pub config_problem: Option<crate::config::Problem>,
     /// How speaker events are going (empty when switched off); see `net::events::Summary`.
     pub events: crate::net::events::Summary,
     /// Results of "Check" on the Music Services page, by service number (empty: checking).
@@ -511,6 +513,7 @@ impl Default for AppState {
             done_seq: 0,
             errors: vec![],
             mcp_status: String::new(),
+            config_problem: None,
             events: Default::default(),
             service_checks: HashMap::new(),
             links: vec![],

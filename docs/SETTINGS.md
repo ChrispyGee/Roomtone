@@ -27,7 +27,7 @@ How the file behaves:
 
 - **The app writes it for you.** Every switch and button in the app saves at once. You never have to edit the file.
 - **You can edit it by hand** (it's plain JSON), but **close Roomtone first**. The window reads the file only when it starts, and saves its own copy whenever you change something, which would overwrite your edit. The one exception is `--headless` mode, which re-reads the assistant-link settings (`mcp`) every 2 seconds, so changes made in the window or with `--mcp-on` and friends reach it.
-- **A file Roomtone can't read is ignored.** If the JSON is broken (a missing comma, say), Roomtone starts with the defaults instead and may save over the file. **Keep a copy before editing**, and check your edit with any JSON validator.
+- **A file Roomtone can't read is kept, not overwritten.** If the JSON is broken (a missing comma, say), Roomtone moves it to one side as `config.json.broken-<number>` in the same folder, starts with the defaults, and says so at the top of the Settings page and in the terminal. Nothing you had is lost: fix that file (check it with any JSON validator) and rename it back to `config.json` with Roomtone closed, or copy across what you need. If the file can't even be moved, Roomtone starts with the defaults but doesn't save anything that run, so it can't overwrite your file. Programs that only *look* at the file (`--help`, a headless copy watching for changes) never move or change it.
 - **Missing fields get their defaults** and unknown fields are dropped the next time the app saves, so the file stays readable by older and newer versions.
 - **It holds secrets**: streaming-service sign-ins and the assistant access key. On macOS and Linux only your user can read it (mode 600). Don't post it or put it in a shared backup.
 
@@ -169,6 +169,7 @@ Environment: `ROOMTONE_LANG` and `ROOMTONE_THEME` (what `--lang` and `--theme` s
 | File | What | Safe to delete? |
 | --- | --- | --- |
 | `speakers.json` | Speakers found last time, for a fast start. | Yes: Roomtone searches again. |
+| `config.json.broken-…` | A settings file Roomtone couldn't read, kept for you. | Yes, once you've recovered what you need. |
 | `songs.json` | Details of songs played from this computer. | Yes: rebuilt as needed. |
 
 ## Back up, move and reset
@@ -176,5 +177,5 @@ Environment: `ROOMTONE_LANG` and `ROOMTONE_THEME` (what `--lang` and `--theme` s
 - **Back up or move to another computer:** with Roomtone closed, copy `config.json` into the same folder on the other computer. Folders and stations come across; folder paths may need changing if the other computer's drives differ; streaming sign-ins are tied to your speakers' system and may need *Connect* again. Treat the copy like a password file. This hasn't been tried between different platforms.
 - **Keep sign-ins out of a shared backup:** remove the `accounts` list and `mcp.token` first.
 - **Reset one setting:** delete its field (or set the default from the table above) with Roomtone closed.
-- **Reset everything:** close Roomtone and move `config.json` away. The next start uses the defaults (and makes a new access key).
+- **Reset everything:** close Roomtone and move `config.json` away (or let a broken file be set aside for you). The next start uses the defaults (and makes a new access key).
 - **Uninstalling** doesn't remove the settings folder.

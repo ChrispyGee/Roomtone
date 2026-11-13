@@ -140,7 +140,8 @@ pub struct Backend {
 
 impl Backend {
     pub fn start(ctx: Waker, demo_only: bool) -> Backend {
-        let first = AppState { config: crate::config::Config::load(), ..Default::default() };
+        let (config, config_problem) = crate::config::Config::load();
+        let first = AppState { config, config_problem, ..Default::default() };
         crate::i18n::set_language(&first.config.language);
         let state = Arc::new(Mutex::new(first));
         let (tx, rx) = channel();
