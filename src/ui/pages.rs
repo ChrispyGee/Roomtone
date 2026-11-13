@@ -2067,9 +2067,9 @@ impl App {
             ui.add_space(6.0);
             ui.label(RichText::new(t!("What's new in this version")).color(TEXT()).strong());
             for line in [
-                t!("Instant updates from the speakers, switched on in Settings"),
-                t!("A guide to every setting, linked from the About section"),
-                t!("A settings file that can't be read is kept aside instead of being replaced"),
+                t!("Back up and restore your favorites, playlists and alarms, and export or import a single playlist (M3U, CSV)"),
+                t!("Podcasts remember where you stopped, show what's played, and have 15 and 30 second skip buttons"),
+                t!("The format, sample rate and bit depth of what's playing, where the speaker says"),
             ] {
                 ui.horizontal_wrapped(|ui| {
                     ui.label(RichText::new("•").color(ACCENT()));

@@ -4,6 +4,8 @@ All notable changes to Roomtone. The format follows [Keep a Changelog](https://k
 
 ## [Unreleased]
 
+## [0.5.4] — 2026-11-13
+
 ### Added
 - **Stream quality and track details** on the Now Playing page: small labels for the format (FLAC, MP3, AAC…), sample rate, bit depth and bitrate, and *Lossless*, wherever the speaker reports them, plus a collapsible **Technical details** list of what the speaker sent (addresses reduced to their kind) with *Copy details* for bug reports. No extra network calls. Format is known from the MIME type on real S1 library tracks; sample rate, bit depth and bitrate depend on what each speaker sends and haven't been confirmed on real hardware yet.
 - **Podcast niceties**: episodes remember where you stopped and pick up a few seconds earlier next time; they're marked *Played* automatically near the end (or by hand with *Mark as played* / *Mark as not played* in the item menu) and lists show *Played* or *N min left*; **Continue listening** on Home lists episodes you've started; and **−15 s / +30 s** buttons appear on the Home player and the Now Playing page while an episode plays. Progress is kept in `podcast-progress.json`. Not yet tried on real speakers.
