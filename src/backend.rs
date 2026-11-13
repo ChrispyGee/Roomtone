@@ -94,6 +94,10 @@ pub enum Cmd {
     SetEvents(bool),
     /// Ask each speaker of a system whether it could move to S2 (read-only).
     CheckS2(String),
+    /// Switch listening history on or off (what's already kept stays until cleared).
+    SetHistory(bool),
+    /// Forget everything in the listening history.
+    ClearHistory,
     /// Mark a podcast episode as played or not played.
     MarkEpisode(Item, bool),
     /// Move a room card up (-1) or down (1) in the Rooms panel; the order is remembered.
@@ -157,7 +161,10 @@ pub struct Backend {
 impl Backend {
     pub fn start(ctx: Waker, demo_only: bool) -> Backend {
         let (config, config_problem) = crate::config::Config::load();
-        let first = AppState { config, config_problem, ..Default::default() };
+        let mut first = AppState { config, config_problem, ..Default::default() };
+        if first.config.remember_history {
+            first.recent = crate::history::recent(12);
+        }
         crate::i18n::set_language(&first.config.language);
         let state = Arc::new(Mutex::new(first));
         let (tx, rx) = channel();
@@ -772,6 +779,8 @@ fn run_live(b: &Backend, ctx: &Waker, cmd: Cmd) -> Result<(), String> {
         | Cmd::SetTheme(_)
         | Cmd::SetEvents(_)
         | Cmd::CheckS2(_)
+        | Cmd::SetHistory(_)
+        | Cmd::ClearHistory
         | Cmd::MarkEpisode(..)
         | Cmd::MoveGroup(..)
         | Cmd::SaveBackup(..)
@@ -1365,6 +1374,18 @@ fn run_common(b: &Backend, ctx: &Waker, cmd: Cmd) -> Result<Option<Cmd>, String>
         Cmd::SetMcp(m) => {
             b.lock().config.mcp = m;
             save(b);
+            Ok(None)
+        }
+        Cmd::SetHistory(on) => {
+            b.lock().config.remember_history = on;
+            save(b);
+            Ok(None)
+        }
+        Cmd::ClearHistory => {
+            crate::history::clear();
+            let mut s = b.lock();
+            s.recent.clear();
+            s.toast(crate::t!("History cleared"), false);
             Ok(None)
         }
         Cmd::CheckS2(hid) => {
@@ -2200,6 +2221,7 @@ fn poller(b: Backend, ctx: Waker) {
                 }
                 if tick.is_multiple_of(5) {
                     track_episodes(&b);
+                    track_history(&b);
                 }
                 if tick.is_multiple_of(120) && !b.lock().reconnecting {
                     let (b2, ctx2) = (b.clone(), ctx.clone());
@@ -2242,6 +2264,26 @@ fn demo_details(model: &str) -> crate::s2::Details {
         model_number: if connect { "ZP120" } else { "ZP100" }.into(),
         hardware: "1.16.3.1-2.0".into(),
         software_generation: 1,
+    }
+}
+
+/// Count what each group has been playing for a while into the listening history, and keep
+/// *Recently played* in step with it. Does nothing when history is switched off.
+fn track_history(b: &Backend) {
+    let playing: Vec<(String, Option<Item>)> = {
+        let s = b.lock();
+        if !s.config.remember_history || s.phase != Phase::Live {
+            return;
+        }
+        s.households.iter().flat_map(|h| h.groups.iter()).map(|g| (g.id.clone(), (g.now.transport == Transport::Playing).then(|| g.now.as_item()).flatten())).collect()
+    };
+    let mut changed = false;
+    for (gid, item) in &playing {
+        changed |= crate::history::observe(gid, item.as_ref());
+    }
+    if changed {
+        crate::history::flush(false);
+        b.lock().recent = crate::history::recent(12);
     }
 }
 
@@ -2823,6 +2865,24 @@ mod unit {
             );
         }
         assert!(!reports.is_empty(), "the speaker answers");
+    }
+
+    #[test]
+    fn listening_history_can_be_switched_off_and_cleared() {
+        let b = demo_backend();
+        let wait = Duration::from_secs(10);
+        assert!(b.lock().config.remember_history, "on by default");
+        b.send_and_wait(Cmd::SetHistory(false), wait).unwrap();
+        assert!(!b.lock().config.remember_history);
+        b.lock().recent.push(Item { title: "Song".into(), uri: "x://song".into(), ..Default::default() });
+        b.send_and_wait(Cmd::ClearHistory, wait).unwrap();
+        assert!(b.lock().recent.is_empty(), "Recently played is emptied too");
+        assert_eq!(crate::history::count(), 0);
+        b.send_and_wait(Cmd::SetHistory(true), wait).unwrap();
+        assert!(b.lock().config.remember_history);
+        // The demo system's pretend songs are never added to the real history.
+        track_history(&b);
+        assert_eq!(crate::history::count(), 0);
     }
 
     /// The demo rooms have no network address; give each a made-up one.

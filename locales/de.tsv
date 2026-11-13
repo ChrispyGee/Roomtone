@@ -640,3 +640,23 @@ Can't run S2	Kann kein S2
 Check	Prüfen
 Based on Sonos's list of products that can't run S2. For a speaker marked Check, look at Sonos's S2 compatibility list for your product and its generation (the label under the speaker shows the model and a date).	Nach Sonos’ Liste der Produkte, die S2 nicht können. Bei „Prüfen“ sieh in Sonos’ S2-Kompatibilitätsliste für dein Produkt und seine Generation nach (das Schild unter dem Lautsprecher zeigt Modell und Datum).
 No speaker answered	Kein Lautsprecher hat geantwortet
+Listening history	Wiedergabeverlauf
+Remember what I've played	Merken, was ich gespielt habe
+Songs and stations you've played for a little while are kept on this computer, so Recently played and History work after a restart. Nothing is sent anywhere.	Titel und Sender, die du eine Weile gespielt hast, werden auf diesem Computer gespeichert, damit „Zuletzt gespielt“ und der Verlauf nach einem Neustart funktionieren. Es wird nichts gesendet.
+1 song remembered	1 Titel gemerkt
+{n} songs remembered	{n} Titel gemerkt
+See history	Verlauf ansehen
+Clear history	Verlauf löschen
+History	Verlauf
+What you've played, kept on this computer	Was du gespielt hast, auf diesem Computer gespeichert
+History is switched off in Settings, so nothing new is being added.	Der Verlauf ist in den Einstellungen ausgeschaltet, daher wird nichts Neues hinzugefügt.
+Nothing yet. Songs and stations you play for a little while will show up here.	Noch nichts. Titel und Sender, die du eine Weile spielst, erscheinen hier.
+just now	gerade eben
+{n} min ago	vor {n} Min.
+1 hour ago	vor 1 Stunde
+{n} hours ago	vor {n} Stunden
+yesterday	gestern
+{n} days ago	vor {n} Tagen
+1 play	1 Wiedergabe
+{n} plays	{n} Wiedergaben
+History cleared	Verlauf gelöscht

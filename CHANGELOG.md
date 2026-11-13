@@ -6,6 +6,7 @@ All notable changes to Roomtone. The format follows [Keep a Changelog](https://k
 
 ### Added
 - **Can this system move to S2?** Under an S1 system in Settings › Software updates, *Check my speakers* asks each speaker which model it is (read-only) and shows whether it can run S2, can't, or needs checking against Sonos's list (the Connect, Connect:Amp and Play:5 share one model number between a first generation that can't and a second that can). Checked on a real S1 system.
+- **Listening history** (on by default, on this computer only): songs and stations played for about 20 seconds are remembered in `history.json`, so *Recently played* survives restarts and includes what was played from other apps, and a new **History** page lists everything with how often and how long ago, ready to play again. Switch it off or *Clear history* in Settings › Listening history. New `remember_history` field in `config.json`.
 
 ## [0.5.5] — 2026-11-13
 
