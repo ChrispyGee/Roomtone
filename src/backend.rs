@@ -92,6 +92,10 @@ pub enum Cmd {
     SetTheme(String),
     /// Switch speaker events (instant updates instead of polling) on or off.
     SetEvents(bool),
+    /// Switch the once-a-day look for a newer Roomtone on or off.
+    SetVersionCheck(bool),
+    /// Look for a newer Roomtone now.
+    CheckVersionNow,
     /// Switch the keyboard media keys and the system's Now Playing on or off.
     SetMediaKeys(bool),
     /// Switch listening history on or off (what's already kept stays until cleared).
@@ -179,8 +183,12 @@ impl Backend {
             thread::spawn(move || poller(b, ctx));
         }
         {
-            let b = backend.clone();
+            let (b, ctx) = (backend.clone(), ctx.clone());
             thread::spawn(move || events_manager(b, ctx));
+        }
+        {
+            let b = backend.clone();
+            thread::spawn(move || version_checker(b, ctx));
         }
         crate::sources::local::start_server();
         backend.send(Cmd::Rescan);
@@ -778,6 +786,8 @@ fn run_live(b: &Backend, ctx: &Waker, cmd: Cmd) -> Result<(), String> {
         | Cmd::InstallUpdate(_)
         | Cmd::SetTheme(_)
         | Cmd::SetEvents(_)
+        | Cmd::SetVersionCheck(_)
+        | Cmd::CheckVersionNow
         | Cmd::SetMediaKeys(_)
         | Cmd::SetHistory(_)
         | Cmd::ClearHistory
@@ -1391,6 +1401,15 @@ fn run_common(b: &Backend, ctx: &Waker, cmd: Cmd) -> Result<Option<Cmd>, String>
             let mut s = b.lock();
             s.recent.clear();
             s.toast(crate::t!("History cleared"), false);
+            Ok(None)
+        }
+        Cmd::SetVersionCheck(on) => {
+            b.lock().config.check_new_versions = on;
+            save(b);
+            Ok(None)
+        }
+        Cmd::CheckVersionNow => {
+            b.lock().version_check_asked = true;
             Ok(None)
         }
         Cmd::SetEvents(on) => {
@@ -2230,6 +2249,55 @@ fn poller(b: Backend, ctx: Waker) {
     }
 }
 
+/// Looks for a newer Roomtone: once a day while the setting is on, and whenever *Check now* is
+/// pressed. Only ever reads the project's release page.
+fn version_checker(b: Backend, ctx: Waker) {
+    loop {
+        thread::sleep(Duration::from_secs(20));
+        if version_check_due(&b) {
+            check_for_new_version(&b, &ctx, &crate::version::fetch_over_https);
+        }
+    }
+}
+
+fn now_secs() -> u64 {
+    std::time::SystemTime::now().duration_since(std::time::UNIX_EPOCH).map(|d| d.as_secs()).unwrap_or(0)
+}
+
+/// Is it time to look (asked for, or switched on and a day has passed)?
+fn version_check_due(b: &Backend) -> bool {
+    let s = b.lock();
+    s.version_check_asked || (s.config.check_new_versions && now_secs().saturating_sub(s.config.last_version_check) >= crate::version::EVERY.as_secs())
+}
+
+/// One look, with `fetch` standing in for the network (so tests don't use it).
+fn check_for_new_version(b: &Backend, ctx: &Waker, fetch: &dyn Fn(&str) -> Result<String, String>) {
+    {
+        let mut s = b.lock();
+        s.version_checking = true;
+        s.version_check_asked = false;
+    }
+    ctx.request_repaint();
+    let outcome = crate::version::check(crate::help::REPO_URL, env!("CARGO_PKG_VERSION"), fetch);
+    {
+        let mut s = b.lock();
+        let first_time = matches!(&outcome, crate::version::Outcome::Newer(r) if s.new_version != crate::version::Outcome::Newer(r.clone()));
+        if let crate::version::Outcome::Newer(r) = &outcome {
+            if first_time {
+                s.toast(crate::t!("Roomtone {version} is available. See Settings.", version = r.version), false);
+            }
+        }
+        if !matches!(outcome, crate::version::Outcome::Failed(_)) {
+            s.config.last_version_check = now_secs();
+        }
+        s.new_version = outcome;
+        s.version_checking = false;
+    }
+    let cfg = b.lock().config.clone();
+    let _ = cfg.save();
+    ctx.request_repaint();
+}
+
 /// Count what each group has been playing for a while into the listening history, and keep
 /// *Recently played* in step with it. Does nothing when history is switched off.
 fn track_history(b: &Backend) {
@@ -2795,10 +2863,63 @@ mod unit {
     }
 
     #[test]
+    fn a_version_check_reports_and_remembers_when() {
+        let b = demo_backend();
+        let (ctx, current) = (Waker::none(), env!("CARGO_PKG_VERSION"));
+        let newer = |_: &str| Ok(r#"{"tag_name":"v99.0.0","html_url":"https://github.com/ChrispyGee/Roomtone/releases/tag/v99.0.0"}"#.to_string());
+        let same = move |_: &str| Ok(format!(r#"{{"tag_name":"v{current}"}}"#));
+        let offline = |_: &str| Err("offline".to_string());
+
+        assert!(!{ b.lock().config.check_new_versions }, "off until switched on");
+        b.lock().config.last_version_check = 0;
+        assert!(!version_check_due(&b), "switched off and nobody asked: no check");
+        b.lock().version_check_asked = true;
+        assert!(version_check_due(&b), "Check now works even when it's switched off");
+
+        check_for_new_version(&b, &ctx, &newer);
+        {
+            let s = b.lock();
+            assert!(matches!(&s.new_version, crate::version::Outcome::Newer(r) if r.version == "99.0.0"));
+            assert!(!s.version_check_asked && !s.version_checking);
+            assert!(s.config.last_version_check > 0, "the time of the look is kept");
+            assert!(s.toasts.iter().any(|t| t.text.contains("99.0.0")), "said once");
+        }
+        let toasts_before = b.lock().toasts.len();
+        check_for_new_version(&b, &ctx, &newer);
+        assert!(b.lock().toasts.iter().filter(|t| t.text.contains("99.0.0")).count() <= toasts_before, "a second look at the same news doesn't say it again");
+
+        check_for_new_version(&b, &ctx, &same);
+        assert_eq!(b.lock().new_version, crate::version::Outcome::UpToDate);
+
+        let kept = b.lock().config.last_version_check;
+        check_for_new_version(&b, &ctx, &offline);
+        {
+            let s = b.lock();
+            assert!(matches!(&s.new_version, crate::version::Outcome::Failed(m) if m == "offline"));
+            assert_eq!(s.config.last_version_check, kept, "a failed look doesn't count, so it's tried again soon");
+        }
+
+        // Switched on: due after a day, not before.
+        {
+            let mut s = b.lock();
+            s.config.check_new_versions = true;
+            s.config.last_version_check = now_secs();
+        }
+        assert!(!version_check_due(&b));
+        b.lock().config.last_version_check = now_secs() - crate::version::EVERY.as_secs() - 5;
+        assert!(version_check_due(&b));
+        b.lock().config.check_new_versions = false;
+    }
+
+    #[test]
     fn listening_history_can_be_switched_off_and_cleared() {
         let b = demo_backend();
         let wait = Duration::from_secs(10);
-        assert!(b.lock().config.remember_history, "on by default");
+        // (The test settings file is shared by every test and keeps what an earlier run left, so
+        // the default is checked on a fresh config, and the switch is set explicitly.)
+        assert!(crate::config::Config::default().remember_history, "on by default");
+        b.send_and_wait(Cmd::SetHistory(true), wait).unwrap();
+        assert!(b.lock().config.remember_history);
         b.send_and_wait(Cmd::SetHistory(false), wait).unwrap();
         assert!(!b.lock().config.remember_history);
         b.lock().recent.push(Item { title: "Song".into(), uri: "x://song".into(), ..Default::default() });

@@ -517,6 +517,8 @@ pub fn apply(s: &mut AppState, cmd: &Cmd) {
         | Cmd::SetLanguage(_)
         | Cmd::SetMcp(_)
         | Cmd::SetEvents(_)
+        | Cmd::SetVersionCheck(_)
+        | Cmd::CheckVersionNow
         | Cmd::SetMediaKeys(_)
         | Cmd::SetHistory(_)
         | Cmd::ClearHistory

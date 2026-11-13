@@ -624,6 +624,17 @@ Album A–Z	Album A–Z
 Shortest first	Plus courts d’abord
 Search this queue	Rechercher dans cette file
 Jump to {letter}	Aller à {letter}
+New versions	Nouvelles versions
+Tell me when a new version of Roomtone is out	Prévenez-moi quand une nouvelle version de Roomtone sort
+Once a day Roomtone looks at this project's release page on GitHub. Nothing is sent about you, and nothing is installed or downloaded for you.	Une fois par jour, Roomtone consulte la page des versions de ce projet sur GitHub. Rien n’est envoyé à votre sujet et rien n’est installé ni téléchargé à votre place.
+Looking…	Recherche…
+Version {version} is available (you have {current})	La version {version} est disponible (vous avez la {current})
+Open download page	Ouvrir la page de téléchargement
+You have the latest version ({current})	Vous avez la dernière version ({current})
+Couldn't check: {error}	Vérification impossible : {error}
+You have version {current}	Vous avez la version {current}
+Check now	Vérifier maintenant
+Roomtone {version} is available. See Settings.	Roomtone {version} est disponible. Voir les Réglages.
 Podcasts and other web audio now play on S1 speakers	Les podcasts et autres contenus audio web fonctionnent maintenant sur les enceintes S1
 Arrange your rooms in the order you like	Organisez vos pièces dans l’ordre que vous voulez
 More ways to sort long lists, an A–Z jump strip, and a search box for the queue	Plus de façons de trier les longues listes, une barre de saut A–Z et un champ de recherche pour la file d’attente
