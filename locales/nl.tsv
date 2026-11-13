@@ -561,6 +561,18 @@ Every setting explained, and how to back them up	Alle instellingen uitgelegd, en
 Your settings file couldn't be read	Je instellingenbestand kon niet worden gelezen
 It was kept as {file} in the settings folder, and Roomtone started with the defaults. Fix it or copy back what you need, then rename it to config.json to use it again.	Het is bewaard als {file} in de instellingenmap en Roomtone is met de standaardwaarden gestart. Herstel het of kopieer terug wat je nodig hebt en hernoem het dan naar config.json om het weer te gebruiken.
 It couldn't be set aside either ({error}), so changes won't be saved this time. Fix or move the file, then start Roomtone again.	Het kon ook niet opzij worden gezet ({error}), dus wijzigingen worden deze keer niet opgeslagen. Herstel of verplaats het bestand en start Roomtone opnieuw.
+Played	Beluisterd
+{n} min left	nog {n} min
+−15 s	−15 s
++30 s	+30 s
+Skip back 15 seconds	15 seconden terug
+Skip forward 30 seconds	30 seconden vooruit
+Continue listening	Verder luisteren
+Mark as played	Markeren als beluisterd
+Mark as not played	Markeren als niet beluisterd
+Marked “{title}” as played	„{title}” gemarkeerd als beluisterd
+Marked “{title}” as not played	„{title}” gemarkeerd als niet beluisterd
+Resuming where you left off	Verder waar je gebleven was
 Added: {counts}	Toegevoegd: {counts}
 Adds what's in a backup file to this system. Nothing that's already there is changed or removed.	Voegt toe aan dit systeem wat in een back-upbestand staat. Wat er al is, wordt niet gewijzigd of verwijderd.
 Alarms ({n})	Wekkers ({n})

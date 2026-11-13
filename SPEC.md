@@ -84,7 +84,7 @@ The source of truth for **what Roomtone does**. Code, tests and docs should agre
 | Favorites | The system's favorites, plus albums, artists, folders, podcast shows and archive recordings the speakers can't store, kept in the app instead | — |
 | Playlists | Playlists saved on the system | — |
 | Radio | *My stations* (any stream address; .pls/.m3u links followed), the free Radio Browser directory (popular, by tag, search) | Internet |
-| Podcasts | Search the public Apple Podcasts directory, subscribe, play episodes from each show's feed | Internet |
+| Podcasts | Search the public Apple Podcasts directory, subscribe, play episodes from each show's feed. **Episodes remember where you stopped** (resumes 3 s earlier, if you'd passed 20 s and aren't within 30 s of the end), count as **played** when within 30 s of the end or when marked (*Mark as played* / *Not played* in the item menu), show *Played* or *N min left* in lists, appear under **Continue listening** on Home, and while one plays the Home player and Now Playing page offer **−15 s** and **+30 s**. Progress is kept in `podcast-progress.json` (newest 300 episodes) | Internet |
 | Internet Archive | Featured collections, search, play whole recordings | Internet |
 | Streaming services | Browse, search and play through the speakers' own music-service connection | Sign-in (§4.4) |
 

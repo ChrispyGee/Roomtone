@@ -1413,6 +1413,14 @@ impl App {
                 ui.close();
             }
         }
+        if crate::sources::progress::is_episode(item) {
+            let played = crate::sources::progress::status(&item.uri) == crate::sources::progress::Status::Played;
+            let label = if played { t!("Mark as not played") } else { t!("Mark as played") };
+            if ui.button(label).clicked() {
+                self.out.push(Cmd::MarkEpisode(item.clone(), !played));
+                ui.close();
+            }
+        }
         if item.parent_id == "SQ:" && item.is_container && item.id.starts_with("SQ:") && ui.button(t!("Export as CSV…")).clicked() {
             let name: String = item.title.chars().map(|c| if c.is_alphanumeric() || c == ' ' || c == '-' { c } else { '_' }).collect();
             let file = rfd::FileDialog::new().set_title(t!("Export as CSV…")).set_file_name(format!("{}.csv", name.trim())).add_filter("CSV spreadsheet", &["csv"]).save_file();
