@@ -1410,6 +1410,14 @@ impl App {
                 ui.close();
             }
         }
+        if crate::sources::progress::is_episode(item) {
+            let played = crate::sources::progress::status(&item.uri) == crate::sources::progress::Status::Played;
+            let label = if played { t!("Mark as not played") } else { t!("Mark as played") };
+            if ui.button(label).clicked() {
+                self.out.push(Cmd::MarkEpisode(item.clone(), !played));
+                ui.close();
+            }
+        }
         if let Some(p) = crate::sources::podcasts::podcast_of(item) {
             let subscribed = self.subscribed.contains(&p.feed);
             if !subscribed && ui.button(t!("Subscribe")).clicked() {

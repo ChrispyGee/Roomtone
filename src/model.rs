@@ -199,6 +199,8 @@ pub struct Group {
     pub muted: bool,
     pub sleep_left: Option<u32>,
     pub queue: Option<Vec<Item>>,
+    /// The podcast episode playing here (its audio address), and since when we've known so.
+    pub episode: Option<(String, Instant)>,
 }
 
 #[derive(Clone, Debug)]

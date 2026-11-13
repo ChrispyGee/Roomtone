@@ -561,3 +561,15 @@ Every setting explained, and how to back them up	Tous les réglages expliqués, 
 Your settings file couldn't be read	Votre fichier de réglages n’a pas pu être lu
 It was kept as {file} in the settings folder, and Roomtone started with the defaults. Fix it or copy back what you need, then rename it to config.json to use it again.	Il a été conservé sous le nom {file} dans le dossier des réglages, et Roomtone a démarré avec les valeurs par défaut. Réparez-le ou recopiez ce dont vous avez besoin, puis renommez-le en config.json pour le réutiliser.
 It couldn't be set aside either ({error}), so changes won't be saved this time. Fix or move the file, then start Roomtone again.	Il n’a pas pu non plus être mis de côté ({error}), donc les modifications ne seront pas enregistrées cette fois. Réparez ou déplacez le fichier, puis relancez Roomtone.
+Played	Écouté
+{n} min left	{n} min restantes
+−15 s	−15 s
++30 s	+30 s
+Skip back 15 seconds	Reculer de 15 secondes
+Skip forward 30 seconds	Avancer de 30 secondes
+Continue listening	Continuer l’écoute
+Mark as played	Marquer comme écouté
+Mark as not played	Marquer comme non écouté
+Marked “{title}” as played	« {title} » marqué comme écouté
+Marked “{title}” as not played	« {title} » marqué comme non écouté
+Resuming where you left off	Reprise là où vous vous étiez arrêté
