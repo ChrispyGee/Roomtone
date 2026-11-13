@@ -344,7 +344,9 @@ impl App {
 
     fn tile(&mut self, ui: &mut Ui, item: &Item, size: f32, gid: Option<&str>, salt: (&str, usize)) {
         let (rect, resp) = ui.allocate_exact_size(vec2(size, size + 46.0), Sense::click());
+        describe(&resp, egui::Role::Button, &if item.artist.is_empty() { item.title.clone() } else { format!("{} — {}", item.title, item.artist) });
         let base = Rect::from_min_size(rect.min, vec2(size, size));
+        focus_ring(ui, &resp, base, 14.0);
         let hovered = resp.hovered();
         let art_r = base.translate(vec2(0.0, if hovered { -3.0 } else { 0.0 }));
         if hovered {
@@ -354,6 +356,8 @@ impl App {
         let play_c = art_r.right_bottom() - vec2(30.0, 30.0);
         let play_r = Rect::from_center_size(play_c, vec2(42.0, 42.0));
         let play = ui.interact(play_r, ui.scope_id().with(("tile_play", salt.0, salt.1)), Sense::click());
+        describe(&play, egui::Role::Button, &t!("Play {title}", title = item.title));
+        focus_ring(ui, &play, play_r, 21.0);
         if hovered || play.hovered() {
             ui.painter().circle_filled(play_c, if play.hovered() { 22.0 } else { 20.0 }, ACCENT());
             paint_icon(ui.painter(), Rect::from_center_size(play_c + vec2(1.0, 0.0), vec2(18.0, 18.0)), Icon::Play, Color32::BLACK);
@@ -384,6 +388,10 @@ impl App {
         let (rect, resp) = ui.allocate_exact_size(vec2(w, 58.0), Sense::click());
         let dots_r = Rect::from_center_size(pos2(rect.max.x - 24.0, rect.center().y), vec2(30.0, 30.0));
         let dots = ui.interact(dots_r, ui.scope_id().with(("row_dots", salt.0, salt.1)), Sense::click());
+        describe(&dots, egui::Role::Button, t!("More"));
+        describe(&resp, egui::Role::Button, &if item.artist.is_empty() { item.title.clone() } else { format!("{} — {}", item.title, item.artist) });
+        focus_ring(ui, &resp, rect, 12.0);
+        focus_ring(ui, &dots, dots_r, 15.0);
         let hovered = resp.hovered() || dots.hovered();
         if hovered {
             ui.painter().rect_filled(rect, 12.0, SURFACE());
@@ -704,6 +712,8 @@ impl App {
                 ui.spacing_mut().item_spacing.x = 14.0;
                 for (id, title, sub, icon) in chunk {
                     let (rect, resp) = ui.allocate_exact_size(vec2(cw, 68.0), Sense::click());
+                    describe(&resp, egui::Role::Button, &format!("{title} — {sub}"));
+                    focus_ring(ui, &resp, rect, 14.0);
                     ui.painter().rect_filled(rect, 14.0, if resp.hovered() { SURFACE_HI() } else { SURFACE() });
                     let badge = Rect::from_min_size(rect.min + vec2(14.0, 12.0), vec2(44.0, 44.0));
                     ui.painter().rect_filled(badge, 12.0, seed_color(title).gamma_multiply(0.35));
@@ -1349,7 +1359,7 @@ impl App {
                     });
                     ui.with_layout(Layout::right_to_left(Align::Center), |ui| {
                         let mut on = s.config.service_on(svc.id);
-                        if toggle(ui, &mut on).changed() {
+                        if toggle(ui, &mut on, crate::i18n::tr(svc.name)).changed() {
                             self.send(Cmd::SetService(svc.id.to_string(), on));
                         }
                         if on && pill(ui, None, t!("Open"), false).clicked() {
@@ -1602,7 +1612,7 @@ impl App {
                 let pos = g.now.live_position();
                 if dur > 0.0 {
                     let mut v = self.seek_drag.unwrap_or(pos / dur);
-                    let (r, changed) = slider(ui, "np_seek", &mut v, cw, ACCENT());
+                    let (r, changed) = slider(ui, "np_seek", t!("Playback position"), &mut v, cw, ACCENT());
                     if changed {
                         self.seek_drag = Some(v);
                     }
@@ -1648,7 +1658,7 @@ impl App {
                 ui.horizontal_wrapped(|ui| {
                     let mut cf = g.crossfade;
                     ui.label(RichText::new(t!("Crossfade")).size(13.0).color(TEXT_DIM()));
-                    if toggle(ui, &mut cf).changed() {
+                    if toggle(ui, &mut cf, t!("Crossfade")).changed() {
                         self.send(Cmd::SetCrossfade(gid.clone(), cf));
                     }
                     ui.add_space(12.0);
@@ -1712,6 +1722,8 @@ impl App {
                 for (i, it) in next {
                     let w = ui.available_width();
                     let (rect, resp) = ui.allocate_exact_size(vec2(w, 50.0), Sense::click());
+                    describe(&resp, egui::Role::Button, &format!("{} — {}", it.title, it.artist));
+                    focus_ring(ui, &resp, rect, 10.0);
                     if resp.hovered() {
                         ui.painter().rect_filled(rect, 10.0, SURFACE());
                     }
@@ -1743,7 +1755,7 @@ impl App {
             }
             let mut v = self.shown_volume(key, volume);
             let w = ui.available_width() - 40.0;
-            let (_, changed) = slider(ui, key, &mut v, w, if strong { ACCENT() } else { TEXT() });
+            let (_, changed) = slider(ui, key, name, &mut v, w, if strong { ACCENT() } else { TEXT() });
             if changed {
                 self.local_vol.insert(key.to_string(), (v, Instant::now()));
                 self.send(set((v * 100.0).round() as u8));
@@ -1808,7 +1820,7 @@ impl App {
                     });
                     ui.with_layout(Layout::right_to_left(Align::Center), |ui| {
                         let mut on = a.enabled;
-                        if toggle(ui, &mut on).changed() {
+                        if toggle(ui, &mut on, t!("Alarm on")).changed() {
                             let mut a2 = a.clone();
                             a2.enabled = on;
                             self.send(Cmd::SaveAlarm(a2));
@@ -1884,7 +1896,7 @@ impl App {
             ui.label(RichText::new(t!("Volume")).color(TEXT_DIM()));
             ui.horizontal(|ui| {
                 let mut v = a.volume as f32 / 100.0;
-                if slider(ui, "alarm_vol", &mut v, 180.0, ACCENT()).1 {
+                if slider(ui, "alarm_vol", t!("Volume"), &mut v, 180.0, ACCENT()).1 {
                     a.volume = (v * 100.0).round() as u8;
                 }
                 ui.label(RichText::new(a.volume.to_string()).color(TEXT_DIM()));
@@ -1900,7 +1912,7 @@ impl App {
             ui.end_row();
 
             ui.label(RichText::new(t!("Grouped rooms")).color(TEXT_DIM()));
-            toggle(ui, &mut a.include_linked);
+            toggle(ui, &mut a.include_linked, t!("Grouped rooms"));
             ui.end_row();
         });
         ui.add_space(16.0);
@@ -1962,6 +1974,8 @@ impl App {
                 for r in &h.rooms {
                     let w = ui.available_width();
                     let (rect, resp) = ui.allocate_exact_size(vec2(w, 50.0), Sense::click());
+                    describe(&resp, egui::Role::Button, &r.name);
+                    focus_ring(ui, &resp, rect, 10.0);
                     if resp.hovered() {
                         ui.painter().rect_filled(rect, 10.0, SURFACE_HI());
                     }
@@ -2469,7 +2483,7 @@ impl App {
                     );
                 });
                 ui.with_layout(Layout::right_to_left(Align::Center), |ui| {
-                    toggle(ui, &mut on);
+                    toggle(ui, &mut on, t!("Use the computer's media controls"));
                 });
             });
         });
@@ -2499,7 +2513,7 @@ impl App {
                     );
                 });
                 ui.with_layout(Layout::right_to_left(Align::Center), |ui| {
-                    toggle(ui, &mut on);
+                    toggle(ui, &mut on, t!("Tell me when a new version of Roomtone is out"));
                 });
             });
             ui.add_space(6.0);
@@ -2556,7 +2570,7 @@ impl App {
                     );
                 });
                 ui.with_layout(Layout::right_to_left(Align::Center), |ui| {
-                    toggle(ui, &mut on);
+                    toggle(ui, &mut on, t!("Remember what I've played"));
                 });
             });
             let n = crate::history::count();
@@ -2632,7 +2646,7 @@ impl App {
                     );
                 });
                 ui.with_layout(Layout::right_to_left(Align::Center), |ui| {
-                    toggle(ui, &mut on);
+                    toggle(ui, &mut on, t!("Instant updates from the speakers"));
                 });
             });
             if on {
@@ -2729,7 +2743,7 @@ impl App {
                         ui.label(RichText::new(sub).size(12.0).color(TEXT_DIM()));
                     });
                     ui.with_layout(Layout::right_to_left(Align::Center), |ui| {
-                        toggle(ui, on);
+                        toggle(ui, on, title);
                     });
                 });
             };
@@ -2890,7 +2904,7 @@ impl App {
                     });
                     ui.label(RichText::new("−").color(TEXT_FAINT()));
                     let mut v = (value + 10) as f32 / 20.0;
-                    let (_, changed) = slider(ui, label, &mut v, w - 190.0, ACCENT());
+                    let (_, changed) = slider(ui, label, label, &mut v, w - 190.0, ACCENT());
                     ui.label(RichText::new("+").color(TEXT_FAINT()));
                     let nv = (v * 20.0).round() as i32 - 10;
                     ui.label(RichText::new(format!("{nv:+}")).size(12.5).color(TEXT_DIM()));
@@ -2916,7 +2930,7 @@ impl App {
                         ui.label(RichText::new(sub).size(12.0).color(TEXT_DIM()));
                     });
                     ui.with_layout(Layout::right_to_left(Align::Center), |ui| {
-                        if toggle(ui, &mut on).changed() {
+                        if toggle(ui, &mut on, label).changed() {
                             let u = uuid.to_string();
                             self.send(match kind {
                                 0 => Cmd::SetLoudness(u, on),

@@ -48,6 +48,7 @@ For MCP tests, set `HOME` (Windows: `APPDATA`) to a scratch folder such as `targ
 - [ ] MCP: changing tools are marked as changing (they're hidden in look-only mode); keep the off switch, access key, Origin and Host checks intact. Update SPEC.md §6.3 and the counts in §11.
 - [ ] Colours come from the palette in `src/ui/theme.rs` (`TEXT()`, `SURFACE()`, `overlay(a)`…), never fixed values, so light and dark both work. Check with `--theme light` and `--theme dark`.
 - [ ] New parsers and rules get unit tests; behaviour tests drive `test_support::demo_backend()`, never real speakers. `cargo test` must stay green on every platform.
+- [ ] A hand-drawn control (anything made with `allocate_exact_size`/`interact` and the painter, not a standard egui widget) must call `describe`/`WidgetInfo` so screen readers get its name and role, and `focus_ring` so keyboard users can see it; icon-only buttons take their name from `widgets::icon_name`.
 - [ ] Keep `--screenshot` working: it must save a non-blank picture of the demo window without taking focus.
 - [ ] Added, renamed or changed a setting (a `config.json` field, a switch, a command-line option)? Update docs/SETTINGS.md too.
 - [ ] Update SPEC.md, CHANGELOG.md (*Unreleased*) and, for protocol changes, docs/PROTOCOL.md.

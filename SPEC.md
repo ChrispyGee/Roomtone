@@ -76,6 +76,11 @@ The source of truth for **what Roomtone does**. Code, tests and docs should agre
 - **Queue**: play from any position, move up or down, remove, clear, save as a playlist.
 - Play options on anything: *Play now*, *Play next*, *Add to end of queue*, *Replace queue*.
 
+### 4.2a Keyboard and screen readers
+
+- **Keyboard**: Tab and Shift+Tab move through every button, row, switch and slider, with an orange ring showing where the focus is; Enter or Space presses the focused control; arrow keys move a focused slider (Shift for bigger steps). Space anywhere else plays or pauses the selected room. Ctrl (Cmd on a Mac) with the Right or Left arrow skips to the next or previous song, and with Up or Down changes the volume by 5. None of these act while typing in a text box.
+- **Screen readers**: the window is exposed through AccessKit (VoiceOver on macOS, Narrator and NVDA on Windows, Orca on Linux). Every hand-drawn control has a name and a role: buttons (with a name for each icon), switches and filter chips as checkboxes (with their on/off state), the segmented control as radio buttons, sliders with their name and value, and rows with the song or room they stand for. Controls that are only pictures take their name from `widgets::icon_name`. A test draws the controls and checks the names an accessibility tree reports. **Not yet tried with a real screen reader**, and the artwork and decorative icons aren't described.
+
 ### 4.3 Music sources
 | Source | What it offers | Needs |
 | --- | --- | --- |
