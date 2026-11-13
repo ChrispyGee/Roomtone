@@ -5,6 +5,7 @@ use std::time::{Duration, Instant};
 use eframe::egui::{self, pos2, vec2, Align, Color32, Layout, Rect, RichText, Sense, Ui};
 
 use super::art::seed_color;
+use super::lists;
 use super::theme::*;
 use super::widgets::*;
 use super::{paint_text, App, View};
@@ -319,6 +320,11 @@ impl App {
     fn tile_grid(&mut self, ui: &mut Ui, items: &[Item], gid: Option<&str>, salt: &str) {
         let (cols, size) = Self::tile_size(ui.available_width());
         for (r, chunk) in items.chunks(cols).enumerate() {
+            if self.jump_to.is_some_and(|j| j >= r * cols && j < (r + 1) * cols) {
+                // A letter was clicked in the A–Z strip: bring this row of tiles to the top.
+                self.jump_to = None;
+                ui.scroll_to_rect(Rect::from_min_size(ui.cursor().min, vec2(1.0, size + 46.0)), Some(Align::TOP));
+            }
             ui.horizontal(|ui| {
                 ui.spacing_mut().item_spacing.x = 18.0;
                 for (i, it) in chunk.iter().enumerate() {
@@ -745,7 +751,7 @@ impl App {
             self.list_genre = None;
         }
         let genres: std::collections::BTreeSet<String> = items.iter().map(|i| i.genre.clone()).filter(|g| !g.is_empty()).collect();
-        let sorts: [&str; 4] = [t!("Default order"), t!("Title A–Z"), t!("Artist A–Z"), t!("Longest first")];
+        let sorts: [&str; 7] = [t!("Default order"), t!("Title A–Z"), t!("Artist A–Z"), t!("Longest first"), t!("Title Z–A"), t!("Album A–Z"), t!("Shortest first")];
         if items.len() > 6 || !self.list_filter.is_empty() {
             ui.horizontal(|ui| {
                 egui::Frame::new().fill(SURFACE_HI()).corner_radius(18.0).inner_margin(egui::Margin { left: 12, right: 12, top: 6, bottom: 6 }).show(ui, |ui| {
@@ -779,11 +785,44 @@ impl App {
             .filter(|i| self.list_genre.as_ref().is_none_or(|g| &i.genre == g))
             .cloned()
             .collect();
-        sort_items(&mut out, self.list_sort);
+        lists::sort_items(&mut out, self.list_sort);
         if out.len() != items.len() {
             ui.label(RichText::new(t!("Showing {shown} of {total}", shown = out.len(), total = items.len())).size(12.0).color(TEXT_FAINT()));
         }
+        self.jump_strip(ui, &out);
         out
+    }
+
+    /// A–Z along the top of a long, alphabetical list: click a letter to scroll to it.
+    fn jump_strip(&mut self, ui: &mut Ui, shown: &[Item]) {
+        if shown.len() < lists::JUMP_MIN {
+            return;
+        }
+        let sort = lists::effective_sort(shown, self.list_sort);
+        let keys: Option<Vec<String>> = shown.iter().map(|i| lists::jump_key(i, sort)).collect();
+        let Some(keys) = keys else { return };
+        let targets = lists::jump_targets(&keys);
+        if targets.len() < 3 {
+            return;
+        }
+        ui.horizontal_wrapped(|ui| {
+            ui.spacing_mut().item_spacing.x = 2.0;
+            for (letter, at) in targets {
+                let r = ui.add(egui::Button::new(RichText::new(letter.to_string()).size(12.5).color(TEXT_DIM())).frame(false).min_size(vec2(20.0, 20.0)));
+                if r.on_hover_text(t!("Jump to {letter}", letter = letter)).clicked() {
+                    self.jump_to = Some(at);
+                }
+            }
+        });
+        ui.add_space(6.0);
+    }
+
+    /// If a letter was clicked, scroll the page so that row `i` is at the top.
+    fn apply_jump(&mut self, ui: &mut Ui, i: usize) {
+        if self.jump_to == Some(i) {
+            ui.scroll_to_rect(Rect::from_min_size(ui.cursor().min, vec2(1.0, 56.0)), Some(Align::TOP));
+            self.jump_to = None;
+        }
     }
 
     /// One list made from the system's library and this computer's folders, with a source filter.
@@ -851,6 +890,7 @@ impl App {
             return;
         }
         for (i, it) in shown.iter().take(3000).enumerate() {
+            self.apply_jump(ui, i);
             self.row(ui, it, gid.as_deref(), (id, i), None);
         }
     }
@@ -992,6 +1032,7 @@ impl App {
             return;
         }
         for (i, it) in shown.iter().enumerate() {
+            self.apply_jump(ui, i);
             self.row(ui, it, gid.as_deref(), (&id, i), (numbered && self.list_sort == 0).then_some(i + 1));
             if is_folders && it.id.starts_with("LOCAL:FOLDER/") {
                 let path = it.id.trim_start_matches("LOCAL:FOLDER/").to_string();
@@ -1158,7 +1199,7 @@ impl App {
                 }
             });
         } else {
-            sort_items(&mut shown, self.search_sort);
+            lists::sort_items(&mut shown, self.search_sort);
         }
         if shown.is_empty() && waiting.is_empty() {
             ui.label(RichText::new(t!("Nothing matched “{query}” with these filters.", query = self.searched)).color(TEXT_DIM()));
@@ -1272,6 +1313,7 @@ impl App {
         self.loading_or(ui, b, t!("No stations found."), |me, ui, items| {
             let shown = me.filter_bar(ui, &key, items);
             for (i, it) in shown.iter().take(120).enumerate() {
+                me.apply_jump(ui, i);
                 me.row(ui, it, gid.as_deref(), ("radio_dir", i), None);
             }
         });
@@ -2652,15 +2694,6 @@ impl App {
                 }
             });
         });
-    }
-}
-
-fn sort_items(items: &mut [Item], how: usize) {
-    match how {
-        1 => items.sort_by_key(|a| a.title.to_lowercase()),
-        2 => items.sort_by_key(|a| (a.artist.to_lowercase(), a.title.to_lowercase())),
-        3 => items.sort_by(|a, b| b.duration.partial_cmp(&a.duration).unwrap_or(std::cmp::Ordering::Equal)),
-        _ => {}
     }
 }
 
