@@ -94,6 +94,8 @@ pub enum Cmd {
     SetEvents(bool),
     /// Ask each speaker of a system whether it could move to S2 (read-only).
     CheckS2(String),
+    /// Look for reasons the speakers can't be found (read-only).
+    Diagnose,
     /// Switch the once-a-day look for a newer Roomtone on or off.
     SetVersionCheck(bool),
     /// Look for a newer Roomtone now.
@@ -789,6 +791,7 @@ fn run_live(b: &Backend, ctx: &Waker, cmd: Cmd) -> Result<(), String> {
         | Cmd::SetTheme(_)
         | Cmd::SetEvents(_)
         | Cmd::CheckS2(_)
+        | Cmd::Diagnose
         | Cmd::SetVersionCheck(_)
         | Cmd::CheckVersionNow
         | Cmd::SetMediaKeys(_)
@@ -1404,6 +1407,34 @@ fn run_common(b: &Backend, ctx: &Waker, cmd: Cmd) -> Result<Option<Cmd>, String>
             let mut s = b.lock();
             s.recent.clear();
             s.toast(crate::t!("History cleared"), false);
+            Ok(None)
+        }
+        Cmd::Diagnose => {
+            let (known, demo) = {
+                let mut s = b.lock();
+                s.diagnosis = Some(DiagState::Running);
+                let mut known: Vec<String> = s.households.iter().flat_map(|h| h.rooms.iter().map(|r| r.ip.clone())).filter(|ip| !ip.is_empty()).collect();
+                known.extend(s.manual_ips.iter().cloned());
+                (known, s.phase == Phase::Demo)
+            };
+            let (b2, ctx2) = (b.clone(), ctx.clone());
+            thread::spawn(move || {
+                let d = if demo {
+                    // Made-up, so the demo shows what the check looks like without touching the network.
+                    let probe = |model: &str, version: &str| crate::diagnose::Probe {
+                        via_search: true,
+                        reachable: true,
+                        same_network: Some(true),
+                        model: model.into(),
+                        version: version.into(),
+                    };
+                    crate::diagnose::Diagnosis { private_network: true, search_answers: 2, probes: vec![probe("Play:1", "11.14"), probe("Connect:Amp", "11.14")] }
+                } else {
+                    crate::diagnose::run(&known)
+                };
+                b2.lock().diagnosis = Some(DiagState::Done(d));
+                ctx2.request_repaint();
+            });
             Ok(None)
         }
         Cmd::CheckS2(hid) => {

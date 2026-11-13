@@ -674,3 +674,27 @@ History cleared	Historique effacé
 Media keys and Now Playing control your music, and the window remembers its size	Les touches multimédia et « En lecture » commandent votre musique, et la fenêtre retient sa taille
 A History page lists everything you've played	Une page Historique liste tout ce que vous avez écouté
 Check which S1 speakers can move to S2, and optionally look for new versions	Vérifiez quelles enceintes S1 peuvent passer à S2 et, si vous le souhaitez, cherchez les nouvelles versions
+1 speaker answered the search	1 enceinte a répondu à la recherche
+A short summary with no room names or addresses, to paste into a bug report	Un court résumé sans noms de pièces ni adresses, à coller dans un rapport de problème
+A speaker	Une enceinte
+A speaker is on a different network from this computer (for example a guest network or another router). Put both on the same network.	Une enceinte est sur un autre réseau que cet ordinateur (par exemple un réseau invité ou un autre routeur). Mettez les deux sur le même réseau.
+Answers	Répond
+Can't find your speakers?	Vous ne trouvez pas vos enceintes ?
+Copy report	Copier le rapport
+Different network	Autre réseau
+Doesn't answer	Ne répond pas
+Everything that was tried answers. If a room is still missing, try Search network again, or add it by its address.	Tout ce qui a été essayé répond. Si une pièce manque encore, essayez « Rechercher à nouveau sur le réseau » ou ajoutez-la par son adresse.
+Linux: allow Roomtone through the firewall (UDP 1900 for the search, TCP 1400 to the speakers).	Linux : autorisez Roomtone dans le pare-feu (UDP 1900 pour la recherche, TCP 1400 vers les enceintes).
+No speaker answered the search	Aucune enceinte n'a répondu à la recherche
+Nothing answered. Check that the speakers are plugged in and on the same Wi-Fi or cable network as this computer (not a guest network), and that no VPN is running.	Rien n'a répondu. Vérifiez que les enceintes sont branchées et sur le même réseau Wi-Fi ou filaire que cet ordinateur (pas un réseau invité), et qu'aucun VPN n'est actif.
+Run the check	Lancer la vérification
+Some speakers that were known don't answer. They may be off, restarting or out of Wi-Fi range.	Certaines enceintes connues ne répondent pas. Elles sont peut-être éteintes, en train de redémarrer ou hors de portée du Wi-Fi.
+Speakers and this computer on the same Wi-Fi or cable network, not a guest network.	Enceintes et ordinateur sur le même réseau Wi-Fi ou filaire, pas sur un réseau invité.
+Things to check	À vérifier
+This checks the usual reasons. It only looks; nothing on your speakers is changed.	Cela examine les causes habituelles. Il ne fait que regarder ; rien n'est modifié sur vos enceintes.
+This computer doesn't seem to be on a home network. Connect to the same Wi-Fi or cable network as your speakers.	Cet ordinateur ne semble pas être sur un réseau domestique. Connectez-le au même réseau Wi-Fi ou filaire que vos enceintes.
+Turn off any VPN while using Roomtone.	Désactivez tout VPN pendant que vous utilisez Roomtone.
+Windows: when asked, allow Roomtone on private networks (Windows Defender Firewall › Allow an app).	Windows : quand on vous le demande, autorisez Roomtone sur les réseaux privés (Pare-feu Windows Defender › Autoriser une application).
+Your speakers answer when asked directly, but the search for them didn't get through. Some routers and Wi-Fi extenders block it. Adding a speaker by its address below works around that.	Vos enceintes répondent quand on les interroge directement, mais la recherche n'a pas abouti. Certains routeurs et répéteurs Wi-Fi la bloquent. Ajouter une enceinte par son adresse (ci-dessous) contourne le problème.
+macOS: open System Settings › Privacy & Security › Local Network and switch Roomtone on.	macOS : ouvrez Réglages Système › Confidentialité et sécurité › Réseau local et activez Roomtone.
+{n} speakers answered the search	{n} enceintes ont répondu à la recherche

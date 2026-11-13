@@ -32,6 +32,7 @@ mod cli;
 mod config;
 mod csv;
 mod demo;
+mod diagnose;
 mod help;
 mod history;
 mod known;

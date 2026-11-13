@@ -674,3 +674,27 @@ History cleared	Verlauf gelöscht
 Media keys and Now Playing control your music, and the window remembers its size	Medientasten und „Jetzt läuft“ steuern deine Musik, und das Fenster merkt sich seine Größe
 A History page lists everything you've played	Eine Verlaufsseite zeigt alles, was du gehört hast
 Check which S1 speakers can move to S2, and optionally look for new versions	Prüfe, welche S1-Lautsprecher auf S2 wechseln können, und suche optional nach neuen Versionen
+1 speaker answered the search	1 Lautsprecher hat auf die Suche geantwortet
+A short summary with no room names or addresses, to paste into a bug report	Eine kurze Zusammenfassung ohne Raumnamen und Adressen, zum Einfügen in eine Fehlermeldung
+A speaker	Ein Lautsprecher
+A speaker is on a different network from this computer (for example a guest network or another router). Put both on the same network.	Ein Lautsprecher befindet sich in einem anderen Netzwerk als dieser Computer (zum Beispiel einem Gastnetzwerk oder einem anderen Router). Bring beide ins selbe Netzwerk.
+Answers	Antwortet
+Can't find your speakers?	Lautsprecher nicht gefunden?
+Copy report	Bericht kopieren
+Different network	Anderes Netzwerk
+Doesn't answer	Antwortet nicht
+Everything that was tried answers. If a room is still missing, try Search network again, or add it by its address.	Alles, was versucht wurde, antwortet. Fehlt trotzdem ein Raum, versuche „Netzwerk erneut durchsuchen“ oder füge ihn über seine Adresse hinzu.
+Linux: allow Roomtone through the firewall (UDP 1900 for the search, TCP 1400 to the speakers).	Linux: Erlaube Roomtone in der Firewall (UDP 1900 für die Suche, TCP 1400 zu den Lautsprechern).
+No speaker answered the search	Kein Lautsprecher hat auf die Suche geantwortet
+Nothing answered. Check that the speakers are plugged in and on the same Wi-Fi or cable network as this computer (not a guest network), and that no VPN is running.	Nichts hat geantwortet. Prüfe, ob die Lautsprecher eingesteckt sind und im selben WLAN oder Kabelnetz wie dieser Computer sind (nicht in einem Gastnetz) und ob kein VPN läuft.
+Run the check	Prüfung starten
+Some speakers that were known don't answer. They may be off, restarting or out of Wi-Fi range.	Einige bekannte Lautsprecher antworten nicht. Sie sind vielleicht aus, starten gerade neu oder sind außer WLAN-Reichweite.
+Speakers and this computer on the same Wi-Fi or cable network, not a guest network.	Lautsprecher und dieser Computer im selben WLAN oder Kabelnetz, nicht in einem Gastnetz.
+Things to check	Das solltest du prüfen
+This checks the usual reasons. It only looks; nothing on your speakers is changed.	Das prüft die häufigsten Ursachen. Es wird nur geschaut; an deinen Lautsprechern wird nichts geändert.
+This computer doesn't seem to be on a home network. Connect to the same Wi-Fi or cable network as your speakers.	Dieser Computer scheint nicht in einem Heimnetz zu sein. Verbinde dich mit demselben WLAN oder Kabelnetz wie deine Lautsprecher.
+Turn off any VPN while using Roomtone.	Schalte ein VPN aus, solange du Roomtone benutzt.
+Windows: when asked, allow Roomtone on private networks (Windows Defender Firewall › Allow an app).	Windows: Erlaube Roomtone, wenn du gefragt wirst, in privaten Netzwerken (Windows Defender Firewall › App zulassen).
+Your speakers answer when asked directly, but the search for them didn't get through. Some routers and Wi-Fi extenders block it. Adding a speaker by its address below works around that.	Deine Lautsprecher antworten auf direkte Anfragen, aber die Suche ist nicht durchgekommen. Manche Router und WLAN-Repeater blockieren sie. Das Hinzufügen eines Lautsprechers über seine Adresse (unten) umgeht das.
+macOS: open System Settings › Privacy & Security › Local Network and switch Roomtone on.	macOS: Öffne Systemeinstellungen › Datenschutz & Sicherheit › Lokales Netzwerk und schalte Roomtone ein.
+{n} speakers answered the search	{n} Lautsprecher haben auf die Suche geantwortet

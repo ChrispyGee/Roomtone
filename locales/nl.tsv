@@ -674,3 +674,27 @@ History cleared	Geschiedenis gewist
 Media keys and Now Playing control your music, and the window remembers its size	Mediatoetsen en Now Playing bedienen je muziek, en het venster onthoudt zijn formaat
 A History page lists everything you've played	Een geschiedenispagina toont alles wat je hebt afgespeeld
 Check which S1 speakers can move to S2, and optionally look for new versions	Controleer welke S1-speakers naar S2 kunnen en zoek desgewenst naar nieuwe versies
+1 speaker answered the search	1 speaker antwoordde op het zoeken
+A short summary with no room names or addresses, to paste into a bug report	Een korte samenvatting zonder kamernamen of adressen, om in een foutmelding te plakken
+A speaker	Een speaker
+A speaker is on a different network from this computer (for example a guest network or another router). Put both on the same network.	Een speaker zit op een ander netwerk dan deze computer (bijvoorbeeld een gastnetwerk of een andere router). Zet beide op hetzelfde netwerk.
+Answers	Antwoordt
+Can't find your speakers?	Kun je je speakers niet vinden?
+Copy report	Rapport kopiëren
+Different network	Ander netwerk
+Doesn't answer	Antwoordt niet
+Everything that was tried answers. If a room is still missing, try Search network again, or add it by its address.	Alles wat is geprobeerd antwoordt. Ontbreekt er toch een kamer, probeer dan 'Netwerk opnieuw doorzoeken' of voeg hem toe met zijn adres.
+Linux: allow Roomtone through the firewall (UDP 1900 for the search, TCP 1400 to the speakers).	Linux: sta Roomtone toe in de firewall (UDP 1900 voor het zoeken, TCP 1400 naar de speakers).
+No speaker answered the search	Geen enkele speaker antwoordde op het zoeken
+Nothing answered. Check that the speakers are plugged in and on the same Wi-Fi or cable network as this computer (not a guest network), and that no VPN is running.	Er kwam geen antwoord. Controleer of de speakers aan het stroomnet hangen en op hetzelfde wifi- of kabelnetwerk zitten als deze computer (geen gastnetwerk) en dat er geen vpn actief is.
+Run the check	Controle uitvoeren
+Some speakers that were known don't answer. They may be off, restarting or out of Wi-Fi range.	Sommige bekende speakers antwoorden niet. Ze staan misschien uit, starten opnieuw op of zijn buiten bereik van de wifi.
+Speakers and this computer on the same Wi-Fi or cable network, not a guest network.	Speakers en deze computer op hetzelfde wifi- of kabelnetwerk, niet op een gastnetwerk.
+Things to check	Wat je kunt controleren
+This checks the usual reasons. It only looks; nothing on your speakers is changed.	Dit controleert de gebruikelijke oorzaken. Het kijkt alleen; er wordt niets op je speakers gewijzigd.
+This computer doesn't seem to be on a home network. Connect to the same Wi-Fi or cable network as your speakers.	Deze computer lijkt niet op een thuisnetwerk te zitten. Maak verbinding met hetzelfde wifi- of kabelnetwerk als je speakers.
+Turn off any VPN while using Roomtone.	Zet een vpn uit zolang je Roomtone gebruikt.
+Windows: when asked, allow Roomtone on private networks (Windows Defender Firewall › Allow an app).	Windows: sta Roomtone toe op privénetwerken wanneer erom gevraagd wordt (Windows Defender Firewall › Een app toestaan).
+Your speakers answer when asked directly, but the search for them didn't get through. Some routers and Wi-Fi extenders block it. Adding a speaker by its address below works around that.	Je speakers antwoorden als je ze rechtstreeks aanspreekt, maar het zoeken kwam niet door. Sommige routers en wifi-versterkers blokkeren dat. Een speaker toevoegen met zijn adres (hieronder) lost dat op.
+macOS: open System Settings › Privacy & Security › Local Network and switch Roomtone on.	macOS: open Systeeminstellingen › Privacy en beveiliging › Lokaal netwerk en zet Roomtone aan.
+{n} speakers answered the search	{n} speakers antwoordden op het zoeken

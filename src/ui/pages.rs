@@ -2002,6 +2002,9 @@ impl App {
                         self.manual_ip.clear();
                     }
                 }
+                if pill(ui, None, t!("Can't find your speakers?"), false).clicked() {
+                    self.finder_open = true;
+                }
             });
             ui.add_space(8.0);
             ui.separator();

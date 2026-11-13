@@ -53,13 +53,13 @@ pub fn search(wait: Duration) -> Vec<Found> {
     found
 }
 
-struct Description {
-    model: String,
-    display_version: String,
-    software_version: String,
+pub(crate) struct Description {
+    pub model: String,
+    pub display_version: String,
+    pub software_version: String,
 }
 
-fn describe(ip: &str) -> Option<Description> {
+pub(crate) fn describe(ip: &str) -> Option<Description> {
     let xml = soap::get_text(&format!("http://{ip}:1400/xml/device_description.xml")).ok()?;
     let doc = roxmltree::Document::parse(&xml).ok()?;
     let field = |name: &str| doc.descendants().find(|n| n.tag_name().name() == name).and_then(|n| n.text()).unwrap_or_default().to_string();
