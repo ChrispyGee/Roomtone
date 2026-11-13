@@ -125,6 +125,11 @@ fn window_handle(cc: &eframe::CreationContext<'_>) -> Option<usize> {
     None
 }
 
+/// A playlist saved on the speakers (the kind that can be exported).
+pub(super) fn is_saved_playlist(item: &Item) -> bool {
+    item.parent_id == "SQ:" && item.is_container && item.id.starts_with("SQ:")
+}
+
 impl App {
     pub fn new(cc: &eframe::CreationContext<'_>, shot: Option<PathBuf>, demo: bool, view: Option<&str>) -> App {
         let preset_search = view.and_then(|v| v.strip_prefix("search:")).map(String::from);
@@ -344,7 +349,9 @@ impl App {
             // Picture checks: open a list of the library, e.g. ROOMTONE_TEST_OPEN=ALL:TRACKS.
             if let Ok(id) = std::env::var("ROOMTONE_TEST_OPEN") {
                 self.view = View::Library;
-                self.open(&Item { id: id.clone(), title: id, is_container: true, ..Default::default() });
+                let parent_id = if id.starts_with("SQ:") { "SQ:".to_string() } else { String::new() };
+                let (class, uri) = if id.starts_with("SQ:") { ("object.container.playlistContainer".to_string(), format!("demo-pl:{}", &id[3..])) } else { Default::default() };
+                self.open(&Item { id: id.clone(), title: id, is_container: true, parent_id, class, uri, ..Default::default() });
             }
         }
         if self.frame == 20 && std::env::var_os("ROOMTONE_TEST_S2").is_some() {
@@ -1603,6 +1610,23 @@ impl App {
     }
 
     /// Play now / next / later menu shared by tiles and rows.
+    /// Ask where to save a playlist and in which file type, then export it.
+    pub(super) fn export_playlist(&mut self, item: &Item) {
+        let name: String = item.title.chars().map(|c| if c.is_alphanumeric() || c == ' ' || c == '-' { c } else { '_' }).collect();
+        let file = rfd::FileDialog::new()
+            .set_title(t!("Export playlist…"))
+            .set_file_name(format!("{}.m3u8", name.trim()))
+            .add_filter("M3U playlist (.m3u8)", &["m3u8", "m3u"])
+            .add_filter("PLS playlist (.pls)", &["pls"])
+            .add_filter("XSPF playlist (.xspf)", &["xspf"])
+            .add_filter("CSV spreadsheet (.csv)", &["csv"])
+            .add_filter("Roomtone backup (.json)", &["json"])
+            .save_file();
+        if let Some(path) = file {
+            self.out.push(Cmd::ExportPlaylist(item.clone(), crate::backup::playlist_export_path(path)));
+        }
+    }
+
     fn item_menu(&mut self, ui: &mut egui::Ui, item: &Item, gid: Option<&str>) {
         let Some(gid) = gid else {
             ui.label(t!("Pick a room first"));
@@ -1703,27 +1727,13 @@ impl App {
                 ui.close();
             }
         }
-        if item.parent_id == "SQ:"
-            && item.is_container
-            && item.id.starts_with("SQ:")
+        if is_saved_playlist(item)
             && ui
                 .button(t!("Export playlist…"))
                 .on_hover_text(t!("Choose the file type when you pick the name: M3U, PLS or XSPF playlist, CSV spreadsheet or Roomtone backup (.json)"))
                 .clicked()
         {
-            let name: String = item.title.chars().map(|c| if c.is_alphanumeric() || c == ' ' || c == '-' { c } else { '_' }).collect();
-            let file = rfd::FileDialog::new()
-                .set_title(t!("Export playlist…"))
-                .set_file_name(format!("{}.m3u8", name.trim()))
-                .add_filter("M3U playlist (.m3u8)", &["m3u8", "m3u"])
-                .add_filter("PLS playlist (.pls)", &["pls"])
-                .add_filter("XSPF playlist (.xspf)", &["xspf"])
-                .add_filter("CSV spreadsheet (.csv)", &["csv"])
-                .add_filter("Roomtone backup (.json)", &["json"])
-                .save_file();
-            if let Some(path) = file {
-                self.out.push(Cmd::ExportPlaylist(item.clone(), crate::backup::playlist_export_path(path)));
-            }
+            self.export_playlist(item);
             ui.close();
         }
         if let Some(p) = crate::sources::podcasts::podcast_of(item) {
