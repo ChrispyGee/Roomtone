@@ -42,9 +42,19 @@ Roughly in order of value. Discuss in an issue before starting the big ones.
 4. **Scenes**: one click does several things at once: group these rooms, set each room's volume, choose the source and EQ or night sound, and optionally start a sleep timer ("Movie night", "Dinner", "Good night"). Builds on saved groups; also available from the command line and to assistants.
 5. **"Can't find my speakers" helper and diagnostics**: a guided check (Local Network permission, same network, firewall, separate guest network, adding an address by hand), a speaker status page with connection type (wired or Wi-Fi), signal, software version and address, and a *Copy speaker report* button that redacts names and addresses and fills the `speaker-report` issue form.
 6. **System media controls and a smaller footprint**: keyboard media keys, headphones and the lock screen control the selected group (macOS Now Playing, Windows media controls, Linux MPRIS); an optional menu-bar or tray mini player; and the window remembers its size and position.
-7. **Saved play-along links**, and play along for more than two systems.
-8. **More languages**: see "Adding a language" in [CONTRIBUTING.md](../CONTRIBUTING.md).
-9. **Home-theatre settings**: surround and sub levels, where the speakers allow it locally.
-10. **Accessibility pass**: keyboard navigation through every page, screen-reader labels (egui's AccessKit support).
-11. **Recorded replies from real speakers** as test cases (with names and addresses removed), to complement the hand-written samples in the unit tests.
-12. **MCP change notifications**: let assistants subscribe to the now-playing and queue resources.
+7. **Reorder rooms in the Rooms panel**: drag speakers into the order you like (or move them up and down), remembered per system, instead of the speakers' own order.
+8. **More streaming services, and more for the favorites-only ones**: add services beyond Spotify, Amazon Music, Deezer, TIDAL and Qobuz, and find legitimate ways to do more than play saved favorites with Apple Music, YouTube Music and SoundCloud (browsing and search where a service allows it). Open question: which services let a third-party controller sign in at all.
+9. **Sorting and jumping in long lists**: sort options on every long list (favorites, playlists, queue, library), an alphabetical jump, a *Rescan library* button and search within the queue.
+10. **Show which devices can move to S2**: a report of every speaker on a system and whether it can run S2 software, to check before changing systems. Read-only; builds on the speaker list and the software-update checks.
+11. **Listening history**: remember what was played (kept on this computer, never sent anywhere), so *Recently played* survives restarts and holds more than the last dozen, with *Play again* and simple counts.
+12. **Package managers**: a Homebrew cask, a winget manifest and Flathub/AUR entries, so Roomtone can be installed and updated with the usual tools (signing helps; see the first item).
+13. **Gentler alarms**: a volume fade-in, snooze, alarms in several rooms at once, duplicating an alarm, and one-off timers per room.
+14. **Check for new versions**: an optional switch (off by default) that tells you when a newer Roomtone is out, by reading GitHub's releases page. A new network destination to list in SPEC §9; no personal data sent.
+15. **Command-line control**: `roomtone play`, `pause`, `volume 30 --room Kitchen`, `scene movie-night`, for scripts, Stream Deck and macOS Shortcuts.
+16. **Lyrics (maybe)**: show lyrics for what's playing. Needs an outside lyrics source, so it would be opt-in and add a network destination; it may not be worth it.
+17. **Saved play-along links**, and play along for more than two systems.
+18. **More languages**: see "Adding a language" in [CONTRIBUTING.md](../CONTRIBUTING.md).
+19. **Home-theatre settings**: surround and sub levels, where the speakers allow it locally.
+20. **Accessibility pass**: keyboard navigation through every page, screen-reader labels (egui's AccessKit support).
+21. **Recorded replies from real speakers** as test cases (with names and addresses removed), to complement the hand-written samples in the unit tests.
+22. **MCP change notifications**: let assistants subscribe to the now-playing and queue resources.
