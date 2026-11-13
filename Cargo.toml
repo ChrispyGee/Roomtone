@@ -49,3 +49,17 @@ assets = [
   ["LICENSE-MIT", "usr/share/doc/roomtone/", "644"],
   ["LICENSE-APACHE", "usr/share/doc/roomtone/", "644"],
 ]
+
+# Linux .rpm package, built in CI with `cargo generate-rpm` (see docs/RELEASING.md).
+[package.metadata.generate-rpm]
+name = "roomtone"
+summary = "Controller for S1 and S2 wireless speaker systems"
+group = "Applications/Multimedia"
+assets = [
+  { source = "target/release/roomtone", dest = "/usr/bin/roomtone", mode = "755" },
+  { source = "packaging/linux/roomtone.desktop", dest = "/usr/share/applications/roomtone.desktop", mode = "644" },
+  { source = "dist/roomtone.png", dest = "/usr/share/icons/hicolor/512x512/apps/roomtone.png", mode = "644" },
+  { source = "README.md", dest = "/usr/share/doc/roomtone/README.md", mode = "644", doc = true },
+  { source = "LICENSE-MIT", dest = "/usr/share/doc/roomtone/LICENSE-MIT", mode = "644", doc = true },
+  { source = "LICENSE-APACHE", dest = "/usr/share/doc/roomtone/LICENSE-APACHE", mode = "644", doc = true },
+]

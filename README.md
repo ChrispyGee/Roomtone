@@ -40,6 +40,7 @@ Download the latest from the [Releases page](https://github.com/ChrispyGee/Roomt
 | macOS (Apple silicon) | `roomtone-v…-macos-arm64.dmg` | Open it and drag Roomtone to Applications. The app isn't signed by Apple yet: the first time, right-click it and choose *Open*. |
 | Windows 10/11 | `roomtone-v…-windows-x64-setup.exe` | Run it. It installs for your user only. SmartScreen may warn because the installer isn't signed: choose *More info*, then *Run anyway*. |
 | Debian, Ubuntu and similar | `roomtone-v…-linux-x64.deb` | `sudo apt install ./roomtone-v…-linux-x64.deb` |
+| Fedora, openSUSE, RHEL and similar | `roomtone-v…-linux-x64.rpm` | `sudo dnf install ./roomtone-v…-linux-x64.rpm` |
 | Any | the `.zip` / `.tar.gz` | Just the program, README and licences; unpack and run. |
 
 ## Build it yourself

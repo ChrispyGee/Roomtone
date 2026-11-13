@@ -80,12 +80,14 @@ jobs:
           ROOMTONE_VERSION="$VERSION" ROOMTONE_SRC="$(pwd -W)" iscc packaging/windows/roomtone.iss
           rm dist/roomtone.ico
 
-      - name: Installer (Linux .deb)
+      - name: Installers (Linux .deb and .rpm)
         if: runner.os == 'Linux'
         run: |
           target/release/roomtone --write-icon dist/roomtone.png 512
           cargo install cargo-deb --version 3.8.0 --locked
+          cargo install cargo-generate-rpm --version 0.21.1 --locked
           cargo deb --no-build --output "dist/roomtone-v${VERSION}-linux-x64.deb"
+          cargo generate-rpm --output "dist/roomtone-v${VERSION}-linux-x64.rpm"
           rm dist/roomtone.png
 
       - uses: actions/upload-artifact@v4

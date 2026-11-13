@@ -5,7 +5,7 @@ All notable changes to Roomtone. The format follows [Keep a Changelog](https://k
 ## [Unreleased]
 
 ### Added
-- **Installers** on each release: a macOS `.dmg` (Roomtone.app with its icon and Local Network prompt text, ad-hoc signed), a Windows setup `.exe` (per-user, Start menu entry, optional desktop shortcut, uninstaller) and a Linux `.deb` (program, menu entry and icon), next to the plain `.zip`/`.tar.gz`. They aren't code-signed or notarised yet.
+- **Installers** on each release: a macOS `.dmg` (Roomtone.app with its icon and Local Network prompt text, ad-hoc signed), a Windows setup `.exe` (per-user, Start menu entry, optional desktop shortcut, uninstaller) and a Linux `.deb` and `.rpm` (program, menu entry and icon), next to the plain `.zip`/`.tar.gz`. They aren't code-signed or notarised yet.
 - `roomtone --write-icon <file> [size]` saves the app icon (a PNG, or a Windows `.ico`) for the installers.
 - The Release workflow can also be started by hand on a branch to try the installers without publishing a release.
 
