@@ -157,6 +157,9 @@ pub struct Config {
     /// over. Off until the person switches it on: it needs an incoming connection.
     #[serde(default)]
     pub speaker_events: bool,
+    /// Let the keyboard's media keys and the system's Now Playing control the selected room.
+    #[serde(default = "yes")]
+    pub media_keys: bool,
     /// Remember what was played (on this computer only) for Recently played and History.
     #[serde(default = "yes")]
     pub remember_history: bool,
@@ -184,6 +187,7 @@ impl Default for Config {
             mcp: McpConfig::default(),
             theme: default_theme(),
             speaker_events: false,
+            media_keys: true,
             remember_history: true,
             room_order: vec![],
         }

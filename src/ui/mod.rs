@@ -47,6 +47,13 @@ pub struct App {
     right_tab: usize,
     /// Arranging the order of the room cards (the up/down buttons are showing).
     arranging: bool,
+    /// The system's media keys and Now Playing, when on and available.
+    media: Option<crate::media_keys::Controls>,
+    /// Tried to start the media controls and they aren't available here: don't keep trying.
+    media_unavailable: bool,
+    /// The window's handle, for the system's media overlay on Windows.
+    hwnd: Option<usize>,
+    window_watcher: crate::window::Watcher,
     group_editor: Option<(String, Vec<String>)>,
     alarm_editor: Option<Alarm>,
     rename: Option<(String, String)>,
@@ -99,6 +106,21 @@ pub struct App {
     update_confirm: Option<(String, System, String)>,
     /// Which parts of a backup file to restore (ticked in Settings).
     backup_sections: crate::backup::Sections,
+}
+
+/// The window's handle on Windows (the system's media overlay needs it); nothing elsewhere.
+fn window_handle(cc: &eframe::CreationContext<'_>) -> Option<usize> {
+    #[cfg(target_os = "windows")]
+    {
+        use winit::raw_window_handle::{HasWindowHandle, RawWindowHandle};
+        if let Ok(h) = cc.window_handle() {
+            if let RawWindowHandle::Win32(w) = h.as_raw() {
+                return Some(w.hwnd.get() as usize);
+            }
+        }
+    }
+    let _ = cc;
+    None
 }
 
 impl App {
@@ -154,6 +176,10 @@ impl App {
             search_edit_at: preset_search.map(|_| Instant::now() - Duration::from_secs(2)),
             right_tab: 0,
             arranging: false,
+            media: None,
+            media_unavailable: false,
+            hwnd: window_handle(cc),
+            window_watcher: crate::window::Watcher::new(if shot.is_some() { None } else { crate::window::load() }),
             group_editor: None,
             alarm_editor: None,
             rename: None,
@@ -225,6 +251,55 @@ impl App {
                 None
             }
         }
+    }
+
+    /// Start, feed or stop the system's media controls to match the setting and what's playing.
+    fn keep_media_controls_current(&mut self, _ctx: &egui::Context) {
+        let (on, now) = {
+            let s = self.backend.lock();
+            let now = s.selected_group.as_ref().and_then(|g| s.find_group(g)).map(|(_, g)| g.now.clone());
+            (s.config.media_keys && self.shot.is_none(), now)
+        };
+        if !on {
+            if let Some(mut c) = self.media.take() {
+                c.detach();
+            }
+            return;
+        }
+        if self.media.is_none() && !self.media_unavailable && self.frame > 5 {
+            self.media = crate::media_keys::Controls::new(self.backend.clone(), self.hwnd.map(|h| h as *mut std::ffi::c_void));
+            self.media_unavailable = self.media.is_none();
+        }
+        if let Some(c) = self.media.as_mut() {
+            c.update(now.as_ref());
+        }
+    }
+
+    /// Note the window's size and position, so the next start opens the same way.
+    fn remember_the_window(&mut self, ctx: &egui::Context) {
+        if self.shot.is_some() {
+            return;
+        }
+        let saved = ctx.input(|i| {
+            let v = i.viewport();
+            if v.fullscreen == Some(true) {
+                return None;
+            }
+            let size = v.inner_rect?.size();
+            let maximized = v.maximized == Some(true);
+            let pos = v.outer_rect.map(|r| r.min);
+            Some(crate::window::Saved { width: size.x, height: size.y, x: pos.map(|p| p.x), y: pos.map(|p| p.y), maximized })
+        });
+        // A maximised window's size isn't what to restore; note only that it's maximised.
+        let saved = saved.map(|mut s| {
+            if s.maximized {
+                if let Some(prev) = crate::window::load() {
+                    (s.width, s.height, s.x, s.y) = (prev.width, prev.height, prev.x, prev.y);
+                }
+            }
+            s
+        });
+        self.window_watcher.observe(saved);
     }
 
     fn go(&mut self, view: View) {
@@ -1529,6 +1604,8 @@ impl eframe::App for App {
         self.handle_screenshot(ctx);
         #[cfg(target_os = "macos")]
         crate::macos_about::install();
+        self.keep_media_controls_current(ctx);
+        self.remember_the_window(ctx);
         let backend = self.backend.clone();
         {
             let s = backend.lock();

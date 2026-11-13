@@ -2027,6 +2027,8 @@ impl App {
         ui.add_space(14.0);
         self.history_card(ui, s);
         ui.add_space(14.0);
+        self.media_keys_card(ui, s);
+        ui.add_space(14.0);
         self.backup_card(ui, s);
         ui.add_space(14.0);
         self.assistant_card(ui, s);
@@ -2367,6 +2369,33 @@ impl App {
                 None => {}
             }
         });
+    }
+
+    /// The keyboard's media keys and the system's Now Playing.
+    fn media_keys_card(&mut self, ui: &mut Ui, s: &AppState) {
+        section_title(ui, t!("Media keys"));
+        let mut on = s.config.media_keys;
+        card_frame().show(ui, |ui| {
+            ui.set_width(ui.available_width());
+            ui.horizontal(|ui| {
+                ui.set_min_height(40.0);
+                ui.vertical(|ui| {
+                    ui.set_max_width((ui.available_width() - 64.0).max(120.0));
+                    ui.label(RichText::new(t!("Use the computer's media controls")).color(TEXT()));
+                    ui.label(
+                        RichText::new(t!("The keyboard's play, next and previous keys, headphone buttons, and the system's Now Playing (Control Center, the lock screen or the media overlay) control the room selected here."))
+                            .size(12.0)
+                            .color(TEXT_DIM()),
+                    );
+                });
+                ui.with_layout(Layout::right_to_left(Align::Center), |ui| {
+                    toggle(ui, &mut on);
+                });
+            });
+        });
+        if on != s.config.media_keys {
+            self.send(Cmd::SetMediaKeys(on));
+        }
     }
 
     /// Switch listening history on or off, see it, or clear it.

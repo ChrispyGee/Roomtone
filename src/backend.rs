@@ -92,6 +92,8 @@ pub enum Cmd {
     SetTheme(String),
     /// Switch speaker events (instant updates instead of polling) on or off.
     SetEvents(bool),
+    /// Switch the keyboard media keys and the system's Now Playing on or off.
+    SetMediaKeys(bool),
     /// Switch listening history on or off (what's already kept stays until cleared).
     SetHistory(bool),
     /// Forget everything in the listening history.
@@ -776,6 +778,7 @@ fn run_live(b: &Backend, ctx: &Waker, cmd: Cmd) -> Result<(), String> {
         | Cmd::InstallUpdate(_)
         | Cmd::SetTheme(_)
         | Cmd::SetEvents(_)
+        | Cmd::SetMediaKeys(_)
         | Cmd::SetHistory(_)
         | Cmd::ClearHistory
         | Cmd::MarkEpisode(..)
@@ -1370,6 +1373,11 @@ fn run_common(b: &Backend, ctx: &Waker, cmd: Cmd) -> Result<Option<Cmd>, String>
         }
         Cmd::SetMcp(m) => {
             b.lock().config.mcp = m;
+            save(b);
+            Ok(None)
+        }
+        Cmd::SetMediaKeys(on) => {
+            b.lock().config.media_keys = on;
             save(b);
             Ok(None)
         }
