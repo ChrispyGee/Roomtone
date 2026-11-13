@@ -18,6 +18,7 @@ use crate::model::*;
 use crate::net::speaker::PlayHow;
 
 mod extra;
+pub mod notify;
 
 const PROTOCOLS: &[&str] = &["2025-06-18", "2025-03-26", "2024-11-05"];
 
@@ -26,6 +27,8 @@ pub struct Mcp {
     b: Backend,
     /// Things listed to the assistant (favorites, playlists, search results), by reference.
     refs: Arc<Mutex<HashMap<String, Item>>>,
+    /// What each connected assistant (by session) follows for changes.
+    subs: Arc<Mutex<HashMap<String, std::collections::HashSet<String>>>>,
 }
 
 type ToolResult = Result<String, String>;
@@ -142,7 +145,7 @@ fn repeat_word(r: Repeat) -> &'static str {
 
 impl Mcp {
     pub fn new(b: Backend) -> Mcp {
-        Mcp { b, refs: Arc::new(Mutex::new(HashMap::new())) }
+        Mcp { b, refs: Arc::new(Mutex::new(HashMap::new())), subs: Arc::new(Mutex::new(HashMap::new())) }
     }
 
     fn settings(&self) -> McpConfig {
@@ -151,6 +154,12 @@ impl Mcp {
 
     /// Answer one JSON-RPC message; None for notifications (no reply).
     pub fn handle(&self, msg: &Value) -> Option<Value> {
+        self.handle_for("", msg)
+    }
+
+    /// Like `handle`, for one assistant connection (`session`), which is what change
+    /// subscriptions belong to.
+    pub fn handle_for(&self, session: &str, msg: &Value) -> Option<Value> {
         let id = msg.get("id").cloned();
         let method = msg.get("method").and_then(|m| m.as_str()).unwrap_or("");
         let params = msg.get("params").cloned().unwrap_or(json!({}));
@@ -174,7 +183,7 @@ impl Mcp {
                     "protocolVersion": version,
                     "capabilities": {
                         "tools": {"listChanged": false},
-                        "resources": {"listChanged": false, "subscribe": false},
+                        "resources": {"listChanged": false, "subscribe": true},
                         "prompts": {"listChanged": false},
                         "completions": {}
                     },
@@ -219,6 +228,14 @@ impl Mcp {
             }
             "resources/list" => Ok(self.resources()),
             "resources/templates/list" => Ok(self.resource_templates()),
+            "resources/subscribe" => {
+                let uri = params.get("uri").and_then(|u| u.as_str()).unwrap_or("");
+                self.subscribe(session, uri).map(|_| json!({}))
+            }
+            "resources/unsubscribe" => {
+                self.unsubscribe(session, params.get("uri").and_then(|u| u.as_str()).unwrap_or(""));
+                Ok(json!({}))
+            }
             "resources/read" => {
                 let uri = params.get("uri").and_then(|u| u.as_str()).unwrap_or("");
                 self.read_resource(uri)
@@ -804,7 +821,31 @@ fn find_room(s: &AppState, q: &str) -> Result<String, String> {
 /// Serve MCP on stdin/stdout until the assistant closes it.
 pub fn serve_stdio(mcp: Mcp) {
     let stdin = std::io::stdin();
-    let mut out = std::io::stdout();
+    let out = Arc::new(Mutex::new(std::io::stdout()));
+    let say = |out: &Arc<Mutex<std::io::Stdout>>, v: &Value| {
+        let mut o = out.lock().unwrap_or_else(|e| e.into_inner());
+        let _ = writeln!(o, "{v}");
+        let _ = o.flush();
+    };
+    // Tell the assistant when something it follows changes.
+    {
+        let (mcp, out) = (mcp.clone(), out.clone());
+        thread::spawn(move || {
+            let mut watcher = notify::Watcher::new(mcp.clone());
+            loop {
+                thread::sleep(Duration::from_secs(1));
+                let followed = mcp.subscriptions("");
+                if followed.is_empty() || !mcp.settings().enabled {
+                    continue;
+                }
+                for uri in watcher.poll(&followed) {
+                    let mut o = out.lock().unwrap_or_else(|e| e.into_inner());
+                    let _ = writeln!(o, "{}", notify::updated(&uri));
+                    let _ = o.flush();
+                }
+            }
+        });
+    }
     for line in stdin.lock().lines() {
         let Ok(line) = line else { break };
         if line.trim().is_empty() {
@@ -823,8 +864,7 @@ pub fn serve_stdio(mcp: Mcp) {
             Err(e) => Some(json!({"jsonrpc": "2.0", "id": null, "error": {"code": -32700, "message": format!("Parse error: {e}")}})),
         };
         if let Some(r) = reply {
-            let _ = writeln!(out, "{r}");
-            let _ = out.flush();
+            say(&out, &r);
         }
     }
 }
@@ -957,10 +997,15 @@ fn serve_http(mcp: &Mcp, mut stream: TcpStream) -> std::io::Result<()> {
             "WWW-Authenticate: Bearer\r\n",
         );
     }
+    let session = headers.get("mcp-session-id").cloned().unwrap_or_default();
     match method {
         "POST" => {}
-        "GET" | "DELETE" => return respond(&mut stream, 405, "Method Not Allowed", "", "Allow: POST\r\n"),
-        _ => return respond(&mut stream, 405, "Method Not Allowed", "", "Allow: POST\r\n"),
+        "GET" if headers.get("accept").is_some_and(|a| a.contains("text/event-stream")) && !session.is_empty() => return stream_changes(mcp, &mut stream, &session),
+        "DELETE" if !session.is_empty() => {
+            mcp.end_session(&session);
+            return respond(&mut stream, 200, "OK", "", "");
+        }
+        _ => return respond(&mut stream, 405, "Method Not Allowed", "", "Allow: POST, GET, DELETE\r\n"),
     }
     if !headers.get("content-type").is_some_and(|c| c.to_lowercase().contains("application/json")) {
         return respond(&mut stream, 415, "Unsupported Media Type", &error(-32700, "Send JSON."), "");
@@ -971,17 +1016,55 @@ fn serve_http(mcp: &Mcp, mut stream: TcpStream) -> std::io::Result<()> {
     }
     let mut body = vec![0u8; len];
     reader.read_exact(&mut body)?;
-    let reply = match serde_json::from_slice::<Value>(&body) {
+    let mut extra = String::new();
+    let mut session = session;
+    let parsed = serde_json::from_slice::<Value>(&body);
+    if let Ok(m) = &parsed {
+        if m.get("method").and_then(|x| x.as_str()) == Some("initialize") && session.is_empty() {
+            // Each assistant gets its own session, which its change subscriptions belong to.
+            session = crate::config::new_token();
+            extra = format!("Mcp-Session-Id: {session}\r\n");
+        }
+    }
+    let reply = match parsed {
         Ok(Value::Array(batch)) => {
-            let r: Vec<Value> = batch.iter().filter_map(|m| mcp.handle(m)).collect();
+            let r: Vec<Value> = batch.iter().filter_map(|m| mcp.handle_for(&session, m)).collect();
             (!r.is_empty()).then_some(Value::Array(r))
         }
-        Ok(msg) => mcp.handle(&msg),
+        Ok(msg) => mcp.handle_for(&session, &msg),
         Err(e) => Some(json!({"jsonrpc": "2.0", "id": null, "error": {"code": -32700, "message": format!("Parse error: {e}")}})),
     };
     match reply {
-        Some(r) => respond(&mut stream, 200, "OK", &r.to_string(), ""),
+        Some(r) => respond(&mut stream, 200, "OK", &r.to_string(), &extra),
         None => respond(&mut stream, 202, "Accepted", "", ""),
+    }
+}
+
+/// Hold the connection open and send a `notifications/resources/updated` event whenever
+/// something this session follows changes. Ends when the assistant hangs up, the session is
+/// closed or the link is switched off.
+fn stream_changes(mcp: &Mcp, stream: &mut TcpStream, session: &str) -> std::io::Result<()> {
+    write!(stream, "HTTP/1.1 200 OK\r\nContent-Type: text/event-stream\r\nCache-Control: no-cache\r\nConnection: close\r\n\r\n: following changes\n\n")?;
+    stream.flush()?;
+    let mut watcher = notify::Watcher::new(mcp.clone());
+    let mut quiet = 0;
+    loop {
+        thread::sleep(Duration::from_secs(1));
+        if !mcp.settings().enabled {
+            return Ok(());
+        }
+        let mut wrote = false;
+        for uri in watcher.poll(&mcp.subscriptions(session)) {
+            write!(stream, "event: message\ndata: {}\n\n", notify::updated(&uri))?;
+            wrote = true;
+        }
+        quiet = if wrote { 0 } else { quiet + 1 };
+        if quiet >= 15 {
+            // A comment now and then also tells us when the assistant has gone.
+            write!(stream, ": still here\n\n")?;
+            quiet = 0;
+        }
+        stream.flush()?;
     }
 }
 
@@ -1184,6 +1267,51 @@ mod unit {
     }
 
     #[test]
+    fn following_changes_notices_what_changed_and_ignores_ticking() {
+        let m = link();
+        // Only some resources can be followed, and the room must exist.
+        assert!(rpc(&m, 1, "resources/subscribe", json!({"uri": "roomtone://favorites"}))["error"].is_object());
+        assert!(rpc(&m, 2, "resources/subscribe", json!({"uri": "roomtone://queue/Nowhere"}))["error"].is_object());
+        assert!(rpc(&m, 3, "resources/subscribe", json!({"uri": "roomtone://status"}))["result"].is_object());
+        assert!(rpc(&m, 4, "resources/subscribe", json!({"uri": "roomtone://now-playing"}))["result"].is_object());
+        assert!(rpc(&m, 5, "resources/subscribe", json!({"uri": "roomtone://queue/Living%20Room"}))["result"].is_object());
+        let init = rpc(&m, 6, "initialize", json!({"protocolVersion": "2025-06-18"}));
+        assert_eq!(init["result"]["capabilities"]["resources"]["subscribe"], true);
+        let followed = m.subscriptions("");
+        assert_eq!(followed.len(), 3);
+        let mut w = notify::Watcher::new(m.clone());
+        assert!(w.poll(&followed).is_empty(), "the first look only records");
+        assert!(w.poll(&followed).is_empty(), "nothing changed, nothing sent (the song position ticking doesn't count)");
+        ok(&m, "set_volume", json!({"room": "Kitchen", "volume": 41}));
+        let changed = w.poll(&followed);
+        assert!(changed.contains(&"roomtone://status".to_string()) && changed.contains(&"roomtone://now-playing".to_string()), "{changed:?}");
+        assert!(!changed.iter().any(|u| u.starts_with("roomtone://queue/")), "the queue didn't change");
+        assert!(w.poll(&followed).is_empty(), "told once");
+        // Unfollowing stops the notices.
+        rpc(&m, 7, "resources/unsubscribe", json!({"uri": "roomtone://status"}));
+        assert_eq!(m.subscriptions("").len(), 2);
+        // Sessions are separate.
+        assert!(m.handle_for("other", &json!({"jsonrpc": "2.0", "id": 8, "method": "resources/subscribe", "params": {"uri": "roomtone://alarms"}})).unwrap()["result"].is_object());
+        assert_eq!(m.subscriptions("other").len(), 1);
+        m.end_session("other");
+        assert!(m.subscriptions("other").is_empty());
+    }
+
+    #[test]
+    fn the_number_followed_is_limited() {
+        let m = link();
+        {
+            let mut all = m.subs.lock().unwrap();
+            all.insert("s".into(), (0..notify::MAX_SUBSCRIPTIONS).map(|i| format!("roomtone://fake/{i}")).collect());
+        }
+        assert!(m.subscribe("s", "roomtone://status").is_err(), "one more than allowed");
+        for i in 0..notify::MAX_SESSIONS {
+            m.subs.lock().unwrap().insert(format!("x{i}"), Default::default());
+        }
+        assert!(m.subscribe("brand-new", "roomtone://status").is_err(), "too many sessions");
+    }
+
+    #[test]
     fn alarm_times_and_days() {
         use super::extra::{parse_days, parse_time};
         assert_eq!(parse_time("07:30"), Some((7, 30)));
@@ -1247,6 +1375,20 @@ mod unit {
             format!("POST /mcp HTTP/1.1\r\nHost: 127.0.0.1\r\nAuthorization: Bearer {key}\r\nContent-Type: text/plain\r\nContent-Length: {}\r\n\r\n{ping}", ping.len());
         assert!(http(port, &text_plain).starts_with("HTTP/1.1 415"));
         assert!(http(port, &format!("GET /mcp HTTP/1.1\r\nHost: 127.0.0.1\r\nAuthorization: Bearer {key}\r\n\r\n")).starts_with("HTTP/1.1 405"));
+        // An assistant gets a session at initialize, and may open the event stream with it.
+        let init = post(port, &key, "", r#"{"jsonrpc":"2.0","id":1,"method":"initialize","params":{"protocolVersion":"2025-06-18"}}"#);
+        let sid = init.lines().find_map(|l| l.strip_prefix("Mcp-Session-Id: ")).expect("a session id").trim().to_string();
+        let sub = r#"{"jsonrpc":"2.0","id":2,"method":"resources/subscribe","params":{"uri":"roomtone://status"}}"#;
+        assert!(post(port, &key, &format!("Mcp-Session-Id: {sid}\r\n"), sub).contains(r#""result""#));
+        assert_eq!(m.subscriptions(&sid).len(), 1);
+        let mut es = TcpStream::connect(("127.0.0.1", port)).unwrap();
+        es.set_read_timeout(Some(Duration::from_secs(5))).unwrap();
+        write!(es, "GET /mcp HTTP/1.1\r\nHost: 127.0.0.1\r\nAuthorization: Bearer {key}\r\nAccept: text/event-stream\r\nMcp-Session-Id: {sid}\r\n\r\n").unwrap();
+        let mut first = [0u8; 120];
+        let n = es.read(&mut first).unwrap();
+        let head = String::from_utf8_lossy(&first[..n]).to_string();
+        assert!(head.starts_with("HTTP/1.1 200") && head.contains("text/event-stream"), "{head}");
+        drop(es);
         assert!(post(port, &key, "", r#"{"jsonrpc":"2.0","method":"notifications/initialized"}"#).starts_with("HTTP/1.1 202"));
         let batch = post(port, &key, "", r#"[{"jsonrpc":"2.0","id":1,"method":"ping"},{"jsonrpc":"2.0","id":2,"method":"ping"}]"#);
         assert!(batch.contains(r#""id":2"#));

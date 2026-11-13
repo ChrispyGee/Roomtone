@@ -53,6 +53,7 @@ This is the map of the code. What the app should do is in [SPEC.md](../SPEC.md);
 | `ui/mod.rs` | The window frame: sidebar, rooms/queue panel, bottom bar, dialogs, toasts, the screenshot option |
 | `ui/pages.rs` | Every page: home, search, library, radio, services, inputs, now playing, alarms, settings, room settings |
 | `ui/widgets.rs`, `theme.rs`, `art.rs` | Drawn icons and controls, the dark and light palettes (`TEXT()`, `SURFACE()`… switch with the appearance), album art |
+| `mcp/notify.rs` | Change notifications: subscriptions per session and the watcher that compares what's known once a second |
 | `mcp/extra.rs` | More assistant tools (browse, favorites, queue editing, rooms, alarms, saved groups, services, stations, podcasts), resources, prompts and completions |
 | `test_support.rs` | Test helpers: a scratch settings folder, English wording, a running demo backend |
 | `brand.rs` | The app icon, drawn in code (RGBA and PNG) |
