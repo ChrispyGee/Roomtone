@@ -258,7 +258,9 @@ mod unit {
         assert_eq!(p.notes.len(), 3, "{:?}", p.notes);
         assert!(p.notes.iter().any(|n| n.contains("c.mp3")) && p.notes.iter().any(|n| n.contains("My Song.mp3")), "{:?}", p.notes);
         let seen = seen.borrow();
-        assert!(seen.contains(&"/Users/me/Lists/../other/b.mp3".to_string()), "relative paths start from the playlist's folder: {seen:?}");
+        // (Joined the way this computer joins paths: a backslash on Windows.)
+        let relative = Path::new("/Users/me/Lists").join("../other/b.mp3").to_string_lossy().to_string();
+        assert!(seen.contains(&relative), "relative paths start from the playlist's folder: {seen:?}");
         assert!(seen.contains(&"/Users/me/Music/My Song.mp3".to_string()), "file:// addresses are decoded: {seen:?}");
         assert!(seen.contains(&"C:\\Music\\c.mp3".to_string()));
     }
