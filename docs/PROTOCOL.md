@@ -91,6 +91,12 @@ Services seen refusing third-party sign-in (2026-11-11): Apple Music (`getAppLin
 - **Safety rule** (`backend::check_updates`, `install_update`): an offer is accepted only if its build generation matches the system (S1 ≤ 57, S2 ≥ 58). It is checked again just before installing. Never send S2 software to an S1 system.
 - Not yet tried against real speakers. Whether one call per system is enough, or each speaker needs one, is an open question; the app calls every speaker in turn.
 
+## 6a. Playlists (backup and restore)
+
+- Reading: `ContentDirectory#Browse` of `SQ:` lists the saved playlists; browsing a playlist's id (`SQ:<n>`) lists its songs with their addresses and details.
+- Creating (used by *Restore*, **not yet tried against real speakers**): `AVTransport#CreateSavedQueue(Title, EnqueuedURI, EnqueuedURIMetaData)` with the first song returns `AssignedObjectID` (`SQ:<n>`) and `NewUpdateID`; each further song is `AVTransport#AddURIToSavedQueue(ObjectID, UpdateID, EnqueuedURI, EnqueuedURIMetaData, AddAtIndex=4294967295)`, passing the previous call's `NewUpdateID`. This doesn't touch the queue that's playing.
+- Favorites are created with `ContentDirectory#CreateObject` in `FV:2` (`speaker::add_favorite`); alarms with `AlarmClock#CreateAlarm`.
+
 ## 6b. Events (UPnP `SUBSCRIBE`)
 
 Used by `net::events` when *Speaker updates* is on. Plain HTTP on port 1400:

@@ -89,6 +89,8 @@ pub struct App {
     along: HashMap<String, String>,
     /// A software update waiting for the person to confirm: (household id, system, version).
     update_confirm: Option<(String, System, String)>,
+    /// Which parts of a backup file to restore (ticked in Settings).
+    backup_sections: crate::backup::Sections,
 }
 
 impl App {
@@ -180,6 +182,7 @@ impl App {
             shot_saved: Default::default(),
             applied_theme: String::new(),
             update_confirm: None,
+            backup_sections: Default::default(),
             group_preset: open_new_group
                 .then(|| (None, crate::config::SavedGroup { name: "Downstairs".into(), household: "demo-s2".into(), rooms: vec!["D-LIVING".into(), "D-KITCHEN".into()] })),
         }

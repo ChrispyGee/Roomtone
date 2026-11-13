@@ -122,6 +122,7 @@ Create, edit, enable/disable and delete alarms. Each has a time, how often it re
 - **Appearance**: *Automatic* (follows the computer's light/dark setting), *Light* or *Dark*. It changes at once.
 - **Language**: *Automatic* (follows the computer) or a fixed language. It changes at once.
 - **Speaker updates**: a switch for *Instant updates from the speakers* (§2) with a status line (how many speakers are sending updates, or a hint if they can't reach this computer).
+- **Backup and restore**: *Save backup* writes one JSON file (`roomtone_backup` format 1) with the active system's favorites, playlists (with songs) and alarms, and Roomtone's own folders, stations, podcasts, saved groups, kept favorites, sources, language, theme and speaker-updates setting. Never sign-ins or the access key. *Choose a backup* shows what's inside with a tick box per part; *Restore* only adds (duplicates skipped by favorite title+address, playlist name, alarm room+time+repeat+sound, station address, podcast feed, folder path, group name), maps alarms to rooms by name, moves saved groups to the active system, and reports added / skipped / failed. Works on the demo system (favorites, playlists and alarms there). With no speakers, only Roomtone's own part is saved or restored. Backup files from a newer format are refused.
 - **Assistant link (MCP)**: §6.
 - Every setting, its place in the app, its `config.json` name, defaults, options and back-up advice is written up in [docs/SETTINGS.md](docs/SETTINGS.md); the About section and `--help` link to it (*Settings guide*). Keep that file in step with this section.
 - **About**:
@@ -273,6 +274,8 @@ All in the app's data folder: `~/Library/Application Support/Roomtone/` (macOS),
 | Streaming **playback** and the account-number retry | Not yet heard on real speakers |
 | Play along between real S1 and S2 speakers | Demo system only |
 | Software updates (check and install) | Demo system only |
+| Backup: saving favorites, playlists and alarms | One real S1 system, read only (counts and round trip); demo system for everything else |
+| Backup: **restoring** favorites, playlists and alarms | Pretend system in unit tests and the demo system; **not yet tried on real speakers** (the playlist calls `CreateSavedQueue`/`AddURIToSavedQueue` are unverified) |
 | Speaker updates (UPnP events) | Unit tests against a pretend speaker (subscribe, notice, renew, cancel, refusals); tried once with a real S1 speaker (Connect:Amp, firmware 11.16): all three subscriptions accepted, a first notice for each within about 5 s, a 1800 s lease, renewing and cancelling work; no S2 or multi-room tests yet |
 | Assistant link: every tool, on/off, look-only, key, origin check | Demo system, stdio and HTTP |
 | Translations | Automated completeness test; not reviewed by native speakers |

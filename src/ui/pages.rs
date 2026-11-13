@@ -1883,6 +1883,8 @@ impl App {
         ui.add_space(14.0);
         self.events_card(ui, s);
         ui.add_space(14.0);
+        self.backup_card(ui, s);
+        ui.add_space(14.0);
         self.assistant_card(ui, s);
         ui.add_space(14.0);
         self.about_card(ui, s);
@@ -2098,6 +2100,129 @@ impl App {
                     .size(12.0)
                     .color(TEXT_FAINT()),
             );
+        });
+    }
+
+    /// Save and restore favorites, playlists, alarms and Roomtone's own lists and settings.
+    fn backup_card(&mut self, ui: &mut Ui, s: &AppState) {
+        use crate::backup::Counts;
+        let counts_line = |c: &Counts| -> String {
+            t!(
+                "{favorites} favorites · {playlists} playlists · {alarms} alarms · {app} of Roomtone's own",
+                favorites = c.favorites,
+                playlists = c.playlists,
+                alarms = c.alarms,
+                app = c.app
+            )
+            .to_string()
+        };
+        section_title(ui, t!("Backup and restore"));
+        card_frame().show(ui, |ui| {
+            ui.set_width(ui.available_width());
+            let row = |ui: &mut Ui, title: &str, sub: &str| {
+                ui.vertical(|ui| {
+                    ui.set_max_width((ui.available_width() - 200.0).max(160.0));
+                    ui.label(RichText::new(title).color(TEXT()));
+                    ui.label(RichText::new(sub).size(12.0).color(TEXT_DIM()));
+                });
+            };
+            ui.horizontal(|ui| {
+                ui.set_min_height(40.0);
+                row(
+                    ui,
+                    t!("Save a backup"),
+                    t!("Saves this system's favorites, playlists and alarms, and Roomtone's own lists and settings, to one file. Sign-ins and the access key are never included."),
+                );
+                ui.with_layout(Layout::right_to_left(Align::Center), |ui| {
+                    if pill(ui, Some(Icon::Save), t!("Save backup"), true).clicked() {
+                        let now = std::time::SystemTime::now().duration_since(std::time::UNIX_EPOCH).map(|d| d.as_secs()).unwrap_or(0);
+                        let name = format!("roomtone-backup-{}.json", crate::backup::date_stamp(now));
+                        if let Some(path) = rfd::FileDialog::new().set_title(t!("Save a backup")).set_file_name(name).add_filter("Roomtone backup", &["json"]).save_file() {
+                            self.send(Cmd::SaveBackup(path, crate::backup::Sections::default()));
+                        }
+                    }
+                });
+            });
+            ui.separator();
+            ui.horizontal(|ui| {
+                ui.set_min_height(40.0);
+                row(ui, t!("Restore from a backup"), t!("Adds what's in a backup file to this system. Nothing that's already there is changed or removed."));
+                ui.with_layout(Layout::right_to_left(Align::Center), |ui| {
+                    if pill(ui, None, t!("Choose a backup"), false).clicked() {
+                        if let Some(path) = rfd::FileDialog::new().set_title(t!("Choose a backup")).add_filter("Roomtone backup", &["json"]).pick_file() {
+                            self.backup_sections = Default::default();
+                            self.send(Cmd::ReadBackup(path));
+                        }
+                    }
+                });
+            });
+            if let Some((path, sum)) = &s.backup_preview {
+                ui.add_space(8.0);
+                ui.separator();
+                ui.add_space(6.0);
+                let made = if sum.created > 0 { crate::backup::date_stamp(sum.created) } else { "?".into() };
+                let from = if sum.generation.is_empty() { String::new() } else { format!(" · {}", t!("{system} system", system = sum.generation)) };
+                ui.label(RichText::new(format!("{}{}", t!("Backup made on {date}", date = made), from)).color(TEXT()));
+                ui.label(RichText::new(path.file_name().map(|n| n.to_string_lossy().to_string()).unwrap_or_default()).size(12.0).color(TEXT_DIM()));
+                ui.add_space(6.0);
+                let c = &sum.counts;
+                let sec = &mut self.backup_sections;
+                ui.checkbox(&mut sec.favorites, t!("Favorites ({n})", n = c.favorites));
+                ui.checkbox(&mut sec.playlists, t!("Playlists ({n})", n = c.playlists));
+                ui.checkbox(&mut sec.alarms, t!("Alarms ({n})", n = c.alarms));
+                ui.checkbox(&mut sec.app, t!("Roomtone's own lists and settings ({n})", n = c.app));
+                ui.add_space(4.0);
+                ui.label(RichText::new(t!("Alarms are matched to rooms by name. Things already on this system are skipped.")).size(12.0).color(TEXT_FAINT()));
+                ui.add_space(8.0);
+                ui.horizontal(|ui| {
+                    let sections = self.backup_sections;
+                    if pill(ui, Some(Icon::Refresh), t!("Restore"), true).clicked() {
+                        self.send(Cmd::RestoreBackup(path.clone(), sections));
+                    }
+                    if pill(ui, None, t!("Cancel"), false).clicked() {
+                        self.send(Cmd::DismissBackup);
+                    }
+                });
+            }
+            match &s.backup_result {
+                Some(BackupResult::Saved { file, counts, notes }) => {
+                    ui.add_space(8.0);
+                    ui.separator();
+                    ui.add_space(6.0);
+                    ui.label(RichText::new(t!("Backup saved as {file}", file = file)).color(GOOD()));
+                    ui.label(RichText::new(counts_line(counts)).size(12.5).color(TEXT_DIM()));
+                    for n in notes {
+                        ui.label(RichText::new(n).size(12.0).color(TEXT_FAINT()));
+                    }
+                }
+                Some(BackupResult::Restored(r)) => {
+                    ui.add_space(8.0);
+                    ui.separator();
+                    ui.add_space(6.0);
+                    if r.added.total() == 0 && r.failed.total() == 0 {
+                        ui.label(RichText::new(t!("Nothing new to add: everything was already there.")).color(TEXT()));
+                    } else {
+                        ui.label(RichText::new(t!("Added: {counts}", counts = counts_line(&r.added))).color(GOOD()));
+                    }
+                    if r.skipped.total() > 0 {
+                        ui.label(RichText::new(t!("Already there, left alone: {counts}", counts = counts_line(&r.skipped))).size(12.5).color(TEXT_DIM()));
+                    }
+                    if r.failed.total() > 0 {
+                        ui.label(RichText::new(t!("Couldn't restore: {counts}", counts = counts_line(&r.failed))).size(12.5).color(BAD()));
+                    }
+                    if !r.notes.is_empty() {
+                        egui::CollapsingHeader::new(RichText::new(t!("Details")).size(12.5).color(TEXT_DIM())).id_salt("backup_notes").show(ui, |ui| {
+                            for n in r.notes.iter().take(20) {
+                                ui.label(RichText::new(n).size(12.0).color(TEXT_FAINT()));
+                            }
+                        });
+                    }
+                    if pill(ui, None, t!("Close"), false).clicked() {
+                        self.send(Cmd::DismissBackup);
+                    }
+                }
+                None => {}
+            }
         });
     }
 

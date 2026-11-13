@@ -4,6 +4,9 @@ All notable changes to Roomtone. The format follows [Keep a Changelog](https://k
 
 ## [Unreleased]
 
+### Added
+- **Backup and restore** (Settings › Backup and restore): save the system's Sonos favorites, playlists (with their songs) and alarms, plus Roomtone's own folders, stations, podcasts, saved groups, kept favorites and preferences, to one JSON file (never sign-ins or the access key), and restore from it on the same or a new system. Restoring only adds: duplicates are skipped, nothing existing is changed, alarms are matched to rooms by name, and a summary says what was added, skipped or couldn't be restored. Saving was checked against a real S1 system (read only); restoring to real speakers isn't tried yet.
+
 ### Fixed
 - A settings file that can't be read (a typo from editing by hand, a half-written file) is no longer silently replaced by the defaults: it is moved to `config.json.broken-<n>`, a notice at the top of Settings says where it went, and if it can't be moved nothing is saved that run. Background readers never touch it.
 
