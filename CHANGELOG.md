@@ -7,6 +7,9 @@ All notable changes to Roomtone. The format follows [Keep a Changelog](https://k
 ### Added
 - **Speaker status**: *Your speakers* now shows whether each room is connected by cable (**Wired**) or **Wireless**, read from the speaker's own network counters (read-only). Checked on one real S1 speaker (Wired). No signal strength: the speakers' status pages don't report one reliably.
 
+### Changed
+- *Export playlist…* is now a button on the playlist's own page, as well as in its menu on the Playlists page. The buttons under a playlist, album or podcast title now wrap onto a second line when a language is too long to fit (they ran off the edge in German).
+
 ## [0.6.1] — 2026-11-13
 
 ### Added

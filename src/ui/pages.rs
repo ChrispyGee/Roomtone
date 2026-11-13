@@ -952,7 +952,7 @@ impl App {
                         }
                     }
                     ui.add_space(12.0);
-                    ui.horizontal(|ui| {
+                    ui.horizontal_wrapped(|ui| {
                         if pill(ui, Some(Icon::Play), t!("Play"), true).clicked() {
                             self.play(gid.as_deref(), top, PlayHow::Replace);
                         }
@@ -972,6 +972,13 @@ impl App {
                                 .clicked()
                         {
                             self.toggle_favorite(top);
+                        }
+                        if super::is_saved_playlist(top)
+                            && pill(ui, None, t!("Export playlist…"), false)
+                                .on_hover_text(t!("Choose the file type when you pick the name: M3U, PLS or XSPF playlist, CSV spreadsheet or Roomtone backup (.json)"))
+                                .clicked()
+                        {
+                            self.export_playlist(top);
                         }
                         if let Some(p) = crate::sources::podcasts::podcast_of(top) {
                             let subscribed = s.config.podcasts.iter().any(|x| x.feed == p.feed);
