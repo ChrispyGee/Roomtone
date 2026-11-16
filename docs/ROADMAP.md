@@ -54,7 +54,7 @@ Roughly in order of value. Discuss in an issue before starting the big ones.
 5. **More streaming services, and more for the favorites-only ones**: add services beyond Spotify, Amazon Music, Deezer, TIDAL and Qobuz, and find legitimate ways to do more than play saved favorites with Apple Music, YouTube Music and SoundCloud (browsing and search where a service allows it). Open question: which services let a third-party controller sign in at all.
 6. **Package managers**: the Homebrew tap (`ChrispyGee/homebrew-roomtone`) is live for 0.6.1; the winget manifest and Arch `PKGBUILD` are made for each release (see `docs/RELEASING.md`) but not published yet (a winget-pkgs pull request, the AUR package). The Homebrew install was tried for real (macOS, 0.6.1); winget and Arch haven't been. Flathub is separate. The main Homebrew cask list waits for signing.
 7. **Gentler alarms**: a volume fade-in, snooze, alarms in several rooms at once, duplicating an alarm, and one-off timers per room.
-8. **Lyrics (trial)**: an experimental, off-by-default switch that shows lyrics from lrclib.net on Now Playing is in. It still needs trying with real songs; if it doesn't earn its place it will be removed.
+8. **Lyrics (trial)**: an experimental, off-by-default switch that shows lyrics from lrclib.net on Now Playing is in. The maintainer tried it with real songs (2026-11-16) and it works well; it stays experimental until it has had more use, and will be removed if it doesn't earn its place.
 9. **Saved play-along links**, and play along for more than two systems.
 10. **More languages**: see "Adding a language" in [CONTRIBUTING.md](../CONTRIBUTING.md).
 11. **Home-theatre settings**: surround and sub levels, where the speakers allow it locally.
