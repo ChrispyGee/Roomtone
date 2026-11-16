@@ -743,10 +743,10 @@ minutes	minutes
 plays {name}	joue {name}
 stops after {n} min	s'arrête après {n} min
 {room} at {volume}	{room} à {volume}
-Scenes: one click sets up your rooms, volumes, music and a sleep timer	Scènes : un clic règle pièces, volume, musique et minuterie d'arrêt
-Keyboard and screen-reader support throughout	Prise en charge du clavier et des lecteurs d'écran partout
-Do scenes from the command line and from assistants	Lancez des scènes en ligne de commande et depuis des assistants
 Leave as it is	Laisser tel quel
 with sound settings	avec réglages du son
 Now playing: {title} in {room}	En lecture : {title} dans {room}
 Now playing: {title} by {artist} in {room}	En lecture : {title} de {artist} dans {room}
+Scenes can set bass, treble and night sound, and are kept in backups	Les scènes règlent graves, aigus et son de nuit, et sont incluses dans les sauvegardes
+Screen readers announce new songs and messages; room cards and menus work from the keyboard	Les lecteurs d'écran annoncent les nouveaux titres et messages ; cartes de pièces et menus s'utilisent au clavier
+Pop-up window titles are readable in dark mode	Les titres des fenêtres contextuelles sont lisibles en mode sombre
