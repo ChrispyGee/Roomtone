@@ -79,7 +79,7 @@ The source of truth for **what Roomtone does**. Code, tests and docs should agre
 ### 4.2a Keyboard and screen readers
 
 - **Keyboard**: Tab and Shift+Tab move through every button, row, switch and slider, with an orange ring showing where the focus is; Enter or Space presses the focused control; arrow keys move a focused slider (Shift for bigger steps). Space anywhere else plays or pauses the selected room. Ctrl (Cmd on a Mac) with the Right or Left arrow skips to the next or previous song, and with Up or Down changes the volume by 5. None of these act while typing in a text box.
-- **Screen readers**: the window is exposed through AccessKit (VoiceOver on macOS, Narrator and NVDA on Windows, Orca on Linux). Every hand-drawn control has a name and a role: buttons (with a name for each icon), switches and filter chips as checkboxes (with their on/off state), the segmented control as radio buttons, sliders with their name and value, and rows with the song or room they stand for. Controls that are only pictures take their name from `widgets::icon_name`. A test draws the controls and checks the names an accessibility tree reports. **Not yet tried with a real screen reader**, and the artwork and decorative icons aren't described.
+- **Screen readers**: the window is exposed through AccessKit (VoiceOver on macOS, Narrator and NVDA on Windows, Orca on Linux). Every hand-drawn control has a name and a role: buttons (with a name for each icon), switches and filter chips as checkboxes (with their on/off state), the segmented control as radio buttons, sliders with their name and value, and rows with the song or room they stand for. Controls that are only pictures take their name from `widgets::icon_name`. A test draws the controls and checks the names an accessibility tree reports. **Tried with VoiceOver on macOS (works); not yet with Narrator, NVDA or Orca**, and the artwork and decorative icons aren't described.
 
 ### 4.2b Scenes
 
@@ -317,7 +317,7 @@ All in the app's data folder: `~/Library/Application Support/Roomtone/` (macOS),
 | Speaker status (wired or wireless) | One real S1 Connect:Amp (wired); **Wireless not yet seen** |
 | *Can't find your speakers?* | Unit tests and the demo system; **not yet on a genuinely failing network** |
 | PLS and XSPF playlist files | Unit tests; **not yet opened in other players** |
-| Keyboard focus and screen-reader names | Unit test of the accessibility tree and screenshots; **not yet tried with a real screen reader** |
+| Keyboard focus and screen-reader names | Unit test of the accessibility tree and screenshots; **VoiceOver on macOS tried by the maintainer (2026-11-16): works**; Narrator, NVDA and Orca not yet tried |
 | Media keys and Now Playing | Started on macOS; **Windows and Linux compile only** |
 | Homebrew install and upgrade | Real Mac (0.6.2 installed and upgraded through the tap) |
 | Translations | Automated completeness test; not reviewed by native speakers |
