@@ -746,3 +746,5 @@ stops after {n} min	s'arrête après {n} min
 Scenes: one click sets up your rooms, volumes, music and a sleep timer	Scènes : un clic règle pièces, volume, musique et minuterie d'arrêt
 Keyboard and screen-reader support throughout	Prise en charge du clavier et des lecteurs d'écran partout
 Do scenes from the command line and from assistants	Lancez des scènes en ligne de commande et depuis des assistants
+Leave as it is	Laisser tel quel
+with sound settings	avec réglages du son

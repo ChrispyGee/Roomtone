@@ -4,6 +4,9 @@ All notable changes to Roomtone. The format follows [Keep a Changelog](https://k
 
 ## [Unreleased]
 
+### Added
+- **Scenes: sound, and in backups.** Each room in a scene can now also set bass and treble and, for soundbars, night sound and speech enhancement (a *Sound* section per room in the scene window); scenes are saved in backup files and come back, moved to the system you restore onto, without doubling up. New optional `bass`, `treble`, `night` and `speech` per scene room in `config.json`. Checked on the demo system only.
+
 ## [0.7.0] — 2026-11-14
 
 ### Added

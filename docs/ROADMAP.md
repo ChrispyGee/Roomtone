@@ -60,4 +60,4 @@ Roughly in order of value. Discuss in an issue before starting the big ones.
 11. **Home-theatre settings**: surround and sub levels, where the speakers allow it locally.
 12. **Accessibility follow-ups**: names and roles and keyboard focus are in (0.6.3), but nothing has been tried with a real screen reader yet; still to do: describe artwork and decorative icons, announce changes (a new song, an error toast), a keyboard way to open the ⋯ menus and drag-free reordering, and a high-contrast theme check.
 13. **Recorded replies from real speakers** as test cases (with names and addresses removed), to complement the hand-written samples in the unit tests.
-14. **Scene follow-ups**: night sound, speech enhancement and bass/treble per room, scenes in backup files and restore, a *Do it* shortcut from the tray or media keys, and scheduling a scene (an alarm that does a scene).
+13. **Scene follow-ups**: a *Do it* shortcut from the tray or media keys, and scheduling a scene (an alarm that does a scene; the speakers' own alarms can't, so it would only work while Roomtone is running). (Sound settings per room and scenes in backups shipped after 0.7.0.)

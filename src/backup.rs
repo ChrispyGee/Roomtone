@@ -86,6 +86,8 @@ pub struct AppBackup {
     /// Favorites kept in the app (albums, artists, folders, shows the speakers can't store).
     pub favorites: Vec<Item>,
     pub groups: Vec<GroupBackup>,
+    /// Scenes (what to do, per room, by room name).
+    pub scenes: Vec<crate::config::Scene>,
     pub language: String,
     pub theme: String,
     pub speaker_events: bool,
@@ -218,6 +220,7 @@ impl Backup {
                 services: cfg.services.clone(),
                 favorites: cfg.favorites.clone(),
                 groups: cfg.groups.iter().map(|g| GroupBackup { name: g.name.clone(), rooms: g.rooms.clone() }).collect(),
+                scenes: cfg.scenes.clone(),
                 language: cfg.language.clone(),
                 theme: cfg.theme.clone(),
                 speaker_events: cfg.speaker_events,
@@ -250,7 +253,7 @@ impl Backup {
                 favorites: self.sonos_favorites.len(),
                 playlists: self.sonos_playlists.len(),
                 alarms: self.alarms.len(),
-                app: a.folders.len() + a.stations.len() + a.podcasts.len() + a.favorites.len() + a.groups.len(),
+                app: a.folders.len() + a.stations.len() + a.podcasts.len() + a.favorites.len() + a.groups.len() + a.scenes.len(),
             },
         }
     }
@@ -419,6 +422,16 @@ impl Backup {
                 r.skipped.app += 1;
             } else {
                 cfg.groups.push(SavedGroup { name: g.name.clone(), household: household.to_string(), rooms: g.rooms.clone() });
+                r.added.app += 1;
+            }
+        }
+        for sc in &a.scenes {
+            if cfg.scenes.iter().any(|x| x.name.eq_ignore_ascii_case(&sc.name)) {
+                r.skipped.app += 1;
+            } else {
+                let mut sc = sc.clone();
+                sc.household = household.to_string();
+                cfg.scenes.push(sc);
                 r.added.app += 1;
             }
         }
@@ -646,6 +659,34 @@ mod unit {
         assert!(r.added.favorites == 1 && target.favorites.borrow().len() == 2, "added next to the existing one");
         assert_eq!(cfg.stations.len(), 1, "the app part was switched off");
         assert_eq!(cfg.language, "de");
+    }
+
+    #[test]
+    fn scenes_are_saved_and_come_back_on_the_new_system_once() {
+        use crate::config::{Scene, SceneRoom};
+        let mut c = config();
+        c.scenes.push(Scene {
+            name: "Movie night".into(),
+            household: "OLD".into(),
+            rooms: vec![SceneRoom { room: "Kitchen".into(), volume: Some(20), bass: Some(3), night: Some(true), ..Default::default() }],
+            group: true,
+            play: "Dinner Party".into(),
+            sleep_minutes: 90,
+        });
+        let (b, _) = Backup::build(None, &c, Sections::default(), 0);
+        assert_eq!(b.app.scenes.len(), 1);
+        assert!(b.summary().counts.app >= 1);
+        let json = b.to_json().unwrap();
+        let back = Backup::parse(&json).unwrap();
+        let mut cfg = Config::default();
+        let r = back.restore(None, &mut cfg, Sections::default(), "NEWHOUSE");
+        assert_eq!(cfg.scenes.len(), 1);
+        assert_eq!(cfg.scenes[0].household, "NEWHOUSE");
+        assert_eq!((cfg.scenes[0].rooms[0].volume, cfg.scenes[0].rooms[0].bass, cfg.scenes[0].rooms[0].night), (Some(20), Some(3), Some(true)));
+        assert!(r.added.app >= 1);
+        let again = back.restore(None, &mut cfg, Sections::default(), "NEWHOUSE");
+        assert_eq!(cfg.scenes.len(), 1, "not added twice");
+        assert!(again.skipped.app >= 1);
     }
 
     #[test]

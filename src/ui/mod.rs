@@ -377,7 +377,7 @@ impl App {
             let mut s = self.backend.lock();
             let hid = s.household().map(|h| h.id.clone()).unwrap_or_default();
             use crate::config::{Scene, SceneRoom};
-            let room = |n: &str, v: Option<u8>| SceneRoom { room: n.into(), volume: v };
+            let room = |n: &str, v: Option<u8>| SceneRoom { room: n.into(), volume: v, ..Default::default() };
             s.config.scenes = vec![
                 Scene {
                     name: "Movie night".into(),
