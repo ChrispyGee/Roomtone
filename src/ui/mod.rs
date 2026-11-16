@@ -91,6 +91,8 @@ pub struct App {
     speakers_open: bool,
     /// The *Can't find your speakers?* window.
     finder_open: bool,
+    /// What screen readers were last told is playing.
+    announced: String,
     /// The scene being made or changed: (its name before, the scene).
     scene_editor: Option<(Option<String>, crate::config::Scene)>,
     /// Whether the connection type of every room was asked for since *Your speakers* was opened.
@@ -227,6 +229,7 @@ impl App {
             link_dismissed: false,
             speakers_open: open_speakers,
             finder_open: open_finder,
+            announced: String::new(),
             scene_editor: None,
             connections_asked: false,
             merged_source: 0,
@@ -484,6 +487,7 @@ impl App {
         self.group_preset_modal(ctx, s);
         self.update_modal(ctx);
         self.toasts(ctx, s);
+        self.announce_playing(ctx, s);
     }
 
     fn sidebar(&mut self, ui: &mut egui::Ui, s: &AppState) {
@@ -725,7 +729,17 @@ impl App {
             });
         });
         let rect = resp.response.rect;
-        let card = ui.interact(rect, ui.scope_id().with(("card", &g.id)), Sense::hover());
+        // Not clickable itself (the buttons inside must get their clicks), but the keyboard can
+        // reach it: Tab to the card, Enter or Space picks the room.
+        let card = ui.interact(rect, ui.scope_id().with(("card", &g.id)), Sense::hover() | Sense::focusable_noninteractive());
+        let name = h.group_name(g);
+        let state = if g.now.is_empty() { t!("Nothing playing").to_string() } else { format!("{} — {}", g.now.title, g.now.artist) };
+        let label = format!("{name}. {state}");
+        card.widget_info(move || egui::WidgetInfo::selected(egui::Role::Button, true, selected, label.clone()));
+        focus_ring(ui, &card, rect, 14.0);
+        if card.has_focus() && ui.input_mut(|i| i.consume_key(egui::Modifiers::NONE, egui::Key::Enter) || i.consume_key(egui::Modifiers::NONE, egui::Key::Space)) {
+            self.select = Some(g.id.clone());
+        }
         if !inner_hot && card.hovered() {
             ui.ctx().set_cursor_icon(egui::CursorIcon::PointingHand);
             if ui.input(|i| i.pointer.primary_clicked()) {
@@ -1655,6 +1669,29 @@ impl App {
         }
     }
 
+    /// A one-pixel, invisible note that screen readers read out when the selected room's song
+    /// changes (a "live region"): "Now playing: title by artist in room".
+    fn announce_playing(&mut self, ctx: &egui::Context, s: &AppState) {
+        let text = match s.selected_group.as_ref().and_then(|g| s.find_group(g)) {
+            Some((h, g)) if !g.now.is_empty() && g.now.transport == Transport::Playing => {
+                if g.now.artist.is_empty() {
+                    t!("Now playing: {title} in {room}", title = g.now.title, room = h.group_name(g))
+                } else {
+                    t!("Now playing: {title} by {artist} in {room}", title = g.now.title, artist = g.now.artist, room = h.group_name(g))
+                }
+            }
+            _ => String::new(),
+        };
+        // Only a change of song says something new; pausing or the position ticking doesn't.
+        if text != self.announced && !text.is_empty() {
+            self.announced = text;
+        }
+        let shown = self.announced.clone();
+        egui::Area::new(egui::Id::unique("announce_playing")).fixed_pos(pos2(0.0, 0.0)).order(egui::Order::Background).show(ctx, |ui| {
+            announce(ui, &shown, false);
+        });
+    }
+
     fn toasts(&mut self, ctx: &egui::Context, s: &AppState) {
         if s.toasts.is_empty() {
             return;
@@ -1669,7 +1706,10 @@ impl App {
                     .shadow(egui::Shadow { offset: [0, 6], blur: 18, spread: 0, color: Color32::from_black_alpha(110) })
                     .show(ui, |ui| {
                         ui.set_max_width(340.0);
-                        ui.label(RichText::new(&t.text).size(13.0).color(TEXT()));
+                        let label = ui.label(RichText::new(&t.text).size(13.0).color(TEXT()));
+                        // Read out when it appears: errors at once, the rest when the reader is free.
+                        let live = if t.error { egui::accesskit::Live::Assertive } else { egui::accesskit::Live::Polite };
+                        ui.ctx().accesskit_node_builder(label.id, |n| n.set_live(live));
                     });
                 ui.add_space(6.0);
             }

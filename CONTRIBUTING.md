@@ -46,7 +46,7 @@ Read [SPEC.md](SPEC.md) (what the app does) and [docs/ARCHITECTURE.md](docs/ARCH
    ```
    The only addresses that belong in the code are placeholders such as `192.168.1.20` and `127.0.0.1`.
 
-Keep pull requests focused: one feature or fix each. Describe what you tested and on which speakers (or "demo only").
+Keep pull requests focused: one feature or fix each. Describe what you tested and on which speakers (or "demo only"). If it changes what's on screen, include screenshots from the demo system (see "Pull requests that change the screen" in [AGENTS.md](AGENTS.md); `scripts/pr-screenshots.sh` publishes them and prints the Markdown).
 
 ## Rules that keep the app working
 

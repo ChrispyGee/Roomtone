@@ -376,6 +376,7 @@ impl App {
             }
         }
         let resp = resp.on_hover_cursor(egui::CursorIcon::PointingHand);
+        menu_from_keyboard(ui, &resp);
         resp.context_menu(|ui| self.item_menu(ui, item, gid));
     }
 
@@ -439,6 +440,7 @@ impl App {
             }
         }
         let resp = resp.on_hover_cursor(egui::CursorIcon::PointingHand);
+        menu_from_keyboard(ui, &resp);
         resp.context_menu(|ui| self.item_menu(ui, item, gid));
     }
 

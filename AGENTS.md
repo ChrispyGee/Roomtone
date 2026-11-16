@@ -55,6 +55,16 @@ For MCP tests, set `HOME` (Windows: `APPDATA`) to a scratch folder such as `targ
 - [ ] No telemetry; no new network destinations without listing them in SPEC.md §9.
 - [ ] Don't copy other apps' code, logos or artwork. Protocol identifiers the speakers require are fine.
 
+## Pull requests that change the screen
+
+If a pull request changes anything the person sees (a page, a window, a control, wording on screen), put screenshots in its description: take them from the demo system with `--screenshot` (English, and one longer language such as `--lang de`; light and dark if colours or layout changed; `ROOMTONE_TEST_*` hooks in `src/ui/mod.rs` open a given window), then publish them with
+
+```sh
+scripts/pr-screenshots.sh <pr-number> shots/a.png shots/b.png
+```
+
+and paste the Markdown it prints under a *Screenshots* heading. The script keeps the images on a `pr-screenshots` branch (never merged) so they don't clutter history. Demo screenshots only: never real room names, addresses or tokens. A pull request with no visible change (documentation, a command, something only a screen reader or the assistant link sees) can say so instead.
+
 ## Safety with real speakers
 
 Real speakers are often shared with other people. Without the person's explicit go-ahead **don't**:
