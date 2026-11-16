@@ -2222,9 +2222,8 @@ impl App {
             ui.add_space(6.0);
             ui.label(RichText::new(t!("What's new in this version")).color(TEXT()).strong());
             for line in [
-                t!("Scenes can set bass, treble and night sound, and are kept in backups"),
-                t!("Screen readers announce new songs and messages; room cards and menus work from the keyboard"),
-                t!("Pop-up window titles are readable in dark mode"),
+                t!("Lyrics (experimental): switch it on in Settings to see the words of the song that's playing"),
+                t!("The project page now links straight to each download"),
             ] {
                 ui.horizontal_wrapped(|ui| {
                     ui.label(RichText::new("•").color(ACCENT()));
