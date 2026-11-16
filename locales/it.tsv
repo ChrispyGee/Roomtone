@@ -748,3 +748,5 @@ Keyboard and screen-reader support throughout	Supporto per tastiera e screen rea
 Do scenes from the command line and from assistants	Avvia le scene dalla riga di comando e dagli assistenti
 Leave as it is	Lascia com'è
 with sound settings	con impostazioni audio
+Now playing: {title} in {room}	In riproduzione: {title} in {room}
+Now playing: {title} by {artist} in {room}	In riproduzione: {title} di {artist} in {room}

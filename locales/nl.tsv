@@ -748,3 +748,5 @@ Keyboard and screen-reader support throughout	Ondersteuning voor toetsenbord en 
 Do scenes from the command line and from assistants	Start scènes via de opdrachtregel en vanuit assistenten
 Leave as it is	Laten zoals het is
 with sound settings	met geluidsinstellingen
+Now playing: {title} in {room}	Nu aan het spelen: {title} in {room}
+Now playing: {title} by {artist} in {room}	Nu aan het spelen: {title} van {artist} in {room}
