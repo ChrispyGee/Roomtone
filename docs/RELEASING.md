@@ -53,7 +53,7 @@ After pushing, Dependabot closes its own pull requests when the same update is a
 1. Make sure `main` is green in CI.
 2. Pick the version ([Semantic Versioning](https://semver.org/)): bump `version` in `Cargo.toml` and run `cargo build`, so `Cargo.lock` updates.
 3. In `CHANGELOG.md`, move *Unreleased* items under a new `## [x.y.z] — YYYY-MM-DD` heading.
-4. Update the version in the title of `SPEC.md`, and the "What's new in this version" list in Settings › About (`src/ui/pages.rs`, `about_card`), translated.
+4. Point the README's download links at the new version with `scripts/set-download-links.sh X.Y.Z` (a unit test fails if they and `Cargo.toml` disagree; the links work once the release exists, a few minutes after the pull request merges). Update the version in the title of `SPEC.md`, and the "What's new in this version" list in Settings › About (`src/ui/pages.rs`, `about_card`), translated.
 5. Commit the version change through a pull request, wait for CI, and merge it.
 6. Tag the merge commit and push the tag: `git tag vX.Y.Z && git push origin vX.Y.Z`.
 7. The *Release* workflow (`.github/workflows/release.yml`) builds macOS (Apple silicon), Windows and Linux programs, and for each platform makes an installer: a `.dmg` (`packaging/macos/build-dmg.sh`), a Windows setup `.exe` (Inno Setup, `packaging/windows/roomtone.iss`) a `.deb` (cargo-deb) and an `.rpm` (cargo-generate-rpm), with their settings in `Cargo.toml`. It attaches them and the `.zip`/`.tar.gz` to a GitHub release, with that version's `CHANGELOG.md` section as notes. It fails if the changelog has no section for the tag.

@@ -265,6 +265,26 @@ fn platform_notes() -> &'static str {
 
 #[cfg(test)]
 mod unit {
+    /// The README's download links must name the version being built, so they can't be left
+    /// pointing at an old release: run `scripts/set-download-links.sh <version>` when releasing.
+    #[test]
+    fn the_readme_download_links_match_this_version() {
+        let readme = include_str!("../README.md");
+        let v = env!("CARGO_PKG_VERSION");
+        for file in ["macos-arm64.dmg", "windows-x64-setup.exe", "linux-x64.deb", "linux-x64.rpm", "macos-arm64.tar.gz", "windows-x64.zip", "linux-x64.tar.gz"] {
+            let want = format!("releases/download/v{v}/roomtone-v{v}-{file}");
+            assert!(readme.contains(&want), "README.md has no link to {want}; run scripts/set-download-links.sh {v}");
+        }
+        assert!(readme.contains(&format!("releases/download/v{v}/SHA256SUMS")));
+        // And nothing points at another version.
+        for line in readme.lines().filter(|l| l.contains("releases/download/")) {
+            for part in line.split("releases/download/v").skip(1) {
+                let found: String = part.chars().take_while(|c| c.is_ascii_digit() || *c == '.').collect();
+                assert_eq!(found, v, "an old download link in README.md: {line}");
+            }
+        }
+    }
+
     use super::*;
 
     #[test]

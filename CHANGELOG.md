@@ -4,6 +4,9 @@ All notable changes to Roomtone. The format follows [Keep a Changelog](https://k
 
 ## [Unreleased]
 
+### Changed
+- The README's *Install* table now links straight to each download (and to `SHA256SUMS`) for the current release, instead of only to the releases page. A unit test and `scripts/set-download-links.sh` keep the links on the current version.
+
 ## [0.7.1] — 2026-11-16
 
 ### Fixed
