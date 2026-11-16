@@ -4,6 +4,8 @@ All notable changes to Roomtone. The format follows [Keep a Changelog](https://k
 
 ## [Unreleased]
 
+## [0.8.0] — 2026-11-16
+
 ### Added
 - **Lyrics (experimental)**: a switch in Settings, off by default and tagged *Experimental*, that shows the words of the song that's playing on the Now Playing page. Timed lyrics highlight the current line and follow the song. While on, the song's title, artist, album and length are sent to lrclib.net (a free community lyrics site; listed in SPEC §9); nothing is saved. New `show_lyrics` field in `config.json`. Checked on the demo system (made-up words) and by unit tests; one real look-up on lrclib.net returned timed lyrics; **tried by the maintainer with real songs playing: works well**. If it doesn't work out it will be removed again.
 
