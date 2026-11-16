@@ -4,6 +4,9 @@ All notable changes to Roomtone. The format follows [Keep a Changelog](https://k
 
 ## [Unreleased]
 
+### Added
+- **Accessibility follow-ups**: toasts are read out by screen readers when they appear, and the selected room's new song is announced ("Now playing: … in …"); the room cards in the Rooms panel can be reached with Tab and picked with Enter or Space; the Menu key or Shift+F10 opens the menu of a focused tile or row (the ⋯ button already opened it with Enter). Checked with a unit test of the accessibility tree; **not yet heard with a real screen reader**.
+
 ## [0.7.0] — 2026-11-14
 
 ### Added
