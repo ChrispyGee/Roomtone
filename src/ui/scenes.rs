@@ -121,7 +121,7 @@ impl App {
         let mut save = false;
         let modal = egui::Modal::new(egui::Id::unique("scene_modal")).frame(modal_frame()).show(ctx, |ui| {
             ui.set_width(460.0);
-            ui.label(RichText::new(if old.is_some() { t!("Edit scene") } else { t!("New scene") }).size(20.0).strong());
+            ui.label(RichText::new(if old.is_some() { t!("Edit scene") } else { t!("New scene") }).size(20.0).strong().color(TEXT()));
             ui.add_space(8.0);
             ui.add(egui::TextEdit::singleline(&mut sc.name).hint_text(t!("Name, e.g. Movie night")).desired_width(f32::INFINITY).margin(vec2(10.0, 7.0)));
             ui.add_space(10.0);
