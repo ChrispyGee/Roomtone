@@ -743,10 +743,10 @@ minutes	minutos
 plays {name}	reproduce {name}
 stops after {n} min	para tras {n} min
 {room} at {volume}	{room} a {volume}
-Scenes: one click sets up your rooms, volumes, music and a sleep timer	Escenas: un clic prepara habitaciones, volumen, música y un temporizador de apagado
-Keyboard and screen-reader support throughout	Compatibilidad con teclado y lectores de pantalla en toda la app
-Do scenes from the command line and from assistants	Activa escenas desde la línea de comandos y desde asistentes
 Leave as it is	Dejar como está
 with sound settings	con ajustes de sonido
 Now playing: {title} in {room}	Reproduciendo: {title} en {room}
 Now playing: {title} by {artist} in {room}	Reproduciendo: {title} de {artist} en {room}
+Scenes can set bass, treble and night sound, and are kept in backups	Las escenas pueden ajustar graves, agudos y sonido nocturno, y se guardan en las copias de seguridad
+Screen readers announce new songs and messages; room cards and menus work from the keyboard	Los lectores de pantalla anuncian canciones y mensajes nuevos; las tarjetas de habitación y los menús funcionan con el teclado
+Pop-up window titles are readable in dark mode	Los títulos de las ventanas emergentes se leen bien en modo oscuro

@@ -2152,9 +2152,9 @@ impl App {
             ui.add_space(6.0);
             ui.label(RichText::new(t!("What's new in this version")).color(TEXT()).strong());
             for line in [
-                t!("Scenes: one click sets up your rooms, volumes, music and a sleep timer"),
-                t!("Keyboard and screen-reader support throughout"),
-                t!("Do scenes from the command line and from assistants"),
+                t!("Scenes can set bass, treble and night sound, and are kept in backups"),
+                t!("Screen readers announce new songs and messages; room cards and menus work from the keyboard"),
+                t!("Pop-up window titles are readable in dark mode"),
             ] {
                 ui.horizontal_wrapped(|ui| {
                     ui.label(RichText::new("•").color(ACCENT()));
