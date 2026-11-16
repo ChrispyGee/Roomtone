@@ -300,6 +300,24 @@ pub fn focus_ring(ui: &Ui, resp: &Response, rect: Rect, radius: f32) {
     }
 }
 
+/// Open the item's context menu from the keyboard: the Menu key, or Shift+F10, while it has the
+/// focus. (A right click does it with the mouse.) Call before the response's `context_menu`.
+pub fn menu_from_keyboard(ui: &Ui, resp: &Response) {
+    if resp.has_focus() && ui.input(|i| i.key_pressed(egui::Key::Menu) || (i.modifiers.shift && i.key_pressed(egui::Key::F10))) {
+        egui::Popup::open_id(ui.ctx(), egui::Popup::default_response_id(resp));
+    }
+}
+
+/// A one-pixel invisible note that screen readers read out whenever its text changes (a "live
+/// region"). `assertive` interrupts what's being read; otherwise it waits for a pause.
+pub fn announce(ui: &mut Ui, text: &str, assertive: bool) {
+    let r = ui.allocate_response(vec2(1.0, 1.0), Sense::hover());
+    let label = text.to_string();
+    r.widget_info(move || WidgetInfo::labeled(Role::Label, true, label.clone()));
+    let live = if assertive { egui::accesskit::Live::Assertive } else { egui::accesskit::Live::Polite };
+    ui.ctx().accesskit_node_builder(r.id, |n| n.set_live(live));
+}
+
 /// What a button that only shows a picture is called, for screen readers and tooltips.
 pub fn icon_name(icon: Icon) -> String {
     match icon {
@@ -638,6 +656,20 @@ mod unit {
         ] {
             assert!(seen.iter().any(|(r, n)| *r == role && n == name), "{role:?} {name:?} missing in {seen:?}");
         }
+    }
+
+    #[test]
+    fn announcements_are_live_regions() {
+        let ctx = egui::Context::default();
+        ctx.enable_accesskit();
+        let mut out = ctx.run_ui(egui::RawInput::default(), |ui| {
+            announce(ui, "Now playing: Morning Fog in Kitchen", false);
+        });
+        out.textures_delta.clear();
+        let update = out.platform_output.accesskit_update.expect("accessibility is on");
+        // (A label's text is kept as the node's value.)
+        let live = update.nodes.iter().find(|(_, n)| n.value() == Some("Now playing: Morning Fog in Kitchen")).map(|(_, n)| n.live());
+        assert_eq!(live, Some(Some(egui::accesskit::Live::Polite)));
     }
 
     #[test]

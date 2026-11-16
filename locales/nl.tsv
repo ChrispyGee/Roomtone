@@ -746,3 +746,5 @@ stops after {n} min	stopt na {n} min
 Scenes: one click sets up your rooms, volumes, music and a sleep timer	Scènes: één klik zet kamers, volume, muziek en een slaaptimer klaar
 Keyboard and screen-reader support throughout	Ondersteuning voor toetsenbord en schermlezers overal
 Do scenes from the command line and from assistants	Start scènes via de opdrachtregel en vanuit assistenten
+Now playing: {title} in {room}	Nu aan het spelen: {title} in {room}
+Now playing: {title} by {artist} in {room}	Nu aan het spelen: {title} van {artist} in {room}
