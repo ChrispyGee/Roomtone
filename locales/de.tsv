@@ -746,5 +746,7 @@ stops after {n} min	stoppt nach {n} Min.
 Scenes: one click sets up your rooms, volumes, music and a sleep timer	Szenen: ein Klick richtet Räume, Lautstärke, Musik und einen Schlaf-Timer ein
 Keyboard and screen-reader support throughout	Tastatur- und Screenreader-Unterstützung überall
 Do scenes from the command line and from assistants	Szenen per Befehlszeile und von Assistenten aus starten
+Leave as it is	Unverändert lassen
+with sound settings	mit Klangeinstellungen
 Now playing: {title} in {room}	Läuft gerade: {title} in {room}
 Now playing: {title} by {artist} in {room}	Läuft gerade: {title} von {artist} in {room}

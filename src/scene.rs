@@ -33,6 +33,24 @@ pub fn apply(b: &Backend, scene: &Scene) -> Result<Vec<String>, String> {
             step(&format!("Setting the volume in {}", r.room), "set_volume", json!({"room": r.room, "volume": v.min(100)}))?;
         }
     }
+    // Sound settings (bass, treble, night sound, speech) before the music too.
+    for r in scene.rooms.iter().filter(|r| r.has_sound()) {
+        let mut args = serde_json::Map::new();
+        args.insert("room".into(), json!(r.room));
+        if let Some(v) = r.bass {
+            args.insert("bass".into(), json!(v.clamp(-10, 10)));
+        }
+        if let Some(v) = r.treble {
+            args.insert("treble".into(), json!(v.clamp(-10, 10)));
+        }
+        if let Some(v) = r.night {
+            args.insert("night_sound".into(), json!(v));
+        }
+        if let Some(v) = r.speech {
+            args.insert("speech_enhancement".into(), json!(v));
+        }
+        step(&format!("Setting the sound in {}", r.room), "set_sound", serde_json::Value::Object(args))?;
+    }
     let lead = names[0].clone();
     if !scene.play.trim().is_empty() {
         step(&format!("Starting “{}”", scene.play), "play", json!({"room": lead, "name": scene.play}))?;
@@ -53,7 +71,7 @@ mod unit {
         Scene {
             name: "Movie night".into(),
             household: String::new(),
-            rooms: rooms.iter().map(|(r, v)| SceneRoom { room: r.to_string(), volume: *v }).collect(),
+            rooms: rooms.iter().map(|(r, v)| SceneRoom { room: r.to_string(), volume: *v, ..Default::default() }).collect(),
             group: true,
             play: play.into(),
             sleep_minutes: sleep,
@@ -72,6 +90,28 @@ mod unit {
         assert!(g.sleep_left.is_some(), "the sleep timer is set");
         let kitchen = s.households.iter().flat_map(|h| h.rooms.iter()).find(|r| r.name == "Kitchen").unwrap();
         assert_eq!(kitchen.volume, 35);
+    }
+
+    #[test]
+    fn a_scene_can_set_the_sound_of_a_room() {
+        use crate::backend::Cmd;
+        let b = demo_backend();
+        let wait = std::time::Duration::from_secs(10);
+        let uuid = b.lock().households.iter().flat_map(|h| h.rooms.iter()).find(|r| r.name == "Kitchen").map(|r| r.uuid.clone()).unwrap();
+        b.send_and_wait(Cmd::LoadRoomSettings(uuid.clone()), wait).unwrap();
+        let mut sc = scene(&[("Kitchen", None)], "", 0);
+        sc.group = false;
+        sc.rooms[0].bass = Some(4);
+        sc.rooms[0].treble = Some(-3);
+        let steps = apply(&b, &sc).expect("the scene runs");
+        assert!(steps.iter().any(|s| s.contains("bass")), "{steps:?}");
+        let st = b.lock().households.iter().flat_map(|h| h.rooms.iter()).find(|r| r.uuid == uuid).and_then(|r| r.settings.clone()).expect("settings loaded");
+        assert_eq!((st.bass, st.treble), (4, -3));
+        // Out-of-range values are held to the speakers' limits rather than refused.
+        sc.rooms[0].bass = Some(90);
+        apply(&b, &sc).unwrap();
+        let st = b.lock().households.iter().flat_map(|h| h.rooms.iter()).find(|r| r.uuid == uuid).and_then(|r| r.settings.clone()).unwrap();
+        assert_eq!(st.bass, 10);
     }
 
     #[test]

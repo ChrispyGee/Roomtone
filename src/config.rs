@@ -63,6 +63,23 @@ pub struct SceneRoom {
     /// Volume to set (0-100); `None` leaves it as it is.
     #[serde(default)]
     pub volume: Option<u8>,
+    /// Bass and treble to set (-10 to 10); `None` leaves them.
+    #[serde(default)]
+    pub bass: Option<i8>,
+    #[serde(default)]
+    pub treble: Option<i8>,
+    /// Night sound and speech enhancement (soundbars): on, off, or `None` to leave them.
+    #[serde(default)]
+    pub night: Option<bool>,
+    #[serde(default)]
+    pub speech: Option<bool>,
+}
+
+impl SceneRoom {
+    /// Does this room's entry change anything about its sound?
+    pub fn has_sound(&self) -> bool {
+        self.bass.is_some() || self.treble.is_some() || self.night.is_some() || self.speech.is_some()
+    }
 }
 
 /// A named set of things one click does ("Movie night"): play the rooms together, set their

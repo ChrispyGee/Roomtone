@@ -24,6 +24,9 @@ fn summary(sc: &Scene) -> String {
     if !sc.play.is_empty() {
         parts.push(t!("plays {name}", name = sc.play));
     }
+    if sc.rooms.iter().any(|r| r.has_sound()) {
+        parts.push(t!("with sound settings").to_string());
+    }
     if sc.sleep_minutes > 0 {
         parts.push(t!("stops after {n} min", n = sc.sleep_minutes));
     }
@@ -107,6 +110,10 @@ impl App {
         let Some(h) = s.household() else { return };
         // Make sure the favorites and playlists it can start are being loaded.
         let _ = (self.browse(s, "FV:2"), self.browse(s, "SQ:"));
+        // And what each room can do with its sound (night sound and speech enhancement are soundbar things).
+        for r in &h.rooms {
+            self.ask_once(&format!("scene_rs:{}", r.uuid), std::time::Duration::from_secs(60), Cmd::LoadRoomSettings(r.uuid.clone()));
+        }
         // The things it can start: favorites and playlists (loaded when the window opens).
         let mut playable: Vec<String> = vec![];
         for id in ["FV:2", "SQ:"] {
@@ -126,7 +133,7 @@ impl App {
             ui.add(egui::TextEdit::singleline(&mut sc.name).hint_text(t!("Name, e.g. Movie night")).desired_width(f32::INFINITY).margin(vec2(10.0, 7.0)));
             ui.add_space(10.0);
             ui.label(RichText::new(t!("Rooms")).strong().color(TEXT()));
-            egui::ScrollArea::vertical().max_height(220.0).show(ui, |ui| {
+            egui::ScrollArea::vertical().max_height(340.0).show(ui, |ui| {
                 for r in &h.rooms {
                     let pos = sc.rooms.iter().position(|x| x.room == r.name);
                     let mut on = pos.is_some();
@@ -134,7 +141,7 @@ impl App {
                         ui.set_min_height(30.0);
                         if toggle(ui, &mut on, &r.name).changed() {
                             if on {
-                                sc.rooms.push(SceneRoom { room: r.name.clone(), volume: None });
+                                sc.rooms.push(SceneRoom { room: r.name.clone(), ..Default::default() });
                             } else if let Some(p) = pos {
                                 sc.rooms.remove(p);
                             }
@@ -155,6 +162,21 @@ impl App {
                             });
                         }
                     });
+                    if let Some(p) = sc.rooms.iter().position(|x| x.room == r.name) {
+                        let (night_ok, speech_ok) = r.settings.as_ref().map(|st| (st.night.is_some(), st.speech.is_some())).unwrap_or((false, false));
+                        let has = sc.rooms[p].has_sound();
+                        egui::CollapsingHeader::new(RichText::new(t!("Sound")).size(12.5).color(TEXT_DIM())).id_salt(("scene_sound", &r.uuid)).default_open(has).show(ui, |ui| {
+                            let (bass, treble) = (sc.rooms[p].bass, sc.rooms[p].treble);
+                            sc.rooms[p].bass = optional_level(ui, t!("Bass"), bass, r.settings.as_ref().map(|st| st.bass as i8).unwrap_or(0));
+                            sc.rooms[p].treble = optional_level(ui, t!("Treble"), treble, r.settings.as_ref().map(|st| st.treble as i8).unwrap_or(0));
+                            if night_ok {
+                                sc.rooms[p].night = tri_state(ui, ("scene_night", &r.uuid), t!("Night sound"), sc.rooms[p].night);
+                            }
+                            if speech_ok {
+                                sc.rooms[p].speech = tri_state(ui, ("scene_speech", &r.uuid), t!("Speech enhancement"), sc.rooms[p].speech);
+                            }
+                        });
+                    }
                 }
             });
             ui.add_space(8.0);
@@ -216,4 +238,34 @@ impl App {
             self.scene_editor = Some((old, sc));
         }
     }
+}
+
+/// "Set it to …" with a tick box and a number from -10 to 10; unticked means leave it.
+fn optional_level(ui: &mut Ui, label: &str, value: Option<i8>, current: i8) -> Option<i8> {
+    let mut set = value.is_some();
+    let mut v = value.unwrap_or(current).clamp(-10, 10);
+    ui.horizontal(|ui| {
+        ui.checkbox(&mut set, label);
+        ui.add_enabled(set, egui::DragValue::new(&mut v).range(-10..=10));
+    });
+    set.then_some(v)
+}
+
+/// Leave as it is, switch on, or switch off.
+fn tri_state(ui: &mut Ui, id: impl std::hash::Hash + std::fmt::Debug, label: &str, value: Option<bool>) -> Option<bool> {
+    let mut v = value;
+    ui.horizontal(|ui| {
+        ui.label(RichText::new(label).color(TEXT()));
+        let text = match v {
+            None => t!("Leave as it is"),
+            Some(true) => t!("On"),
+            Some(false) => t!("Off"),
+        };
+        egui::ComboBox::from_id_salt(id).selected_text(text).show_ui(ui, |ui| {
+            ui.selectable_value(&mut v, None, t!("Leave as it is"));
+            ui.selectable_value(&mut v, Some(true), t!("On"));
+            ui.selectable_value(&mut v, Some(false), t!("Off"));
+        });
+    });
+    v
 }

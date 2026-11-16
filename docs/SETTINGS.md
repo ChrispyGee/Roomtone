@@ -175,7 +175,7 @@ Complete `config.json`, with every field at its default (the access key is made 
 | `accounts` | list | `[]` | Streaming services you signed in to. Secrets; managed by the app. |
 | `favorites` | list | `[]` | Favorites Roomtone keeps itself. Managed by the app. |
 | `groups` | list | `[]` | Saved groups of rooms. Each: `name`, `household` (which system), `rooms` (room names). |
-| `scenes` | list | `[]` | Scenes. Each: `name`, `household`, `rooms` (a list of `{ "room": name, "volume": 0-100 or null }`; a room that's already playing leads the group, otherwise the first), `group` (play together, default true), `play` (a favorite or playlist name, or empty), `sleep_minutes` (0 for none). |
+| `scenes` | list | `[]` | Scenes. Each: `name`, `household`, `rooms` (a list of `{ "room": name, "volume": 0-100 or null, "bass": -10..10 or null, "treble": -10..10 or null, "night": true, false or null, "speech": true, false or null }`; a room that's already playing leads the group, otherwise the first), `group` (play together, default true), `play` (a favorite or playlist name, or empty), `sleep_minutes` (0 for none). |
 | `language` | text | `"auto"` | `auto`, or `en`, `de`, `fr`, `es`, `it`, `nl`. |
 | `theme` | text | `"auto"` | `auto`, `light` or `dark`. |
 | `speaker_events` | true/false | `false` | Instant updates from the speakers. |
@@ -224,7 +224,7 @@ A backup is one JSON file. Top-level fields (every one optional when reading, so
 | `sonos_favorites` | The speakers' favorites: title, address, description, artwork and the speakers' own details (`meta`). |
 | `sonos_playlists` | `{ "title", "tracks": [ … ] }` for each playlist, songs in order. |
 | `alarms` | Each alarm with its `room` **name**, time, repeat, what plays, volume and duration. |
-| `app` | `folders`, `stations`, `podcasts`, `services`, `favorites` (kept in the app), `groups` (`name`, `rooms`), `language`, `theme`, `speaker_events`. |
+| `app` | `folders`, `stations`, `podcasts`, `services`, `favorites` (kept in the app), `groups` (`name`, `rooms`), `scenes` (as in `config.json`), `language`, `theme`, `speaker_events`. |
 
 Edit it by hand only if you know what you're doing; a file that can't be read is refused with a message and nothing is changed.
 
