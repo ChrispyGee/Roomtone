@@ -515,6 +515,8 @@ pub struct AppState {
     /// What the last look for a newer Roomtone found.
     pub new_version: crate::version::Outcome,
     pub version_checking: bool,
+    /// Lyrics looked up this run, by `lyrics::key` (kept in memory only).
+    pub lyrics: HashMap<String, crate::lyrics::State>,
     /// A check was asked for (*Check now*) and hasn't run yet.
     pub version_check_asked: bool,
     /// Results of "Check" on the Music Services page, by service number (empty: checking).
@@ -585,6 +587,7 @@ impl Default for AppState {
             events: Default::default(),
             new_version: Default::default(),
             version_checking: false,
+            lyrics: HashMap::new(),
             version_check_asked: false,
             service_checks: HashMap::new(),
             links: vec![],

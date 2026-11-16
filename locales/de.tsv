@@ -750,3 +750,12 @@ Now playing: {title} by {artist} in {room}	Läuft gerade: {title} von {artist} i
 Scenes can set bass, treble and night sound, and are kept in backups	Szenen können Bass, Höhen und Nachtmodus setzen und werden in Backups gesichert
 Screen readers announce new songs and messages; room cards and menus work from the keyboard	Screenreader sagen neue Titel und Meldungen an; Raumkarten und Menüs funktionieren per Tastatur
 Pop-up window titles are readable in dark mode	Titel von Pop-up-Fenstern sind im dunklen Modus lesbar
+Lyrics	Songtexte
+Experimental	Experimentell
+Looking for lyrics…	Songtext wird gesucht…
+Couldn't get lyrics: {error}	Songtext konnte nicht geladen werden: {error}
+No lyrics found for this song.	Zu diesem Titel wurde kein Songtext gefunden.
+This song has no words.	Dieser Titel hat keinen Text.
+Lyrics come from lrclib.net, shared by its community. Some may be missing or wrong.	Die Songtexte stammen von lrclib.net und werden von dessen Community geteilt. Manche fehlen oder sind falsch.
+Show lyrics for the song that's playing	Songtext zum laufenden Titel anzeigen
+While Now Playing is open, Roomtone sends the song's title, artist, album and length to lrclib.net, a free lyrics site run by volunteers. Nothing else is sent, and nothing is saved. Lyrics are shared by its community, so some songs have none and some are wrong. This is experimental and may change.	Solange „Läuft gerade“ geöffnet ist, sendet Roomtone Titel, Interpret, Album und Länge des Songs an lrclib.net, eine kostenlose Songtext-Seite von Freiwilligen. Sonst wird nichts gesendet und nichts gespeichert. Die Songtexte werden von der Community geteilt, daher fehlen sie bei manchen Titeln oder sind falsch. Das ist experimentell und kann sich ändern.

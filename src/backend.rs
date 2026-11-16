@@ -102,6 +102,10 @@ pub enum Cmd {
     Diagnose,
     /// Ask every room how it is connected (cable or wireless); read-only.
     CheckConnections,
+    /// Switch lyrics (experimental) on or off.
+    SetLyrics(bool),
+    /// Look up lyrics for a song: artist, title, album, length in seconds.
+    LoadLyrics(String, String, String, f32),
     /// Switch the once-a-day look for a newer Roomtone on or off.
     SetVersionCheck(bool),
     /// Look for a newer Roomtone now.
@@ -803,6 +807,8 @@ fn run_live(b: &Backend, ctx: &Waker, cmd: Cmd) -> Result<(), String> {
         | Cmd::Diagnose
         | Cmd::CheckConnections
         | Cmd::SetVersionCheck(_)
+        | Cmd::SetLyrics(_)
+        | Cmd::LoadLyrics(..)
         | Cmd::CheckVersionNow
         | Cmd::SetMediaKeys(_)
         | Cmd::SetHistory(_)
@@ -1540,6 +1546,40 @@ fn run_common(b: &Backend, ctx: &Waker, cmd: Cmd) -> Result<Option<Cmd>, String>
                 let reports = s2_reports(&rooms, demo);
                 let state = if reports.is_empty() { S2State::Failed(crate::t!("No speaker answered").to_string()) } else { S2State::Done(reports) };
                 b2.lock().s2.insert(hid, state);
+                ctx2.request_repaint();
+            });
+            Ok(None)
+        }
+        Cmd::SetLyrics(on) => {
+            b.lock().config.show_lyrics = on;
+            save(b);
+            Ok(None)
+        }
+        Cmd::LoadLyrics(artist, title, album, duration) => {
+            let key = crate::lyrics::key(&artist, &title);
+            let demo = {
+                let mut s = b.lock();
+                if !s.config.show_lyrics || title.trim().is_empty() || s.lyrics.contains_key(&key) {
+                    return Ok(None);
+                }
+                if s.lyrics.len() >= 100 {
+                    s.lyrics.clear();
+                }
+                s.lyrics.insert(key.clone(), crate::lyrics::State::Loading);
+                s.phase == Phase::Demo
+            };
+            let (b2, ctx2) = (b.clone(), ctx.clone());
+            thread::spawn(move || {
+                let state = if demo {
+                    crate::lyrics::State::Found(crate::lyrics::demo(&title))
+                } else {
+                    match crate::lyrics::find(&crate::lyrics::get_over_https, &artist, &title, &album, duration) {
+                        Ok(Some(l)) => crate::lyrics::State::Found(l),
+                        Ok(None) => crate::lyrics::State::Missing,
+                        Err(e) => crate::lyrics::State::Failed(e),
+                    }
+                };
+                b2.lock().lyrics.insert(key, state);
                 ctx2.request_repaint();
             });
             Ok(None)
@@ -3137,6 +3177,26 @@ mod unit {
         // The demo system's pretend songs are never added to the real history.
         track_history(&b);
         assert_eq!(crate::history::count(), 0);
+    }
+
+    #[test]
+    fn lyrics_are_off_until_switched_on_and_the_demo_never_goes_online() {
+        let b = demo_backend();
+        let wait = Duration::from_secs(10);
+        assert!(!crate::config::Config::default().show_lyrics, "off by default");
+        let ask = || Cmd::LoadLyrics("An Artist".into(), "A Song".into(), "An Album".into(), 200.0);
+        let key = crate::lyrics::key("An Artist", "A Song");
+        b.send_and_wait(Cmd::SetLyrics(false), wait).unwrap();
+        b.send_and_wait(ask(), wait).unwrap();
+        assert!(b.lock().lyrics.is_empty(), "nothing is looked up while it's off");
+        b.send_and_wait(Cmd::SetLyrics(true), wait).unwrap();
+        b.send_and_wait(ask(), wait).unwrap();
+        let t0 = std::time::Instant::now();
+        while !matches!(b.lock().lyrics.get(&key), Some(crate::lyrics::State::Found(_))) {
+            assert!(t0.elapsed() < wait, "the demo's made-up lyrics should arrive");
+            thread::sleep(Duration::from_millis(20));
+        }
+        b.send_and_wait(Cmd::SetLyrics(false), wait).unwrap();
     }
 
     /// The demo rooms have no network address; give each a made-up one.

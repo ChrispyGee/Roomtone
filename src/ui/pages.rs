@@ -1694,6 +1694,10 @@ impl App {
             });
         });
         ui.add_space(24.0);
+        if s.config.show_lyrics && !g.now.is_empty() && !g.now.is_stream {
+            self.lyrics_section(ui, s, &g.now);
+            ui.add_space(18.0);
+        }
         section_title(ui, t!("Volume"));
         card_frame().show(ui, |ui| {
             ui.set_width(ui.available_width());
@@ -1743,6 +1747,70 @@ impl App {
                 }
             }
         }
+    }
+
+    /// The words of the song that's playing (experimental), following along when they're timed.
+    fn lyrics_section(&mut self, ui: &mut Ui, s: &AppState, now: &NowPlaying) {
+        use crate::lyrics::State;
+        const ROW: f32 = 28.0;
+        let key = crate::lyrics::key(&now.artist, &now.title);
+        if self.lyrics_ui.0 != key {
+            self.lyrics_ui = (key.clone(), None);
+            self.send(Cmd::LoadLyrics(now.artist.clone(), now.title.clone(), now.album.clone(), now.duration));
+        }
+        experimental_title(ui, t!("Lyrics"));
+        card_frame().show(ui, |ui| {
+            ui.set_width(ui.available_width());
+            match s.lyrics.get(&key) {
+                None | Some(State::Loading) => {
+                    ui.horizontal(|ui| {
+                        spinner_dots(ui, TEXT_DIM());
+                        ui.label(RichText::new(t!("Looking for lyrics…")).size(13.0).color(TEXT_DIM()));
+                    });
+                }
+                Some(State::Missing) => {
+                    ui.label(RichText::new(t!("No lyrics found for this song.")).size(13.0).color(TEXT_DIM()));
+                }
+                Some(State::Failed(e)) => {
+                    ui.label(RichText::new(t!("Couldn't get lyrics: {error}", error = e)).size(13.0).color(BAD()));
+                }
+                Some(State::Found(l)) if l.lines.is_empty() => {
+                    ui.label(RichText::new(if l.instrumental { t!("This song has no words.") } else { t!("No lyrics found for this song.") }).size(13.0).color(TEXT_DIM()));
+                }
+                Some(State::Found(l)) => {
+                    let cur = l.current(now.live_position());
+                    let mut area = egui::ScrollArea::vertical().id_salt("lyrics_scroll").min_scrolled_height(ROW * 7.0).max_height(ROW * 7.0).auto_shrink([false, true]);
+                    if l.synced && cur != self.lyrics_ui.1 {
+                        // Follow the song, but only when the line changes, so scrolling by hand still works.
+                        if let Some(i) = cur {
+                            area = area.vertical_scroll_offset((i as f32 * ROW - ROW * 3.0).max(0.0));
+                        }
+                        self.lyrics_ui.1 = cur;
+                    }
+                    let w = ui.available_width();
+                    area.show(ui, |ui| {
+                        ui.spacing_mut().item_spacing.y = 0.0;
+                        for (i, line) in l.lines.iter().enumerate() {
+                            let here = Some(i) == cur;
+                            let color = if here {
+                                ACCENT()
+                            } else if l.synced {
+                                TEXT_DIM()
+                            } else {
+                                TEXT()
+                            };
+                            let text = if line.text.is_empty() { "♪" } else { line.text.as_str() };
+                            ui.allocate_ui_with_layout(vec2(w, ROW), Layout::left_to_right(Align::Center), |ui| {
+                                let rt = RichText::new(text).size(if here { 17.0 } else { 15.0 }).color(color);
+                                ui.add(egui::Label::new(if here { rt.strong() } else { rt }).wrap());
+                            });
+                        }
+                    });
+                }
+            }
+            ui.add_space(6.0);
+            ui.label(RichText::new(t!("Lyrics come from lrclib.net, shared by its community. Some may be missing or wrong.")).size(11.5).color(TEXT_FAINT()));
+        });
     }
 
     #[allow(clippy::too_many_arguments)]
@@ -2056,6 +2124,8 @@ impl App {
         self.events_card(ui, s);
         ui.add_space(14.0);
         self.history_card(ui, s);
+        ui.add_space(14.0);
+        self.lyrics_card(ui, s);
         ui.add_space(14.0);
         self.media_keys_card(ui, s);
         ui.add_space(14.0);
@@ -2556,6 +2626,35 @@ impl App {
         }
     }
 
+    /// Lyrics for the song that's playing: experimental, and off until switched on.
+    fn lyrics_card(&mut self, ui: &mut Ui, s: &AppState) {
+        experimental_title(ui, t!("Lyrics"));
+        let mut on = s.config.show_lyrics;
+        card_frame().show(ui, |ui| {
+            ui.set_width(ui.available_width());
+            ui.horizontal(|ui| {
+                ui.set_min_height(40.0);
+                ui.vertical(|ui| {
+                    ui.set_max_width((ui.available_width() - 64.0).max(120.0));
+                    ui.label(RichText::new(t!("Show lyrics for the song that's playing")).color(TEXT()));
+                    ui.label(
+                        RichText::new(t!(
+                            "While Now Playing is open, Roomtone sends the song's title, artist, album and length to lrclib.net, a free lyrics site run by volunteers. Nothing else is sent, and nothing is saved. Lyrics are shared by its community, so some songs have none and some are wrong. This is experimental and may change."
+                        ))
+                        .size(12.0)
+                        .color(TEXT_DIM()),
+                    );
+                });
+                ui.with_layout(Layout::right_to_left(Align::Center), |ui| {
+                    toggle(ui, &mut on, t!("Show lyrics for the song that's playing"));
+                });
+            });
+        });
+        if on != s.config.show_lyrics {
+            self.send(Cmd::SetLyrics(on));
+        }
+    }
+
     /// Switch listening history on or off, see it, or clear it.
     fn history_card(&mut self, ui: &mut Ui, s: &AppState) {
         section_title(ui, t!("Listening history"));
@@ -2988,4 +3087,14 @@ fn show_folder(path: &str) {
         "xdg-open"
     };
     let _ = std::process::Command::new(program).arg(path).spawn();
+}
+
+/// A section title with an *Experimental* tag beside it.
+fn experimental_title(ui: &mut Ui, text: &str) {
+    ui.add_space(6.0);
+    ui.horizontal(|ui| {
+        ui.label(RichText::new(text).size(19.0).color(TEXT()).strong());
+        chip(ui, t!("Experimental"), TEXT_DIM());
+    });
+    ui.add_space(4.0);
 }

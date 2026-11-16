@@ -41,6 +41,7 @@ This is the map of the code. What the app should do is in [SPEC.md](../SPEC.md);
 | `scene.rs` | Doing a scene: the same steps an assistant would take, in order, stopping at the first that fails |
 | `backup.rs` | The backup file (favorites, playlists, alarms and Roomtone's own lists): building, reading, restoring, and the playlist export path |
 | `m3u.rs`, `csv.rs`, `pls_xspf.rs` | Playlist files: writing and reading M3U/M3U8, CSV, PLS and XSPF |
+| `lyrics.rs` | The experimental lyrics look-up (lrclib.net): parser for timed lines, exact-then-search order, in-memory store key |
 | `history.rs` | The listening history (`history.json`) and the tracker that decides what counts as played |
 | `media_keys.rs`, `window.rs` | The system's media keys and Now Playing (souvlaki), and the remembered window size and position |
 | `version.rs` | The optional look for a newer Roomtone on GitHub |

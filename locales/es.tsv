@@ -750,3 +750,12 @@ Now playing: {title} by {artist} in {room}	Reproduciendo: {title} de {artist} en
 Scenes can set bass, treble and night sound, and are kept in backups	Las escenas pueden ajustar graves, agudos y sonido nocturno, y se guardan en las copias de seguridad
 Screen readers announce new songs and messages; room cards and menus work from the keyboard	Los lectores de pantalla anuncian canciones y mensajes nuevos; las tarjetas de habitación y los menús funcionan con el teclado
 Pop-up window titles are readable in dark mode	Los títulos de las ventanas emergentes se leen bien en modo oscuro
+Lyrics	Letras
+Experimental	Experimental
+Looking for lyrics…	Buscando la letra…
+Couldn't get lyrics: {error}	No se pudo obtener la letra: {error}
+No lyrics found for this song.	No se encontró la letra de esta canción.
+This song has no words.	Esta canción no tiene letra.
+Lyrics come from lrclib.net, shared by its community. Some may be missing or wrong.	Las letras vienen de lrclib.net y las comparte su comunidad. Algunas pueden faltar o ser incorrectas.
+Show lyrics for the song that's playing	Mostrar la letra de la canción que suena
+While Now Playing is open, Roomtone sends the song's title, artist, album and length to lrclib.net, a free lyrics site run by volunteers. Nothing else is sent, and nothing is saved. Lyrics are shared by its community, so some songs have none and some are wrong. This is experimental and may change.	Mientras «Sonando» está abierto, Roomtone envía el título, el artista, el álbum y la duración de la canción a lrclib.net, un sitio gratuito de letras mantenido por voluntarios. No se envía nada más y no se guarda nada. Las letras las comparte su comunidad, así que algunas canciones no tienen y otras son incorrectas. Es una función experimental y puede cambiar.

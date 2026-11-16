@@ -62,6 +62,8 @@ pub struct App {
     save_queue: Option<(String, String)>,
     manual_ip: String,
     seek_drag: Option<f32>,
+    /// Lyrics: the song last asked for, and the line last scrolled to.
+    lyrics_ui: (String, Option<usize>),
     local_vol: HashMap<String, (f32, Instant)>,
     asked: HashMap<String, Instant>,
     out: Vec<Cmd>,
@@ -203,6 +205,7 @@ impl App {
             save_queue: None,
             manual_ip: String::new(),
             seek_drag: None,
+            lyrics_ui: Default::default(),
             local_vol: HashMap::new(),
             asked: HashMap::new(),
             out: vec![],
@@ -395,6 +398,10 @@ impl App {
             if std::env::var("ROOMTONE_TEST_SCENE").as_deref() == Ok("edit") {
                 self.scene_editor = Some((Some("Movie night".into()), s.config.scenes[0].clone()));
             }
+        }
+        if self.frame == 2 && std::env::var_os("ROOMTONE_TEST_LYRICS").is_some() {
+            // Picture check: lyrics switched on in memory only (never saved).
+            self.backend.lock().config.show_lyrics = true;
         }
         if self.frame == 20 && std::env::var_os("ROOMTONE_TEST_FINDER").is_some() {
             self.backend.send(Cmd::Diagnose);
