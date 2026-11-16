@@ -382,7 +382,7 @@ impl App {
                 Scene {
                     name: "Movie night".into(),
                     household: hid.clone(),
-                    rooms: vec![room("Living Room", Some(22)), room("Kitchen", Some(18))],
+                    rooms: vec![SceneRoom { bass: Some(3), treble: Some(-2), ..room("Living Room", Some(22)) }, SceneRoom { night: Some(true), ..room("Kitchen", Some(18)) }],
                     group: true,
                     play: "Dinner Party".into(),
                     sleep_minutes: 120,

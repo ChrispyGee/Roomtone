@@ -133,7 +133,7 @@ impl App {
             ui.add(egui::TextEdit::singleline(&mut sc.name).hint_text(t!("Name, e.g. Movie night")).desired_width(f32::INFINITY).margin(vec2(10.0, 7.0)));
             ui.add_space(10.0);
             ui.label(RichText::new(t!("Rooms")).strong().color(TEXT()));
-            egui::ScrollArea::vertical().max_height(220.0).show(ui, |ui| {
+            egui::ScrollArea::vertical().max_height(340.0).show(ui, |ui| {
                 for r in &h.rooms {
                     let pos = sc.rooms.iter().position(|x| x.room == r.name);
                     let mut on = pos.is_some();
