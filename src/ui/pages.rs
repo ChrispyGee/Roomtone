@@ -1840,7 +1840,7 @@ impl App {
     /// Returns false when the editor should close.
     pub(super) fn alarm_form(&mut self, ui: &mut Ui, s: &AppState, a: &mut Alarm) -> bool {
         let mut keep = true;
-        ui.label(RichText::new(if a.id.is_empty() { t!("New alarm") } else { t!("Edit alarm") }).size(20.0).strong());
+        ui.label(RichText::new(if a.id.is_empty() { t!("New alarm") } else { t!("Edit alarm") }).size(20.0).strong().color(TEXT()));
         ui.add_space(10.0);
         ui.horizontal(|ui| {
             ui.spacing_mut().item_spacing.x = 4.0;

@@ -570,7 +570,7 @@ impl App {
 
     fn right_panel(&mut self, ui: &mut egui::Ui, s: &AppState) {
         let Some(h) = s.household() else {
-            ui.label(RichText::new(t!("Rooms")).size(19.0).strong());
+            ui.label(RichText::new(t!("Rooms")).size(19.0).strong().color(TEXT()));
             ui.add_space(8.0);
             spinner_dots(ui, TEXT_DIM());
             return;
@@ -981,7 +981,7 @@ impl App {
                     keep = false;
                     return;
                 };
-                ui.label(RichText::new(t!("Group rooms")).size(20.0).strong());
+                ui.label(RichText::new(t!("Group rooms")).size(20.0).strong().color(TEXT()));
                 let lead = h.room(&gid).map(|r| r.name.clone()).unwrap_or_default();
                 ui.label(RichText::new(t!("Rooms play together with {lead}.", lead = lead)).color(TEXT_DIM()));
                 ui.add_space(10.0);
@@ -1094,7 +1094,7 @@ impl App {
             let mut keep = true;
             let modal = egui::Modal::new(egui::Id::unique("rename")).frame(modal_frame()).show(ctx, |ui| {
                 ui.set_width(340.0);
-                ui.label(RichText::new(t!("Rename room")).size(20.0).strong());
+                ui.label(RichText::new(t!("Rename room")).size(20.0).strong().color(TEXT()));
                 ui.add_space(8.0);
                 ui.add(egui::TextEdit::singleline(&mut name).desired_width(f32::INFINITY).margin(vec2(10.0, 8.0)));
                 ui.add_space(12.0);
@@ -1122,7 +1122,7 @@ impl App {
             let mut keep = true;
             let modal = egui::Modal::new(egui::Id::unique("save_queue")).frame(modal_frame()).show(ctx, |ui| {
                 ui.set_width(340.0);
-                ui.label(RichText::new(t!("Save queue as playlist")).size(20.0).strong());
+                ui.label(RichText::new(t!("Save queue as playlist")).size(20.0).strong().color(TEXT()));
                 ui.add_space(8.0);
                 ui.add(egui::TextEdit::singleline(&mut name).desired_width(f32::INFINITY).margin(vec2(10.0, 8.0)));
                 ui.add_space(12.0);
@@ -1154,7 +1154,7 @@ impl App {
         let mut close = false;
         let modal = egui::Modal::new(egui::Id::unique("link_modal")).frame(modal_frame()).show(ctx, |ui| {
             ui.set_width(420.0);
-            ui.label(RichText::new(t!("Connect {service}", service = link.name)).size(20.0).strong());
+            ui.label(RichText::new(t!("Connect {service}", service = link.name)).size(20.0).strong().color(TEXT()));
             ui.add_space(6.0);
             if !link.url.is_empty() && !link.done {
                 ui.label(RichText::new(t!("1. Open the sign-in page and log in to your account.")).color(TEXT()));
@@ -1262,7 +1262,7 @@ impl App {
         let mut keep = true;
         let modal = egui::Modal::new(egui::Id::unique("group_preset")).frame(modal_frame()).show(ctx, |ui| {
             ui.set_width(380.0);
-            ui.label(RichText::new(if old.is_some() { t!("Edit group") } else { t!("New group") }).size(20.0).strong());
+            ui.label(RichText::new(if old.is_some() { t!("Edit group") } else { t!("New group") }).size(20.0).strong().color(TEXT()));
             ui.label(RichText::new(t!("Pick the rooms that play together, and give them a name.")).size(12.5).color(TEXT_DIM()));
             ui.add_space(10.0);
             ui.add(egui::TextEdit::singleline(&mut g.name).hint_text(t!("e.g. Downstairs")).desired_width(f32::INFINITY).margin(vec2(10.0, 8.0)));
@@ -1344,7 +1344,7 @@ impl App {
         let mut close = false;
         let modal = egui::Modal::new(egui::Id::unique("speakers_modal")).frame(modal_frame()).show(ctx, |ui| {
             ui.set_width(460.0);
-            ui.label(RichText::new(t!("Your speakers")).size(20.0).strong());
+            ui.label(RichText::new(t!("Your speakers")).size(20.0).strong().color(TEXT()));
             let summary = match s.phase {
                 Phase::Demo => t!("These are made-up demo rooms; no speakers answered on this network.").to_string(),
                 Phase::Searching => t!("Looking for speakers on your network…").to_string(),
@@ -1458,7 +1458,7 @@ impl App {
         let mut close = false;
         let modal = egui::Modal::new(egui::Id::unique("finder_modal")).frame(modal_frame()).show(ctx, |ui| {
             ui.set_width(500.0);
-            ui.label(RichText::new(t!("Can't find your speakers?")).size(20.0).strong());
+            ui.label(RichText::new(t!("Can't find your speakers?")).size(20.0).strong().color(TEXT()));
             ui.label(RichText::new(t!("This checks the usual reasons. It only looks; nothing on your speakers is changed.")).size(12.5).color(TEXT_DIM()));
             ui.add_space(10.0);
             egui::ScrollArea::vertical().max_height(520.0).show(ui, |ui| {
@@ -1579,7 +1579,7 @@ impl App {
         let mut keep = true;
         let modal = egui::Modal::new(egui::Id::unique("station_editor")).frame(modal_frame()).show(ctx, |ui| {
             ui.set_width(420.0);
-            ui.label(RichText::new(t!("Add a station or stream")).size(20.0).strong());
+            ui.label(RichText::new(t!("Add a station or stream")).size(20.0).strong().color(TEXT()));
             ui.label(RichText::new(t!("Paste the stream's web address. Playlist links (.pls, .m3u) are followed automatically.")).size(12.5).color(TEXT_DIM()));
             ui.add_space(10.0);
             egui::Grid::new("station_grid").num_columns(2).spacing([14.0, 10.0]).show(ui, |ui| {
@@ -1624,7 +1624,7 @@ impl App {
         let mut keep = true;
         let modal = egui::Modal::new(egui::Id::unique("update_confirm")).frame(modal_frame()).show(ctx, |ui| {
             ui.set_width(420.0);
-            ui.label(RichText::new(t!("Update your {system} system?", system = system.label())).size(20.0).strong());
+            ui.label(RichText::new(t!("Update your {system} system?", system = system.label())).size(20.0).strong().color(TEXT()));
             ui.add_space(6.0);
             ui.label(
                 RichText::new(t!(

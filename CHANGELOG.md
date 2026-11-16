@@ -4,6 +4,9 @@ All notable changes to Roomtone. The format follows [Keep a Changelog](https://k
 
 ## [Unreleased]
 
+### Fixed
+- The titles of pop-up windows (*Your speakers*, *Can't find your speakers?*, scenes, groups, alarms and others) were almost black on the dark background; they now use the normal text colour.
+
 ## [0.7.0] — 2026-11-14
 
 ### Added
