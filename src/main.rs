@@ -36,6 +36,7 @@ mod diagnose;
 mod help;
 mod history;
 mod known;
+mod lyrics;
 mod m3u;
 #[cfg(target_os = "macos")]
 mod macos_about;

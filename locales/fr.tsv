@@ -750,3 +750,12 @@ Now playing: {title} by {artist} in {room}	En lecture : {title} de {artist} dans
 Scenes can set bass, treble and night sound, and are kept in backups	Les scènes règlent graves, aigus et son de nuit, et sont incluses dans les sauvegardes
 Screen readers announce new songs and messages; room cards and menus work from the keyboard	Les lecteurs d'écran annoncent les nouveaux titres et messages ; cartes de pièces et menus s'utilisent au clavier
 Pop-up window titles are readable in dark mode	Les titres des fenêtres contextuelles sont lisibles en mode sombre
+Lyrics	Paroles
+Experimental	Expérimental
+Looking for lyrics…	Recherche des paroles…
+Couldn't get lyrics: {error}	Impossible d'obtenir les paroles : {error}
+No lyrics found for this song.	Aucune parole trouvée pour ce morceau.
+This song has no words.	Ce morceau n'a pas de paroles.
+Lyrics come from lrclib.net, shared by its community. Some may be missing or wrong.	Les paroles viennent de lrclib.net et sont partagées par sa communauté. Certaines peuvent manquer ou être fausses.
+Show lyrics for the song that's playing	Afficher les paroles du morceau en cours
+While Now Playing is open, Roomtone sends the song's title, artist, album and length to lrclib.net, a free lyrics site run by volunteers. Nothing else is sent, and nothing is saved. Lyrics are shared by its community, so some songs have none and some are wrong. This is experimental and may change.	Tant que « En lecture » est ouvert, Roomtone envoie le titre, l'artiste, l'album et la durée du morceau à lrclib.net, un site gratuit de paroles tenu par des bénévoles. Rien d'autre n'est envoyé et rien n'est enregistré. Les paroles sont partagées par sa communauté : certains morceaux n'en ont pas et d'autres sont erronées. Cette fonction est expérimentale et peut changer.

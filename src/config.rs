@@ -216,6 +216,10 @@ pub struct Config {
     /// Let the keyboard's media keys and the system's Now Playing control the selected room.
     #[serde(default = "yes")]
     pub media_keys: bool,
+    /// Show lyrics for the song that's playing (experimental; off until switched on). Asks
+    /// lrclib.net for them.
+    #[serde(default)]
+    pub show_lyrics: bool,
     /// Remember what was played (on this computer only) for Recently played and History.
     #[serde(default = "yes")]
     pub remember_history: bool,
@@ -247,6 +251,7 @@ impl Default for Config {
             check_new_versions: false,
             last_version_check: 0,
             media_keys: true,
+            show_lyrics: false,
             remember_history: true,
             room_order: vec![],
         }

@@ -79,6 +79,9 @@ File: `speaker_events` (`true` / `false`). Default `false`.
 ### New versions
 *Tell me when a new version of Roomtone is out*: when on, about once a day Roomtone reads this project's latest release on GitHub (one plain request to `api.github.com`; the only thing that identifies the app is its normal `User-Agent` with the version number, and nothing about you or your speakers is sent). If a newer version is out, this section says so and *Open download page* takes you there; there's also a one-time pop-up. Nothing is downloaded or installed for you. *Check now* looks straight away, whether or not the switch is on. A look that fails (offline, rate limit) is simply tried again later.
 File: `check_new_versions` (`true` / `false`), default `false`; `last_version_check` (seconds since 1970) is kept by the app so it only looks once a day.
+### Lyrics (experimental)
+*Show lyrics for the song that's playing* (**off by default**, tagged *Experimental*): a *Lyrics* section on the Now Playing page. While the page is open, Roomtone sends the song's **title, artist, album and length** to [lrclib.net](https://lrclib.net), a free lyrics site run by volunteers (one or two plain requests per new song; no account, nothing else is sent). Lyrics with times highlight the current line and follow the song; others are shown as plain text. Nothing is saved: lyrics are kept in memory until you quit. Live radio isn't looked up. Lyrics are shared by the site's community, so some songs have none and some are wrong. This is a trial feature and may change or be removed.
+File: `show_lyrics` (`true` / `false`), default `false`.
 ### Media keys
 *Use the computer's media controls* (on by default): the keyboard's play/pause, next and previous keys, headphone buttons, and the system's **Now Playing** (macOS Control Center and lock screen, the Windows media overlay, Linux's MPRIS players list, which desktop shells and `playerctl` show) control **the room selected in Roomtone**, and show its song, artist, artwork and progress. Only the selected room is shown; switching it off hands the keys back. If the computer has no such interface (for example Linux without a D-Bus session), Roomtone just goes without and says so on the terminal.
 File: `media_keys` (`true` / `false`), default `true`.
@@ -162,6 +165,7 @@ Complete `config.json`, with every field at its default (the access key is made 
   "check_new_versions": false,
   "last_version_check": 0,
   "remember_history": true,
+  "show_lyrics": false,
   "media_keys": true
 }
 ```
@@ -184,6 +188,7 @@ Complete `config.json`, with every field at its default (the access key is made 
 | `last_version_check` | number | `0` | When the last good look was (seconds since 1970). Kept by the app. |
 | `media_keys` | true/false | `true` | Let the keyboard's media keys and the system's Now Playing control the selected room. |
 | `remember_history` | true/false | `true` | Keep a listening history on this computer. |
+| `show_lyrics` | true/false | `false` | Experimental: show lyrics on Now Playing, fetched from lrclib.net. |
 | `mcp.enabled` | true/false | `false` | Assistant link on. |
 | `mcp.allow_control` | true/false | `true` | Assistants may change things. |
 | `mcp.allow_network` | true/false | `false` | Other computers may connect. |
