@@ -320,7 +320,7 @@ All in the app's data folder: `~/Library/Application Support/Roomtone/` (macOS),
 | *Can't find your speakers?* | Unit tests and the demo system; **not yet on a genuinely failing network** |
 | PLS and XSPF playlist files | Unit tests; **not yet opened in other players** |
 | Keyboard focus and screen-reader names | Unit test of the accessibility tree and screenshots; **VoiceOver on macOS tried by the maintainer (2026-11-16): works**; Narrator, NVDA and Orca not yet tried |
-| Lyrics (experimental) | Unit tests (parser, look-up order, nothing sent unless on) and the demo system's made-up lyrics; **lrclib.net not yet asked from a real run** |
+| Lyrics (experimental) | Unit tests (parser, look-up order, nothing sent unless on) and the demo system's made-up lyrics; one real look-up of a traditional song on lrclib.net returned timed lyrics (2026-11-16, ignored test `real_lookup`); **not yet seen with a real song playing in a speaker group** |
 | Media keys and Now Playing | Started on macOS; **Windows and Linux compile only** |
 | Homebrew install and upgrade | Real Mac (0.6.2 installed and upgraded through the tap) |
 | Translations | Automated completeness test; not reviewed by native speakers |

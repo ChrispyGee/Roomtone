@@ -222,6 +222,20 @@ mod unit {
         assert!(find(&|_, _| Err("offline".into()), "a", "b", "", 0.0).is_err());
     }
 
+    /// Asks the real service about a traditional song (nothing about the person is sent). Prints
+    /// only what was found, never the words. Run with `cargo test real_lookup -- --ignored --nocapture`.
+    #[test]
+    #[ignore]
+    fn real_lookup() {
+        let l = find(&get_over_https, "Traditional", "Amazing Grace", "", 0.0).expect("the service should answer");
+        match l {
+            Some(l) => println!("found: {} lines, synced: {}, instrumental: {}", l.lines.len(), l.synced, l.instrumental),
+            None => println!("the service has no lyrics for that song"),
+        }
+        let none = find(&get_over_https, "Nobody At All", "Zzyzx Qwerty 12345 Not A Song", "", 0.0).expect("the service should answer");
+        assert!(none.is_none(), "a made-up song has no lyrics");
+    }
+
     #[test]
     fn key_ignores_case_and_spaces() {
         assert_eq!(key(" The Band ", "Song"), key("the band", " song"));
