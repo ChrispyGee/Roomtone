@@ -4,6 +4,9 @@ All notable changes to Roomtone. The format follows [Keep a Changelog](https://k
 
 ## [Unreleased]
 
+### Documentation
+- Said where IKEA SYMFONISK speakers stand: Sonos hardware that should work, not yet tried on real ones (roadmap, README).
+
 ## [0.8.1] — 2026-11-17
 
 ### Changed
