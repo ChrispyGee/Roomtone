@@ -12,6 +12,9 @@ All notable changes to Roomtone. The format follows [Keep a Changelog](https://k
 ### Checked
 - Read-only, on two real S2 Sonos One SL speakers (a shared office): both found; the S2 check says *already on S2*; the sound details are the format only (as on S1); speaker updates (live change notices) subscribe, renew, notify within 1–3 s and cancel. A first run heard no notices, probably the Mac's firewall asking about a freshly built test program; it didn't happen again after the firewall was answered.
 
+### Documentation
+- Said where IKEA SYMFONISK speakers stand: Sonos hardware that should work, not yet tried on real ones (roadmap, README).
+
 ## [0.8.1] — 2026-11-17
 
 ### Changed
