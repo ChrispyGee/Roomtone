@@ -138,23 +138,42 @@ pub fn find(get: Get, artist: &str, title: &str, album: &str, duration: f32) -> 
     Ok(hits.into_iter().find_map(from_reply))
 }
 
-/// The real thing: one HTTPS `GET`, a few seconds' patience, no cookies.
+/// How long the service asks us to wait (`Retry-After`, in seconds), kept to a sensible range.
+/// Only the plain-seconds form is read; anything else gives a short default.
+pub fn retry_wait(header: Option<&str>) -> std::time::Duration {
+    let secs = header.and_then(|h| h.trim().parse::<u64>().ok()).unwrap_or(2);
+    std::time::Duration::from_secs(secs.clamp(1, 10))
+}
+
+/// The real thing: one HTTPS `GET`, a few seconds' patience, no cookies. If the service says it is
+/// busy (`429`) we wait as long as it asks (up to 10 s, this runs off the screen's thread) and try
+/// once more before giving up.
 pub fn get_over_https(path: &str, query: &[(&str, &str)]) -> Result<Option<String>, String> {
     let agent = ureq::AgentBuilder::new()
         .timeout_connect(std::time::Duration::from_secs(5))
         .timeout(std::time::Duration::from_secs(10))
         .user_agent(concat!("Roomtone/", env!("CARGO_PKG_VERSION"), " (", env!("CARGO_PKG_REPOSITORY"), ")"))
         .build();
-    let mut req = agent.get(&format!("{HOST}{path}"));
-    for (k, v) in query {
-        req = req.query(k, v);
+    for attempt in 0..2 {
+        let mut req = agent.get(&format!("{HOST}{path}"));
+        for (k, v) in query {
+            req = req.query(k, v);
+        }
+        match req.call() {
+            Ok(r) => return r.into_string().map(Some).map_err(|e| e.to_string()),
+            Err(ureq::Error::Status(404, _)) => return Ok(None),
+            Err(ureq::Error::Status(429, r)) => {
+                if attempt == 0 {
+                    std::thread::sleep(retry_wait(r.header("Retry-After")));
+                } else {
+                    return Err("the lyrics service is busy right now; it will try again next time the song plays".to_string());
+                }
+            }
+            Err(ureq::Error::Status(code, _)) => return Err(format!("the lyrics service answered {code}")),
+            Err(e) => return Err(e.to_string()),
+        }
     }
-    match req.call() {
-        Ok(r) => r.into_string().map(Some).map_err(|e| e.to_string()),
-        Err(ureq::Error::Status(404, _)) => Ok(None),
-        Err(ureq::Error::Status(code, _)) => Err(format!("the lyrics service answered {code}")),
-        Err(e) => Err(e.to_string()),
-    }
+    unreachable!("the second attempt always returns")
 }
 
 /// Made-up words for the demo system: nothing is fetched, and no real song is quoted.
@@ -234,6 +253,16 @@ mod unit {
         }
         let none = find(&get_over_https, "Nobody At All", "Zzyzx Qwerty 12345 Not A Song", "", 0.0).expect("the service should answer");
         assert!(none.is_none(), "a made-up song has no lyrics");
+    }
+
+    #[test]
+    fn waits_as_long_as_the_service_asks_within_reason() {
+        use std::time::Duration;
+        assert_eq!(retry_wait(Some("3")), Duration::from_secs(3));
+        assert_eq!(retry_wait(Some(" 120 ")), Duration::from_secs(10));
+        assert_eq!(retry_wait(Some("0")), Duration::from_secs(1));
+        assert_eq!(retry_wait(Some("Wed, 21 Oct 2026 07:28:00 GMT")), Duration::from_secs(2));
+        assert_eq!(retry_wait(None), Duration::from_secs(2));
     }
 
     #[test]

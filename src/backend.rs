@@ -1559,7 +1559,9 @@ fn run_common(b: &Backend, ctx: &Waker, cmd: Cmd) -> Result<Option<Cmd>, String>
             let key = crate::lyrics::key(&artist, &title);
             let demo = {
                 let mut s = b.lock();
-                if !s.config.show_lyrics || title.trim().is_empty() || s.lyrics.contains_key(&key) {
+                // A song that couldn't be asked about (offline, service busy) is tried again when it next plays.
+                let settled = matches!(s.lyrics.get(&key), Some(st) if !matches!(st, crate::lyrics::State::Failed(_)));
+                if !s.config.show_lyrics || title.trim().is_empty() || settled {
                     return Ok(None);
                 }
                 if s.lyrics.len() >= 100 {

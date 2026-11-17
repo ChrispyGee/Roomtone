@@ -2223,7 +2223,7 @@ impl App {
             ui.label(RichText::new(t!("What's new in this version")).color(TEXT()).strong());
             for line in [
                 t!("Lyrics (experimental): switch it on in Settings to see the words of the song that's playing"),
-                t!("The project page now links straight to each download"),
+                t!("Lyrics now wait and try again when the lyrics service is busy"),
             ] {
                 ui.horizontal_wrapped(|ui| {
                     ui.label(RichText::new("•").color(ACCENT()));

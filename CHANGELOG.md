@@ -4,6 +4,11 @@ All notable changes to Roomtone. The format follows [Keep a Changelog](https://k
 
 ## [Unreleased]
 
+## [0.8.1] — 2026-11-17
+
+### Changed
+- **Lyrics are patient when the service is busy**: if lrclib.net answers that it has had too many requests (`429`), Roomtone waits as long as it asks (up to 10 seconds) and tries once more, and a song whose look-up failed is tried again the next time it plays instead of staying failed until restart. Checked by unit tests (reading the wait time); not seen against the real service, which didn't rate-limit during testing.
+
 ## [0.8.0] — 2026-11-16
 
 ### Added
