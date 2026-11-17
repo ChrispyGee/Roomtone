@@ -122,7 +122,7 @@ Paths: `/MediaRenderer/AVTransport/Event` (a group's coordinator), `/MediaRender
 ## 6d. Status pages and device details (read-only)
 
 - `GET /xml/device_description.xml` is used for the model, hardware version and software generation (the S2 check) and as the "does it answer?" test in *Can't find your speakers?*.
-- `GET /status/ifconfig` lists the speaker's network interfaces with packet counts. Whichever of the cable (`eth0`) and the wireless interface (`ath0`, `ath1`, `ra0`, `wlan0`) has carried clearly more decides *Wired* or *Wireless*; with under about 100 packets, or both busy, nothing is claimed. **Seen on a real S1 Connect:Amp (wired); a wireless speaker hasn't been seen.** `/status/zp` and `/status/proc/ath_rincon/status` exist but give no signal strength that can be relied on, so none is shown.
+- `GET /status/ifconfig` lists the speaker's network interfaces with packet counts. Whichever of the cable (`eth0`) and the wireless interface (`ath0`, `ath1`, `ra0`, `wlan0`, `mlan0`, and `apcli0` on the Sonos One SL) has carried clearly more decides *Wired* or *Wireless*; with under about 100 packets, or both busy, nothing is claimed. **Seen on a real S1 Connect:Amp (wired) and on two real S2 Sonos One SL speakers on Wi-Fi (2026-11-17; their traffic is on `apcli0`, the cable interface `eth0` carries none).** `/status/zp` and `/status/proc/ath_rincon/status` exist but give no signal strength that can be relied on, so none is shown.
 
 ## 7. Things that are guesses
 

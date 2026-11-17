@@ -762,3 +762,4 @@ While Now Playing is open, Roomtone sends the song's title, artist, album and le
 Lyrics (experimental): switch it on in Settings to see the words of the song that's playing	Paroles (expérimental) : activez-les dans Réglages pour voir les paroles du morceau en cours
 The project page now links straight to each download	La page du projet renvoie désormais directement à chaque téléchargement
 Lyrics now wait and try again when the lyrics service is busy	Les paroles patientent désormais et réessaient quand le service de paroles est occupé
+Speakers on Wi-Fi, such as the Sonos One SL, now show as Wireless	Les enceintes en Wi-Fi, comme la Sonos One SL, s'affichent désormais « Sans fil »
