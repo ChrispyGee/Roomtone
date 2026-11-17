@@ -4,6 +4,14 @@ All notable changes to Roomtone. The format follows [Keep a Changelog](https://k
 
 ## [Unreleased]
 
+## [0.8.2] — 2026-11-17
+
+### Fixed
+- **Wi-Fi speakers showed no connection type**: a Sonos One SL (S2) carries its Wi-Fi traffic on a network interface called `apcli0`, which wasn't on the list of wireless ones, so *Your speakers* showed nothing instead of *Wireless*. Found by a read-only check of two real S2 speakers (2026-11-17); the maintainer confirmed both are on Wi-Fi. Checked by a unit test with that layout, and by re-running the read-only check on both real speakers (both now say Wireless).
+
+### Checked
+- Read-only, on two real S2 Sonos One SL speakers (a shared office): both found; the S2 check says *already on S2*; the sound details are the format only (as on S1); speaker updates (live change notices) subscribe, renew, notify within 1–3 s and cancel. A first run heard no notices, probably the Mac's firewall asking about a freshly built test program; it didn't happen again after the firewall was answered.
+
 ### Documentation
 - Said where IKEA SYMFONISK speakers stand: Sonos hardware that should work, not yet tried on real ones (roadmap, README).
 

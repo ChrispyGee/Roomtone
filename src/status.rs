@@ -14,7 +14,7 @@ pub enum Connection {
     Unknown,
 }
 
-const WIRELESS: &[&str] = &["ath0", "ath1", "ra0", "wlan0", "mlan0"];
+const WIRELESS: &[&str] = &["ath0", "ath1", "ra0", "wlan0", "mlan0", "apcli0"];
 
 /// Packets received on each interface, from `ifconfig` text.
 fn received(text: &str) -> Vec<(String, u64)> {
@@ -70,6 +70,13 @@ mod unit {
         assert_eq!(from_ifconfig(&text(30, 20)), Connection::Unknown, "too little to tell");
         assert_eq!(from_ifconfig(&text(5_000, 4_000)), Connection::Unknown, "both busy: not guessed");
         assert_eq!(from_ifconfig("nothing useful"), Connection::Unknown);
+    }
+
+    #[test]
+    fn a_wifi_client_interface_counts_as_wireless() {
+        // The layout a Sonos One SL (S2) reports on Wi-Fi: its traffic is on `apcli0`, none on `eth0`.
+        let t = "<Command cmdline='/sbin/ifconfig'>apcli0    Link encap:Ethernet  HWaddr 00:00\n          RX packets:7663411 errors:0\n\nbr0       Link encap:Ethernet  HWaddr 00:00\n          RX packets:7655978 errors:0\n\neth0      Link encap:Ethernet  HWaddr 00:00\n          RX packets:0 errors:0\n\nra0       Link encap:Ethernet  HWaddr 00:00\n          RX packets:0 errors:0\n</Command>";
+        assert_eq!(from_ifconfig(t), Connection::Wireless);
     }
 
     #[test]

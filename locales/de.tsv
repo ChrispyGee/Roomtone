@@ -762,3 +762,4 @@ While Now Playing is open, Roomtone sends the song's title, artist, album and le
 Lyrics (experimental): switch it on in Settings to see the words of the song that's playing	Songtexte (experimentell): In den Einstellungen einschalten, um den Text des laufenden Titels zu sehen
 The project page now links straight to each download	Die Projektseite verlinkt jetzt direkt auf jeden Download
 Lyrics now wait and try again when the lyrics service is busy	Songtexte warten jetzt und versuchen es erneut, wenn der Songtext-Dienst ausgelastet ist
+Speakers on Wi-Fi, such as the Sonos One SL, now show as Wireless	Lautsprecher im WLAN, etwa der Sonos One SL, werden jetzt als „Drahtlos“ angezeigt
