@@ -4,6 +4,9 @@ All notable changes to Roomtone. The format follows [Keep a Changelog](https://k
 
 ## [Unreleased]
 
+### Changed
+- **Pages you use moved to Settings › Appearance**, between the theme and the language, since it decides what the sidebar shows. Nothing else changed.
+
 ### Checked
 - The Windows fix in 0.8.3 (no extra console window) works on a real Windows PC (maintainer, 2026-11-18).
 

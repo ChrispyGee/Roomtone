@@ -2069,8 +2069,6 @@ impl App {
                 self.lyrics_card(ui, s);
                 ui.add_space(14.0);
                 self.media_keys_card(ui, s);
-                ui.add_space(14.0);
-                self.pages_card(ui, s);
             }
             2 => {
                 self.rooms_lists(ui, s);
@@ -2082,6 +2080,8 @@ impl App {
             }
             3 => {
                 self.appearance_card(ui, s);
+                ui.add_space(14.0);
+                self.pages_card(ui, s);
                 ui.add_space(14.0);
                 self.language_card(ui, s);
             }
