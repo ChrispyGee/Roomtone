@@ -179,12 +179,17 @@ Both modes re-read the settings file every 2 s, so switching the link off in the
 | Setting | Default | Meaning |
 | --- | --- | --- |
 | Let AI assistants use Roomtone | **off** | When off, every request is refused (stdio: error −32001) and the HTTP port is closed |
-| Assistants can change things | on | Off: only the look-only tools are listed; the others are refused |
+| Assistants can change things | on | Off: only the look-only tools are listed; the others are refused. Look-only beats every switch below |
+| Saved items | on | Within *change things*: `add_favorite`, `remove_favorite`, `save_queue_as_playlist`, `add_station`, `remove_station`, `subscribe_podcast`, `unsubscribe_podcast`, `save_group`, `delete_saved_group` |
+| Alarms | on | `create_alarm`, `delete_alarm`, `set_alarm_enabled` |
+| Room names and sound | on | `rename_room`, `set_sound` |
+| Speaker updates | **off** | `install_update` (still refused unless `confirm: true`) |
+| Save files | **off** | `save_backup`. Needs a **folder** (`files_folder`) chosen in Settings: files are written only there, a bare file name goes in it, a longer path must already point into it, `..` is refused, the name must end in `.json` and nothing is overwritten |
 | Allow other computers | off | Off: listen on 127.0.0.1 only and accept only local `Host` names. On: listen on all interfaces (Settings only, not on the command line) |
 | Port | 8790 | HTTP port |
 | Access key | random 32 hex characters | Required as `Authorization: Bearer <key>` on HTTP. *New key* replaces it |
 
-Command line, each one saves and quits: `--mcp-on`, `--mcp-off`, `--mcp-read-only`, `--mcp-allow-control`, `--mcp-port <port>`. `--mcp-info` prints the address and key. Settings also offers *Copy setup* (a ready-made `mcpServers` block), *Copy web address*, *Copy access key*, and a collapsible **How to connect on <platform>** with copyable commands.
+A tool in a switched-off group isn't listed and is refused with a plain sentence naming the setting. Command line, each one saves and quits: `--mcp-on`, `--mcp-off`, `--mcp-read-only`, `--mcp-allow-control`, `--mcp-allow` / `--mcp-deny` `saved|alarms|names|updates`, `--mcp-files <folder>`, `--mcp-files-off`, `--mcp-port <port>`. `--mcp-info` prints the address and key. Settings also offers *Copy setup* (a ready-made `mcpServers` block), *Copy web address*, *Copy access key*, and a collapsible **How to connect on <platform>** with copyable commands.
 
 ### 6.2 Protocol
 - JSON-RPC 2.0 with MCP protocol versions `2025-06-18`, `2025-03-26` and `2024-11-05` (the client's choice if supported, otherwise the newest).
@@ -314,7 +319,7 @@ All in the app's data folder: `~/Library/Application Support/Roomtone/` (macOS),
 | Backup: **restoring** favorites, playlists and alarms | Pretend system in unit tests and the demo system; **not yet tried on real speakers** (the playlist calls `CreateSavedQueue`/`AddURIToSavedQueue` are unverified) |
 | Sound quality labels | Unit tests on made-up and real-S1-library descriptions (format from the MIME type is what a real S1 system sends for library tracks); **sample rate, bit depth and bitrate from real speakers not yet seen** (nothing was playing when checked) |
 | Speaker updates (UPnP events) | Unit tests against a pretend speaker (subscribe, notice, renew, cancel, refusals); tried once with a real S1 speaker (Connect:Amp, firmware 11.16): all three subscriptions accepted, a first notice for each within about 5 s, a 1800 s lease, renewing and cancelling work; no S2 or multi-room tests yet |
-| Assistant link: every tool, on/off, look-only, key, origin check | Demo system, stdio and HTTP |
+| Assistant link: every tool, on/off, look-only, the per-group switches, the backup folder, key, origin check | Demo system, stdio and HTTP; unit tests for each group and for the folder rules |
 | Assistant change notifications (`resources/subscribe`) | Unit tests and a stdio run on the demo system; **not yet tried with a real assistant client** |
 | Command line (`roomtone play`, `volume`, `scene`, `backup`…) | Unit tests and a headless demo instance; **not yet run against a real system** |
 | Scenes | Unit tests and the demo system; once on two rooms of a real S1 system (grouping, volumes, a station, a sleep timer); **not yet on S2, with an album or playlist, or with an offline room** |

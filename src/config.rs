@@ -128,6 +128,24 @@ pub struct McpConfig {
     /// Assistants may change things (play, volume, grouping); off means look only.
     #[serde(default = "yes")]
     pub allow_control: bool,
+    /// Within "may change things": saved items (favorites, stations, podcasts, saved groups, queue to playlist).
+    #[serde(default = "yes")]
+    pub allow_saved: bool,
+    /// Within "may change things": alarms.
+    #[serde(default = "yes")]
+    pub allow_alarms: bool,
+    /// Within "may change things": room names and sound settings.
+    #[serde(default = "yes")]
+    pub allow_names: bool,
+    /// Within "may change things": installing speaker software updates (off until switched on).
+    #[serde(default)]
+    pub allow_updates: bool,
+    /// Within "may change things": writing backup files into `files_folder` (off until switched on).
+    #[serde(default)]
+    pub allow_files: bool,
+    /// The only folder an assistant may write files into (empty: none chosen).
+    #[serde(default)]
+    pub files_folder: String,
     /// Accept assistants on other computers on the home network (otherwise this computer only).
     #[serde(default)]
     pub allow_network: bool,
@@ -183,7 +201,19 @@ impl Config {
 
 impl Default for McpConfig {
     fn default() -> Self {
-        McpConfig { enabled: false, allow_control: true, allow_network: false, port: default_port(), token: new_token() }
+        McpConfig {
+            enabled: false,
+            allow_control: true,
+            allow_saved: true,
+            allow_alarms: true,
+            allow_names: true,
+            allow_updates: false,
+            allow_files: false,
+            files_folder: String::new(),
+            allow_network: false,
+            port: default_port(),
+            token: new_token(),
+        }
     }
 }
 

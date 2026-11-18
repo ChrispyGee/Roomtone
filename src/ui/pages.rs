@@ -2913,6 +2913,8 @@ impl App {
                 ui.horizontal(|ui| {
                     ui.set_min_height(40.0);
                     ui.vertical(|ui| {
+                        // Leave room for the switch, so long descriptions wrap instead of running under it.
+                        ui.set_max_width((ui.available_width() - 76.0).max(120.0));
                         ui.label(RichText::new(title).color(TEXT()));
                         ui.label(RichText::new(sub).size(12.0).color(TEXT_DIM()));
                     });
@@ -2936,6 +2938,33 @@ impl App {
                 ui.add_space(6.0);
                 ui.separator();
                 row(ui, t!("Assistants can change things"), t!("Play, pause, change volume, edit the queue and group rooms. Off: they can only look."), &mut m.allow_control);
+                if m.allow_control {
+                    ui.add_space(4.0);
+                    ui.label(RichText::new(t!("What else assistants may change")).size(12.5).color(TEXT_DIM()));
+                    ui.indent("mcp_groups", |ui| {
+                        row(ui, t!("Saved items"), t!("Favorites, stations, podcasts, saved groups, and saving the queue as a playlist."), &mut m.allow_saved);
+                        row(ui, t!("Alarms"), t!("Make, delete, turn on and turn off alarms."), &mut m.allow_alarms);
+                        row(ui, t!("Room names and sound"), t!("Rename rooms and change bass, treble and other sound settings."), &mut m.allow_names);
+                        row(
+                            ui,
+                            t!("Speaker updates"),
+                            t!("Install new speaker software. Speakers restart and music stops for a few minutes. You can always do this in the app."),
+                            &mut m.allow_updates,
+                        );
+                        row(ui, t!("Save files"), t!("Let assistants save backups, but only into the folder you choose here."), &mut m.allow_files);
+                        if m.allow_files {
+                            ui.horizontal(|ui| {
+                                let shown = if m.files_folder.trim().is_empty() { t!("No folder chosen yet").to_string() } else { m.files_folder.clone() };
+                                ui.label(RichText::new(shown).size(12.0).color(if m.files_folder.trim().is_empty() { BAD() } else { TEXT_DIM() }));
+                                if pill(ui, None, t!("Choose folder"), false).clicked() {
+                                    if let Some(dir) = rfd::FileDialog::new().set_title(t!("Folder for assistants' files")).pick_folder() {
+                                        m.files_folder = dir.to_string_lossy().into_owned();
+                                    }
+                                }
+                            });
+                        }
+                    });
+                }
                 ui.separator();
                 row(ui, t!("Allow other computers"), t!("Assistants on other computers in your home can connect with the access key."), &mut m.allow_network);
                 ui.separator();
