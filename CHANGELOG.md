@@ -4,6 +4,9 @@ All notable changes to Roomtone. The format follows [Keep a Changelog](https://k
 
 ## [Unreleased]
 
+### Changed
+- **The assistant link speaks MCP protocol 2025-11-25** as well as the three older ones, and says what it is in `serverInfo.description`. Nothing the link does changed for older assistants. Checked by unit tests on the demo system. The newest revision (2026-07-28, which removes the `initialize` handshake and sessions) is not supported yet: see docs/ROADMAP.md.
+
 ### Added
 - **Choose what assistants may change**: under *Assistants can change things*, separate switches for *Saved items* (favorites, stations, podcasts, saved groups, queue as playlist), *Alarms*, *Room names and sound*, *Speaker updates* and *Save files*. A tool in a switched-off group isn't listed and is refused with a plain sentence. Everything that worked before stays on, except **speaker updates and saving files, which are now off until you switch them on**. Command line: `--mcp-allow` / `--mcp-deny` and `--mcp-files`. New `mcp.allow_saved`, `allow_alarms`, `allow_names`, `allow_updates`, `allow_files` and `files_folder` fields in `config.json`.
 
