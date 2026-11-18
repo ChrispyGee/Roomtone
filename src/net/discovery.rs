@@ -1,7 +1,9 @@
 //! Finding speakers: SSDP search on the local network, then the topology each one reports.
 
 use std::collections::HashMap;
-use std::net::{SocketAddr, UdpSocket};
+use std::net::{Ipv4Addr, SocketAddr, UdpSocket};
+
+use socket2::{Domain, Protocol, Socket, Type};
 use std::time::{Duration, Instant};
 
 use super::soap;
@@ -12,45 +14,120 @@ pub struct Found {
     pub household: Option<String>,
 }
 
-pub fn search(wait: Duration) -> Vec<Found> {
-    let mut found: Vec<Found> = vec![];
-    let Ok(sock) = UdpSocket::bind("0.0.0.0:0") else {
-        return found;
-    };
+/// One network connection to search from: its address and, when known, its broadcast address.
+#[derive(Clone, Debug, PartialEq)]
+pub(crate) struct Link {
+    pub ip: Ipv4Addr,
+    pub broadcast: Option<Ipv4Addr>,
+}
+
+/// What the system says about one IPv4 address of one network connection.
+pub(crate) struct Candidate {
+    pub ip: Ipv4Addr,
+    pub broadcast: Option<Ipv4Addr>,
+    pub up: bool,
+}
+
+/// The connections worth searching from: up, not loopback, not self-assigned (169.254.x.x),
+/// each address once, and at most `MAX_LINKS` so a machine full of virtual adapters stays quick.
+pub(crate) fn pick_links(all: &[Candidate]) -> Vec<Link> {
+    const MAX_LINKS: usize = 16;
+    let mut links: Vec<Link> = vec![];
+    for c in all {
+        if !c.up || c.ip.is_loopback() || c.ip.is_link_local() || c.ip.is_unspecified() || links.iter().any(|l| l.ip == c.ip) {
+            continue;
+        }
+        links.push(Link { ip: c.ip, broadcast: c.broadcast });
+        if links.len() == MAX_LINKS {
+            break;
+        }
+    }
+    links
+}
+
+fn local_links() -> Vec<Link> {
+    let Ok(all) = if_addrs::get_if_addrs() else { return vec![] };
+    let candidates: Vec<Candidate> = all
+        .iter()
+        .filter_map(|i| match &i.addr {
+            if_addrs::IfAddr::V4(a) => Some(Candidate { ip: a.ip, broadcast: a.broadcast, up: i.oper_status != if_addrs::IfOperStatus::Down && !i.is_p2p }),
+            _ => None,
+        })
+        .collect();
+    pick_links(&candidates)
+}
+
+/// A socket for sending the search out of one connection (`None`: let the system choose).
+fn search_socket(link: Option<&Link>) -> Option<UdpSocket> {
+    let sock = Socket::new(Domain::IPV4, Type::DGRAM, Some(Protocol::UDP)).ok()?;
+    let bind_ip = link.map_or(Ipv4Addr::UNSPECIFIED, |l| l.ip);
+    sock.bind(&SocketAddr::from((bind_ip, 0)).into()).ok()?;
+    if let Some(l) = link {
+        // Without this the system sends multicast out of its default connection only.
+        sock.set_multicast_if_v4(&l.ip).ok()?;
+    }
     let _ = sock.set_broadcast(true);
     let _ = sock.set_multicast_ttl_v4(4);
-    let _ = sock.set_read_timeout(Some(Duration::from_millis(250)));
+    sock.set_nonblocking(true).ok()?;
+    Some(sock.into())
+}
+
+/// Look for speakers: the same search is sent out of every network connection (Wi-Fi, cable,
+/// and so on), so speakers on a connection that isn't the default one are found too.
+pub fn search(wait: Duration) -> Vec<Found> {
+    let mut found: Vec<Found> = vec![];
+    // The default connection is always included, so this never finds less than a plain search.
+    let mut socks: Vec<(UdpSocket, Option<Ipv4Addr>)> = search_socket(None).map(|s| (s, None)).into_iter().collect();
+    for link in local_links() {
+        if let Some(s) = search_socket(Some(&link)) {
+            socks.push((s, link.broadcast));
+        }
+    }
+    if socks.is_empty() {
+        return found;
+    }
     let msg = "M-SEARCH * HTTP/1.1\r\nHOST: 239.255.255.250:1900\r\nMAN: \"ssdp:discover\"\r\nMX: 1\r\nST: urn:schemas-upnp-org:device:ZonePlayer:1\r\n\r\n";
-    let targets: [SocketAddr; 2] = ["239.255.255.250:1900".parse().unwrap(), "255.255.255.255:1900".parse().unwrap()];
     let start = Instant::now();
     let mut sent = 0;
     let mut buf = [0u8; 2048];
     while start.elapsed() < wait {
         if sent < 3 && start.elapsed() >= Duration::from_millis(400 * sent) {
-            for t in &targets {
-                let _ = sock.send_to(msg.as_bytes(), t);
+            for (sock, broadcast) in &socks {
+                let mut targets: Vec<SocketAddr> = vec![SocketAddr::from(([239, 255, 255, 250], 1900)), SocketAddr::from(([255, 255, 255, 255], 1900))];
+                if let Some(b) = broadcast {
+                    targets.push(SocketAddr::from((*b, 1900)));
+                }
+                for t in &targets {
+                    let _ = sock.send_to(msg.as_bytes(), t);
+                }
             }
             sent += 1;
         }
-        let Ok((n, from)) = sock.recv_from(&mut buf) else { continue };
-        let text = String::from_utf8_lossy(&buf[..n]);
-        let mut headers = HashMap::new();
-        for line in text.lines().skip(1) {
-            if let Some((k, v)) = line.split_once(':') {
-                headers.insert(k.trim().to_ascii_uppercase(), v.trim().to_string());
+        for (sock, _) in &socks {
+            // Read what has arrived; any error (nothing yet, or a stray "unreachable") ends this round.
+            while let Ok((n, from)) = sock.recv_from(&mut buf) {
+                if let Some(f) = parse_reply(&String::from_utf8_lossy(&buf[..n]), from.ip().to_string()) {
+                    if !found.iter().any(|x| x.ip == f.ip) {
+                        found.push(f);
+                    }
+                }
             }
         }
-        let is_player = headers.get("ST").is_some_and(|s| s.contains("ZonePlayer")) || headers.get("SERVER").is_some_and(|s| s.contains("Sonos"));
-        if !is_player {
-            continue;
-        }
-        let ip = from.ip().to_string();
-        if found.iter().any(|f| f.ip == ip) {
-            continue;
-        }
-        found.push(Found { ip, household: headers.get("X-RINCON-HOUSEHOLD").cloned() });
+        std::thread::sleep(Duration::from_millis(25));
     }
     found
+}
+
+/// A speaker's answer to the search (`None`: something else answered).
+fn parse_reply(text: &str, ip: String) -> Option<Found> {
+    let mut headers = HashMap::new();
+    for line in text.lines().skip(1) {
+        if let Some((k, v)) = line.split_once(':') {
+            headers.insert(k.trim().to_ascii_uppercase(), v.trim().to_string());
+        }
+    }
+    let is_player = headers.get("ST").is_some_and(|s| s.contains("ZonePlayer")) || headers.get("SERVER").is_some_and(|s| s.contains("Sonos"));
+    is_player.then(|| Found { ip, household: headers.get("X-RINCON-HOUSEHOLD").cloned() })
 }
 
 pub(crate) struct Description {
@@ -164,6 +241,41 @@ pub fn household_from(ip: &str, household_id: Option<String>) -> Result<Househol
 
 #[cfg(test)]
 mod tests {
+    use super::*;
+
+    fn cand(ip: [u8; 4], b: Option<[u8; 4]>, up: bool) -> Candidate {
+        Candidate { ip: Ipv4Addr::from(ip), broadcast: b.map(Ipv4Addr::from), up }
+    }
+
+    #[test]
+    fn every_usable_connection_is_searched_once() {
+        let links = pick_links(&[
+            cand([127, 0, 0, 1], None, true),
+            cand([192, 168, 1, 20], Some([192, 168, 1, 255]), true),
+            cand([192, 168, 1, 20], Some([192, 168, 1, 255]), true),
+            cand([169, 254, 3, 4], None, true),
+            cand([10, 0, 0, 5], Some([10, 0, 0, 255]), true),
+            cand([172, 16, 0, 9], None, false),
+        ]);
+        let ips: Vec<String> = links.iter().map(|l| l.ip.to_string()).collect();
+        assert_eq!(ips, ["192.168.1.20", "10.0.0.5"]);
+        assert_eq!(links[0].broadcast, Some(Ipv4Addr::new(192, 168, 1, 255)));
+    }
+
+    #[test]
+    fn a_machine_full_of_adapters_is_capped() {
+        let many: Vec<Candidate> = (1..=40u8).map(|n| cand([10, 1, n, 2], None, true)).collect();
+        assert_eq!(pick_links(&many).len(), 16);
+    }
+
+    #[test]
+    fn only_speakers_answers_are_kept() {
+        let reply = "HTTP/1.1 200 OK\r\nST: urn:schemas-upnp-org:device:ZonePlayer:1\r\nX-RINCON-HOUSEHOLD: Sonos_abc\r\n\r\n";
+        let f = parse_reply(reply, "10.0.0.7".into()).unwrap();
+        assert_eq!((f.ip.as_str(), f.household.as_deref()), ("10.0.0.7", Some("Sonos_abc")));
+        assert!(parse_reply("HTTP/1.1 200 OK\r\nST: upnp:rootdevice\r\nSERVER: Linux UPnP/1.0 Foo/1\r\n\r\n", "10.0.0.8".into()).is_none());
+    }
+
     /// Read-only look at the local network: `cargo test -- --ignored --nocapture`.
     #[test]
     #[ignore]

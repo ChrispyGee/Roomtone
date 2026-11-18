@@ -53,7 +53,7 @@ This is the map of the code. What the app should do is in [SPEC.md](../SPEC.md);
 | `demo.rs` | The made-up S1 and S2 systems, and how commands change them (`apply`, `tick`) |
 | `mcp.rs` | The MCP server: tool list, `Mcp::handle` (JSON-RPC), `serve_stdio`, `start_http` (opens and closes the port as settings change) |
 | `i18n.rs` | `t!`, `tn!`, `n_!`, language detection, the tables in `locales/*.tsv`, and the tests that check every phrase is translated |
-| `net/discovery.rs` | SSDP search and reading each system's topology |
+| `net/discovery.rs` | SSDP search (out of every network connection) and reading each system's topology |
 | `net/soap.rs` | A small UPnP/SOAP client for the speakers' port 1400 |
 | `net/speaker.rs` | Every action on a speaker: transport, volume, browse, queue, favorites, grouping, inputs, EQ, alarms, music-service list, account numbers |
 | `net/events.rs` | UPnP events: subscribing, the listener for `NOTIFY` messages, renewing and cancelling |
