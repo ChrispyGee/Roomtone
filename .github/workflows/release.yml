@@ -119,6 +119,7 @@ jobs:
             found { print }
           ' CHANGELOG.md > notes.md
           if [ ! -s notes.md ]; then echo "No CHANGELOG.md section for $version" >&2; exit 1; fi
+          cat .github/release-footer.md >> notes.md
 
       - name: Checksums and package-manager files
         run: |
