@@ -415,6 +415,49 @@ pub fn pill(ui: &mut Ui, icon: Option<Icon>, text: &str, primary: bool) -> Respo
     resp.on_hover_cursor(egui::CursorIcon::PointingHand)
 }
 
+/// A row of tab pills that wraps onto more lines when the window is narrow. Returns the tab chosen.
+/// Left and Right move between tabs while one has the keyboard focus.
+pub fn tab_pills(ui: &mut Ui, names: &[&str], selected: usize) -> Option<usize> {
+    let mut chosen = None;
+    let mut ids = Vec::new();
+    ui.horizontal_wrapped(|ui| {
+        ui.spacing_mut().item_spacing = vec2(8.0, 8.0);
+        for (i, name) in names.iter().enumerate() {
+            let on = i == selected;
+            let galley = ui.painter().layout_no_wrap(name.to_string(), egui::FontId::proportional(14.0), if on { Color32::BLACK } else { TEXT() });
+            let (rect, resp) = ui.allocate_exact_size(vec2(galley.size().x + 28.0, 34.0), Sense::click());
+            let fill = match (on, resp.hovered()) {
+                (true, _) => ACCENT(),
+                (false, false) => SURFACE_HI(),
+                (false, true) => SURFACE_HOVER(),
+            };
+            ui.painter().rect_filled(rect, 17.0, fill);
+            ui.painter().galley(pos2(rect.min.x + 14.0, rect.center().y - galley.size().y / 2.0), galley, TEXT());
+            describe(&resp, Role::Tab, name);
+            focus_ring(ui, &resp, rect, 17.0);
+            ids.push(resp.id);
+            let resp = resp.on_hover_cursor(egui::CursorIcon::PointingHand);
+            if resp.clicked() {
+                chosen = Some(i);
+            }
+            if resp.has_focus() {
+                let (left, right) = ui.input(|k| (k.key_pressed(egui::Key::ArrowLeft), k.key_pressed(egui::Key::ArrowRight)));
+                if right && i + 1 < names.len() {
+                    chosen = Some(i + 1);
+                } else if left && i > 0 {
+                    chosen = Some(i - 1);
+                }
+            }
+        }
+    });
+    if let Some(i) = chosen {
+        if i != selected && ui.memory(|m| ids.iter().any(|id| m.has_focus(*id))) {
+            ui.memory_mut(|m| m.request_focus(ids[i]));
+        }
+    }
+    chosen
+}
+
 /// A slim slider with a knob that appears on hover. `value` is 0..=1.
 /// Arrow keys move it by a hundredth (a tenth with Shift) while it has the keyboard focus.
 pub fn slider(ui: &mut Ui, id: impl std::hash::Hash, name: &str, value: &mut f32, width: f32, color: Color32) -> (Response, bool) {

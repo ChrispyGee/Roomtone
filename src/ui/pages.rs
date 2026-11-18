@@ -484,7 +484,7 @@ impl App {
                     {
                         self.backup_sections = Default::default();
                         self.send(Cmd::ReadBackup(path));
-                        // The summary, with its Restore button, is in Settings › Backup and restore.
+                        // The summary, with its Restore button, is in Settings › Backups.
                         self.go(View::Settings);
                     }
                 }
@@ -2041,60 +2041,54 @@ impl App {
             });
             ui.add_space(14.0);
         }
-        self.group(ui, "settings_group_about", t!("About"), true, TitleMode::Hidden, |this, ui| {
-            this.about_card(ui, s);
-            ui.add_space(14.0);
-            set_title_mode(TitleMode::Compact);
-            this.new_version_card(ui, s);
-        });
-        self.group(ui, "settings_group_music", t!("Music & Playback"), false, TitleMode::Compact, |this, ui| {
-            this.history_card(ui, s);
-            ui.add_space(14.0);
-            this.lyrics_card(ui, s);
-            ui.add_space(14.0);
-            this.media_keys_card(ui, s);
-            ui.add_space(14.0);
-            this.pages_card(ui, s);
-        });
-        self.group(ui, "settings_group_speakers", t!("Speakers"), false, TitleMode::Compact, |this, ui| {
-            this.rooms_lists(ui, s);
-            this.connection_card(ui);
-            ui.add_space(14.0);
-            this.updates_card(ui, s);
-            ui.add_space(14.0);
-            this.events_card(ui, s);
-        });
-        self.group(ui, "settings_group_look", t!("Appearance and language"), false, TitleMode::Compact, |this, ui| {
-            this.appearance_card(ui, s);
-            ui.add_space(14.0);
-            this.language_card(ui, s);
-        });
-        self.group(ui, "settings_group_assistants", t!("Assistants"), false, TitleMode::Hidden, |this, ui| {
-            this.assistant_card(ui, s);
-        });
-        self.group(ui, "settings_group_backup", t!("Backup and restore"), false, TitleMode::Hidden, |this, ui| {
-            this.backup_card(ui, s);
-        });
-        set_title_mode(TitleMode::Normal);
-    }
-
-    /// One collapsible group of Settings. Only About starts open, every time the app starts.
-    fn group(&mut self, ui: &mut Ui, id: &str, title: &str, open: bool, titles: TitleMode, add: impl FnOnce(&mut Self, &mut Ui)) {
-        ui.add_space(6.0);
-        let mut header = egui::CollapsingHeader::new(RichText::new(title).size(19.0).strong().color(TEXT())).id_salt(id).default_open(open);
-        // Picture check: ROOMTONE_TEST_GROUPS=all, none, or a list such as speakers,music.
-        if let Ok(list) = std::env::var("ROOMTONE_TEST_GROUPS") {
-            let wanted = list.split(',').any(|w| w.trim() == "all" || id.ends_with(&format!("_{}", w.trim())));
-            header = header.open(Some(wanted));
+        let names = [t!("About"), t!("Music & Playback"), t!("Speakers"), t!("Appearance"), t!("Assistants"), t!("Backups")];
+        // Picture check: ROOMTONE_TEST_TAB=music (or speakers, appearance, assistants, backups) opens that tab.
+        if let Ok(w) = std::env::var("ROOMTONE_TEST_TAB") {
+            if let Some(i) = ["about", "music", "speakers", "appearance", "assistants", "backups"].iter().position(|n| *n == w.trim()) {
+                self.settings_tab = i;
+            }
         }
-        header.show(ui, |ui| {
-            set_title_mode(titles);
-            ui.add_space(6.0);
-            add(self, ui);
-            ui.add_space(8.0);
+        if let Some(i) = tab_pills(ui, &names, self.settings_tab) {
+            self.settings_tab = i;
+        }
+        ui.add_space(16.0);
+        set_title_mode(match self.settings_tab {
+            0 | 4 | 5 => TitleMode::Hidden,
+            _ => TitleMode::Compact,
         });
+        match self.settings_tab {
+            0 => {
+                self.about_card(ui, s);
+                ui.add_space(14.0);
+                set_title_mode(TitleMode::Compact);
+                self.new_version_card(ui, s);
+            }
+            1 => {
+                self.history_card(ui, s);
+                ui.add_space(14.0);
+                self.lyrics_card(ui, s);
+                ui.add_space(14.0);
+                self.media_keys_card(ui, s);
+                ui.add_space(14.0);
+                self.pages_card(ui, s);
+            }
+            2 => {
+                self.rooms_lists(ui, s);
+                self.connection_card(ui);
+                ui.add_space(14.0);
+                self.updates_card(ui, s);
+                ui.add_space(14.0);
+                self.events_card(ui, s);
+            }
+            3 => {
+                self.appearance_card(ui, s);
+                ui.add_space(14.0);
+                self.language_card(ui, s);
+            }
+            4 => self.assistant_card(ui, s),
+            _ => self.backup_card(ui, s),
+        }
         set_title_mode(TitleMode::Normal);
-        ui.add_space(8.0);
     }
 
     /// The rooms of each system, one row per room (tap to open it).
