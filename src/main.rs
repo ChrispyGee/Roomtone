@@ -24,6 +24,11 @@
 //!
 //! See README.md, SPEC.md and docs/ for how the code fits together and what it does.
 
+// On Windows the program is a window program, so opening it never shows a black console window
+// (closing that window used to close the app too). Run from a terminal, it attaches to that
+// terminal so `--help`, the command-line commands and `--headless` still print there; see `console`.
+#![cfg_attr(windows, windows_subsystem = "windows")]
+
 #[macro_use]
 mod i18n;
 mod backend;
@@ -60,7 +65,52 @@ mod window;
 use std::path::PathBuf;
 use std::time::Duration;
 
+/// Windows only: a window program has no console of its own, so when it was started from a
+/// terminal (Command Prompt, PowerShell, Windows Terminal) use that terminal for text output.
+/// Started from the Start menu or Explorer there is no terminal and nothing happens. Output the
+/// caller already redirected (a pipe, a file, an assistant starting `--mcp`) is left alone.
+#[cfg(windows)]
+mod console {
+    use std::ffi::c_void;
+    use std::os::windows::io::IntoRawHandle;
+
+    const ATTACH_PARENT_PROCESS: u32 = u32::MAX;
+    const STD_INPUT_HANDLE: u32 = -10i32 as u32;
+    const STD_OUTPUT_HANDLE: u32 = -11i32 as u32;
+    const STD_ERROR_HANDLE: u32 = -12i32 as u32;
+
+    extern "system" {
+        fn AttachConsole(process_id: u32) -> i32;
+        fn GetStdHandle(which: u32) -> *mut c_void;
+        fn SetStdHandle(which: u32, handle: *mut c_void) -> i32;
+    }
+
+    fn missing(h: *mut c_void) -> bool {
+        h.is_null() || h as isize == -1
+    }
+
+    pub fn attach_to_terminal() {
+        // SAFETY: plain Win32 calls with valid arguments; handles opened here are leaked on purpose
+        // so they stay valid for the life of the process.
+        unsafe {
+            if AttachConsole(ATTACH_PARENT_PROCESS) == 0 {
+                return; // no terminal to attach to
+            }
+            for (which, name, write) in [(STD_OUTPUT_HANDLE, "CONOUT$", true), (STD_ERROR_HANDLE, "CONOUT$", true), (STD_INPUT_HANDLE, "CONIN$", false)] {
+                if missing(GetStdHandle(which)) {
+                    let file = std::fs::OpenOptions::new().read(!write).write(write).open(name);
+                    if let Ok(f) = file {
+                        SetStdHandle(which, f.into_raw_handle());
+                    }
+                }
+            }
+        }
+    }
+}
+
 fn main() {
+    #[cfg(windows)]
+    console::attach_to_terminal();
     let mut args = std::env::args().skip(1);
     // `roomtone play`, `roomtone volume 30 --room Kitchen`: control the running Roomtone.
     {
