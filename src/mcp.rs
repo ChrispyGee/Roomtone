@@ -152,7 +152,7 @@ fn base_tools() -> Vec<(&'static str, &'static str, Value, bool)> {
         ),
         ("get_queue", "The songs queued in a room, numbered from 1.", json!({"type": "object", "properties": {"room": room}}), false),
         ("play_from_queue", "Play the song at this position (from 1) in a room's queue.", json!({"type": "object", "properties": {"room": room, "position": {"type": "integer", "minimum": 1}}, "required": ["position"]}), true),
-        ("remove_from_queue", "Remove the song at this position (from 1) from a room's queue.", json!({"type": "object", "properties": {"room": room, "position": {"type": "integer", "minimum": 1}}, "required": ["position"]}), true),
+        ("remove_from_queue", "Remove the song at this position (from 1) from a room's queue. Give a count to remove that many songs in a row, starting there.", json!({"type": "object", "properties": {"room": room, "position": {"type": "integer", "minimum": 1}, "count": {"type": "integer", "minimum": 1, "description": "How many songs to remove (default 1)"}}, "required": ["position"]}), true),
         ("clear_queue", "Empty a room's queue.", json!({"type": "object", "properties": {"room": room}}), true),
         (
             "group_rooms",
@@ -693,8 +693,18 @@ impl Mcp {
                     return Err("Positions count from 1.".into());
                 }
                 let i = (pos - 1) as usize;
-                self.wait(if name == "play_from_queue" { Cmd::PlayQueueIndex(gid.clone(), i) } else { Cmd::RemoveFromQueue(gid.clone(), i) })?;
-                Ok(if name == "play_from_queue" { self.summary(&gid) } else { format!("Removed song {pos} from the queue") })
+                if name == "play_from_queue" {
+                    self.wait(Cmd::PlayQueueIndex(gid.clone(), i))?;
+                    return Ok(self.summary(&gid));
+                }
+                let count = int_arg("count").unwrap_or(1).clamp(1, 1000) as usize;
+                if count == 1 {
+                    self.wait(Cmd::RemoveFromQueue(gid.clone(), i))?;
+                    Ok(format!("Removed song {pos} from the queue"))
+                } else {
+                    self.wait(Cmd::RemoveRangeFromQueue(gid.clone(), i, count))?;
+                    Ok(format!("Removed {count} songs from the queue, starting at song {pos}"))
+                }
             }
             "clear_queue" => {
                 let (_, gid) = self.room(a)?;
@@ -1292,6 +1302,13 @@ mod unit {
         assert!(q.starts_with("1.") || q.starts_with("▶ 1."));
         ok(&m, "move_in_queue", json!({"room": "Living Room", "from": 1, "to": 2}));
         assert!(tool(&m, "move_in_queue", json!({"room": "Living Room", "from": 1, "to": 99})).1);
+        let songs = |m: &Mcp| ok(m, "get_queue", json!({"room": "Living Room"})).lines().filter(|l| l.trim_start_matches("▶ ").starts_with(|c: char| c.is_ascii_digit())).count();
+        let before = songs(&m);
+        assert!(before >= 4, "the demo queue is long enough to try this");
+        assert!(ok(&m, "remove_from_queue", json!({"room": "Living Room", "position": 1})).contains("Removed song 1"));
+        assert_eq!(songs(&m), before - 1);
+        assert!(ok(&m, "remove_from_queue", json!({"room": "Living Room", "position": 1, "count": 2})).contains("Removed 2 songs"));
+        assert_eq!(songs(&m), before - 3);
         ok(&m, "save_queue_as_playlist", json!({"room": "Living Room", "name": "Test mix"}));
         ok(&m, "clear_queue", json!({"room": "Study"}));
         assert!(ok(&m, "get_queue", json!({"room": "Study"})).contains("empty"));
