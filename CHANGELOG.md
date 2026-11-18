@@ -9,6 +9,9 @@ All notable changes to Roomtone. The format follows [Keep a Changelog](https://k
 - **Speaker software updates are experimental**: the section is tagged *Experimental* and has a switch, *Allow installing updates* (off by default), that decides whether *Update all speakers* is offered. Checking for updates is always available.
 - **Restoring a backup and Play along are tagged *Experimental*** (no switch), because neither has been verified on real speakers.
 
+### Fixed
+- **Windows: no more extra console window.** Starting Roomtone opened a black console window beside it, and closing that window closed the app. It is now a window program, so no console appears. Started from a terminal it still prints there (`--help`, `--mcp-info`, `--headless`, the command-line commands). One consequence: Command Prompt and PowerShell don't wait for window programs, so scripts that need the output or exit code should use `start /wait roomtone.exe …` (see docs/HEADLESS_AND_MCP.md). Compiles for Windows; **not yet run on Windows by us**: the reporter's Windows PC is the first test.
+
 ## [0.8.2] — 2026-11-17
 
 ### Fixed
