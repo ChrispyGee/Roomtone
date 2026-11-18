@@ -4,6 +4,12 @@ All notable changes to Roomtone. The format follows [Keep a Changelog](https://k
 
 ## [Unreleased]
 
+### Changed
+- **Clear first-run instructions for the unsigned apps.** macOS and Windows warn the first time Roomtone is opened because it isn't signed. The README had the old macOS advice (right-click, *Open*), which newer macOS removed: it now says **System Settings › Privacy & Security › Open Anyway**, and a new guide, [Opening Roomtone for the first time](docs/FIRST_RUN.md), covers macOS, Windows and Linux, the permission questions, checking your download, and why the apps aren't signed yet. The same short steps now end every release's notes and appear in Homebrew's install message. Roomtone for Mac is Apple silicon only, and the pages now say so.
+
+### Checked
+- Spotify plays on real S1 speakers (maintainer, 2026-11-18).
+
 ## [0.9.0] — 2026-11-18
 
 A tidier interface, and better behaviour when you move between networks.

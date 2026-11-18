@@ -2,7 +2,7 @@
 ;   set ROOMTONE_VERSION=0.5.1 && set ROOMTONE_SRC=<repo root> && iscc packaging\windows\roomtone.iss
 ; (or pass /DAppVersion=... /DSourceDir=... instead of the two variables)
 ; The installer is per-user by default (no administrator rights needed) and not code-signed,
-; so Windows SmartScreen may ask you to confirm the first run ("More info" › "Run anyway").
+; so Windows SmartScreen may ask you to confirm the first run ("More info" › "Run anyway"; docs/FIRST_RUN.md).
 #ifndef AppVersion
   #define AppVersion GetEnv("ROOMTONE_VERSION")
   #if AppVersion == ""

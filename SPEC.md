@@ -320,7 +320,7 @@ All in the app's data folder: `~/Library/Application Support/Roomtone/` (macOS),
 | Discovery, live status, browsing, favorites on real **S2** speakers | Real speakers (2026-11-11) |
 | Discovery and control on a real **S1** speaker | Reported working by the maintainer in an earlier version |
 | Streaming sign-in pages (8 services), Spotify browse and search | Real services through an S2 system |
-| Streaming **playback** and the account-number retry | Not yet heard on real speakers |
+| Streaming **playback** and the account-number retry | **Spotify plays on the maintainer's real S1 speakers (2026-11-18)**; the account-number retry, other services and S2 systems not yet heard |
 | Play along between real S1 and S2 speakers | Demo system only |
 | Software updates (check and install) | Check: real S1 and S2 (read-only). Install: demo system only; tagged *Experimental* and off until switched on |
 | Forgetting old systems, and starting on a system that answers (0.9.0) | **Checked on a real setup by the maintainer (2026-11-18)**: one S1 system answering and two S2 systems remembered from another network; the app started on the S1 system, the others showed *Not on this network*, *Forget* removed one and it stayed gone after a restart. The 30-day rule and the ordering are unit-tested |
