@@ -2523,7 +2523,29 @@ impl App {
                             Some(UpdateState::UpToDate) => (t!("Up to date").to_string(), GOOD()),
                             Some(UpdateState::Available(o)) => (t!("Version {version} is available", version = o.version), ACCENT()),
                             Some(UpdateState::Installing(done, total)) => (t!("Sending the update to speaker {n} of {total}…", n = done + 1, total = total), ACCENT()),
-                            Some(UpdateState::Started(v)) => (t!("Installing {version}: speakers restart one by one", version = v), ACCENT()),
+                            Some(UpdateState::Progress(p)) if p.restarting > 0 => (
+                                t!(
+                                    "Updating to {version}: {done} of {total} speakers done, {restarting} restarting",
+                                    version = p.version,
+                                    done = p.done,
+                                    total = p.total,
+                                    restarting = p.restarting
+                                ),
+                                ACCENT(),
+                            ),
+                            Some(UpdateState::Progress(p)) => {
+                                (t!("Updating to {version}: {done} of {total} speakers done", version = p.version, done = p.done, total = p.total), ACCENT())
+                            }
+                            Some(UpdateState::Finished(v)) => (t!("Updated to {version}", version = v), GOOD()),
+                            Some(UpdateState::Unfinished(p)) => (
+                                t!(
+                                    "The update hasn't finished after 45 minutes: {done} of {total} speakers are on {version}. They may still be working; check the speakers.",
+                                    version = p.version,
+                                    done = p.done,
+                                    total = p.total
+                                ),
+                                BAD(),
+                            ),
                             Some(UpdateState::Failed(e)) => (t!("Couldn't check: {error}", error = e), BAD()),
                         };
                         ui.label(RichText::new(text).size(12.5).color(color));
@@ -2535,7 +2557,7 @@ impl App {
                                 self.update_confirm = Some((h.id.clone(), h.system, o.version.clone()));
                             }
                         }
-                        Some(UpdateState::Checking) | Some(UpdateState::Installing(..)) => spinner_dots(ui, TEXT_DIM()),
+                        Some(UpdateState::Checking) | Some(UpdateState::Installing(..)) | Some(UpdateState::Progress(_)) => spinner_dots(ui, TEXT_DIM()),
                         _ if silent || unset => {}
                         _ => {
                             if pill(ui, Some(Icon::Refresh), t!("Check for updates"), false).clicked() {

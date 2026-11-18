@@ -823,6 +823,9 @@ impl Mcp {
                         Some(UpdateState::UpToDate) => format!("{label}: up to date"),
                         Some(UpdateState::Available(o)) => format!("{label}: version {} is available ({} MB)", o.version, o.size / 1_000_000),
                         Some(UpdateState::Failed(e)) => format!("{label}: couldn't check ({e})"),
+                        Some(UpdateState::Progress(p)) => format!("{label}: updating to {}, {} of {} speakers done, {} restarting", p.version, p.done, p.total, p.restarting),
+                        Some(UpdateState::Finished(v)) => format!("{label}: updated to {v}"),
+                        Some(UpdateState::Unfinished(p)) => format!("{label}: the update hasn't finished, {} of {} speakers are on {}", p.done, p.total, p.version),
                         _ => format!("{label}: no answer yet"),
                     });
                 }

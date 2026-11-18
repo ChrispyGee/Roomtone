@@ -511,7 +511,6 @@ Check for updates	Rechercher des mises à jour
 Check for updates first.	Recherchez d'abord des mises à jour.
 Couldn't check: {error}	Vérification impossible : {error}
 Every speaker in this system downloads version {version} and restarts. Music stops for a few minutes. Keep the speakers plugged in until they're back.	Chaque enceinte de ce système télécharge la version {version} et redémarre. La musique s'arrête quelques minutes. Laissez les enceintes branchées jusqu'à leur retour.
-Installing {version}: speakers restart one by one	Installation de {version} : les enceintes redémarrent l'une après l'autre
 Sending the update to speaker {n} of {total}…	Envoi de la mise à jour à l'enceinte {n} sur {total}…
 Software updates	Mises à jour logicielles
 Some speakers didn't take the update: {rooms}	Certaines enceintes n'ont pas accepté la mise à jour : {rooms}
@@ -803,3 +802,8 @@ Not set up yet	Pas encore configuré
 Not set up yet. Set this speaker up in the Sonos app, then check again.	Pas encore configuré. Configurez d'abord cette enceinte dans l'appli Sonos, puis vérifiez à nouveau.
 Remove 1 played song	Retirer 1 titre déjà joué
 Remove {n} played songs	Retirer {n} titres déjà joués
+Updating to {version}: {done} of {total} speakers done, {restarting} restarting	Mise à jour vers {version} : {done} enceintes sur {total} terminées, {restarting} redémarrent
+Updating to {version}: {done} of {total} speakers done	Mise à jour vers {version} : {done} enceintes sur {total} terminées
+Updated to {version}	Mis à jour vers {version}
+The update hasn't finished after 45 minutes: {done} of {total} speakers are on {version}. They may still be working; check the speakers.	La mise à jour n'est pas terminée après 45 minutes : {done} enceintes sur {total} sont en {version}. Elles travaillent peut-être encore ; vérifiez les enceintes.
+Update finished: every speaker is now on {version}.	Mise à jour terminée : toutes les enceintes sont maintenant en {version}.

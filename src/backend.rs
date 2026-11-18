@@ -370,11 +370,86 @@ fn install_update(b: &Backend, ctx: &Waker, hid: &str, offer: &speaker::UpdateOf
         s.toast(crate::t!("Some speakers didn't take the update: {rooms}", rooms = failed.join("; ")), true);
     }
     s.toast(crate::t!("Update started. Speakers download it and restart one by one; they're back in about 10 minutes."), false);
-    if demo_mode {
-        UpdateState::UpToDate
-    } else {
-        UpdateState::Started(offer.version.clone())
+    UpdateState::Progress(UpdateProgress { version: offer.version.clone(), total, done: 0, restarting: 0 })
+}
+
+/// From one look at each room's software build (`None`: not answering): how many are on the
+/// new build, and how many aren't answering.
+fn tally(builds: &[Option<String>], target: &str) -> (usize, usize) {
+    (builds.iter().filter(|b| b.as_deref() == Some(target)).count(), builds.iter().filter(|b| b.is_none()).count())
+}
+
+/// Follow an update the speakers were told to install: look at each room's own software build
+/// every few seconds, show how many are on the new one and how many are restarting, and end
+/// when all are (or after `give_up`). The speakers offer no progress figure of their own.
+fn track_update(
+    b: &Backend,
+    ctx: &Waker,
+    hid: &str,
+    version: &str,
+    probe: &(dyn Fn(usize, usize, &str) -> Option<String> + Sync),
+    every: Duration,
+    give_up: Duration,
+) -> UpdateState {
+    let rooms: Vec<String> = match b.lock().households.iter().find(|h| h.id == hid) {
+        Some(h) => h.rooms.iter().map(|r| r.ip.clone()).collect(),
+        None => return UpdateState::Failed(crate::t!("That system isn't available right now").into()),
+    };
+    let total = rooms.len();
+    let start = Instant::now();
+    for round in 0.. {
+        let builds: Vec<Option<String>> = thread::scope(|scope| {
+            let looks: Vec<_> = rooms.iter().enumerate().map(|(i, ip)| scope.spawn(move || probe(round, i, ip))).collect();
+            looks.into_iter().map(|l| l.join().unwrap_or(None)).collect()
+        });
+        let (done, restarting) = tally(&builds, version);
+        let progress = UpdateProgress { version: version.to_string(), total, done, restarting };
+        if done == total {
+            return UpdateState::Finished(version.to_string());
+        }
+        if start.elapsed() >= give_up {
+            return UpdateState::Unfinished(progress);
+        }
+        b.lock().updates.insert(hid.to_string(), UpdateState::Progress(progress));
+        ctx.request_repaint();
+        thread::sleep(every);
     }
+    unreachable!()
+}
+
+/// Follow an update to its end, then bring the rooms' versions up to date and say so.
+fn follow_update(b: &Backend, ctx: &Waker, hid: &str, version: &str) -> UpdateState {
+    let demo_mode = b.lock().phase == Phase::Demo;
+    let state = if demo_mode {
+        // Pretend: each room restarts in turn, then reports the new build.
+        let v = version.to_string();
+        let demo = move |round: usize, i: usize, _ip: &str| -> Option<String> {
+            let at = 1 + i * 2;
+            match round {
+                r if r < at => Some("old".into()),
+                r if r == at => None,
+                _ => Some(v.clone()),
+            }
+        };
+        track_update(b, ctx, hid, version, &demo, Duration::from_millis(400), Duration::from_secs(60))
+    } else {
+        let real = |_round: usize, _i: usize, ip: &str| speaker::software_version(ip);
+        track_update(b, ctx, hid, version, &real, Duration::from_secs(5), Duration::from_secs(45 * 60))
+    };
+    if let UpdateState::Finished(v) = &state {
+        if demo_mode {
+            let mut s = b.lock();
+            if let Some(h) = s.households.iter_mut().find(|h| h.id == hid) {
+                for r in h.rooms.iter_mut() {
+                    r.version = "16.5".into();
+                }
+            }
+        } else {
+            let _ = refresh_topology(b);
+        }
+        b.lock().toast(crate::t!("Update finished: every speaker is now on {version}.", version = v), false);
+    }
+    state
 }
 
 /// Start on the following group whatever the leading group plays now.
@@ -1409,7 +1484,7 @@ fn run_common(b: &Backend, ctx: &Waker, cmd: Cmd) -> Result<Option<Cmd>, String>
             {
                 let mut s = b.lock();
                 // Not while an update is being sent out.
-                if matches!(s.updates.get(&hid), Some(UpdateState::Installing(..))) {
+                if matches!(s.updates.get(&hid), Some(UpdateState::Installing(..) | UpdateState::Progress(_))) {
                     return Ok(None);
                 }
                 s.updates.insert(hid.clone(), UpdateState::Checking);
@@ -1430,8 +1505,14 @@ fn run_common(b: &Backend, ctx: &Waker, cmd: Cmd) -> Result<Option<Cmd>, String>
             let (b2, ctx2) = (b.clone(), ctx.clone());
             thread::spawn(move || {
                 let state = install_update(&b2, &ctx2, &hid, &offer);
-                b2.lock().updates.insert(hid, state);
+                let following = matches!(state, UpdateState::Progress(_));
+                b2.lock().updates.insert(hid.clone(), state);
                 ctx2.request_repaint();
+                if following {
+                    let end = follow_update(&b2, &ctx2, &hid, &offer.version);
+                    b2.lock().updates.insert(hid, end);
+                    ctx2.request_repaint();
+                }
             });
             Ok(None)
         }
@@ -3553,6 +3634,57 @@ mod unit {
     }
 
     #[test]
+    fn the_tally_counts_new_builds_and_silent_rooms() {
+        let b = |s: &str| Some(s.to_string());
+        assert_eq!(tally(&[b("98.0-1"), b("65.1-2"), None, b("98.0-1")], "98.0-1"), (2, 1));
+        assert_eq!(tally(&[], "98.0-1"), (0, 0));
+    }
+
+    #[test]
+    fn an_update_is_followed_until_every_room_reports_it() {
+        let b = demo_backend();
+        let (hid, n) = {
+            let s = b.lock();
+            (s.households[0].id.clone(), s.households[0].rooms.len())
+        };
+        let seen = std::sync::Mutex::new(vec![]);
+        // Round 0: nobody is done. Round 1: the first room restarts. Round 2: everyone is on the new build.
+        let probe = |round: usize, i: usize, _ip: &str| -> Option<String> {
+            match round {
+                0 => Some("old".into()),
+                1 if i == 0 => None,
+                1 => Some("old".into()),
+                _ => Some("new".into()),
+            }
+        };
+        let end = std::thread::scope(|scope| {
+            let h = scope.spawn(|| track_update(&b, &Waker::none(), &hid, "new", &probe, Duration::from_millis(60), Duration::from_secs(10)));
+            for _ in 0..30 {
+                if let Some(UpdateState::Progress(p)) = b.lock().updates.get(&hid).cloned() {
+                    seen.lock().unwrap().push((p.done, p.restarting, p.total));
+                }
+                thread::sleep(Duration::from_millis(10));
+            }
+            h.join().unwrap()
+        });
+        assert_eq!(end, UpdateState::Finished("new".into()));
+        let seen = seen.into_inner().unwrap();
+        assert!(seen.contains(&(0, 0, n)), "the start was shown: {seen:?}");
+        assert!(seen.contains(&(0, 1, n)), "a restarting room was shown: {seen:?}");
+    }
+
+    #[test]
+    fn an_update_that_never_finishes_is_reported_as_unfinished() {
+        let b = demo_backend();
+        let hid = b.lock().households[0].id.clone();
+        let probe = |_: usize, _: usize, _: &str| Some("old".to_string());
+        match track_update(&b, &Waker::none(), &hid, "new", &probe, Duration::from_millis(5), Duration::from_millis(30)) {
+            UpdateState::Unfinished(p) => assert_eq!((p.done, p.version.as_str()), (0, "new")),
+            other => panic!("expected Unfinished, got {other:?}"),
+        }
+    }
+
+    #[test]
     fn a_speaker_that_was_never_set_up_is_not_asked_for_updates() {
         let b = demo_backend();
         let id = {
@@ -3582,7 +3714,7 @@ mod unit {
         assert!(matches!(b.lock().updates.get(&s2), Some(UpdateState::Available(o)) if o.system() == System::S2));
         assert_eq!(b.lock().updates.get(&s1), Some(&UpdateState::UpToDate), "S1 is never offered S2 software");
         b.send_and_wait(Cmd::InstallUpdate(s2.clone()), Duration::from_secs(5)).unwrap();
-        assert!(wait_for(15, || b.lock().updates.get(&s2) == Some(&UpdateState::UpToDate)));
+        assert!(wait_for(20, || matches!(b.lock().updates.get(&s2), Some(UpdateState::Finished(_)))), "the update is followed to its end");
         let s = b.lock();
         assert!(s.households.iter().find(|h| h.id == s2).unwrap().rooms.iter().all(|r| r.version == "16.5"));
     }

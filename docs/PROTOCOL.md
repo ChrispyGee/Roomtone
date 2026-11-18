@@ -88,7 +88,7 @@ Services seen refusing third-party sign-in (2026-11-11): Apple Music (`getAppLin
 ## 6. Software updates
 
 - `ZoneGroupTopology#CheckForUpdate(UpdateType=All, CachedOnly=0, Version="")` returns `UpdateItem`, an escaped XML element with attributes such as `Version` (a build number), `UpdateURL` and `DownloadSize`. Empty means up to date.
-- `ZoneGroupTopology#BeginSoftwareUpdate(UpdateURL, Flags=0, ExtraOptions="")` makes that speaker download and install; it restarts when done.
+- `ZoneGroupTopology#BeginSoftwareUpdate(UpdateURL, Flags=0, ExtraOptions="")` makes that speaker download and install; it restarts when done. The speaker offers no progress figure (`/status/info` is empty and `/support/review` only describes the speaker); Roomtone follows an update by reading each room's own `softwareVersion` from `/xml/device_description.xml` every 5 seconds until it equals the offered build. A speaker whose `/support/review` shows a `QuarantineReason` (seen: `secreg`, a speaker not yet registered with the maker's service) may refuse updates.
 - **Safety rule** (`backend::check_updates`, `install_update`): an offer is accepted only if its build generation matches the system (S1 ≤ 57, S2 ≥ 58). It is checked again just before installing. Never send S2 software to an S1 system.
 - Not yet tried against real speakers. Whether one call per system is enough, or each speaker needs one, is an open question; the app calls every speaker in turn.
 

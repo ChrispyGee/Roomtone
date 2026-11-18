@@ -511,7 +511,6 @@ Check for updates	Buscar actualizaciones
 Check for updates first.	Busca actualizaciones primero.
 Couldn't check: {error}	No se pudo comprobar: {error}
 Every speaker in this system downloads version {version} and restarts. Music stops for a few minutes. Keep the speakers plugged in until they're back.	Todos los altavoces de este sistema descargan la versión {version} y se reinician. La música se detiene unos minutos. Mantén los altavoces enchufados hasta que vuelvan.
-Installing {version}: speakers restart one by one	Instalando {version}: los altavoces se reinician uno tras otro
 Sending the update to speaker {n} of {total}…	Enviando la actualización al altavoz {n} de {total}…
 Software updates	Actualizaciones de software
 Some speakers didn't take the update: {rooms}	Algunos altavoces no aceptaron la actualización: {rooms}
@@ -803,3 +802,8 @@ Not set up yet	Aún sin configurar
 Not set up yet. Set this speaker up in the Sonos app, then check again.	Aún sin configurar. Configura este altavoz primero en la app de Sonos y vuelve a comprobar.
 Remove 1 played song	Quitar 1 canción reproducida
 Remove {n} played songs	Quitar {n} canciones reproducidas
+Updating to {version}: {done} of {total} speakers done, {restarting} restarting	Actualizando a {version}: {done} de {total} altavoces listos, {restarting} reiniciándose
+Updating to {version}: {done} of {total} speakers done	Actualizando a {version}: {done} de {total} altavoces listos
+Updated to {version}	Actualizado a {version}
+The update hasn't finished after 45 minutes: {done} of {total} speakers are on {version}. They may still be working; check the speakers.	La actualización no ha terminado tras 45 minutos: {done} de {total} altavoces tienen {version}. Puede que sigan trabajando; revisa los altavoces.
+Update finished: every speaker is now on {version}.	Actualización terminada: todos los altavoces están ahora en {version}.

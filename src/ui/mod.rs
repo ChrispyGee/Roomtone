@@ -341,6 +341,24 @@ impl App {
                 }
             }
         }
+        // Test hook: check, then install, the demo software update of the S2 system.
+        if std::env::var_os("ROOMTONE_TEST_UPDATE").is_some() && self.frame >= 10 {
+            let (hid, state) = {
+                let st = self.backend.lock();
+                let hid = st.households.iter().find(|h| h.system == System::S2).map(|h| h.id.clone());
+                let state = hid.as_ref().and_then(|h| st.updates.get(h).cloned());
+                (hid, state)
+            };
+            match (hid, state) {
+                (Some(hid), None) if self.frame == 10 => {
+                    self.backend.send(Cmd::CheckUpdates(hid));
+                }
+                (Some(hid), Some(UpdateState::Available(_))) => {
+                    self.backend.send(Cmd::InstallUpdate(hid));
+                }
+                _ => {}
+            }
+        }
         // Test hook: picture a speaker that was never set up (no household).
         if self.frame >= 20 && std::env::var_os("ROOMTONE_TEST_UNSET").is_some() {
             let mut st = self.backend.lock();

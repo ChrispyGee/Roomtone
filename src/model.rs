@@ -550,9 +550,24 @@ pub enum UpdateState {
     Available(crate::net::speaker::UpdateOffer),
     /// Sending the update to the speakers: how many have been told so far, of how many.
     Installing(usize, usize),
-    /// The speakers are downloading and restarting.
-    Started(String),
+    /// The speakers are downloading and restarting; how far they have got.
+    Progress(UpdateProgress),
+    /// Every speaker reports the new software.
+    Finished(String),
+    /// Still not all on the new software after a long wait.
+    Unfinished(UpdateProgress),
     Failed(String),
+}
+
+/// How far a software update has got, from what each room itself reports.
+#[derive(Clone, Debug, PartialEq)]
+pub struct UpdateProgress {
+    pub version: String,
+    pub total: usize,
+    /// Rooms that report the new software.
+    pub done: usize,
+    /// Rooms that aren't answering just now (most likely restarting).
+    pub restarting: usize,
 }
 
 /// A sign-in to a streaming service in progress.
