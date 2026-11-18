@@ -264,7 +264,7 @@ pub struct Config {
     /// When the last check was made (seconds since 1970), so it isn't repeated within a day.
     #[serde(default)]
     pub last_version_check: u64,
-    /// Let the keyboard's media keys and the system's Now Playing control the selected room.
+    /// No longer used: the media keys feature was removed. Kept so older settings files still load.
     #[serde(default = "yes")]
     pub media_keys: bool,
     /// Show lyrics for the song that's playing (experimental; off until switched on). Asks

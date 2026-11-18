@@ -50,12 +50,6 @@ pub struct App {
     settings_tab: usize,
     /// Arranging the order of the room cards (the up/down buttons are showing).
     arranging: bool,
-    /// The system's media keys and Now Playing, when on and available.
-    media: Option<crate::media_keys::Controls>,
-    /// Tried to start the media controls and they aren't available here: don't keep trying.
-    media_unavailable: bool,
-    /// The window's handle, for the system's media overlay on Windows.
-    hwnd: Option<usize>,
     window_watcher: crate::window::Watcher,
     group_editor: Option<(String, Vec<String>)>,
     alarm_editor: Option<Alarm>,
@@ -123,21 +117,6 @@ pub struct App {
     backup_sections: crate::backup::Sections,
 }
 
-/// The window's handle on Windows (the system's media overlay needs it); nothing elsewhere.
-fn window_handle(cc: &eframe::CreationContext<'_>) -> Option<usize> {
-    #[cfg(target_os = "windows")]
-    {
-        use winit::raw_window_handle::{HasWindowHandle, RawWindowHandle};
-        if let Ok(h) = cc.window_handle() {
-            if let RawWindowHandle::Win32(w) = h.as_raw() {
-                return Some(w.hwnd.get() as usize);
-            }
-        }
-    }
-    let _ = cc;
-    None
-}
-
 /// A playlist saved on the speakers (the kind that can be exported).
 pub(super) fn is_saved_playlist(item: &Item) -> bool {
     item.parent_id == "SQ:" && item.is_container && item.id.starts_with("SQ:")
@@ -199,9 +178,6 @@ impl App {
             right_tab: 0,
             settings_tab: 0,
             arranging: false,
-            media: None,
-            media_unavailable: false,
-            hwnd: window_handle(cc),
             window_watcher: crate::window::Watcher::new(if shot.is_some() { None } else { crate::window::load() }),
             group_editor: None,
             alarm_editor: None,
@@ -279,28 +255,6 @@ impl App {
                 self.ask_once(&format!("browse:{id}"), Duration::from_secs(3), Cmd::Browse(id.to_string()));
                 None
             }
-        }
-    }
-
-    /// Start, feed or stop the system's media controls to match the setting and what's playing.
-    fn keep_media_controls_current(&mut self, _ctx: &egui::Context) {
-        let (on, now) = {
-            let s = self.backend.lock();
-            let now = s.selected_group.as_ref().and_then(|g| s.find_group(g)).map(|(_, g)| g.now.clone());
-            (s.config.media_keys && self.shot.is_none(), now)
-        };
-        if !on {
-            if let Some(mut c) = self.media.take() {
-                c.detach();
-            }
-            return;
-        }
-        if self.media.is_none() && !self.media_unavailable && self.frame > 5 {
-            self.media = crate::media_keys::Controls::new(self.backend.clone(), self.hwnd.map(|h| h as *mut std::ffi::c_void));
-            self.media_unavailable = self.media.is_none();
-        }
-        if let Some(c) = self.media.as_mut() {
-            c.update(now.as_ref());
         }
     }
 
@@ -1917,7 +1871,6 @@ impl eframe::App for App {
         self.handle_screenshot(ctx);
         #[cfg(target_os = "macos")]
         crate::macos_about::install();
-        self.keep_media_controls_current(ctx);
         self.remember_the_window(ctx);
         let backend = self.backend.clone();
         {

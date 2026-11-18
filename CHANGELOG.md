@@ -13,6 +13,9 @@ All notable changes to Roomtone. The format follows [Keep a Changelog](https://k
 - **Pages you use moved to Settings › Appearance**, between the theme and the language, since it decides what the sidebar shows. Nothing else changed.
 - **Settings is tidier**: a row of six tabs, one shown at a time, in a sensible order: **About** (selected when the app starts), **Playback**, **Speakers** (the rooms of each system, finding and adding speakers, software updates and instant updates, all together), **Appearance**, **Assistants** and **Backups**. *New versions* moved into About and *Pages you use* into Playback. Nothing was removed; settings and their `config.json` fields are unchanged. The chosen tab isn't saved.
 
+### Removed
+- **The keyboard media keys and system Now Playing** (added in 0.6.0, switch *Use the computer's media controls*) are gone. They never worked reliably on a Mac: macOS only sends the keys to a program that is itself playing media, and Roomtone's music plays on the speakers, so the keys went to whatever else had played last. Making Roomtone qualify meant playing a silent sound and competing with other apps for the keys, which would have confused more than it helped. Control rooms from the window or, for assistants, the assistant link. The `media_keys` field in `config.json` is ignored and kept so older files still load.
+
 ### Fixed
 - **Favorites and Playlists no longer get stuck on an error.** After one failed read of the speakers' library (a busy or sleeping speaker, say) the page kept showing "Check the internet connection" until you changed system or searched for speakers again. Now the message names the speakers, the reason is shown in small print, **Try again** asks again, and the request tries the next room if the first doesn't answer. The usual cause was a system remembered from another network (for example the office) being shown first when you're at home: the app now starts on a system that answers.
 

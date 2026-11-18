@@ -43,7 +43,7 @@ This is the map of the code. What the app should do is in [SPEC.md](../SPEC.md);
 | `m3u.rs`, `csv.rs`, `pls_xspf.rs` | Playlist files: writing and reading M3U/M3U8, CSV, PLS and XSPF |
 | `lyrics.rs` | The experimental lyrics look-up (lrclib.net): parser for timed lines, exact-then-search order, in-memory store key |
 | `history.rs` | The listening history (`history.json`) and the tracker that decides what counts as played |
-| `media_keys.rs`, `window.rs` | The system's media keys and Now Playing (souvlaki), and the remembered window size and position |
+| `window.rs` | The remembered window size and position |
 | `version.rs` | The optional look for a newer Roomtone on GitHub |
 | `s2.rs` | Reading what a speaker says about itself, and judging whether it could move to S2 |
 | `diagnose.rs`, `status.rs` | *Can't find your speakers?* (checks, advice, redacted report) and wired/wireless from a speaker's network counters |

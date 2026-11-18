@@ -47,7 +47,6 @@ mod m3u;
 #[cfg(target_os = "macos")]
 mod macos_about;
 mod mcp;
-mod media_keys;
 mod model;
 mod net;
 mod pls_xspf;
