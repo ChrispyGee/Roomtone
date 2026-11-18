@@ -47,7 +47,7 @@ fn read() -> Vec<KnownHousehold> {
     path().and_then(|p| std::fs::read_to_string(p).ok()).and_then(|t| serde_json::from_str(&t).ok()).unwrap_or_default()
 }
 
-/// Drop systems not seen for 30 days. One is always kept (the most recently seen), so a long
+/// Drop systems not seen for 30 days, and put the most recently seen first. One is always kept (the most recently seen), so a long
 /// trip away from home doesn't forget the only system there is. A system with no date yet
 /// counts as seen now, so nothing disappears the first time this runs.
 fn prune(mut list: Vec<KnownHousehold>, now: u64) -> Vec<KnownHousehold> {
@@ -64,6 +64,8 @@ fn prune(mut list: Vec<KnownHousehold>, now: u64) -> Vec<KnownHousehold> {
         }
         fresh || keep_anyway
     });
+    // The system that answered most recently comes first, and is the one shown at start.
+    list.sort_by_key(|h| std::cmp::Reverse(h.last_seen));
     list
 }
 
@@ -163,7 +165,9 @@ mod unit {
         let now = 100 * day;
         let ids = |l: Vec<KnownHousehold>| l.into_iter().map(|h| h.id).collect::<Vec<_>>();
         let kept = prune(vec![known("home", now - day), known("office", now - 31 * day), known("new", 0)], now);
-        assert_eq!(ids(kept), ["home", "new"], "old one goes; one with no date yet counts as seen now");
+        assert_eq!(ids(kept), ["new", "home"], "old one goes; one with no date yet counts as seen now");
+        let kept = prune(vec![known("older", now - 5 * day), known("newer", now - day), known("same", now - 5 * day)], now);
+        assert_eq!(ids(kept), ["newer", "older", "same"], "most recent first; ties keep their order");
         let kept = prune(vec![known("a", now - 90 * day), known("b", now - 40 * day)], now);
         assert_eq!(ids(kept), ["b"], "only the most recently seen survives when all are old");
         let kept = prune(vec![known("a", now - 29 * day), known("b", now - 31 * day)], now);

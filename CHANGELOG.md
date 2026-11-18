@@ -5,7 +5,7 @@ All notable changes to Roomtone. The format follows [Keep a Changelog](https://k
 ## [Unreleased]
 
 ### Added
-- **Old systems are forgotten.** A system Roomtone remembered from another network (the office, a friend's house) is dropped after 30 days without answering, and under Settings › Speakers a system that isn't answering is marked **Not on this network** with a **Forget** button. The most recently seen system is always kept, and one that answers can't be forgotten.
+- **Old systems are forgotten.** A system Roomtone remembered from another network (the office, a friend's house) is dropped after 30 days without answering, and under Settings › Speakers a system that isn't answering is marked **Not on this network** with a **Forget** button. The most recently seen system is always kept, one that answers can't be forgotten, and the systems are listed (and the app starts) with the most recently seen first.
 
 ### Checked
 - The Windows fix in 0.8.3 (no extra console window) works on a real Windows PC (maintainer, 2026-11-18).
