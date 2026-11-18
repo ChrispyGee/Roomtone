@@ -4,6 +4,12 @@ All notable changes to Roomtone. The format follows [Keep a Changelog](https://k
 
 ## [Unreleased]
 
+### Checked
+- The Windows fix in 0.8.3 (no extra console window) works on a real Windows PC (maintainer, 2026-11-18).
+
+### Changed
+- **Settings is tidier**: a row of six tabs, one shown at a time, in a sensible order: **About** (selected when the app starts), **Playback**, **Speakers** (the rooms of each system, finding and adding speakers, software updates and instant updates, all together), **Appearance**, **Assistants** and **Backups**. *New versions* moved into About and *Pages you use* into Playback. Nothing was removed; settings and their `config.json` fields are unchanged. The chosen tab isn't saved.
+
 ### Fixed
 - **Favorites and Playlists no longer get stuck on an error.** After one failed read of the speakers' library (a busy or sleeping speaker, say) the page kept showing "Check the internet connection" until you changed system or searched for speakers again. Now the message names the speakers, the reason is shown in small print, **Try again** asks again, and the request tries the next room if the first doesn't answer. The usual cause was a system remembered from another network (for example the office) being shown first when you're at home: the app now starts on a system that answers.
 

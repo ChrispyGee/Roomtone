@@ -131,6 +131,9 @@ The **Alarms page** is hidden until *Settings › Pages you use › Show Alarms*
 Create, edit, enable/disable and delete alarms. Each has a time, how often it repeats (every day, weekdays, weekends, once and so on), a room, what to play (the chime or any favorite), a volume and a duration.
 
 ### 4.8 Settings
+The Settings page is a row of six tabs, one shown at a time, in this order: **About**, **Playback**, **Speakers**, **Appearance**, **Assistants** and **Backups**. **About** is selected when the app starts (every time; the chosen tab isn't saved). On a narrow window the tab pills wrap onto a second line; Left and Right move between them. **About** holds the about card and *New versions* (the switch that looks for a new Roomtone and *Check now*); **Playback** holds listening history, lyrics, media keys and *Pages you use*; **Speakers** holds the rooms of each system, *Connection* (find, add by address, can't-find check, demo), *Software updates* and *Speaker updates* (instant updates); **Appearance** holds light or dark and the language; **Assistants** holds the assistant link; **Backups** holds saving and restoring backups. Inside a tab with several cards the card titles are smaller; a tab with one card shows no second title. For screenshots, `ROOMTONE_TEST_TAB=speakers` (or `music`, `appearance`, `assistants`, `backups`) opens that tab.
+
+The groups hold these things:
 - **Systems and rooms** (model, version, address). A room opens its **room settings**: rename, volume, bass and treble (−10…+10), loudness, night sound and speech enhancement (TV speakers), status light, and details.
 - **Software updates** (tagged *Experimental*; a switch *Allow installing updates*, `allow_update_install`, off by default, decides whether *Update all speakers* is offered at all; *Check for updates* and the S2 check are always available), for each system:
   - For an S1 system, *Check my speakers* (under *Can this system move to S2?*) reads each speaker's own description (`/xml/device_description.xml`: model name and number, hardware version, software generation; read-only) and shows per room *Already on S2* (software generation 2), *Can't run S2* (model numbers ZP80, ZP100, CR100, CR200, BR100), *Check* (ZP90, ZP120, S5: a first generation that can't and a second that can share the number) or *Can run S2* (anything else), with a summary. It never decides for a *Check* model.
@@ -319,7 +322,7 @@ All in the app's data folder: `~/Library/Application Support/Roomtone/` (macOS),
 | Streaming **playback** and the account-number retry | Not yet heard on real speakers |
 | Play along between real S1 and S2 speakers | Demo system only |
 | Software updates (check and install) | Check: real S1 and S2 (read-only). Install: demo system only; tagged *Experimental* and off until switched on |
-| Windows: no console window (0.8.3) | Compiles for Windows and passes CI there; **not yet run on a real Windows PC** (the reporter's PC is the first test) |
+| Windows: no console window (0.8.3) | **Confirmed on a real Windows PC by the maintainer (2026-11-18)**: the app starts with no console window. Printing to a terminal (`--help`, the command-line commands) not yet checked there |
 | S2 compatibility check | Read-only on a real S1 system of five Connect:Amps (ZP120, hardware 1.16.3.1, software generation 1 → *Check*); S2 speakers and the Connect/Play:5 generations not seen |
 | Backup: saving favorites, playlists and alarms | One real S1 system, read only (counts and round trip); demo system for everything else |
 | Backup: **restoring** favorites, playlists and alarms | Pretend system in unit tests and the demo system; **not yet tried on real speakers** (the playlist calls `CreateSavedQueue`/`AddURIToSavedQueue` are unverified) |
