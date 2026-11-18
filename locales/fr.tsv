@@ -799,3 +799,5 @@ The keyboard media keys are gone: macOS never sent them to Roomtone reliably	Les
 Crash log	Journal de plantage
 Roomtone closed unexpectedly on {date}. The details are in crash.log in the settings folder; nothing is sent anywhere.	Roomtone s'est fermé de façon inattendue le {date}. Les détails sont dans crash.log, dans le dossier des réglages ; rien n'est envoyé.
 Not on this network, so it can't be checked from here.	Pas sur ce réseau : impossible de vérifier d'ici.
+Not set up yet	Pas encore configuré
+Not set up yet. Set this speaker up in the Sonos app, then check again.	Pas encore configuré. Configurez d'abord cette enceinte dans l'appli Sonos, puis vérifiez à nouveau.

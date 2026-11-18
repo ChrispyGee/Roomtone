@@ -148,9 +148,14 @@ pub fn household_from(ip: &str, household_id: Option<String>) -> Result<Househol
         }
     }
     let system = system.unwrap_or_else(|| system_from("", versions.first().map(String::as_str).unwrap_or("")));
-    let id = match household_id {
+    let id = match household_id.filter(|h| !h.is_empty()) {
         Some(h) => h,
-        None => soap::call(ip, soap::DEVICE_PROPS, "GetHouseholdID", &[]).ok().and_then(|m| m.get("CurrentHouseholdID").cloned()).unwrap_or_else(|| format!("household-{ip}")),
+        None => match soap::call(ip, soap::DEVICE_PROPS, "GetHouseholdID", &[]).ok().and_then(|m| m.get("CurrentHouseholdID").cloned()) {
+            Some(h) if !h.is_empty() => h,
+            // The speaker answered but belongs to no system: it was never set up.
+            Some(_) => format!("{}{ip}", crate::model::UNSET_PREFIX),
+            None => format!("household-{ip}"),
+        },
     };
     rooms.sort_by_key(|a| a.name.to_lowercase());
     groups.sort_by_key(|g| rooms.iter().position(|r| r.uuid == g.coordinator).unwrap_or(usize::MAX));
