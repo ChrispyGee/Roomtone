@@ -4,6 +4,11 @@ All notable changes to Roomtone. The format follows [Keep a Changelog](https://k
 
 ## [Unreleased]
 
+### Changed
+- **Alarms and Scenes are hidden until you want them**: *Settings › Pages you use* has *Show Alarms* and *Show Scenes*, both off by default so the sidebar and Home are simpler. If you already have scenes they stay visible until you switch the page off. The speakers' alarms keep working either way. New `show_alarms` and `show_scenes` fields in `config.json`.
+- **Speaker software updates are experimental**: the section is tagged *Experimental* and has a switch, *Allow installing updates* (off by default), that decides whether *Update all speakers* is offered. Checking for updates is always available.
+- **Restoring a backup and Play along are tagged *Experimental*** (no switch), because neither has been verified on real speakers.
+
 ## [0.8.2] — 2026-11-17
 
 ### Fixed

@@ -763,3 +763,10 @@ Lyrics (experimental): switch it on in Settings to see the words of the song tha
 The project page now links straight to each download	La página del proyecto enlaza ahora directamente con cada descarga
 Lyrics now wait and try again when the lyrics service is busy	Las letras ahora esperan y vuelven a intentarlo cuando el servicio de letras está ocupado
 Speakers on Wi-Fi, such as the Sonos One SL, now show as Wireless	Los altavoces con Wi-Fi, como el Sonos One SL, ahora aparecen como «Inalámbrico»
+Adds Alarms to the sidebar, to see and set the speakers' alarms.	Añade Alarmas a la barra lateral, para ver y programar las alarmas de los altavoces.
+Adds Scenes to the sidebar and shortcuts to Home, for one-click set-ups of rooms, volumes and music.	Añade Escenas a la barra lateral y accesos directos a Inicio, para configurar salas, volúmenes y música con un clic.
+Allow installing updates	Permitir instalar actualizaciones
+Checking is always possible. Installing has not been tried on real speakers yet: speakers restart and music stops for a few minutes.	Comprobar siempre es posible. Instalar aún no se ha probado en altavoces reales: los altavoces se reinician y la música se detiene unos minutos.
+Pages you use	Páginas que usas
+Show Alarms	Mostrar Alarmas
+Show Scenes	Mostrar Escenas

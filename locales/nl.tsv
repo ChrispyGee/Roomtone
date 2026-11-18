@@ -763,3 +763,10 @@ Lyrics (experimental): switch it on in Settings to see the words of the song tha
 The project page now links straight to each download	De projectpagina verwijst nu rechtstreeks naar elke download
 Lyrics now wait and try again when the lyrics service is busy	Songteksten wachten nu en proberen het opnieuw als de songtekstdienst druk is
 Speakers on Wi-Fi, such as the Sonos One SL, now show as Wireless	Speakers op wifi, zoals de Sonos One SL, worden nu als ‘Draadloos’ getoond
+Adds Alarms to the sidebar, to see and set the speakers' alarms.	Voegt Wekkers toe aan de zijbalk, om de wekkers van de speakers te zien en in te stellen.
+Adds Scenes to the sidebar and shortcuts to Home, for one-click set-ups of rooms, volumes and music.	Voegt Scènes toe aan de zijbalk en snelkoppelingen op Start, voor kamers, volumes en muziek met één klik.
+Allow installing updates	Installeren van updates toestaan
+Checking is always possible. Installing has not been tried on real speakers yet: speakers restart and music stops for a few minutes.	Controleren kan altijd. Installeren is nog niet op echte speakers geprobeerd: de speakers starten opnieuw op en de muziek stopt een paar minuten.
+Pages you use	Pagina's die je gebruikt
+Show Alarms	Wekkers tonen
+Show Scenes	Scènes tonen

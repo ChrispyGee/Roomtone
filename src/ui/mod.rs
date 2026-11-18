@@ -509,7 +509,7 @@ impl App {
         });
         ui.add_space(22.0);
 
-        let items: [(View, Icon, &str); 11] = [
+        let mut items: Vec<(View, Icon, &str)> = vec![
             (View::Home, Icon::Home, t!("Home")),
             (View::Search, Icon::Search, t!("Search")),
             (View::Favorites, Icon::Star, t!("Favorites")),
@@ -522,6 +522,12 @@ impl App {
             (View::Alarms, Icon::Alarm, t!("Alarms")),
             (View::Settings, Icon::Gear, t!("Settings")),
         ];
+        // Alarms and Scenes are pages people may not use; Settings can hide them.
+        items.retain(|(v, _, _)| match v {
+            View::Alarms => s.config.alarms_shown(),
+            View::Scenes => s.config.scenes_shown(),
+            _ => true,
+        });
         for (view, icon, label) in items {
             let active = self.view == view || (view == View::Settings && matches!(self.view, View::Room(_)));
             if nav_item(ui, icon, label, active).clicked() {
@@ -1038,7 +1044,10 @@ impl App {
                     ui.add_space(8.0);
                     ui.separator();
                     ui.add_space(4.0);
-                    ui.label(RichText::new(t!("Play along from your other system")).color(TEXT()).strong());
+                    ui.horizontal(|ui| {
+                        ui.label(RichText::new(t!("Play along from your other system")).color(TEXT()).strong());
+                        chip(ui, t!("Experimental"), TEXT_DIM());
+                    });
                     ui.label(
                         RichText::new(t!(
                             "S1 and S2 speakers can't join one group, so these play the same music started at the same moment. They can drift up to a second or two apart."

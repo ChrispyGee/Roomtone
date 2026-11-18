@@ -57,7 +57,7 @@ For MCP tests, set `HOME` (Windows: `APPDATA`) to a scratch folder such as `targ
 
 ## Pull requests that change the screen
 
-If a pull request changes anything the person sees (a page, a window, a control, wording on screen), put screenshots in its description: take them from the demo system with `--screenshot` (English, and one longer language such as `--lang de`; light and dark if colours or layout changed; `ROOMTONE_TEST_*` hooks in `src/ui/mod.rs` open a given window), then publish them with
+If a pull request changes anything the person sees (a page, a window, a control, wording on screen), put screenshots in its description: take them from the demo system with `--screenshot` (English, and one longer language such as `--lang de`; light and dark if colours or layout changed; `ROOMTONE_TEST_*` hooks in `src/ui/mod.rs` open a given window; the Alarms and Scenes pages are hidden by default, so set `ROOMTONE_TEST_PAGES=1` to picture them), then publish them with
 
 ```sh
 scripts/pr-screenshots.sh <pr-number> shots/a.png shots/b.png

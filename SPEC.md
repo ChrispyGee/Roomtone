@@ -124,11 +124,13 @@ One box searches every source in parallel: library, favorites (by title, artist,
 Plays a speaker's line-in or TV input in the selected room. Which speakers have them is guessed from the model name. A speaker without the socket refuses.
 
 ### 4.7 Alarms
+The **Alarms page** is hidden until *Settings › Pages you use › Show Alarms* is switched on (`show_alarms`, off by default; the speakers' alarms keep working either way, and assistants have their own switch, §6.1). The **Scenes page** and its Home shortcuts follow *Show Scenes* (`show_scenes`; off by default, except that someone who already has scenes keeps seeing them until they choose). A hidden page isn't in the sidebar and can't be opened (`--view` is the exception only for the test hook `ROOMTONE_TEST_PAGES=1`, which shows both for screenshots).
+
 Create, edit, enable/disable and delete alarms. Each has a time, how often it repeats (every day, weekdays, weekends, once and so on), a room, what to play (the chime or any favorite), a volume and a duration.
 
 ### 4.8 Settings
 - **Systems and rooms** (model, version, address). A room opens its **room settings**: rename, volume, bass and treble (−10…+10), loudness, night sound and speech enhancement (TV speakers), status light, and details.
-- **Software updates**, for each system:
+- **Software updates** (tagged *Experimental*; a switch *Allow installing updates*, `allow_update_install`, off by default, decides whether *Update all speakers* is offered at all; *Check for updates* and the S2 check are always available), for each system:
   - For an S1 system, *Check my speakers* (under *Can this system move to S2?*) reads each speaker's own description (`/xml/device_description.xml`: model name and number, hardware version, software generation; read-only) and shows per room *Already on S2* (software generation 2), *Can't run S2* (model numbers ZP80, ZP100, CR100, CR200, BR100), *Check* (ZP90, ZP120, S5: a first generation that can't and a second that can share the number) or *Can run S2* (anything else), with a summary. It never decides for a *Check* model.
   - *Check for updates* asks the speakers' own update service.
   - When an update is offered, *Update all speakers* asks for confirmation (speakers restart and music stops for a few minutes), then tells every speaker of the system to install it, one after another, showing progress.
