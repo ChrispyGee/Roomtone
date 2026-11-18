@@ -29,7 +29,7 @@ There are no ads, no call-homes and you can run it completely offline.
 - **Backup and restore** of favorites, playlists and alarms, and playlists as M3U, PLS, XSPF or CSV files, to move between S1 and S2 or between apps.
 - **Lyrics (experimental)**: an optional switch shows the words of the song that's playing, following along when they're timed (fetched from lrclib.net; off by default).
 - **Podcasts that remember**: skip back and forward, where you stopped, *Continue listening*. **Listening history** kept on this computer only, with a History page.
-- **Keyboard media keys and Now Playing** (macOS Control Center, Windows media overlay, Linux MPRIS), and a window that remembers its size and position.
+- A window that remembers its size and position.
 - **Keyboard and screen readers**: Tab reaches every control with a visible focus ring, sliders take arrow keys, and every hand-drawn control is named for VoiceOver, Narrator, NVDA and Orca (works with VoiceOver on macOS; not yet tried with the others).
 - **When something's wrong**: *Can't find your speakers?* runs a read-only check with plain advice and a report with no names or addresses; *Your speakers* shows whether each room is wired or wireless; a check tells you which of your speakers could move to S2; an optional, off-by-default check for new Roomtone versions.
 - **Light, dark or automatic** appearance.

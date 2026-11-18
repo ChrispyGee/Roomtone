@@ -529,7 +529,6 @@ pub fn apply(s: &mut AppState, cmd: &Cmd) {
         | Cmd::ForgetSystem(_)
         | Cmd::LoadLyrics(..)
         | Cmd::CheckVersionNow
-        | Cmd::SetMediaKeys(_)
         | Cmd::SetHistory(_)
         | Cmd::ClearHistory
         | Cmd::MarkEpisode(..)
