@@ -45,7 +45,7 @@ The source of truth for **what Roomtone does**. Code, tests and docs should agre
 
 | Area | Contents |
 | --- | --- |
-| Sidebar | Home, Search, Favorites, Playlists, Music Library, Radio, Music Services, Line-In & TV, Alarms, Settings; then the **Systems** list (S1/S2, room count, how many are playing); connection status at the bottom (opens the speaker status list) |
+| Sidebar | Home, Search, Favorites, Playlists, Music Library, Radio, Line-In & TV, Alarms, Settings; then the **Systems** list (S1/S2, room count, how many are playing); connection status at the bottom (opens the speaker status list) |
 | Page area | The selected page; opened items stack, with a back button |
 | Right panel | **Rooms** tab: a card per group, in the order the person arranged them (*Arrange* shows up/down arrows on each card; the order is kept as `room_order` in `config.json`, a group standing where its earliest-listed room is, unlisted rooms after, in the speakers' order) (art, track, play/pause, volume, group button, "Plays along with …"), then Group all, Pause all, Ungroup, and the **Groups** section of saved groups. **Queue** tab: the selected group's queue |
 | Bottom bar | Art, title, artist, room and system; shuffle, previous, play/pause, next, repeat; position slider with times (or "Live" for streams); favorite star, queue, group, volume, open player |
@@ -101,6 +101,8 @@ On S1 systems, `https` addresses are relayed through this computer as plain `htt
 
 When a page that reads the speakers' library (Favorites, Playlists, Music Library) can't load, it says so in words that name the speakers, not the internet, shows the technical reason in small print, and offers *Try again*. The request goes to the first room and, if it doesn't answer, to the next (up to four). A failed try is never kept for good: *Try again* asks again.
 
+The Music Library page also holds the sources that used to be on a page of their own: **Podcasts** and **Internet Archive** (cards under *Everything*, and a filter chip each, shown while the source is switched on in Settings › Services) next to **Streaming services**, where each connected service opens its own catalogue. With no service connected the Streaming services section offers *Connect in Settings*, which opens Settings › Services. The sidebar no longer has a Music Services item, and `--view services` opens Settings.
+
 ### 4.4 Streaming services
 Sign-in happens on the service's own web page, with a code when the service uses one. Status as tested on 2026-11-11 against a real S2 system:
 
@@ -111,7 +113,7 @@ Sign-in happens on the service's own web page, with a code when the service uses
 
 - Music plays with the account already added to the system in the speaker maker's app. The account number (`sn`) comes from what's playing, then from favorites, the queue and playlists. If the speakers refuse a song, accounts 1–6 are tried and the one that works is saved. If playback stops within 5 seconds, a note suggests another account number. The number can also be set by hand on the service card.
 - **Check** (each connected service): tries browsing, a search and finding the account, without playing anything, and shows the result in green or red.
-- The Music Services page shows each service as *Connected*, *Ready to connect*, *Favorites only* or *Not offered on this system*.
+- Settings › Services shows each service as *Connected*, *Ready to connect*, *Favorites only* or *Not offered on this system*.
 
 ### 4.5a Long lists
 - Lists of songs, albums, playlists, favorites and stations have a filter box, a sort (*Default order*, *Title A–Z*, *Title Z–A*, *Artist A–Z*, *Album A–Z*, *Longest first*, *Shortest first*; songs with no known length go last) and, where tagged, a genre filter.
@@ -131,7 +133,7 @@ The **Alarms page** is hidden until *Settings › Appearance › Pages you use �
 Create, edit, enable/disable and delete alarms. Each has a time, how often it repeats (every day, weekdays, weekends, once and so on), a room, what to play (the chime or any favorite), a volume and a duration.
 
 ### 4.8 Settings
-The Settings page is a row of six tabs, one shown at a time, in this order: **About**, **Playback**, **Speakers**, **Appearance**, **Assistants** and **Backups**. **About** is selected when the app starts (every time; the chosen tab isn't saved). On a narrow window the tab pills wrap onto a second line; Left and Right move between them. **About** holds the about card and *New versions* (the switch that looks for a new Roomtone and *Check now*); **Playback** holds listening history, lyrics and media keys; **Speakers** holds the rooms of each system, *Connection* (find, add by address, can't-find check, demo), *Software updates* and *Speaker updates* (instant updates); **Appearance** holds light or dark, *Pages you use* (which optional pages show in the sidebar) and the language; **Assistants** holds the assistant link; **Backups** holds saving and restoring backups. Inside a tab with several cards the card titles are smaller; a tab with one card shows no second title. For screenshots, `ROOMTONE_TEST_TAB=speakers` (or `music`, `appearance`, `assistants`, `backups`) opens that tab.
+The Settings page is a row of seven tabs, one shown at a time, in this order: **About**, **Playback**, **Services**, **Speakers**, **Appearance**, **Assistants** and **Backups**. **About** is selected when the app starts (every time; the chosen tab isn't saved). On a narrow window the tab pills wrap onto a second line; Left and Right move between them. **About** holds the about card and *New versions* (the switch that looks for a new Roomtone and *Check now*); **Playback** holds listening history, lyrics and media keys; **Services** holds the switches for the free sources (this computer, radio directory, podcasts, Internet Archive) and connecting streaming services (*Connect*, *Check*, *Disconnect*, the account number); **Speakers** holds the rooms of each system, *Connection* (find, add by address, can't-find check, demo), *Software updates* and *Speaker updates* (instant updates); **Appearance** holds light or dark, *Pages you use* (which optional pages show in the sidebar) and the language; **Assistants** holds the assistant link; **Backups** holds saving and restoring backups. Inside a tab with several cards the card titles are smaller; a tab with one card shows no second title. For screenshots, `ROOMTONE_TEST_TAB=speakers` (or `music`, `services`, `appearance`, `assistants`, `backups`) opens that tab.
 
 The groups hold these things:
 - **Systems and rooms** (model, version, address). A room opens its **room settings**: rename, volume, bass and treble (−10…+10), loudness, night sound and speech enhancement (TV speakers), status light, and details.
@@ -355,5 +357,5 @@ Quick checks that a change hasn't broken behaviour. Each needs no real speakers 
 5. Over HTTP, a request without the key gets 401, one with `Origin: https://example.com` gets 403, and `--mcp-off` closes the port within ~2 s.
 6. In the demo: `play_along` from "Living Room" to "Office", then `playback next` on Living Room, changes Office's track too.
 7. In the demo: `check_for_updates` offers an S2 update and none for S1. `install_update` without `confirm` is refused; with it, the update is installed.
-8. *(real speakers)* Settings › Music Services › *Check* on a connected service shows browsing and search working.
+8. *(real speakers)* Settings › Services › *Check* on a connected service shows browsing and search working.
 9. `roomtone --theme light --screenshot shots/light.png` draws the light palette (and `--theme dark` matches the earlier dark pictures).
