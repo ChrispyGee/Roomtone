@@ -6,6 +6,7 @@ S1 (firmware 11.x) and S2 speakers expose **the same local services**, so one cl
 
 ## 1. Finding speakers
 
+- **SSDP announcements** (`NOTIFY` with `NTS: ssdp:alive` or `ssdp:byebye`, `NT`/`USN` mentioning `ZonePlayer`, `SERVER` mentioning Sonos) are listened for on `239.255.255.250:1900` (the port is shared with other programs). An `alive` from a speaker we aren't talking to starts a search; `byebye` is ignored, since polling notices a speaker that has gone.
 - **SSDP** `M-SEARCH` to `239.255.255.250:1900` (and the broadcast address, also each connection's own), sent out of every connection that is up (not just the default one), with `ST: urn:schemas-upnp-org:device:ZonePlayer:1` and `MX: 1`. Replies carry a `LOCATION` such as `http://<ip>:1400/xml/device_description.xml`.
 - **Device description** (`/xml/device_description.xml`) gives `modelName`, `displayVersion` (e.g. `11.15`, `16.4`) and `softwareVersion` (the build, e.g. `57.19-41110`).
 - **Telling S1 from S2** (`net::discovery::system_from`): display version major below 12, or build major 57 or lower, means S1. Anything newer is S2.
