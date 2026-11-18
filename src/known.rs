@@ -31,6 +31,40 @@ struct KnownHousehold {
     rooms: Vec<KnownRoom>,
     #[serde(default)]
     groups: Vec<KnownGroup>,
+    /// When a room of this system last answered (seconds since 1970); 0 when not recorded yet.
+    #[serde(default)]
+    last_seen: u64,
+}
+
+/// A system that hasn't answered for this long is forgotten (30 days).
+const FORGET_AFTER_SECS: u64 = 30 * 24 * 3600;
+
+fn now() -> u64 {
+    std::time::SystemTime::now().duration_since(std::time::UNIX_EPOCH).map(|d| d.as_secs()).unwrap_or(0)
+}
+
+fn read() -> Vec<KnownHousehold> {
+    path().and_then(|p| std::fs::read_to_string(p).ok()).and_then(|t| serde_json::from_str(&t).ok()).unwrap_or_default()
+}
+
+/// Drop systems not seen for 30 days. One is always kept (the most recently seen), so a long
+/// trip away from home doesn't forget the only system there is. A system with no date yet
+/// counts as seen now, so nothing disappears the first time this runs.
+fn prune(mut list: Vec<KnownHousehold>, now: u64) -> Vec<KnownHousehold> {
+    for h in list.iter_mut().filter(|h| h.last_seen == 0) {
+        h.last_seen = now;
+    }
+    let newest = list.iter().map(|h| h.last_seen).max().unwrap_or(0);
+    let mut kept_newest = false;
+    list.retain(|h| {
+        let fresh = now.saturating_sub(h.last_seen) <= FORGET_AFTER_SECS;
+        let keep_anyway = !fresh && h.last_seen == newest && !kept_newest;
+        if h.last_seen == newest {
+            kept_newest |= fresh || keep_anyway;
+        }
+        fresh || keep_anyway
+    });
+    list
 }
 
 fn path() -> Option<PathBuf> {
@@ -41,9 +75,16 @@ fn path() -> Option<PathBuf> {
 
 /// Remember these systems for next time.
 pub fn save(households: &[Household]) {
+    let before = read();
+    let stamp = now();
     let list: Vec<KnownHousehold> = households
         .iter()
         .map(|h| KnownHousehold {
+            last_seen: if h.rooms.iter().any(|r| r.online == Some(true)) {
+                stamp
+            } else {
+                before.iter().find(|k| k.id == h.id).map(|k| k.last_seen).filter(|t| *t > 0).unwrap_or(stamp)
+            },
             id: h.id.clone(),
             s1: h.system == System::S1,
             rooms: h
@@ -70,8 +111,7 @@ pub fn save(households: &[Household]) {
 
 /// The systems from last time, not yet checked (every room starts as "not checked yet").
 pub fn load() -> Vec<Household> {
-    let Some(text) = path().and_then(|p| std::fs::read_to_string(p).ok()) else { return vec![] };
-    let Ok(list) = serde_json::from_str::<Vec<KnownHousehold>>(&text) else { return vec![] };
+    let list = prune(read(), now());
     list.into_iter()
         .map(|h| {
             let rooms: Vec<Room> = h
@@ -112,6 +152,23 @@ pub fn load() -> Vec<Household> {
 #[cfg(test)]
 mod unit {
     use super::*;
+
+    fn known(id: &str, last_seen: u64) -> KnownHousehold {
+        KnownHousehold { id: id.into(), s1: false, rooms: vec![], groups: vec![], last_seen }
+    }
+
+    #[test]
+    fn systems_not_seen_for_thirty_days_are_forgotten_but_never_the_last_one() {
+        let day = 24 * 3600;
+        let now = 100 * day;
+        let ids = |l: Vec<KnownHousehold>| l.into_iter().map(|h| h.id).collect::<Vec<_>>();
+        let kept = prune(vec![known("home", now - day), known("office", now - 31 * day), known("new", 0)], now);
+        assert_eq!(ids(kept), ["home", "new"], "old one goes; one with no date yet counts as seen now");
+        let kept = prune(vec![known("a", now - 90 * day), known("b", now - 40 * day)], now);
+        assert_eq!(ids(kept), ["b"], "only the most recently seen survives when all are old");
+        let kept = prune(vec![known("a", now - 29 * day), known("b", now - 31 * day)], now);
+        assert_eq!(ids(kept), ["a"]);
+    }
 
     #[test]
     fn speakers_are_remembered() {

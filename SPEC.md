@@ -35,7 +35,7 @@ The source of truth for **what Roomtone does**. Code, tests and docs should agre
 ## 2. Platforms and start-up
 
 - One program for macOS, Windows and Linux, built from the same code.
-- On start, the speakers remembered from last time (`speakers.json`) appear at once and are checked directly. A network search (SSDP) then runs in the background and adds anything new.
+- On start, the speakers remembered from last time (`speakers.json`) appear at once and are checked directly. A network search (SSDP) then runs in the background and adds anything new. A remembered system that hasn't answered for 30 days is forgotten at the next start (the most recently seen system is always kept, and systems saved before the date was recorded count as seen on the first start after the update). Under Settings › Speakers a system whose rooms all failed to answer is marked *Not on this network* and, when it isn't the only one, has a *Forget* button (with a confirmation); a system that answers can't be forgotten, since searching would add it straight back.
 - If no speakers answer, the **demo system** is shown (one made-up S2 system with 5 rooms and one S1 system with 3), so every screen can be tried. A banner says so and offers "Search again".
 - Lost contact (after the computer wakes from sleep, or after three failed polls in a row) triggers an automatic reconnect. Settings also offers a manual **Reconnect**.
 - Group state is polled about every second for the selected group, every 4 s for others and every 20 s for grouping (topology). A full background search runs every 2 minutes.
@@ -286,7 +286,7 @@ All in the app's data folder: `~/Library/Application Support/Roomtone/` (macOS),
 | File | Contents |
 | --- | --- |
 | `config.json` (mode 600 on Unix) | `folders` (paths), `stations` [{`name`, `url`, `genre`}], `podcasts` [{`title`, `author`, `feed`, `art`}], `services` (switched-on free sources: `local`, `radio`, `podcasts`, `archive`), `accounts` [{`sid`, `name`, `uri`, `manifest`, `household`, `device_id`, `token`, `key`, `sn`}], `favorites` (items kept in the app), `groups` [{`name`, `household`, `rooms`}], `language` (`auto` or a code), `theme` (`auto`, `light` or `dark`), `speaker_events` (`true` or `false`), `scenes` [{`name`, `household`, `rooms` [{`room`, `volume`}], `group`, `play`, `sleep_minutes`}], `room_order` (room ids, first to last), `remember_history` (`true` or `false`), `media_keys` (`true` or `false`), `check_new_versions` (`true` or `false`), `last_version_check` (seconds since 1970), `mcp` {`enabled`, `allow_control`, `allow_network`, `port`, `token`} |
-| `speakers.json` | Systems from last time: [{`id`, `s1`, `rooms` [{`uuid`, `name`, `ip`, `model`, `version`}], `groups` [{`coordinator`, `members`}]}] |
+| `speakers.json` | Systems from last time: [{`id`, `s1`, `rooms` [{`uuid`, `name`, `ip`, `model`, `version`}], `groups` [{`coordinator`, `members`}], `last_seen` (seconds since 1970)}] |
 | `songs.json` | `songs`: details (title, artist, album, art) by address, for songs the speakers know only by address; `relays`: relay codes for S1 and the https address each stands for |
 | `window.json` | The window's size, position and maximised state (§4.8) |
 | `history.json` | The listening history: up to 500 entries (song or station, address, play count, last played) (§4.8) |
