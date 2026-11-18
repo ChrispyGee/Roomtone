@@ -129,6 +129,7 @@ Unregister-ScheduledTask -TaskName 'Roomtone'   # remove
 Or run `roomtone.exe --headless` in a terminal window and leave it open.
 
 ### Good to know
+- **No console window.** Roomtone is a window program on Windows, so starting it from the Start menu or a shortcut never opens a black console window. Started from Command Prompt, PowerShell or Windows Terminal it uses that terminal for `--help`, `--mcp-info`, `--headless` and the command-line commands, but those shells don't wait for a window program: the prompt comes back at once, and a script can't read the exit code. In a script use `start /wait roomtone.exe play` (Command Prompt) or `Start-Process -Wait -NoNewWindow roomtone.exe -ArgumentList play` (PowerShell). Assistants that start `roomtone.exe --mcp` are unaffected (their pipes are used).
 - The first time it runs, Windows Firewall may ask whether Roomtone may use the network. **Allow it on private networks**: speakers are found on UDP port 1900 and fetch music from this computer on TCP port 52880.
 - Settings: `%APPDATA%\Roomtone\config.json`.
 - Language "Automatic" uses English on Windows unless `LANG` or `ROOMTONE_LANG` is set; pick a language in Settings instead.
