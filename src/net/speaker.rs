@@ -26,6 +26,8 @@ pub struct GroupPoll {
     pub volume: Option<u8>,
     pub muted: Option<bool>,
     pub sleep_left: Option<u32>,
+    /// An alarm is ringing in this group (`None`: not asked this time).
+    pub alarm_ringing: Option<bool>,
 }
 
 pub fn poll_group(ip: &str, full: bool) -> R<GroupPoll> {
@@ -92,7 +94,7 @@ pub fn poll_group(ip: &str, full: bool) -> R<GroupPoll> {
 
     let s = avt(ip, "GetTransportSettings", &[]).unwrap_or_default();
     let (shuffle, repeat) = parse_play_mode(s.get("PlayMode").map(String::as_str).unwrap_or("NORMAL"));
-    let mut out = GroupPoll { now, shuffle, repeat, crossfade: None, volume: None, muted: None, sleep_left: None };
+    let mut out = GroupPoll { now, shuffle, repeat, crossfade: None, volume: None, muted: None, sleep_left: None, alarm_ringing: None };
     if full {
         out.crossfade = avt(ip, "GetCrossfadeMode", &[]).ok().and_then(|c| c.get("CrossfadeMode").map(|v| v == "1"));
         out.volume = call(ip, GROUP_RENDERING, "GetGroupVolume", &[("InstanceID", "0")]).ok().and_then(|v| v.get("CurrentVolume").and_then(|x| x.parse().ok()));
@@ -102,8 +104,26 @@ pub fn poll_group(ip: &str, full: bool) -> R<GroupPoll> {
             .and_then(|v| v.get("RemainingSleepTimerDuration").cloned())
             .filter(|v| !v.is_empty())
             .map(|v| didl::parse_time(&v) as u32);
+        // An alarm can only be ringing while the group plays, so only ask then.
+        out.alarm_ringing = Some(matches!(out.now.transport, Transport::Playing | Transport::Transitioning) && alarm_is_ringing(ip));
     }
     Ok(out)
+}
+
+/// Whether an alarm is ringing: the speaker answers with the alarm's id; with none ringing it
+/// answers with an error (800, seen on real S1 and S2 speakers).
+pub fn alarm_is_ringing(ip: &str) -> bool {
+    avt(ip, "GetRunningAlarmProperties", &[]).ok().and_then(|r| r.get("AlarmID").cloned()).is_some_and(|id| !id.trim().is_empty())
+}
+
+/// `00:10:00` for ten minutes: how the speaker wants a snooze length.
+pub(crate) fn snooze_length(minutes: u32) -> String {
+    format!("{:02}:{:02}:00", minutes / 60, minutes % 60)
+}
+
+/// Silence the ringing alarm and have it ring again after `minutes`.
+pub fn snooze_alarm(ip: &str, minutes: u32) -> R<()> {
+    avt(ip, "SnoozeAlarm", &[("Duration", &snooze_length(minutes))]).map(|_| ())
 }
 
 pub fn volume(ip: &str) -> R<(u8, bool)> {
@@ -756,6 +776,13 @@ mod unit {
         // Played songs: everything above the fourth.
         remove_range_from_queue(&ip, 0, 3).unwrap();
         assert_eq!(listed(&ip).len(), rest.len() - 3);
+    }
+
+    #[test]
+    fn a_snooze_length_is_written_as_hours_minutes_seconds() {
+        assert_eq!(snooze_length(10), "00:10:00");
+        assert_eq!(snooze_length(5), "00:05:00");
+        assert_eq!(snooze_length(75), "01:15:00");
     }
 
     #[test]

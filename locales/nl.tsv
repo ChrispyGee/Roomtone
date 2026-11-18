@@ -807,3 +807,8 @@ Software updates show how many speakers are done, and when the update has finish
 Adding albums and playlists to the queue is faster, and one tap removes the songs already played	Albums en afspeellijsten aan de wachtrij toevoegen gaat sneller, en met één tik verdwijnen de al gespeelde nummers
 Speakers that start or come back are found within seconds, on every network connection	Speakers die opstarten of terugkomen worden binnen seconden gevonden, via elke netwerkverbinding
 If Roomtone closes unexpectedly it saves a crash log on your computer (never sent anywhere)	Als Roomtone onverwacht sluit, bewaart het een crashlogboek op je computer (wordt nergens naartoe gestuurd)
+Alarm ringing in {room}	De wekker gaat in {room}
+No alarm is ringing in that room right now	In die kamer gaat nu geen wekker af
+Snooze {n} min	{n} min snoozen
+Snoozed: the alarm rings again in {n} minutes	Gesnoozed: de wekker gaat over {n} minuten opnieuw af
+Stop the alarm	Wekker uitzetten

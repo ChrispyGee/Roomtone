@@ -135,6 +135,7 @@ fn base_tools() -> Vec<(&'static str, &'static str, Value, bool)> {
             true,
         ),
         ("seek", "Jump to a point in the current track, in seconds from the start.", json!({"type": "object", "properties": {"room": room, "seconds": {"type": "number", "minimum": 0}}, "required": ["seconds"]}), true),
+        ("snooze_alarm", "Silence an alarm that is ringing in a room and have it ring again after some minutes (default 10). Only works while an alarm is ringing (now_playing shows alarm_ringing).", json!({"type": "object", "properties": {"room": room, "minutes": {"type": "integer", "minimum": 1, "maximum": 1440, "description": "Minutes until it rings again (default 10)"}}}), true),
         ("sleep_timer", "Stop the music in a room after some minutes (0 turns the timer off).", json!({"type": "object", "properties": {"room": room, "minutes": {"type": "integer", "minimum": 0, "maximum": 1440}}, "required": ["minutes"]}), true),
         ("list_favorites", "The system's Favorites (and ones kept in this app). Each has a ref to pass to play.", json!({"type": "object", "properties": {"room": room}}), false),
         ("list_playlists", "Playlists saved on the system. Each has a ref to pass to play.", json!({"type": "object", "properties": {"room": room}}), false),
@@ -441,6 +442,7 @@ impl Mcp {
             "repeat": repeat_word(g.repeat),
             "crossfade": g.crossfade,
             "sleep_timer_minutes_left": g.sleep_left.map(|s| s.div_ceil(60)),
+            "alarm_ringing": g.alarm_ringing,
             "plays_along_with": along,
             "sound": sound_json(g),
         })
@@ -590,6 +592,12 @@ impl Mcp {
                 let secs = a.get("seconds").and_then(|v| v.as_f64()).ok_or("Give seconds from the start.")? as f32;
                 self.wait(Cmd::Seek(gid.clone(), secs.max(0.0)))?;
                 Ok(self.summary(&gid))
+            }
+            "snooze_alarm" => {
+                let (room, gid) = self.room(a)?;
+                let minutes = int_arg("minutes").unwrap_or(10).clamp(1, 1440) as u32;
+                self.wait(Cmd::SnoozeAlarm(gid, minutes))?;
+                Ok(format!("{room}: the alarm is snoozed and rings again in {minutes} minutes"))
             }
             "sleep_timer" => {
                 let (_, gid) = self.room(a)?;
@@ -1240,8 +1248,8 @@ mod unit {
     fn tool_list_and_look_only_mode() {
         let m = link();
         let all = rpc(&m, 1, "tools/list", json!({}))["result"]["tools"].as_array().unwrap().len();
-        assert_eq!(tools().len(), 56);
-        assert_eq!(all, 53, "installing updates and saving files are off until switched on");
+        assert_eq!(tools().len(), 57);
+        assert_eq!(all, 54, "installing updates and saving files are off until switched on");
         let mut names: Vec<&str> = tools().iter().map(|t| t.0).collect();
         names.sort();
         names.dedup();
@@ -1296,6 +1304,20 @@ mod unit {
         let list = ok(&m, "list_favorites", json!({}));
         assert!(list.contains("[fav1]"));
         assert!(tool(&m, "browse", json!({"ref": "nope"})).1);
+    }
+
+    #[test]
+    fn a_ringing_alarm_can_be_snoozed() {
+        let m = link();
+        let gid = m.b.lock().households.iter().flat_map(|h| h.groups.iter()).find(|g| g.members.len() == 1).map(|g| g.id.clone()).unwrap();
+        let room_of = |m: &Mcp| m.b.lock().find_group(&gid).map(|(h, g)| h.group_name(g)).unwrap();
+        let room = room_of(&m);
+        assert!(ok(&m, "now_playing", json!({"room": room})).contains("\"alarm_ringing\": false"));
+        m.b.lock().group_mut(&gid).unwrap().alarm_ringing = true;
+        assert!(ok(&m, "now_playing", json!({"room": room})).contains("\"alarm_ringing\": true"));
+        let said = ok(&m, "snooze_alarm", json!({"room": room, "minutes": 7}));
+        assert!(said.contains("snoozed") && said.contains("7 minutes"), "{said}");
+        assert!(!m.b.lock().find_group(&gid).unwrap().1.alarm_ringing, "the alarm stopped ringing");
     }
 
     #[test]

@@ -4,6 +4,9 @@ All notable changes to Roomtone. The format follows [Keep a Changelog](https://k
 
 ## [Unreleased]
 
+### Added
+- **A ringing alarm can be snoozed.** When a speaker's alarm is ringing, a strip at the top of the window says so, with *Snooze 5 min*, *Snooze 10 min* and *Stop the alarm*, whichever page is open. Assistants get a `snooze_alarm` tool (57 tools in all), and `now_playing` shows `alarm_ringing`. Checked in the demo and with unit tests; the speakers' answer when no alarm rings was read on a real S1 and S2 speaker, but **a real ringing alarm hasn't been tried yet**.
+
 ## [0.9.1] — 2026-11-18
 
 Software updates show how they're going, queue changes are faster, and speakers are found sooner.
