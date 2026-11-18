@@ -2338,10 +2338,10 @@ impl App {
             ui.add_space(6.0);
             ui.label(RichText::new(t!("What's new in this version")).color(TEXT()).strong());
             for line in [
-                t!("Settings is now a row of tabs, and Music Services moved into it as Services"),
-                t!("Systems from other networks are forgotten after 30 days, and Roomtone starts on one that answers"),
-                t!("Favorites and Playlists have a Try again button if your speakers don't answer"),
-                t!("The keyboard media keys are gone: macOS never sent them to Roomtone reliably"),
+                t!("Software updates show how many speakers are done, and when the update has finished"),
+                t!("Adding albums and playlists to the queue is faster, and one tap removes the songs already played"),
+                t!("Speakers that start or come back are found within seconds, on every network connection"),
+                t!("If Roomtone closes unexpectedly it saves a crash log on your computer (never sent anywhere)"),
             ] {
                 ui.horizontal_wrapped(|ui| {
                     ui.label(RichText::new("•").color(ACCENT()));
