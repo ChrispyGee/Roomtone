@@ -35,7 +35,7 @@ The source of truth for **what Roomtone does**. Code, tests and docs should agre
 ## 2. Platforms and start-up
 
 - One program for macOS, Windows and Linux, built from the same code.
-- On start, the speakers remembered from last time (`speakers.json`) appear at once and are checked directly. A network search (SSDP) then runs in the background and adds anything new.
+- On start, the speakers remembered from last time (`speakers.json`) appear at once and are checked directly. A network search (SSDP) then runs in the background and adds anything new. Systems remembered from another network (say, the office) can't answer at home; when the one listed first doesn't answer and another does, the app starts on the one that does.
 - If no speakers answer, the **demo system** is shown (one made-up S2 system with 5 rooms and one S1 system with 3), so every screen can be tried. A banner says so and offers "Search again".
 - Lost contact (after the computer wakes from sleep, or after three failed polls in a row) triggers an automatic reconnect. Settings also offers a manual **Reconnect**.
 - Group state is polled about every second for the selected group, every 4 s for others and every 20 s for grouping (topology). A full background search runs every 2 minutes.
@@ -98,6 +98,8 @@ A **scene** is a named one-click set-up kept in `config.json` (`scenes`): a list
 | Streaming services | Browse, search and play through the speakers' own music-service connection | Sign-in (§4.4) |
 
 On S1 systems, `https` addresses are relayed through this computer as plain `http`, because S1 speakers can't play some secure streams. The relayed address (`http://<this computer>:<port>/p/<code>.<ending>`) carries the original's audio file ending, or `.mp3`, because speakers refuse a plain web address that has none.
+
+When a page that reads the speakers' library (Favorites, Playlists, Music Library) can't load, it says so in words that name the speakers, not the internet, shows the technical reason in small print, and offers *Try again*. The request goes to the first room and, if it doesn't answer, to the next (up to four). A failed try is never kept for good: *Try again* asks again.
 
 ### 4.4 Streaming services
 Sign-in happens on the service's own web page, with a code when the service uses one. Status as tested on 2026-11-11 against a real S2 system:

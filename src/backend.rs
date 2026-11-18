@@ -453,7 +453,10 @@ fn optimistic(s: &mut AppState, cmd: &Cmd) {
             }
         }
         Cmd::Browse(id) => {
-            s.browse.entry(id.clone()).or_insert(Browse::Loading);
+            // A failed try is asked again (the Try again button); anything else keeps what it has.
+            if !matches!(s.browse.get(id), Some(Browse::Ready(_) | Browse::Loading)) {
+                s.browse.insert(id.clone(), Browse::Loading);
+            }
         }
         Cmd::Search(t) => {
             for src in crate::sources::SEARCH_SOURCES {
@@ -700,6 +703,18 @@ fn need(o: Option<String>, what: &str) -> Result<String, String> {
     o.ok_or_else(|| crate::t!("{what} isn't available right now", what = crate::i18n::tr(what)))
 }
 
+/// Browse the speakers' library, asking the next room if one doesn't answer (up to four rooms).
+fn browse_any(ips: &[String], id: &str) -> Result<Vec<crate::model::Item>, String> {
+    let mut last = String::new();
+    for ip in ips.iter().take(4) {
+        match speaker::browse(ip, id) {
+            Ok(items) => return Ok(items),
+            Err(e) => last = e,
+        }
+    }
+    Err(last)
+}
+
 fn run_live(b: &Backend, ctx: &Waker, cmd: Cmd) -> Result<(), String> {
     let coord = |g: &str| need(b.lock().coordinator_ip(g), n_!("That room"));
     let room_ip = |r: &str| need(b.lock().room_ip(r), n_!("That speaker"));
@@ -751,11 +766,12 @@ fn run_live(b: &Backend, ctx: &Waker, cmd: Cmd) -> Result<(), String> {
         Cmd::RoomVolume(r, v) => speaker::set_volume(&room_ip(&r)?, v),
         Cmd::RoomMute(r, m) => speaker::set_mute(&room_ip(&r)?, m),
         Cmd::Browse(id) => {
-            let ip = need(b.lock().any_ip(), n_!("Your music library"))?;
+            let ips = b.lock().room_ips();
+            need(ips.first().cloned(), n_!("Your music library"))?;
             let b2 = b.clone();
             let ctx = ctx.clone();
             thread::spawn(move || {
-                let result = match speaker::browse(&ip, &id) {
+                let result = match browse_any(&ips, &id) {
                     Ok(mut items) => {
                         crate::sources::memory::enrich(&mut items);
                         Browse::Ready(items)
@@ -1901,12 +1917,28 @@ fn quick_start(b: &Backend, ctx: &Waker) -> Result<(), String> {
                 r.problem = crate::t!("Not answering at its last known address").into();
             }
         }
+        prefer_reachable_system(&mut s);
         s.toast(crate::t!("Some speakers from last time aren't answering yet. Still looking…"), true);
     }
     ctx.request_repaint();
     let (b2, ctx2) = (b.clone(), ctx.clone());
     thread::spawn(move || background_scan(&b2, &ctx2));
     Ok(())
+}
+
+/// Systems remembered from another network can't answer here. If the one shown first doesn't,
+/// and another one does, start on the one that does (its rooms, its library, its playlists).
+fn prefer_reachable_system(s: &mut AppState) {
+    let answers = |h: &Household| h.rooms.iter().any(|r| r.online == Some(true));
+    if s.households.get(s.active).is_some_and(answers) {
+        return;
+    }
+    if let Some(i) = s.households.iter().position(answers) {
+        s.active = i;
+        s.selected_group = None;
+        s.browse.clear();
+        s.ensure_selection();
+    }
 }
 
 /// Everything by one artist: albums on this computer, in the system's library and on
@@ -3271,6 +3303,45 @@ mod unit {
         assert_eq!(scale_volume(30, 30, 60), 60);
         assert_eq!(scale_volume(80, 40, 100), 100, "never above 100");
         assert_eq!(scale_volume(10, 0, 25), 25, "from silence every room takes the new level");
+    }
+
+    #[test]
+    fn startup_prefers_a_system_that_answers_over_one_remembered_from_another_network() {
+        let mut s = AppState::default();
+        demo::load(&mut s);
+        assert!(s.households.len() >= 2);
+        for r in s.households[0].rooms.iter_mut() {
+            r.online = Some(false);
+        }
+        for r in s.households[1].rooms.iter_mut() {
+            r.online = Some(true);
+        }
+        s.active = 0;
+        prefer_reachable_system(&mut s);
+        assert_eq!(s.active, 1);
+        // Already on one that answers: stay.
+        prefer_reachable_system(&mut s);
+        assert_eq!(s.active, 1);
+        // Nothing answers: stay where we are.
+        for h in s.households.iter_mut() {
+            for r in h.rooms.iter_mut() {
+                r.online = Some(false);
+            }
+        }
+        s.active = 0;
+        prefer_reachable_system(&mut s);
+        assert_eq!(s.active, 0);
+    }
+
+    #[test]
+    fn a_failed_browse_is_asked_again_but_a_finished_one_is_kept() {
+        let mut s = AppState::default();
+        s.browse.insert("FV:2".into(), Browse::Failed("Browse: timed out".into()));
+        optimistic(&mut s, &Cmd::Browse("FV:2".into()));
+        assert!(matches!(s.browse.get("FV:2"), Some(Browse::Loading)), "asking again shows the spinner");
+        s.browse.insert("SQ:".into(), Browse::Ready(vec![]));
+        optimistic(&mut s, &Cmd::Browse("SQ:".into()));
+        assert!(matches!(s.browse.get("SQ:"), Some(Browse::Ready(_))));
     }
 
     #[test]
