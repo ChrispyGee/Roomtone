@@ -20,7 +20,7 @@ use crate::net::speaker::PlayHow;
 mod extra;
 pub mod notify;
 
-const PROTOCOLS: &[&str] = &["2025-06-18", "2025-03-26", "2024-11-05"];
+const PROTOCOLS: &[&str] = &["2025-11-25", "2025-06-18", "2025-03-26", "2024-11-05"];
 
 #[derive(Clone)]
 pub struct Mcp {
@@ -254,7 +254,7 @@ impl Mcp {
                         "prompts": {"listChanged": false},
                         "completions": {}
                     },
-                    "serverInfo": {"name": "roomtone", "title": "Roomtone", "version": env!("CARGO_PKG_VERSION")},
+                    "serverInfo": {"name": "roomtone", "title": "Roomtone", "version": env!("CARGO_PKG_VERSION"), "description": "Controls S1 and S2 wireless speakers on the home network"},
                     "instructions": "Controls S1 and S2 wireless speakers on the home network. Start with get_status to learn the room names. \
                 Rooms are named as in the app; most tools take a room and act on the group it belongs to. \
                 Use browse, list_favorites, list_playlists or search to get refs, then play one. \
@@ -1177,6 +1177,9 @@ mod unit {
         let m = link();
         let r = rpc(&m, 1, "initialize", json!({"protocolVersion": "2025-03-26"}));
         assert_eq!(r["result"]["protocolVersion"], "2025-03-26", "the client's version when supported");
+        let r = rpc(&m, 4, "initialize", json!({"protocolVersion": "2025-11-25"}));
+        assert_eq!(r["result"]["protocolVersion"], "2025-11-25", "the newest published revision is understood");
+        assert_eq!(r["result"]["serverInfo"]["name"], "roomtone");
         let caps = &r["result"]["capabilities"];
         for c in ["tools", "resources", "prompts", "completions"] {
             assert!(caps.get(c).is_some(), "missing capability {c}");

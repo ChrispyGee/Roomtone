@@ -192,7 +192,7 @@ Both modes re-read the settings file every 2 s, so switching the link off in the
 A tool in a switched-off group isn't listed and is refused with a plain sentence naming the setting. Command line, each one saves and quits: `--mcp-on`, `--mcp-off`, `--mcp-read-only`, `--mcp-allow-control`, `--mcp-allow` / `--mcp-deny` `saved|alarms|names|updates`, `--mcp-files <folder>`, `--mcp-files-off`, `--mcp-port <port>`. `--mcp-info` prints the address and key. Settings also offers *Copy setup* (a ready-made `mcpServers` block), *Copy web address*, *Copy access key*, and a collapsible **How to connect on <platform>** with copyable commands.
 
 ### 6.2 Protocol
-- JSON-RPC 2.0 with MCP protocol versions `2025-06-18`, `2025-03-26` and `2024-11-05` (the client's choice if supported, otherwise the newest).
+- JSON-RPC 2.0 with MCP protocol versions `2025-11-25`, `2025-06-18`, `2025-03-26` and `2024-11-05` (the client's choice if supported, otherwise the newest).
 - Methods: `initialize`, `ping`, `tools/list`, `tools/call`, `resources/list`, `resources/templates/list`, `resources/read`, `resources/subscribe`, `resources/unsubscribe`, `prompts/list`, `prompts/get` and `completion/complete`. Notifications get no reply. Batches are accepted. Capabilities: tools, resources, prompts and completions (none of them send change notifications).
 - HTTP (Streamable HTTP, JSON responses only):
   - `POST /mcp` for requests. `initialize` is answered with an `Mcp-Session-Id` header; an assistant that sends it back on later requests has its own change subscriptions (§6.4). `GET /mcp` with `Accept: text/event-stream` and that header opens an event stream carrying `notifications/resources/updated`; `DELETE` with the header ends the session. Other `GET`s return 405.
