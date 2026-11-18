@@ -180,11 +180,11 @@ Both modes re-read the settings file every 2 s, so switching the link off in the
 | --- | --- | --- |
 | Let AI assistants use Roomtone | **off** | When off, every request is refused (stdio: error −32001) and the HTTP port is closed |
 | Assistants can change things | on | Off: only the look-only tools are listed; the others are refused. Look-only beats every switch below |
-| Saved items | on | Within *change things*: `add_favorite`, `remove_favorite`, `save_queue_as_playlist`, `add_station`, `remove_station`, `subscribe_podcast`, `unsubscribe_podcast`, `save_group`, `delete_saved_group` |
+| Saved items | on | Within *change things*: `add_favorite`, `remove_favorite`, `save_queue_as_playlist`, `add_station`, `remove_station`, `subscribe_podcast`, `unsubscribe_podcast`, `save_group`, `delete_saved_group`, `save_scene`, `delete_scene` |
 | Alarms | on | `create_alarm`, `delete_alarm`, `set_alarm_enabled` |
 | Room names and sound | on | `rename_room`, `set_sound` |
 | Speaker updates | **off** | `install_update` (still refused unless `confirm: true`) |
-| Save files | **off** | `save_backup`. Needs a **folder** (`files_folder`) chosen in Settings: files are written only there, a bare file name goes in it, a longer path must already point into it, `..` is refused, the name must end in `.json` and nothing is overwritten |
+| Save files | **off** | `save_backup`, `export_playlist`. Needs a **folder** (`files_folder`) chosen in Settings: files are written only there, a bare file name goes in it, a longer path must already point into it, `..` is refused, the name must end in `.json` and nothing is overwritten |
 | Allow other computers | off | Off: listen on 127.0.0.1 only and accept only local `Host` names. On: listen on all interfaces (Settings only, not on the command line) |
 | Port | 8790 | HTTP port |
 | Access key | random 32 hex characters | Required as `Authorization: Bearer <key>` on HTTP. *New key* replaces it |
@@ -205,7 +205,7 @@ Rooms are given by name (exact, or a unique part of a name) or id. Leaving the r
 
 | Tool | Does |
 | --- | --- |
-| `get_status` *(read)* | Every system, room, group, what's playing, volumes, play mode, play-along links and saved groups (JSON) |
+| `get_status` *(read)* | Every system, room (model, software version and, when known, wired or wireless), group, what's playing (with the sound details the speaker reports: format, sample rate, bit depth, bitrate, lossless), volumes, play mode, play-along links and saved groups (JSON) |
 | `now_playing` *(read)* | One room's group: track, position, state, volume, play mode, sleep timer |
 | `playback` | `scene <name>`, `scenes`, `backup <file.json>`, `play`, `pause`, `toggle`, `next`, `previous` |
 | `set_volume` | Absolute `volume` 0–100 or relative `change`; `whole_group` for the group |
@@ -228,6 +228,9 @@ Rooms are given by name (exact, or a unique part of a name) or id. Leaving the r
 | `install_update` | Installs on every speaker of a room's system; refused unless `confirm: true` |
 | `browse` *(read)* | Step through the sources: without a ref the top level (favorites, playlists, library, this computer, radio, podcasts, Internet Archive, services); with a ref, what's inside (refs `b1`…) |
 | `save_backup` | Writes a backup `.json` of the system's favorites, playlists and alarms and Roomtone's own lists and settings to a new file on this computer (never overwrites; `.json` only). Reads the speakers; restoring stays in the app |
+| `save_scene`, `delete_scene` | Make or replace a scene (rooms with optional volumes, group or not, a favorite or playlist by name, a sleep timer; rooms in one system) and delete one. In the *Saved items* switch |
+| `check_s2` *(read)*, `diagnose_network` *(read)* | Which speakers could move to S2 (the app's *Check my speakers*); the *Can't find your speakers?* check as a report with no names or addresses |
+| `export_playlist` | Save a playlist (a ref from `list_playlists`) as `.m3u`, `.m3u8`, `.pls`, `.xspf`, `.csv` or `.json` in the folder chosen for assistants; same folder rules and switch as `save_backup` (*Save files*) |
 | `list_scenes` *(read)*, `apply_scene` | The saved scenes; do one by name (groups its rooms, sets volumes, starts what it plays, sets its timer) |
 | `list_recent` *(read)* | Recently played from this app (refs `rec1`…) |
 | `add_favorite`, `remove_favorite` | Save a ref or what's playing (`current: true`); remove by ref from `list_favorites` |
@@ -341,7 +344,7 @@ Quick checks that a change hasn't broken behaviour. Each needs no real speakers 
 
 1. `cargo test` passes: 103 unit tests, including that every phrase is translated and placeholders are kept.
 2. `roomtone --screenshot shots/x.png` saves a non-blank picture of the demo system within a few seconds.
-3. `roomtone --mcp --demo` with an `initialize` line, then `tools/list`, lists 51 tools when control is allowed and 15 when look-only.
+3. `roomtone --mcp --demo` with an `initialize` line, then `tools/list`, lists 53 tools when control is allowed (with speaker updates and saving files left off, as they are by default; 56 with every switch on) and 17 when look-only.
 4. With the link off, `tools/call` answers error −32001.
 5. Over HTTP, a request without the key gets 401, one with `Origin: https://example.com` gets 403, and `--mcp-off` closes the port within ~2 s.
 6. In the demo: `play_along` from "Living Room" to "Office", then `playback next` on Living Room, changes Office's track too.
