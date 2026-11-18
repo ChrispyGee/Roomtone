@@ -1539,35 +1539,41 @@ impl App {
         let target = s.find_group(&gid).map(|(h, g)| h.group_name(g)).unwrap_or_default();
         self.header(ui, t!("Line-In & TV"), &t!("Play a connected source in {room}", room = target));
         let mut any = false;
+        // One row per speaker, with all of its inputs on that row.
         for r in &h.rooms {
             let mut sources = vec![];
             if r.has_line_in() {
-                sources.push((Icon::Input, t!("Line-In"), false));
+                sources.push((t!("Line-In"), false));
             }
             if r.has_tv() {
-                sources.push((Icon::Tv, t!("TV"), true));
+                sources.push((t!("TV"), true));
             }
-            for (icon, label, tv) in sources {
-                any = true;
-                card_frame().show(ui, |ui| {
-                    ui.set_width(ui.available_width());
-                    ui.horizontal(|ui| {
-                        let (b, _) = ui.allocate_exact_size(vec2(44.0, 44.0), Sense::hover());
-                        ui.painter().rect_filled(b, 12.0, SURFACE_HI());
-                        paint_icon(ui.painter(), b.shrink(11.0), icon, ACCENT());
-                        ui.vertical(|ui| {
-                            ui.label(RichText::new(format!("{} · {}", label, r.name)).size(15.0).color(TEXT()));
-                            ui.label(RichText::new(if r.model.is_empty() { t!("Speaker").to_string() } else { r.model.clone() }).size(12.0).color(TEXT_DIM()));
-                        });
-                        ui.with_layout(Layout::right_to_left(Align::Center), |ui| {
-                            if pill(ui, Some(Icon::Play), t!("Play"), false).clicked() {
-                                self.send(if tv { Cmd::Tv(gid.clone(), r.uuid.clone()) } else { Cmd::LineIn(gid.clone(), r.uuid.clone()) });
+            if sources.is_empty() {
+                continue;
+            }
+            any = true;
+            card_frame().show(ui, |ui| {
+                ui.set_width(ui.available_width());
+                ui.horizontal(|ui| {
+                    let (b, _) = ui.allocate_exact_size(vec2(44.0, 44.0), Sense::hover());
+                    ui.painter().rect_filled(b, 12.0, SURFACE_HI());
+                    paint_icon(ui.painter(), b.shrink(11.0), if sources.iter().any(|(_, tv)| *tv) { Icon::Tv } else { Icon::Input }, ACCENT());
+                    ui.vertical(|ui| {
+                        ui.set_max_width((ui.available_width() - 60.0 - 130.0 * sources.len() as f32).max(120.0));
+                        ui.label(RichText::new(&r.name).size(15.0).color(TEXT()));
+                        ui.label(RichText::new(if r.model.is_empty() { t!("Speaker").to_string() } else { r.model.clone() }).size(12.0).color(TEXT_DIM()));
+                    });
+                    ui.with_layout(Layout::right_to_left(Align::Center), |ui| {
+                        for (label, tv) in sources.iter().rev() {
+                            let hint = t!("Play {source} from {room}", source = label, room = r.name);
+                            if pill(ui, Some(Icon::Play), label, false).on_hover_text(hint).clicked() {
+                                self.send(if *tv { Cmd::Tv(gid.clone(), r.uuid.clone()) } else { Cmd::LineIn(gid.clone(), r.uuid.clone()) });
                             }
-                        });
+                        }
                     });
                 });
-                ui.add_space(8.0);
-            }
+            });
+            ui.add_space(8.0);
         }
         if !any {
             ui.label(RichText::new(t!("None of your speakers look like they have a line-in or TV connection.")).color(TEXT_DIM()));

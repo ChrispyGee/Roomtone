@@ -123,7 +123,7 @@ Sign-in happens on the service's own web page, with a code when the service uses
 One box searches every source in parallel: library, favorites (by title, artist, album, description or service name), playlists, this computer, My stations, the radio directory, podcasts, the Internet Archive and each connected service. Results are grouped by type (artists, albums, songs, playlists, stations, podcasts, episodes, folders). There are source and type filters, a genre filter and sort orders. A source that fails says so; the others still show.
 
 ### 4.6 Line-In & TV
-Plays a speaker's line-in or TV input in the selected room. Which speakers have them is guessed from the model name. A speaker without the socket refuses.
+Plays a speaker's line-in or TV input in the selected room. Each speaker with an input has one row, with a button for each of its inputs. Which speakers have them is guessed from the model name. A speaker without the socket refuses.
 
 ### 4.7 Alarms
 The **Alarms page** is hidden until *Settings › Appearance › Pages you use › Show Alarms* is switched on (`show_alarms`, off by default; the speakers' alarms keep working either way, and assistants have their own switch, §6.1). The **Scenes page** and its Home shortcuts follow *Show Scenes* (`show_scenes`; off by default, except that someone who already has scenes keeps seeing them until they choose). A hidden page isn't in the sidebar and can't be opened (`--view` is the exception only for the test hook `ROOMTONE_TEST_PAGES=1`, which shows both for screenshots).

@@ -8,6 +8,7 @@ All notable changes to Roomtone. The format follows [Keep a Changelog](https://k
 - **Old systems are forgotten.** A system Roomtone remembered from another network (the office, a friend's house) is dropped after 30 days without answering, and under Settings › Speakers a system that isn't answering is marked **Not on this network** with a **Forget** button. The most recently seen system is always kept, one that answers can't be forgotten, and the systems are listed (and the app starts) with the most recently seen first.
 
 ### Changed
+- **Line-In & TV shows one row per speaker**, with a button for each of its inputs (Line-In, TV), instead of a separate row for each input.
 - **Pages you use moved to Settings › Appearance**, between the theme and the language, since it decides what the sidebar shows. Nothing else changed.
 - **Settings is tidier**: a row of six tabs, one shown at a time, in a sensible order: **About** (selected when the app starts), **Playback**, **Speakers** (the rooms of each system, finding and adding speakers, software updates and instant updates, all together), **Appearance**, **Assistants** and **Backups**. *New versions* moved into About and *Pages you use* into Playback. Nothing was removed; settings and their `config.json` fields are unchanged. The chosen tab isn't saved.
 
