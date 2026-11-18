@@ -36,6 +36,7 @@ These work on the demo system but haven't been confirmed on real hardware. Repor
 ## Known limits (by design, for now)
 
 - S1 and S2 can't truly group; *play along* is the stand-in.
+- **Setting up a new speaker isn't possible from Roomtone.** A speaker that has never been set up belongs to no system (it shows *Not set up yet*). Adding it to a system needs the maker's own set-up channel, which requires the maker's certificates and a signed handshake, and registering a speaker with an account goes through the maker's cloud. Roomtone has neither, so set a new speaker up once with the Sonos app; Roomtone controls it from then on. (The speakers' open control interface has no way to create or join a system, and its `EnterConfigMode` action refuses requests on a Play:3, checked read-only on 2026-11-18.)
 - Apple Music, YouTube Music and SoundCloud only play saved favorites (the providers block third-party sign-in).
 - *Play along* links aren't saved between runs.
 - "Automatic" language on Windows reads only environment variables.
