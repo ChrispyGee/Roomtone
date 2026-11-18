@@ -19,7 +19,7 @@ Only the latest release gets security fixes.
 ## What's in scope
 
 - **The assistant link (MCP)**: authentication (the access key), the `Origin` and `Host` checks, look-only mode, the on/off switch, and anything that lets a web page or another computer reach it when it shouldn't.
-- **The music server** on port 52880: serving files outside the folders the person added.
+- **The music server** on port 52880: serving files outside the folders the person added, answering computers that aren't on a local network, and any way to make it stall or use up memory (it has read and write time-outs, a cap on request size and a cap of 64 connections).
 - **Stored secrets**: sign-in tokens and the access key in `config.json`.
 - Anything that could install the wrong software on speakers, or move an S1 system to S2.
 

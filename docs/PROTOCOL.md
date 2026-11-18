@@ -62,7 +62,7 @@ The app adds ids of its own for other sources, all handled in `run_common`, neve
 | `x-sonos-http:<id>.mp4?sid=…&sn=…` | A track from a service |
 | `x-sonos-spotify:<id>?sid=9&…` | A Spotify track |
 | `x-rincon-cpcontainer:<prefix><id>?sid=…` | A service's album or playlist as a whole (prefix `1004206c` album, `1006206c` playlist, `10052064` artist) |
-| `http://<this computer>:52880/t/<code>` | A song served from this computer (`sources::local`) |
+| `http://<this computer>:52880/t/<code>` | A song served from this computer (`sources::local`). Answers only local-network addresses, with time-outs and size and connection limits |
 
 Metadata goes with every address as DIDL-Lite (`net::didl`). Service items carry `<desc id="cdudn">SA_RINCON<sid*256+7>_X_#Svc<sid*256+7>-0-Token</desc>`, which also tells which service a favorite came from (`sources::from_service`).
 
