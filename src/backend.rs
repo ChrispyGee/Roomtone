@@ -38,6 +38,8 @@ pub enum Cmd {
     LoadQueue(String),
     PlayQueueIndex(String, usize),
     RemoveFromQueue(String, usize),
+    /// Take this many songs out of the queue in one go, starting at this place (from 0).
+    RemoveRangeFromQueue(String, usize, usize),
     MoveInQueue(String, usize, usize),
     ClearQueue(String),
     SaveQueue(String, String),
@@ -868,6 +870,10 @@ fn run_live(b: &Backend, ctx: &Waker, cmd: Cmd) -> Result<(), String> {
         }
         Cmd::RemoveFromQueue(g, i) => {
             speaker::remove_from_queue(&coord(&g)?, i)?;
+            load_queue(b, &g)
+        }
+        Cmd::RemoveRangeFromQueue(g, i, n) => {
+            speaker::remove_range_from_queue(&coord(&g)?, i, n)?;
             load_queue(b, &g)
         }
         Cmd::MoveInQueue(g, from, to) => {

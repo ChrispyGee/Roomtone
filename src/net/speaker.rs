@@ -234,28 +234,133 @@ pub fn enqueue_many(ip: &str, coordinator: &str, items: &[Item], how: PlayHow) -
         PlayHow::End | PlayHow::Replace => 0,
     };
     let mut first: Option<u32> = None;
-    for item in items.iter().filter(|i| !i.uri.is_empty() && !i.is_stream()) {
-        let meta = didl::metadata_for(item);
-        let reply = avt(
-            ip,
-            "AddURIToQueue",
-            &[
-                ("EnqueuedURI", &item.uri),
-                ("EnqueuedURIMetaData", &meta),
-                ("DesiredFirstTrackNumberEnqueued", &position.to_string()),
-                ("EnqueueAsNext", if position > 0 { "1" } else { "0" }),
-            ],
-        )?;
-        let n: u32 = reply.get("FirstTrackNumberEnqueued").and_then(|x| x.parse().ok()).unwrap_or(1);
-        first.get_or_insert(n);
-        if position > 0 {
-            position += 1;
+    let queueable: Vec<&Item> = items.iter().filter(|i| !i.uri.is_empty() && !i.is_stream()).collect();
+    for run in queue_runs(&queueable) {
+        let one_by_one = |songs: &[&Item], position: &mut u32, first: &mut Option<u32>| -> R<()> {
+            for item in songs {
+                let reply = add_to_queue(ip, item, *position)?;
+                first.get_or_insert(reply);
+                if *position > 0 {
+                    *position += 1;
+                }
+            }
+            Ok(())
+        };
+        match run {
+            Run::Single(item) => one_by_one(&[item], &mut position, &mut first)?,
+            Run::Batch(songs) => match add_many_to_queue(ip, &songs, position) {
+                Ok((n, added)) => {
+                    first.get_or_insert(n);
+                    if position > 0 {
+                        position += added;
+                    }
+                }
+                // A speaker that doesn't take the batch: the same songs, one at a time.
+                Err(_) => one_by_one(&songs, &mut position, &mut first)?,
+            },
         }
     }
     if matches!(how, PlayHow::Now | PlayHow::Replace) {
         avt(ip, "SetAVTransportURI", &[("CurrentURI", &queue_uri(coordinator)), ("CurrentURIMetaData", "")])?;
         avt(ip, "Seek", &[("Unit", "TRACK_NR"), ("Target", &first.unwrap_or(1).max(1).to_string())])?;
         play(ip)?;
+    }
+    Ok(())
+}
+
+/// The most songs sent to the speaker in one go.
+const BATCH: usize = 16;
+
+/// How to send some songs: several at once, or one alone.
+#[derive(Debug, PartialEq)]
+pub(crate) enum Run<'a> {
+    Batch(Vec<&'a Item>),
+    Single(&'a Item),
+}
+
+/// Group songs, in order, into runs of up to `BATCH`. A song whose address has a space in it
+/// can't ride in a batch (the addresses are separated by spaces), so it goes alone.
+pub(crate) fn queue_runs<'a>(songs: &[&'a Item]) -> Vec<Run<'a>> {
+    let mut runs: Vec<Run> = vec![];
+    let mut batch: Vec<&Item> = vec![];
+    fn flush<'a>(runs: &mut Vec<Run<'a>>, batch: &mut Vec<&'a Item>) {
+        match batch.len() {
+            0 => {}
+            1 => runs.push(Run::Single(batch[0])),
+            _ => runs.push(Run::Batch(std::mem::take(batch))),
+        }
+        batch.clear();
+    }
+    for &song in songs {
+        if song.uri.contains(char::is_whitespace) {
+            flush(&mut runs, &mut batch);
+            runs.push(Run::Single(song));
+            continue;
+        }
+        batch.push(song);
+        if batch.len() == BATCH {
+            flush(&mut runs, &mut batch);
+        }
+    }
+    flush(&mut runs, &mut batch);
+    runs
+}
+
+/// Add one song to the queue at `position` (0: the end). Returns the number it was given.
+fn add_to_queue(ip: &str, item: &Item, position: u32) -> R<u32> {
+    let meta = didl::metadata_for(item);
+    let reply = avt(
+        ip,
+        "AddURIToQueue",
+        &[
+            ("EnqueuedURI", &item.uri),
+            ("EnqueuedURIMetaData", &meta),
+            ("DesiredFirstTrackNumberEnqueued", &position.to_string()),
+            ("EnqueueAsNext", if position > 0 { "1" } else { "0" }),
+        ],
+    )?;
+    Ok(reply.get("FirstTrackNumberEnqueued").and_then(|x| x.parse().ok()).unwrap_or(1))
+}
+
+/// Add several songs in one request. Returns the number the first was given and how many were added.
+fn add_many_to_queue(ip: &str, songs: &[&Item], position: u32) -> R<(u32, u32)> {
+    let uris = songs.iter().map(|s| s.uri.as_str()).collect::<Vec<_>>().join(" ");
+    let metas = songs.iter().map(|s| didl::metadata_for(s)).collect::<Vec<_>>().join(" ");
+    let reply = avt(
+        ip,
+        "AddMultipleURIsToQueue",
+        &[
+            ("UpdateID", "0"),
+            ("NumberOfURIs", &songs.len().to_string()),
+            ("EnqueuedURIs", &uris),
+            ("EnqueuedURIsMetaData", &metas),
+            ("ContainerURI", ""),
+            ("ContainerMetaData", ""),
+            ("DesiredFirstTrackNumberEnqueued", &position.to_string()),
+            ("EnqueueAsNext", if position > 0 { "1" } else { "0" }),
+        ],
+    )?;
+    let first = reply.get("FirstTrackNumberEnqueued").and_then(|x| x.parse().ok()).unwrap_or(1);
+    let added = reply.get("NumTracksAdded").and_then(|x| x.parse().ok()).unwrap_or(songs.len() as u32);
+    Ok((first, added))
+}
+
+/// Take `count` songs out of the queue in one request, starting at `index` (0-based). A
+/// speaker that doesn't take the range gets them removed one at a time, last first, so the
+/// numbers of the others don't shift under us.
+pub fn remove_range_from_queue(ip: &str, index: usize, count: usize) -> R<()> {
+    if count == 0 {
+        return Ok(());
+    }
+    if count == 1 {
+        return remove_from_queue(ip, index);
+    }
+    let range = avt(ip, "RemoveTrackRangeFromQueue", &[("UpdateID", "0"), ("StartingIndex", &(index + 1).to_string()), ("NumberOfTracks", &count.to_string())]);
+    if range.is_ok() {
+        return Ok(());
+    }
+    for i in (index..index + count).rev() {
+        remove_from_queue(ip, i)?;
     }
     Ok(())
 }
@@ -603,6 +708,41 @@ pub fn begin_update(ip: &str, url: &str) -> R<()> {
 #[cfg(test)]
 mod unit {
     use super::*;
+
+    fn song(uri: &str) -> Item {
+        Item { uri: uri.into(), title: "t".into(), ..Default::default() }
+    }
+
+    #[test]
+    fn songs_are_sent_in_batches_in_order() {
+        let items: Vec<Item> = (0..40).map(|n| song(&format!("x-file-cifs://nas/music/{n}.mp3"))).collect();
+        let refs: Vec<&Item> = items.iter().collect();
+        let runs = queue_runs(&refs);
+        let sizes: Vec<usize> = runs.iter().map(|r| if let Run::Batch(b) = r { b.len() } else { 1 }).collect();
+        assert_eq!(sizes, [16, 16, 8]);
+        let order: Vec<&str> = runs.iter().flat_map(|r| if let Run::Batch(b) = r { b.iter().map(|i| i.uri.as_str()).collect() } else { vec![] }).collect();
+        assert_eq!(order[0], "x-file-cifs://nas/music/0.mp3");
+        assert_eq!(order[39], "x-file-cifs://nas/music/39.mp3");
+    }
+
+    #[test]
+    fn a_song_with_a_space_in_its_address_goes_alone_and_keeps_its_place() {
+        let items = [song("a://1"), song("a://2"), song("a://my song.mp3"), song("a://4"), song("a://5")];
+        let refs: Vec<&Item> = items.iter().collect();
+        let runs = queue_runs(&refs);
+        assert_eq!(runs.len(), 3);
+        assert!(matches!(&runs[0], Run::Batch(b) if b.len() == 2));
+        assert!(matches!(&runs[1], Run::Single(i) if i.uri == "a://my song.mp3"));
+        assert!(matches!(&runs[2], Run::Batch(b) if b.len() == 2));
+    }
+
+    #[test]
+    fn one_song_is_not_a_batch() {
+        let items = [song("a://1")];
+        let refs: Vec<&Item> = items.iter().collect();
+        assert!(matches!(queue_runs(&refs).as_slice(), [Run::Single(_)]));
+        assert!(queue_runs(&[]).is_empty());
+    }
 
     #[test]
     fn update_offers() {

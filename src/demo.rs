@@ -585,19 +585,8 @@ pub fn apply(s: &mut AppState, cmd: &Cmd) {
                 set_from_queue(g, *i);
             }
         }
-        Cmd::RemoveFromQueue(g, i) => {
-            if let Some(g) = s.group_mut(g) {
-                let cur = g.now.track_no as usize;
-                if let Some(q) = g.queue.as_mut() {
-                    if *i < q.len() {
-                        q.remove(*i);
-                    }
-                }
-                if !g.now.is_stream && *i + 1 < cur {
-                    g.now.track_no -= 1;
-                }
-            }
-        }
+        Cmd::RemoveFromQueue(g, i) => remove_range(s, g, *i, 1),
+        Cmd::RemoveRangeFromQueue(g, i, n) => remove_range(s, g, *i, *n),
         Cmd::MoveInQueue(g, from, to) => {
             if let Some(g) = s.group_mut(g) {
                 let cur = g.now.track_no as usize;
@@ -697,6 +686,51 @@ pub fn apply(s: &mut AppState, cmd: &Cmd) {
             if let Some(list) = s.alarms.as_mut() {
                 list.retain(|a| &a.id != id);
             }
+        }
+    }
+}
+
+#[cfg(test)]
+mod range_tests {
+    use super::*;
+
+    #[test]
+    fn removing_played_songs_keeps_the_playing_song_playing() {
+        let mut s = AppState::default();
+        load(&mut s);
+        let gid = s.households[0].groups[0].id.clone();
+        let (len, title) = {
+            let g = s.group_mut(&gid).unwrap();
+            g.now.track_no = 4;
+            let q = g.queue.as_ref().unwrap();
+            (q.len(), q[3].title.clone())
+        };
+        remove_range(&mut s, &gid, 0, 3);
+        let g = s.group_mut(&gid).unwrap();
+        assert_eq!(g.queue.as_ref().unwrap().len(), len - 3);
+        assert_eq!(g.now.track_no, 1);
+        assert_eq!(g.queue.as_ref().unwrap()[0].title, title, "the playing song is now first");
+        // Asking for more than there is just empties the rest.
+        remove_range(&mut s, &gid, 0, 999);
+        assert!(s.group_mut(&gid).unwrap().queue.as_ref().unwrap().is_empty());
+    }
+}
+
+/// Take `n` songs out of a group's queue from place `i` (0-based), keeping "now playing" in step.
+fn remove_range(s: &mut AppState, gid: &str, i: usize, n: usize) {
+    if let Some(g) = s.group_mut(gid) {
+        let cur = g.now.track_no as usize;
+        let mut gone_before = 0;
+        if let Some(q) = g.queue.as_mut() {
+            let end = (i + n).min(q.len());
+            if i < end {
+                q.drain(i..end);
+                // How many of the removed songs sat before the one playing.
+                gone_before = end.min(cur.saturating_sub(1)).saturating_sub(i);
+            }
+        }
+        if !g.now.is_stream {
+            g.now.track_no = g.now.track_no.saturating_sub(gone_before as u32);
         }
     }
 }

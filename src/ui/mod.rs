@@ -331,6 +331,16 @@ impl App {
                 self.open(&Item { id: id.clone(), title: id, is_container: true, parent_id, class, uri, ..Default::default() });
             }
         }
+        // Test hook: show the queue, with song N playing (ROOMTONE_TEST_QUEUE=4).
+        if self.frame == 10 {
+            if let Ok(n) = std::env::var("ROOMTONE_TEST_QUEUE") {
+                self.right_tab = 1;
+                let gid = self.backend.lock().selected_group.clone();
+                if let (Some(gid), Ok(n)) = (gid, n.parse::<usize>()) {
+                    self.backend.send(Cmd::PlayQueueIndex(gid, n.saturating_sub(1)));
+                }
+            }
+        }
         // Test hook: picture a speaker that was never set up (no household).
         if self.frame >= 20 && std::env::var_os("ROOMTONE_TEST_UNSET").is_some() {
             let mut st = self.backend.lock();
@@ -772,6 +782,14 @@ impl App {
             return;
         }
         let current = if g.now.source == "Queue" { g.now.track_no as usize } else { 0 };
+        // Songs that have already played sit above the one playing: one tap clears them all.
+        if current > 1 && self.queue_filter.is_empty() {
+            let played = current - 1;
+            let label = tn!(played, "Remove 1 played song", "Remove {n} played songs");
+            if ui.add(egui::Button::new(RichText::new(label).size(12.5).color(TEXT_DIM())).frame(false)).clicked() {
+                self.send(Cmd::RemoveRangeFromQueue(gid.clone(), 0, played));
+            }
+        }
         let matching = queue.iter().filter(|it| lists::queue_matches(it, &self.queue_filter)).count();
         if queue.len() > 8 || !self.queue_filter.is_empty() {
             ui.add(egui::TextEdit::singleline(&mut self.queue_filter).hint_text(t!("Search this queue")).desired_width(f32::INFINITY));

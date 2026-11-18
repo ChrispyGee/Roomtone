@@ -74,7 +74,7 @@ The source of truth for **what Roomtone does**. Code, tests and docs should agre
 - Play, pause, next, previous, seek, shuffle, repeat (off/all/one), crossfade, sleep timer (15, 30, 45 min, 1 h, 2 h, or off).
 - **Now Playing** page: large art, track details, the **sound** of what's playing as small labels (format such as FLAC or MP3, sample rate, bit depth, bitrate, and *Lossless*) wherever the speaker says (nothing is shown that isn't reported; it's read from details fetched with each poll, so no extra traffic), with **Technical details** (what the speaker sent, with addresses reduced to their kind) and *Copy details* for reports, artist link ("everything by this artist"), the group's room volumes, play mode, crossfade, sleep timer, upcoming queue. With **Lyrics** switched on (§4.8), a *Lyrics* section (tagged *Experimental*) sits above the volumes for a song that isn't a live stream: while asking it shows *Looking for lyrics…*; timed lyrics highlight the current line and scroll to follow the song (scrolling by hand still works), plain lyrics are just listed, and *No lyrics found*, *This song has no words* or the reason a look-up failed are said in words. Found lyrics are kept in memory for the run only.
 - **Queue**: play from any position, move up or down, remove, clear, save as a playlist.
-- Play options on anything: *Play now*, *Play next*, *Add to end of queue*, *Replace queue*.
+- Play options on anything: *Play now*, *Play next*, *Add to end of queue*, *Replace queue*. Songs are sent to the speaker up to 16 at a time (one request each time, instead of one per song); a song whose address contains a space is sent on its own, and if the speaker refuses a batch the same songs are sent one at a time. In the queue, *Remove N played songs* (shown when songs above the one playing have played, and no search is typed) takes them all out in one request; if the speaker refuses the range they're removed one at a time, last first.
 
 ### 4.2a Keyboard and screen readers
 
@@ -224,7 +224,7 @@ Rooms are given by name (exact, or a unique part of a name) or id. Leaving the r
 | `search` *(read)* | Everything search covers, with refs (`r1`…), up to `limit` |
 | `play` | A `ref`, or a favorite/playlist `name`; `how`: now, next, end, replace |
 | `get_queue` *(read)* | The queue numbered from 1, the current song marked ▶ |
-| `play_from_queue`, `remove_from_queue`, `clear_queue` | Queue control by position |
+| `play_from_queue`, `remove_from_queue`, `clear_queue` | Queue control by position; `remove_from_queue` takes an optional `count` to remove that many songs in a row in one request |
 | `group_rooms`, `ungroup_room`, `group_all`, `use_saved_group` | Grouping within one system |
 | `play_along`, `stop_play_along` | Play along across systems (§4.1) |
 | `switch_input` | Line-in or TV input, optionally from another room |

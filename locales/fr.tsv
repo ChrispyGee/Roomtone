@@ -801,3 +801,5 @@ Roomtone closed unexpectedly on {date}. The details are in crash.log in the sett
 Not on this network, so it can't be checked from here.	Pas sur ce réseau : impossible de vérifier d'ici.
 Not set up yet	Pas encore configuré
 Not set up yet. Set this speaker up in the Sonos app, then check again.	Pas encore configuré. Configurez d'abord cette enceinte dans l'appli Sonos, puis vérifiez à nouveau.
+Remove 1 played song	Retirer 1 titre déjà joué
+Remove {n} played songs	Retirer {n} titres déjà joués
