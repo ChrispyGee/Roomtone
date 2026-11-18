@@ -791,10 +791,6 @@ That system is answering, or it's the only one, so it can't be forgotten.	Dieses
 Play {source} from {room}	Spiele {source} von {room} ab
 Connect in Settings	In den Einstellungen verbinden
 Podcasts and recordings	Podcasts und Aufnahmen
-Settings is now a row of tabs, and Music Services moved into it as Services	Die Einstellungen sind jetzt in Tabs gegliedert, und Musikdienste ist dort als Dienste zu finden
-Systems from other networks are forgotten after 30 days, and Roomtone starts on one that answers	Systeme aus anderen Netzwerken werden nach 30 Tagen vergessen, und Roomtone startet mit einem, das antwortet
-Favorites and Playlists have a Try again button if your speakers don't answer	Favoriten und Playlists haben eine Schaltfläche „Erneut versuchen“, falls deine Lautsprecher nicht antworten
-The keyboard media keys are gone: macOS never sent them to Roomtone reliably	Die Medientasten der Tastatur sind entfernt: macOS hat sie nie zuverlässig an Roomtone gesendet
 Crash log	Absturzprotokoll
 Roomtone closed unexpectedly on {date}. The details are in crash.log in the settings folder; nothing is sent anywhere.	Roomtone wurde am {date} unerwartet beendet. Die Einzelheiten stehen in crash.log im Einstellungsordner; es wird nichts gesendet.
 Not on this network, so it can't be checked from here.	Nicht in diesem Netzwerk, daher von hier nicht prüfbar.
@@ -807,3 +803,7 @@ Updating to {version}: {done} of {total} speakers done	Aktualisierung auf {versi
 Updated to {version}	Auf {version} aktualisiert
 The update hasn't finished after 45 minutes: {done} of {total} speakers are on {version}. They may still be working; check the speakers.	Die Aktualisierung ist nach 45 Minuten nicht abgeschlossen: {done} von {total} Lautsprechern haben {version}. Sie arbeiten vielleicht noch; sieh bei den Lautsprechern nach.
 Update finished: every speaker is now on {version}.	Aktualisierung abgeschlossen: Alle Lautsprecher sind jetzt auf {version}.
+Software updates show how many speakers are done, and when the update has finished	Software-Updates zeigen, wie viele Lautsprecher fertig sind und wann das Update abgeschlossen ist
+Adding albums and playlists to the queue is faster, and one tap removes the songs already played	Alben und Playlists lassen sich schneller zur Warteschlange hinzufügen, und ein Tipp entfernt bereits gespielte Titel
+Speakers that start or come back are found within seconds, on every network connection	Lautsprecher, die starten oder zurückkommen, werden innerhalb von Sekunden gefunden, über jede Netzwerkverbindung
+If Roomtone closes unexpectedly it saves a crash log on your computer (never sent anywhere)	Wenn Roomtone unerwartet schließt, speichert es ein Absturzprotokoll auf deinem Computer (wird nirgends hingeschickt)

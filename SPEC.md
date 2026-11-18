@@ -1,4 +1,4 @@
-# Roomtone — specification (v0.9.0)
+# Roomtone — specification (v0.9.1)
 
 Project home: <https://github.com/ChrispyGee/Roomtone>
 
@@ -326,6 +326,11 @@ All in the app's data folder: `~/Library/Application Support/Roomtone/` (macOS),
 | Software updates (check and install) | Check: real S1 and S2 (read-only). Install: demo system only; tagged *Experimental* and off until switched on |
 | Forgetting old systems, and starting on a system that answers (0.9.0) | **Checked on a real setup by the maintainer (2026-11-18)**: one S1 system answering and two S2 systems remembered from another network; the app started on the S1 system, the others showed *Not on this network*, *Forget* removed one and it stayed gone after a restart. The 30-day rule and the ordering are unit-tested |
 | Settings tabs, Settings › Services, Music Library chips and cards, Line-In & TV rows (0.9.0) | Demo system and screenshots (English and German, light and dark). **Connect and Check for a streaming service from Settings › Services not yet tried on real speakers** (the same calls as before, moved) |
+| Following a software update (0.9.1) | **Watched read-only on a real Play:3 (2026-11-18)** while the maker's app updated it: builds 65.1-21040, 73.0-42060 and 86.11-82170 (display version 27.3), a restart between each, and the update service kept offering the same release as `98.0-82170` (so builds are compared by their id). Roomtone's own install of a real update is **untried**: told to install, that speaker did nothing in the first minutes |
+| Faster queue changes: batch adds and range removal (0.9.1) | **A real S1 Connect:Amp room with an empty queue (2026-11-18)**: a batch of 16 and a range removal with update id 0 were accepted, order and count came back right (ignored test `real_queue_batches`). Untried: S2 speakers, a long queue of real songs, the *Remove N played songs* button on a real system |
+| Listening for speaker announcements (0.9.1) | Real announcements were seen on the maintainer's network (five S1 speakers sent 25 to 28 notices in 90 s; the Play:3 sent six); the search they trigger and the "is this news" rule are unit-tested. Untried: switching a speaker on while the app runs; Windows and Linux |
+| Searching out of every network connection (0.9.1) | A Mac with one connection finds the same two systems as before. **Untried on a computer with several connections, and on Windows and Linux** |
+| Music server limits, crash log, first-run instructions (0.9.1) | Crash log: a deliberate crash on a Mac (addresses and home folder blanked). Limits: unit tests; a local file played to a real speaker afterwards is **not yet tried**. First-run steps: **not yet tried on a clean macOS or Windows computer** |
 | Windows: no console window (0.8.3) | **Confirmed on a real Windows PC by the maintainer (2026-11-18)**: the app starts with no console window. Printing to a terminal (`--help`, the command-line commands) not yet checked there |
 | S2 compatibility check | Read-only on a real S1 system of five Connect:Amps (ZP120, hardware 1.16.3.1, software generation 1 → *Check*); S2 speakers and the Connect/Play:5 generations not seen |
 | Backup: saving favorites, playlists and alarms | One real S1 system, read only (counts and round trip); demo system for everything else |
