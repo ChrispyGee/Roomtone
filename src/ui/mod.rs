@@ -47,6 +47,8 @@ pub struct App {
     searched: String,
     search_edit_at: Option<Instant>,
     right_tab: usize,
+    /// The tab open in Settings: 0 is About, and it is About every time the app starts.
+    settings_tab: usize,
     /// Arranging the order of the room cards (the up/down buttons are showing).
     arranging: bool,
     /// The system's media keys and Now Playing, when on and available.
@@ -194,6 +196,7 @@ impl App {
             searched: String::new(),
             search_edit_at: preset_search.map(|_| Instant::now() - Duration::from_secs(2)),
             right_tab: 0,
+            settings_tab: 0,
             arranging: false,
             media: None,
             media_unavailable: false,
