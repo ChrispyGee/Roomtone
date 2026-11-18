@@ -713,6 +713,51 @@ mod unit {
         Item { uri: uri.into(), title: "t".into(), ..Default::default() }
     }
 
+    /// Changes a real room's queue (no sound): adds made-up songs to the end, checks them, takes
+    /// some out in ranges, then clears the queue. Only runs when the queue is empty to begin with.
+    /// `ROOMTONE_SPEAKER=<ip of a quiet room> cargo test real_queue_batches -- --ignored --nocapture`.
+    #[test]
+    #[ignore]
+    fn real_queue_batches() {
+        let Ok(ip) = std::env::var("ROOMTONE_SPEAKER") else {
+            eprintln!("Set ROOMTONE_SPEAKER=<ip> to run this.");
+            return;
+        };
+        assert!(queue(&ip).unwrap().is_empty(), "this changes the queue: pick a room whose queue is empty");
+        struct Clear(String);
+        impl Drop for Clear {
+            fn drop(&mut self) {
+                let _ = clear_queue(&self.0);
+            }
+        }
+        let _clear = Clear(ip.clone());
+        // The speaker has no real song behind these, so it lists them by file name.
+        let name = |n: usize| if n == 19 { "my song.mp3".to_string() } else { format!("{n}.mp3") };
+        let songs: Vec<Item> = (0..22)
+            .map(|n| Item { uri: format!("http://roomtone-test.invalid/{}", name(n)), title: format!("Roomtone test {n}"), artist: "Roomtone".into(), ..Default::default() })
+            .collect();
+        let listed = |ip: &str| queue(ip).unwrap().iter().map(|i| i.title.replace("%20", " ")).collect::<Vec<_>>();
+        let expect = |ns: &[usize]| ns.iter().map(|&n| name(n)).collect::<Vec<_>>();
+        // One batch of 16, sent directly, so a refusal can't hide behind the fall-back.
+        let first: Vec<&Item> = songs[..16].iter().collect();
+        let (at, added) = add_many_to_queue(&ip, &first, 0).expect("the speaker refused a batch of 16");
+        eprintln!("batch of 16: first at {at}, {added} added");
+        assert_eq!((at, added), (1, 16));
+        assert_eq!(listed(&ip), expect(&(0..16).collect::<Vec<_>>()), "order was lost");
+        // The rest through the normal path: a batch of 3, the song with a space alone, a batch of 2.
+        enqueue_many(&ip, "", &songs[16..], PlayHow::End).unwrap();
+        assert_eq!(listed(&ip), expect(&(0..22).collect::<Vec<_>>()));
+        // Ranges, sent directly, so a refusal can't hide behind the fall-back.
+        avt(&ip, "RemoveTrackRangeFromQueue", &[("UpdateID", "0"), ("StartingIndex", "1"), ("NumberOfTracks", "3")]).expect("the speaker refused a range");
+        assert_eq!(listed(&ip), expect(&(3..22).collect::<Vec<_>>()));
+        remove_range_from_queue(&ip, 5, 4).unwrap();
+        let rest: Vec<usize> = (3..22).filter(|n| !(8..12).contains(n)).collect();
+        assert_eq!(listed(&ip), expect(&rest));
+        // Played songs: everything above the fourth.
+        remove_range_from_queue(&ip, 0, 3).unwrap();
+        assert_eq!(listed(&ip).len(), rest.len() - 3);
+    }
+
     #[test]
     fn songs_are_sent_in_batches_in_order() {
         let items: Vec<Item> = (0..40).map(|n| song(&format!("x-file-cifs://nas/music/{n}.mp3"))).collect();
