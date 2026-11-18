@@ -571,14 +571,16 @@ impl App {
             self.library_scope = 0;
         }
         ui.horizontal_wrapped(|ui| {
-            let mut chips = vec![(t!("Everything"), 0), (t!("On your system"), 1), (t!("On this computer"), 2)];
+            // Streaming and podcasts first, then what's on the system and this computer.
+            let mut chips = vec![(t!("Everything"), 0), (t!("Streaming services"), 3)];
             if pods {
                 chips.push((t!("Podcasts"), 4));
             }
+            chips.push((t!("On your system"), 1));
+            chips.push((t!("On this computer"), 2));
             if archive {
                 chips.push((t!("Internet Archive"), 5));
             }
-            chips.push((t!("Streaming services"), 3));
             for (label, scope) in chips {
                 if filter_chip(ui, label, self.library_scope == scope).clicked() {
                     self.library_scope = scope;

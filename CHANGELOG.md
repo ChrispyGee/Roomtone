@@ -25,7 +25,6 @@ All notable changes to Roomtone. The format follows [Keep a Changelog](https://k
 - **Choose what assistants may change**: under *Assistants can change things*, separate switches for *Saved items* (favorites, stations, podcasts, saved groups, queue as playlist), *Alarms*, *Room names and sound*, *Speaker updates* and *Save files*. A tool in a switched-off group isn't listed and is refused with a plain sentence. Everything that worked before stays on, except **speaker updates and saving files, which are now off until you switch them on**. Command line: `--mcp-allow` / `--mcp-deny` and `--mcp-files`. New `mcp.allow_saved`, `allow_alarms`, `allow_names`, `allow_updates`, `allow_files` and `files_folder` fields in `config.json`.
 
 ### Changed
-- **Music Services is now Settings › Services.** Signing in to streaming services, *Check*, the account number and the switches for the free sources (this computer, radio directory, podcasts, Internet Archive) moved to a **Services** tab in Settings, so the sidebar is shorter. **Podcasts** and **Internet Archive** are now in **Music Library** (cards under *Everything* and a filter chip each), where connected streaming services already were. Nothing was removed; settings and their `config.json` fields are unchanged, and `--view services` opens Settings.
 - **The assistant link speaks MCP protocol 2025-11-25** as well as the three older ones, and says what it is in `serverInfo.description`. Nothing the link does changed for older assistants. Checked by unit tests on the demo system. The newest revision (2026-07-28, which removes the `initialize` handshake and sessions) is not supported yet: see docs/ROADMAP.md.
 - **Assistants save backups only into a folder you choose** (Settings › Assistant link › *Save files* › *Choose folder*). The `save_backup` tool and `roomtone backup NAME.json` now take a file name that is saved in that folder; a path elsewhere is refused. Before, any `.json` path on the computer was accepted. Checked by unit tests on the demo system.
 - **Alarms and Scenes are hidden until you want them**: *Settings › Pages you use* has *Show Alarms* and *Show Scenes*, both off by default so the sidebar and Home are simpler. If you already have scenes they stay visible until you switch the page off. The speakers' alarms keep working either way. New `show_alarms` and `show_scenes` fields in `config.json`.
@@ -49,7 +48,6 @@ All notable changes to Roomtone. The format follows [Keep a Changelog](https://k
 ## [0.8.1] — 2026-11-17
 
 ### Changed
-- **Music Services is now Settings › Services.** Signing in to streaming services, *Check*, the account number and the switches for the free sources (this computer, radio directory, podcasts, Internet Archive) moved to a **Services** tab in Settings, so the sidebar is shorter. **Podcasts** and **Internet Archive** are now in **Music Library** (cards under *Everything* and a filter chip each), where connected streaming services already were. Nothing was removed; settings and their `config.json` fields are unchanged, and `--view services` opens Settings.
 - **Lyrics are patient when the service is busy**: if lrclib.net answers that it has had too many requests (`429`), Roomtone waits as long as it asks (up to 10 seconds) and tries once more, and a song whose look-up failed is tried again the next time it plays instead of staying failed until restart. Checked by unit tests (reading the wait time); not seen against the real service, which didn't rate-limit during testing.
 
 ## [0.8.0] — 2026-11-16
@@ -58,7 +56,6 @@ All notable changes to Roomtone. The format follows [Keep a Changelog](https://k
 - **Lyrics (experimental)**: a switch in Settings, off by default and tagged *Experimental*, that shows the words of the song that's playing on the Now Playing page. Timed lyrics highlight the current line and follow the song. While on, the song's title, artist, album and length are sent to lrclib.net (a free community lyrics site; listed in SPEC §9); nothing is saved. New `show_lyrics` field in `config.json`. Checked on the demo system (made-up words) and by unit tests; one real look-up on lrclib.net returned timed lyrics; **tried by the maintainer with real songs playing: works well**. If it doesn't work out it will be removed again.
 
 ### Changed
-- **Music Services is now Settings › Services.** Signing in to streaming services, *Check*, the account number and the switches for the free sources (this computer, radio directory, podcasts, Internet Archive) moved to a **Services** tab in Settings, so the sidebar is shorter. **Podcasts** and **Internet Archive** are now in **Music Library** (cards under *Everything* and a filter chip each), where connected streaming services already were. Nothing was removed; settings and their `config.json` fields are unchanged, and `--view services` opens Settings.
 - The README's *Install* table now links straight to each download (and to `SHA256SUMS`) for the current release, instead of only to the releases page. A unit test and `scripts/set-download-links.sh` keep the links on the current version.
 
 ## [0.7.1] — 2026-11-16
@@ -83,7 +80,6 @@ All notable changes to Roomtone. The format follows [Keep a Changelog](https://k
 - **Speaker status**: *Your speakers* now shows whether each room is connected by cable (**Wired**) or **Wireless**, read from the speaker's own network counters (read-only). Checked on one real S1 speaker (Wired). No signal strength: the speakers' status pages don't report one reliably.
 
 ### Changed
-- **Music Services is now Settings › Services.** Signing in to streaming services, *Check*, the account number and the switches for the free sources (this computer, radio directory, podcasts, Internet Archive) moved to a **Services** tab in Settings, so the sidebar is shorter. **Podcasts** and **Internet Archive** are now in **Music Library** (cards under *Everything* and a filter chip each), where connected streaming services already were. Nothing was removed; settings and their `config.json` fields are unchanged, and `--view services` opens Settings.
 - *Export playlist…* is now a button on the playlist's own page, as well as in its menu on the Playlists page. The buttons under a playlist, album or podcast title now wrap onto a second line when a language is too long to fit (they ran off the edge in German).
 
 ## [0.6.1] — 2026-11-13
@@ -96,7 +92,6 @@ All notable changes to Roomtone. The format follows [Keep a Changelog](https://k
 - **Command-line control**: `roomtone play`, `pause`, `next`, `volume 30 --room Kitchen`, `volume +5 --group`, `mute`, `sleep 30`, `group Kitchen Den`, `status`, … for scripts, Stream Deck and shortcuts. Commands go to the Roomtone that's already running through its assistant link (so that must be on), on this computer only. See `roomtone --help`.
 
 ### Changed
-- **Music Services is now Settings › Services.** Signing in to streaming services, *Check*, the account number and the switches for the free sources (this computer, radio directory, podcasts, Internet Archive) moved to a **Services** tab in Settings, so the sidebar is shorter. **Podcasts** and **Internet Archive** are now in **Music Library** (cards under *Everything* and a filter chip each), where connected streaming services already were. Nothing was removed; settings and their `config.json` fields are unchanged, and `--view services` opens Settings.
 - The *Export playlist…* and *Import playlist* hints now name every file type (M3U, PLS, XSPF, CSV, backup), and the About page's *What's new* list covers this version.
 
 ## [0.6.0] — 2026-11-13
@@ -119,7 +114,6 @@ All notable changes to Roomtone. The format follows [Keep a Changelog](https://k
 - Backups and playlist exports (JSON, M3U, CSV) now give songs that came from a computer's music folders their remembered titles and artists, as the Playlists page does; before, such songs could be exported with only a code as the title (found by exporting a real playlist).
 
 ### Changed
-- **Music Services is now Settings › Services.** Signing in to streaming services, *Check*, the account number and the switches for the free sources (this computer, radio directory, podcasts, Internet Archive) moved to a **Services** tab in Settings, so the sidebar is shorter. **Podcasts** and **Internet Archive** are now in **Music Library** (cards under *Everything* and a filter chip each), where connected streaming services already were. Nothing was removed; settings and their `config.json` fields are unchanged, and `--view services` opens Settings.
 - Read-only checks against real speakers are kept as ignored tests (`real_speaker_events`, `real_speaker_backup_export`, `real_speaker_quality`, `real_speaker_playlist_files`; see `docs/ROADMAP.md`).
 
 ## [0.5.4] — 2026-11-13
@@ -159,7 +153,6 @@ All notable changes to Roomtone. The format follows [Keep a Changelog](https://k
 - The project's home is <https://github.com/ChrispyGee/Roomtone>: linked from Settings › About (source code, report a problem), the macOS About box, `--help`, the README and Cargo.toml.
 
 ### Changed
-- **Music Services is now Settings › Services.** Signing in to streaming services, *Check*, the account number and the switches for the free sources (this computer, radio directory, podcasts, Internet Archive) moved to a **Services** tab in Settings, so the sidebar is shorter. **Podcasts** and **Internet Archive** are now in **Music Library** (cards under *Everything* and a filter chip each), where connected streaming services already were. Nothing was removed; settings and their `config.json` fields are unchanged, and `--view services` opens Settings.
 - **egui/eframe 0.31 → 0.37** (Dependabot #2): the app now draws through `App::ui`; panels use `egui::Panel` attached to the root `Ui`; popups use `egui::Popup::menu`; menus close with `ui.close()`; `--screenshot` receives the picture through a `ScreenshotCallback`; the global style is set with `set_global_style` and the theme is pinned to dark; `Ui::id` → `Ui::scope_id` and `Id::new` → `Id::unique`. Every page was compared before and after with `--screenshot`: same layout (text anti-aliasing differs slightly).
 - Dependencies: lofty 0.25, rfd 0.18 and roxmltree 0.21 (from Dependabot #3, #4, #5); GitHub Actions checkout v7 (#1).
 - CI: `cargo clippy -D warnings` must now pass on Windows and Linux too.
@@ -178,7 +171,6 @@ All notable changes to Roomtone. The format follows [Keep a Changelog](https://k
 - Dual licence: MIT or Apache-2.0.
 
 ### Changed
-- **Music Services is now Settings › Services.** Signing in to streaming services, *Check*, the account number and the switches for the free sources (this computer, radio directory, podcasts, Internet Archive) moved to a **Services** tab in Settings, so the sidebar is shorter. **Podcasts** and **Internet Archive** are now in **Music Library** (cards under *Everything* and a filter chip each), where connected streaming services already were. Nothing was removed; settings and their `config.json` fields are unchanged, and `--view services` opens Settings.
 - Windows settings now live in `%APPDATA%\Roomtone\` (previously `%APPDATA%\.config\roomtone`). Move the old folder's files across to keep them.
 - The code is formatted with `rustfmt` (`rustfmt.toml`) and is free of `clippy` warnings.
 
