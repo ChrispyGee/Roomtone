@@ -808,3 +808,8 @@ Adding albums and playlists to the queue is faster, and one tap removes the song
 Speakers that start or come back are found within seconds, on every network connection	Les enceintes qui démarrent ou reviennent sont trouvées en quelques secondes, sur chaque connexion réseau
 If Roomtone closes unexpectedly it saves a crash log on your computer (never sent anywhere)	Si Roomtone se ferme de façon inattendue, il enregistre un journal d'incident sur votre ordinateur (envoyé nulle part)
 Alarms have had little testing on real speakers, so check that one rings before you rely on it.	Les alarmes ont été peu testées sur de vraies enceintes : vérifiez qu'une sonne avant de vous y fier.
+Alarm ringing in {room}	Le réveil sonne dans {room}
+No alarm is ringing in that room right now	Aucun réveil ne sonne dans cette pièce pour le moment
+Snooze {n} min	Répéter {n} min
+Snoozed: the alarm rings again in {n} minutes	Répété : le réveil sonnera de nouveau dans {n} minutes
+Stop the alarm	Arrêter le réveil

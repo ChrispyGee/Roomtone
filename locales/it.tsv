@@ -808,3 +808,8 @@ Adding albums and playlists to the queue is faster, and one tap removes the song
 Speakers that start or come back are found within seconds, on every network connection	Gli altoparlanti che si avviano o tornano vengono trovati in pochi secondi, su ogni connessione di rete
 If Roomtone closes unexpectedly it saves a crash log on your computer (never sent anywhere)	Se Roomtone si chiude all'improvviso, salva un registro degli arresti sul tuo computer (non viene inviato da nessuna parte)
 Alarms have had little testing on real speakers, so check that one rings before you rely on it.	Le sveglie sono state provate poco su altoparlanti reali: controlla che una suoni prima di fidarti.
+Alarm ringing in {room}	La sveglia suona in {room}
+No alarm is ringing in that room right now	In questa stanza non sta suonando nessuna sveglia
+Snooze {n} min	Posticipa {n} min
+Snoozed: the alarm rings again in {n} minutes	Posticipata: la sveglia suonerà di nuovo tra {n} minuti
+Stop the alarm	Ferma la sveglia

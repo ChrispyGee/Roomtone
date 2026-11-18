@@ -808,3 +808,8 @@ Adding albums and playlists to the queue is faster, and one tap removes the song
 Speakers that start or come back are found within seconds, on every network connection	Lautsprecher, die starten oder zurückkommen, werden innerhalb von Sekunden gefunden, über jede Netzwerkverbindung
 If Roomtone closes unexpectedly it saves a crash log on your computer (never sent anywhere)	Wenn Roomtone unerwartet schließt, speichert es ein Absturzprotokoll auf deinem Computer (wird nirgends hingeschickt)
 Alarms have had little testing on real speakers, so check that one rings before you rely on it.	Alarme wurden kaum an echten Lautsprechern getestet. Prüfe also, ob einer klingelt, bevor du dich darauf verlässt.
+Alarm ringing in {room}	Wecker klingelt in {room}
+No alarm is ringing in that room right now	In diesem Raum klingelt gerade kein Wecker
+Snooze {n} min	{n} Min. Schlummern
+Snoozed: the alarm rings again in {n} minutes	Geschlummert: Der Wecker klingelt in {n} Minuten wieder
+Stop the alarm	Wecker ausschalten

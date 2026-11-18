@@ -656,6 +656,13 @@ pub fn apply(s: &mut AppState, cmd: &Cmd) {
                 };
             }
         }
+        Cmd::SnoozeAlarm(g, m) => {
+            if let Some(gr) = s.group_mut(g) {
+                gr.alarm_ringing = false;
+                gr.now.transport = Transport::Paused;
+            }
+            s.toast(t!("Snoozed: the alarm rings again in {n} minutes", n = m), false);
+        }
         Cmd::SleepTimer(_, m) => match m {
             Some(m) => s.toast(t!("Sleep timer set for {n} minutes", n = m), false),
             None => s.toast(t!("Sleep timer off"), false),
