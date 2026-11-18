@@ -52,4 +52,4 @@ body:
     id: logs
     attributes:
       label: Logs or screenshots
-      description: Remove room names, addresses, household ids, tokens and access keys first.
+      description: If Roomtone closed unexpectedly, attach crash.log from the settings folder (Settings › About › Show); it has addresses and your home folder blanked out. Remove room names, household ids, tokens and access keys from anything else first.

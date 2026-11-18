@@ -280,7 +280,7 @@ Each changing tool waits until the speakers have answered (up to 20 s). It then 
 | `play`, `pause`, `toggle`, `next`, `previous`, `play <name>`, `volume <n\|+n\|-n>`, `mute`, `unmute`, `sleep <min>`, `group <room> <room>…`, `ungroup`, `status`, `now`, `queue`, `favorites`, `alarms` (with `--room <name>`, `--group`) | Control the Roomtone that's already running, through its assistant link (switched on; control allowed for anything that changes things). Talks only to this computer. Exit code 0 done, 1 refused, 2 not understood, 3 can't reach Roomtone |
 | `--help`, `--help mcp` | Options; the assistant guide for this platform |
 
-Test-only environment variables: `ROOMTONE_LIVE` (screenshots with real speakers), `ROOMTONE_SHOT_FRAME`, `ROOMTONE_SCROLL`, `ROOMTONE_TEST_GROUP`, `ROOMTONE_TEST_RECONNECT`, `ROOMTONE_TEST_EDITOR`, `ROOMTONE_TEST_ABOUT` (macOS: also saves a picture of the About box), and `ROOMTONE_SPEAKER` / `ROOMTONE_TERM` for the ignored network tests.
+Test-only environment variables: `ROOMTONE_LIVE` (screenshots with real speakers), `ROOMTONE_SHOT_FRAME`, `ROOMTONE_SCROLL`, `ROOMTONE_TEST_GROUP`, `ROOMTONE_TEST_RECONNECT`, `ROOMTONE_TEST_EDITOR`, `ROOMTONE_TEST_PANIC` (panics at start, to see the crash log), `ROOMTONE_TEST_ABOUT` (macOS: also saves a picture of the About box), and `ROOMTONE_SPEAKER` / `ROOMTONE_TERM` for the ignored network tests.
 
 ## 8. Stored files
 
@@ -292,6 +292,7 @@ All in the app's data folder: `~/Library/Application Support/Roomtone/` (macOS),
 | `speakers.json` | Systems from last time: [{`id`, `s1`, `rooms` [{`uuid`, `name`, `ip`, `model`, `version`}], `groups` [{`coordinator`, `members`}], `last_seen` (seconds since 1970)}] |
 | `songs.json` | `songs`: details (title, artist, album, art) by address, for songs the speakers know only by address; `relays`: relay codes for S1 and the https address each stands for |
 | `window.json` | The window's size, position and maximised state (§4.8) |
+| `crash.log` | Written only if Roomtone panics: version, system, time (UTC), thread, message, place and a backtrace, with IPv4 addresses and the home folder blanked out (`crash.rs`). Kept to about 64 KiB, newest last. Never sent anywhere; Settings › About shows a *Crash log* row, with the date, only while the file exists |
 | `history.json` | The listening history: up to 500 entries (song or station, address, play count, last played) (§4.8) |
 | `podcast-progress.json` | Where you stopped in each podcast episode and which are played (newest 300) |
 

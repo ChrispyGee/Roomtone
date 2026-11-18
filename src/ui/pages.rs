@@ -2324,6 +2324,12 @@ impl App {
                     }
                 });
                 ui.end_row();
+                // Only when Roomtone has closed unexpectedly: where the details are. Nothing is sent.
+                if let Some(when) = crate::crash::last_crash() {
+                    ui.label(RichText::new(t!("Crash log")).color(TEXT_DIM()));
+                    ui.add(egui::Label::new(RichText::new(t!("Roomtone closed unexpectedly on {date}. The details are in crash.log in the settings folder; nothing is sent anywhere.", date = when)).size(12.5).color(TEXT())).wrap());
+                    ui.end_row();
+                }
             });
 
             ui.add_space(12.0);

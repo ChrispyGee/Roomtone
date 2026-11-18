@@ -4,6 +4,9 @@ All notable changes to Roomtone. The format follows [Keep a Changelog](https://k
 
 ## [Unreleased]
 
+### Added
+- **A crash log that stays on your computer.** If Roomtone closes unexpectedly it now writes what happened to `crash.log` in the settings folder (version, system, time, where, and a backtrace, with network addresses and your home folder blanked out). Settings › About shows a *Crash log* row with the date while the file exists, and the bug report form asks you to attach it. Nothing is sent anywhere.
+
 ### Security
 - **The music server is harder to knock over.** The server that lets speakers fetch music from this computer (port 52880) now answers only computers on a local network, drops requests that aren't sent within 10 seconds or that are oversized (a request line over 8 KiB, more than 64 header lines), drops a speaker that stops reading for two minutes, and serves at most 64 connections at once. Before, anyone on the same Wi-Fi could stall it or make it use up memory by opening slow or endless connections. It never served files outside the folders you added.
 

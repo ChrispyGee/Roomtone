@@ -48,6 +48,7 @@ This is the map of the code. What the app should do is in [SPEC.md](../SPEC.md);
 | `s2.rs` | Reading what a speaker says about itself, and judging whether it could move to S2 |
 | `diagnose.rs`, `status.rs` | *Can't find your speakers?* (checks, advice, redacted report) and wired/wireless from a speaker's network counters |
 | `quality.rs` | Sound-quality labels read from what the speaker reports for the playing track |
+| `crash.rs` | The local crash log: a panic hook that writes `crash.log` (addresses and the home folder blanked out); nothing is sent |
 | `known.rs` | `speakers.json`: speakers from last time, for an instant start; forgets systems unseen for 30 days |
 | `demo.rs` | The made-up S1 and S2 systems, and how commands change them (`apply`, `tick`) |
 | `mcp.rs` | The MCP server: tool list, `Mcp::handle` (JSON-RPC), `serve_stdio`, `start_http` (opens and closes the port as settings change) |
