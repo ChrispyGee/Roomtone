@@ -2232,8 +2232,9 @@ impl App {
             ui.add_space(6.0);
             ui.label(RichText::new(t!("What's new in this version")).color(TEXT()).strong());
             for line in [
-                t!("Lyrics (experimental): switch it on in Settings to see the words of the song that's playing"),
-                t!("Speakers on Wi-Fi, such as the Sonos One SL, now show as Wireless"),
+                t!("Choose what assistants may change, one kind of change at a time, in Settings"),
+                t!("Alarms and Scenes stay out of the sidebar until you switch them on in Settings"),
+                t!("On Windows, Roomtone no longer opens an extra console window"),
             ] {
                 ui.horizontal_wrapped(|ui| {
                     ui.label(RichText::new("•").color(ACCENT()));

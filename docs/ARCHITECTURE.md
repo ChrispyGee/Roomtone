@@ -32,7 +32,7 @@ This is the map of the code. What the app should do is in [SPEC.md](../SPEC.md);
 
 | File | Role |
 | --- | --- |
-| `main.rs` | Reads options; opens the window, or runs headless/MCP, or changes MCP settings from the command line |
+| `main.rs` | Reads options; opens the window, or runs headless/MCP, or changes MCP settings from the command line. On Windows it is a window program (no console window) that attaches to the terminal it was started from |
 | `help.rs` | `--help` and `--help mcp`, written for the platform being run on (paths, service managers, firewall notes) |
 | `backend.rs` | `Cmd`, `Backend` (`send`, `send_and_wait`), the worker and poller threads, discovery and reconnect, streaming playback with account retry, service checks, play-along (`mirror`, `sync_link`), software updates (`check_updates`, `install_update`) |
 | `model.rs` | Data the window shows: `Household`, `Room`, `Group`, `NowPlaying`, `Item`, `Alarm`, `AppState` |
@@ -68,7 +68,7 @@ This is the map of the code. What the app should do is in [SPEC.md](../SPEC.md);
 | `ui/scenes.rs`, `ui/lists.rs` | The Scenes page, its editor window and the Home row; sorting, filtering and the A–Z strip for long lists |
 | `ui/widgets.rs`, `theme.rs`, `art.rs` | Drawn icons and controls (each one must name itself for screen readers with `describe`, and show `focus_ring`), the dark and light palettes (`TEXT()`, `SURFACE()`… switch with the appearance), album art |
 | `mcp/notify.rs` | Change notifications: subscriptions per session and the watcher that compares what's known once a second |
-| `mcp/extra.rs` | More assistant tools (browse, favorites, queue editing, rooms, alarms, saved groups, services, stations, podcasts), resources, prompts and completions |
+| `mcp/extra.rs` | More assistant tools (browse, favorites, queue editing, rooms, alarms, saved groups, scenes, S2 check, network check, playlist export, services, stations, podcasts), resources, prompts and completions |
 | `test_support.rs` | Test helpers: a scratch settings folder, English wording, a running demo backend |
 | `brand.rs` | The app icon, drawn in code (RGBA and PNG) |
 | `macos_about.rs` | macOS only: the filled-in About box, the Dock icon and translated application-menu titles |
