@@ -808,3 +808,8 @@ Adding albums and playlists to the queue is faster, and one tap removes the song
 Speakers that start or come back are found within seconds, on every network connection	Los altavoces que arrancan o vuelven se encuentran en segundos, por cualquier conexión de red
 If Roomtone closes unexpectedly it saves a crash log on your computer (never sent anywhere)	Si Roomtone se cierra inesperadamente, guarda un registro de fallos en tu ordenador (no se envía a ninguna parte)
 {service} isn't added to this system yet: Roomtone's {service} sign-in belongs to your other system. Add {service} to this system in the speaker maker's app, then try again. ({error})	{service} aún no está añadido a este sistema: el inicio de sesión de {service} en Roomtone pertenece a tu otro sistema. Añade {service} a este sistema en la app del fabricante de los altavoces y vuelve a intentarlo. ({error})
+Alarm ringing in {room}	La alarma suena en {room}
+No alarm is ringing in that room right now	Ahora mismo no suena ninguna alarma en esa habitación
+Snooze {n} min	Posponer {n} min
+Snoozed: the alarm rings again in {n} minutes	Pospuesta: la alarma vuelve a sonar en {n} minutos
+Stop the alarm	Parar la alarma

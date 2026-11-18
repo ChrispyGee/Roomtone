@@ -198,6 +198,8 @@ pub struct Group {
     pub volume: u8,
     pub muted: bool,
     pub sleep_left: Option<u32>,
+    /// An alarm is ringing here: it can be snoozed or stopped.
+    pub alarm_ringing: bool,
     pub queue: Option<Vec<Item>>,
     /// The podcast episode playing here (its audio address), and since when we've known so.
     pub episode: Option<(String, Instant)>,
