@@ -4,14 +4,14 @@ All notable changes to Roomtone. The format follows [Keep a Changelog](https://k
 
 ## [Unreleased]
 
-### Changed
-- **The assistant link speaks MCP protocol 2025-11-25** as well as the three older ones, and says what it is in `serverInfo.description`. Nothing the link does changed for older assistants. Checked by unit tests on the demo system. The newest revision (2026-07-28, which removes the `initialize` handshake and sessions) is not supported yet: see docs/ROADMAP.md.
+## [0.8.3] — 2026-11-18
 
 ### Added
 - **More of the app for assistants**: `get_status` now gives each room's software version and (when known) wired or wireless; `now_playing` includes the sound details the speaker reports; new read-only tools `check_s2` (which speakers could move to S2) and `diagnose_network` (the can't-find-my-speakers check, no names or addresses); `save_scene` and `delete_scene` (in the *Saved items* switch); `export_playlist` (in *Save files*, into the chosen folder). 56 tools in all. Checked on the demo system by unit tests. Left out on purpose: lyrics (copyrighted, experimental), restoring backups, signing in to services, music folders and settings such as language.
 - **Choose what assistants may change**: under *Assistants can change things*, separate switches for *Saved items* (favorites, stations, podcasts, saved groups, queue as playlist), *Alarms*, *Room names and sound*, *Speaker updates* and *Save files*. A tool in a switched-off group isn't listed and is refused with a plain sentence. Everything that worked before stays on, except **speaker updates and saving files, which are now off until you switch them on**. Command line: `--mcp-allow` / `--mcp-deny` and `--mcp-files`. New `mcp.allow_saved`, `allow_alarms`, `allow_names`, `allow_updates`, `allow_files` and `files_folder` fields in `config.json`.
 
 ### Changed
+- **The assistant link speaks MCP protocol 2025-11-25** as well as the three older ones, and says what it is in `serverInfo.description`. Nothing the link does changed for older assistants. Checked by unit tests on the demo system. The newest revision (2026-07-28, which removes the `initialize` handshake and sessions) is not supported yet: see docs/ROADMAP.md.
 - **Assistants save backups only into a folder you choose** (Settings › Assistant link › *Save files* › *Choose folder*). The `save_backup` tool and `roomtone backup NAME.json` now take a file name that is saved in that folder; a path elsewhere is refused. Before, any `.json` path on the computer was accepted. Checked by unit tests on the demo system.
 - **Alarms and Scenes are hidden until you want them**: *Settings › Pages you use* has *Show Alarms* and *Show Scenes*, both off by default so the sidebar and Home are simpler. If you already have scenes they stay visible until you switch the page off. The speakers' alarms keep working either way. New `show_alarms` and `show_scenes` fields in `config.json`.
 - **Speaker software updates are experimental**: the section is tagged *Experimental* and has a switch, *Allow installing updates* (off by default), that decides whether *Update all speakers* is offered. Checking for updates is always available.

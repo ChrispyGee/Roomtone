@@ -782,3 +782,6 @@ Room names and sound	Noms des pièces et son
 Save files	Enregistrer des fichiers
 Saved items	Éléments enregistrés
 What else assistants may change	Ce que les assistants peuvent aussi modifier
+Choose what assistants may change, one kind of change at a time, in Settings	Dans les réglages, choisissez ce que les assistants peuvent modifier, type par type
+Alarms and Scenes stay out of the sidebar until you switch them on in Settings	Réveils et Scènes restent hors de la barre latérale tant que vous ne les activez pas dans les réglages
+On Windows, Roomtone no longer opens an extra console window	Sous Windows, Roomtone n'ouvre plus de fenêtre de console supplémentaire

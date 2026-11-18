@@ -1,4 +1,4 @@
-# Roomtone — specification (v0.8.2)
+# Roomtone — specification (v0.8.3)
 
 Project home: <https://github.com/ChrispyGee/Roomtone>
 
@@ -316,7 +316,8 @@ All in the app's data folder: `~/Library/Application Support/Roomtone/` (macOS),
 | Streaming sign-in pages (8 services), Spotify browse and search | Real services through an S2 system |
 | Streaming **playback** and the account-number retry | Not yet heard on real speakers |
 | Play along between real S1 and S2 speakers | Demo system only |
-| Software updates (check and install) | Demo system only |
+| Software updates (check and install) | Check: real S1 and S2 (read-only). Install: demo system only; tagged *Experimental* and off until switched on |
+| Windows: no console window (0.8.3) | Compiles for Windows and passes CI there; **not yet run on a real Windows PC** (the reporter's PC is the first test) |
 | S2 compatibility check | Read-only on a real S1 system of five Connect:Amps (ZP120, hardware 1.16.3.1, software generation 1 → *Check*); S2 speakers and the Connect/Play:5 generations not seen |
 | Backup: saving favorites, playlists and alarms | One real S1 system, read only (counts and round trip); demo system for everything else |
 | Backup: **restoring** favorites, playlists and alarms | Pretend system in unit tests and the demo system; **not yet tried on real speakers** (the playlist calls `CreateSavedQueue`/`AddURIToSavedQueue` are unverified) |
