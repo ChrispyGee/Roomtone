@@ -72,6 +72,32 @@ pub(super) fn tools() -> Vec<(&'static str, &'static str, Value, bool)> {
             json!({"type": "object", "properties": {"service": {"type": "string", "description": "e.g. Spotify"}}, "required": ["service"]}),
             false,
         ),
+        (
+            "check_s2",
+            "For a system: which speakers could move to S2 (Already on S2, Can, Can't, or Check), from each speaker's own description. Read-only.",
+            json!({"type": "object", "properties": {"room": room}}),
+            false,
+        ),
+        ("diagnose_network", "Run the can't-find-my-speakers check: this computer's network, whether the speaker search is answered, and plain advice. Read-only; the report has no names or addresses.", json!({"type": "object", "properties": {}}), false),
+        (
+            "save_scene",
+            "Make or replace a scene (a one-click set-up): rooms with optional volumes, whether to group them, a favorite or playlist to start by name, and a sleep timer. Rooms must be in one system.",
+            json!({"type": "object", "properties": {
+                "name": {"type": "string"},
+                "rooms": {"type": "array", "items": {"type": "object", "properties": {"room": {"type": "string"}, "volume": {"type": "integer", "minimum": 0, "maximum": 100}}, "required": ["room"]}, "minItems": 1},
+                "group": {"type": "boolean", "default": true},
+                "play": {"type": "string", "description": "A favorite or playlist name; leave out to keep what's playing."},
+                "sleep_minutes": {"type": "integer", "minimum": 0, "maximum": 720}
+            }, "required": ["name", "rooms"]}),
+            true,
+        ),
+        ("delete_scene", "Delete a scene by name.", json!({"type": "object", "properties": {"name": {"type": "string"}}, "required": ["name"]}), true),
+        (
+            "export_playlist",
+            "Save a playlist (by its ref from list_playlists) as a file in the folder the person chose for assistants: a name ending in .m3u, .m3u8, .pls, .xspf, .csv or .json. Never overwrites.",
+            json!({"type": "object", "properties": {"ref": reff, "file": {"type": "string"}}, "required": ["ref", "file"]}),
+            true,
+        ),
         ("find_speakers", "Search the network for speakers again (after adding or moving one).", json!({"type": "object", "properties": {}}), false),
         (
             "add_station",
@@ -397,6 +423,104 @@ impl Mcp {
                 self.wait(Cmd::DeleteAlarm(id.clone()))?;
                 Ok(format!("Deleted alarm {id}"))
             }
+            "check_s2" => {
+                let (uuid, _) = self.room(a)?;
+                let hid = self.b.lock().find_room(&uuid).map(|(h, _)| h.id.clone()).ok_or("That room isn't available right now")?;
+                self.wait(Cmd::CheckS2(hid.clone()))?;
+                let until = Instant::now() + Duration::from_secs(30);
+                let state = loop {
+                    let st = self.b.lock().s2.get(&hid).cloned();
+                    match st {
+                        Some(crate::model::S2State::Checking) | None if Instant::now() < until => thread::sleep(Duration::from_millis(150)),
+                        other => break other,
+                    }
+                };
+                match state {
+                    Some(crate::model::S2State::Done(reports)) => Ok(reports
+                        .iter()
+                        .map(|r| {
+                            let verdict = match r.verdict {
+                                crate::s2::Verdict::AlreadyS2 => "already on S2",
+                                crate::s2::Verdict::Can => "can move to S2",
+                                crate::s2::Verdict::Cannot => "can't run S2",
+                                crate::s2::Verdict::Check => "check: this model has a first generation that can't run S2",
+                            };
+                            format!("{} ({}): {verdict}", r.room, r.details.model_name)
+                        })
+                        .collect::<Vec<_>>()
+                        .join("\n")),
+                    Some(crate::model::S2State::Failed(e)) => Err(e),
+                    _ => Err("No answer yet; try again in a moment.".into()),
+                }
+            }
+            "diagnose_network" => {
+                self.wait(Cmd::Diagnose)?;
+                let until = Instant::now() + Duration::from_secs(40);
+                loop {
+                    let st = self.b.lock().diagnosis.clone();
+                    match st {
+                        Some(crate::model::DiagState::Done(d)) => return Ok(crate::diagnose::report(&d, crate::help::platform(), env!("CARGO_PKG_VERSION"))),
+                        _ if Instant::now() < until => thread::sleep(Duration::from_millis(200)),
+                        _ => return Err("The check hasn't finished; try again in a moment.".into()),
+                    }
+                }
+            }
+            "save_scene" => {
+                use crate::config::{Scene, SceneRoom};
+                let name = str_arg("name").ok_or("Give the scene a name.")?;
+                let wanted = a.get("rooms").and_then(|r| r.as_array()).cloned().unwrap_or_default();
+                if wanted.is_empty() {
+                    return Err("Choose at least one room.".into());
+                }
+                let (household, rooms) = {
+                    let s = self.b.lock();
+                    let mut rooms = vec![];
+                    let mut homes = std::collections::HashSet::new();
+                    for w in &wanted {
+                        let q = w.get("room").and_then(|r| r.as_str()).or_else(|| w.as_str()).ok_or("Each room needs a name.")?;
+                        let uuid = find_room(&s, q)?;
+                        let (h, r) = s.find_room(&uuid).ok_or("That room isn't available right now")?;
+                        homes.insert(h.id.clone());
+                        let volume = w.get("volume").and_then(|v| v.as_f64()).map(|v| v.round().clamp(0.0, 100.0) as u8);
+                        rooms.push(SceneRoom { room: r.name.clone(), volume, ..Default::default() });
+                    }
+                    if homes.len() != 1 {
+                        return Err("A scene's rooms must all be in one system.".into());
+                    }
+                    (homes.into_iter().next().unwrap_or_default(), rooms)
+                };
+                let scene = Scene {
+                    name: name.clone(),
+                    household,
+                    rooms,
+                    group: bool_arg("group").unwrap_or(true),
+                    play: str_arg("play").unwrap_or_default(),
+                    sleep_minutes: int_arg("sleep_minutes").unwrap_or(0).clamp(0, 720) as u32,
+                };
+                self.wait(Cmd::SaveScene(None, scene))?;
+                Ok(format!("Saved scene “{name}”"))
+            }
+            "delete_scene" => {
+                let name = str_arg("name").ok_or("Which scene?")?;
+                if !self.b.lock().config.scenes.iter().any(|x| x.name.eq_ignore_ascii_case(&name)) {
+                    return Err(format!("There's no scene called “{name}”."));
+                }
+                let exact = self.b.lock().config.scenes.iter().find(|x| x.name.eq_ignore_ascii_case(&name)).map(|x| x.name.clone()).unwrap_or(name);
+                self.wait(Cmd::DeleteScene(exact.clone()))?;
+                Ok(format!("Deleted scene “{exact}”"))
+            }
+            "export_playlist" => {
+                let item = self.item_by_ref(&str_arg("ref").ok_or("Which playlist? Give its ref from list_playlists.")?)?;
+                let folder = self.b.lock().config.mcp.files_folder.clone();
+                let file = file_in_folder(&folder, &str_arg("file").ok_or("Say what to call it (file)")?, &["m3u", "m3u8", "pls", "xspf", "csv", "json"])?;
+                self.use_system_of(a)?;
+                self.wait(Cmd::ExportPlaylist(item.clone(), file.clone()))?;
+                if file.exists() {
+                    Ok(format!("Saved “{}” as {}", item.title, file.display()))
+                } else {
+                    Err("The playlist wasn't saved".into())
+                }
+            }
             "save_group" => {
                 let name = str_arg("name").ok_or("Give the group a name.")?;
                 let names: Vec<String> = a.get("rooms").and_then(|r| r.as_array()).map(|v| v.iter().filter_map(|x| x.as_str().map(String::from)).collect()).unwrap_or_default();
@@ -619,6 +743,12 @@ pub(super) fn percent_decode(s: &str) -> String {
 /// there; a longer path must already point into it. The name must end in `.json`, nothing already
 /// there is overwritten, and the folder must exist.
 pub(super) fn backup_path(folder: &str, file: &str) -> Result<std::path::PathBuf, String> {
+    file_in_folder(folder, file, &["json"])
+}
+
+/// The same rules for any file an assistant may write: inside the chosen folder, one of the
+/// allowed endings, never over something that exists.
+pub(super) fn file_in_folder(folder: &str, file: &str, endings: &[&str]) -> Result<std::path::PathBuf, String> {
     use std::path::{Component, Path, PathBuf};
     let folder = folder.trim();
     if folder.is_empty() {
@@ -645,8 +775,8 @@ pub(super) fn backup_path(folder: &str, file: &str) -> Result<std::path::PathBuf
         }
         dir.join(given.file_name().ok_or("Say what to call it (file)")?)
     };
-    if !target.extension().is_some_and(|e| e.eq_ignore_ascii_case("json")) {
-        return Err("The file name must end in .json".into());
+    if !target.extension().is_some_and(|e| endings.iter().any(|x| e.eq_ignore_ascii_case(x))) {
+        return Err(format!("The file name must end in {}", endings.iter().map(|e| format!(".{e}")).collect::<Vec<_>>().join(", ")));
     }
     if target.exists() {
         return Err(format!("{} already exists; choose a new name so nothing is overwritten.", target.display()));

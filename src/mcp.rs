@@ -54,7 +54,9 @@ impl Allowance {
     /// Which group a tool belongs to (only meaningful for tools that change things).
     pub fn of(tool: &str) -> Allowance {
         match tool {
-            "add_favorite"
+            "save_scene"
+            | "delete_scene"
+            | "add_favorite"
             | "remove_favorite"
             | "save_queue_as_playlist"
             | "add_station"
@@ -66,7 +68,7 @@ impl Allowance {
             "create_alarm" | "delete_alarm" | "set_alarm_enabled" => Allowance::Alarms,
             "rename_room" | "set_sound" => Allowance::Names,
             "install_update" => Allowance::Updates,
-            "save_backup" => Allowance::Files,
+            "save_backup" | "export_playlist" => Allowance::Files,
             _ => Allowance::Playback,
         }
     }
@@ -191,6 +193,27 @@ fn base_tools() -> Vec<(&'static str, &'static str, Value, bool)> {
         ("list_alarms", "Every alarm: time, days, room, what it plays and whether it's on.", json!({"type": "object", "properties": {}}), false),
         ("set_alarm_enabled", "Turn an alarm on or off by its id from list_alarms.", json!({"type": "object", "properties": {"id": {"type": "string"}, "enabled": {"type": "boolean"}}, "required": ["id", "enabled"]}), true),
     ]
+}
+
+/// What the speaker says about the sound of what's playing (format, sample rate, bit depth,
+/// bitrate), only for what it reports; `null` when it says nothing.
+fn sound_json(g: &Group) -> Value {
+    let q = crate::quality::of(&g.now.uri, &g.now.media_uri, &g.now.track_meta);
+    if q.is_empty() {
+        return Value::Null;
+    }
+    json!({"labels": q.labels(), "lossless": q.lossless})
+}
+
+/// One room as an assistant sees it: name, model, software version, how it's connected (when
+/// known), volume and whether it answers.
+fn room_json(s: &AppState, r: &Room) -> Value {
+    let connection = match s.connections.get(&r.uuid) {
+        Some(crate::status::Connection::Wired) => Some("wired"),
+        Some(crate::status::Connection::Wireless) => Some("wireless"),
+        _ => None,
+    };
+    json!({"name": r.name, "model": r.model, "software": r.version, "connection": connection, "volume": r.volume, "muted": r.muted, "responding": r.online})
 }
 
 fn transport_word(t: Transport) -> &'static str {
@@ -419,6 +442,7 @@ impl Mcp {
             "crossfade": g.crossfade,
             "sleep_timer_minutes_left": g.sleep_left.map(|s| s.div_ceil(60)),
             "plays_along_with": along,
+            "sound": sound_json(g),
         })
     }
 
@@ -464,7 +488,7 @@ impl Mcp {
                         json!({
                             "system": h.system.label(),
                             "active_in_app": i == s.active,
-                            "rooms": h.rooms.iter().map(|r| json!({"name": r.name, "model": r.model, "volume": r.volume, "muted": r.muted, "responding": r.online})).collect::<Vec<_>>(),
+                            "rooms": h.rooms.iter().map(|r| room_json(&s, r)).collect::<Vec<_>>(),
                             "groups": h.groups.iter().map(|g| self.group_line(&s, h, g)).collect::<Vec<_>>(),
                         })
                     })
@@ -1200,8 +1224,8 @@ mod unit {
     fn tool_list_and_look_only_mode() {
         let m = link();
         let all = rpc(&m, 1, "tools/list", json!({}))["result"]["tools"].as_array().unwrap().len();
-        assert_eq!(tools().len(), 51);
-        assert_eq!(all, 49, "installing updates and saving files are off until switched on");
+        assert_eq!(tools().len(), 56);
+        assert_eq!(all, 53, "installing updates and saving files are off until switched on");
         let mut names: Vec<&str> = tools().iter().map(|t| t.0).collect();
         names.sort();
         names.dedup();
@@ -1211,7 +1235,7 @@ mod unit {
         }
         m.b.lock().config.mcp.allow_control = false;
         let look = rpc(&m, 2, "tools/list", json!({}))["result"]["tools"].as_array().unwrap().clone();
-        assert_eq!(look.len(), 15);
+        assert_eq!(look.len(), 17);
         assert!(look.iter().all(|t| t["annotations"]["readOnlyHint"] == true));
         let (text, err) = tool(&m, "playback", json!({"action": "pause"}));
         assert!(err && text.contains("only lets assistants look"));
@@ -1412,6 +1436,51 @@ mod unit {
         // Choosing a folder that doesn't exist says so.
         m.b.lock().config.mcp.files_folder = dir.join("missing").to_string_lossy().into_owned();
         assert!(tool(&m, "save_backup", json!({"file": "e.json"})).0.contains("doesn't exist"));
+        let _ = std::fs::remove_dir_all(&dir);
+    }
+
+    #[test]
+    fn what_the_app_knows_is_there_for_assistants_too() {
+        let m = link();
+        // Rooms carry their software version and, when known, how they're connected.
+        let status = ok(&m, "get_status", json!({}));
+        assert!(status.contains("\"software\"") && status.contains("\"connection\""), "{status}");
+        // The sound of what's playing is there (null when the speaker says nothing).
+        assert!(ok(&m, "now_playing", json!({})).contains("\"sound\""));
+        // The S2 look and the can't-find-my-speakers check are read-only tools.
+        let s2 = ok(&m, "check_s2", json!({}));
+        assert!(s2.contains("S2"), "{s2}");
+        let report = ok(&m, "diagnose_network", json!({}));
+        assert!(!report.is_empty(), "the report says something");
+        // Scenes can be made and removed (in the saved-items group), and are then listed and done.
+        let said = ok(&m, "save_scene", json!({"name": "Evening", "rooms": [{"room": "Bedroom", "volume": 15}], "sleep_minutes": 30}));
+        assert!(said.contains("Saved scene"), "{said}");
+        assert!(ok(&m, "list_scenes", json!({})).contains("Evening"));
+        assert!(tool(&m, "save_scene", json!({"name": "Mixed", "rooms": ["Bedroom", "Garage"]})).1, "rooms must be in one system");
+        assert!(ok(&m, "delete_scene", json!({"name": "evening"})).contains("Deleted"));
+        assert!(tool(&m, "delete_scene", json!({"name": "Evening"})).1, "already gone");
+        m.b.lock().config.mcp.allow_saved = false;
+        assert!(tool(&m, "save_scene", json!({"name": "X", "rooms": ["Bedroom"]})).0.contains("favorites, stations"));
+    }
+
+    #[test]
+    fn a_playlist_is_exported_only_into_the_chosen_folder() {
+        let m = link();
+        let dir = std::env::temp_dir().join(format!("roomtone-mcp-export-{}", std::process::id()));
+        std::fs::create_dir_all(&dir).unwrap();
+        let list = ok(&m, "list_playlists", json!({}));
+        let pl = list.split(']').next().unwrap().trim_start_matches('[').to_string();
+        assert!(tool(&m, "export_playlist", json!({"ref": pl, "file": "a.m3u"})).0.contains("aren't allowed to save files"));
+        {
+            let mut s = m.b.lock();
+            s.config.mcp.allow_files = true;
+            s.config.mcp.files_folder = dir.to_string_lossy().into_owned();
+        }
+        let (text, err) = tool(&m, "export_playlist", json!({"ref": pl, "file": "list.m3u"}));
+        assert!(!err && dir.join("list.m3u").exists(), "{text}");
+        assert!(tool(&m, "export_playlist", json!({"ref": pl, "file": "list.m3u"})).0.contains("already exists"));
+        assert!(tool(&m, "export_playlist", json!({"ref": pl, "file": "list.exe"})).1, "only playlist endings");
+        assert!(tool(&m, "export_playlist", json!({"ref": pl, "file": "../x.m3u"})).0.contains("inside the chosen folder"));
         let _ = std::fs::remove_dir_all(&dir);
     }
 

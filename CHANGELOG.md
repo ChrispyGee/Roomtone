@@ -5,6 +5,7 @@ All notable changes to Roomtone. The format follows [Keep a Changelog](https://k
 ## [Unreleased]
 
 ### Added
+- **More of the app for assistants**: `get_status` now gives each room's software version and (when known) wired or wireless; `now_playing` includes the sound details the speaker reports; new read-only tools `check_s2` (which speakers could move to S2) and `diagnose_network` (the can't-find-my-speakers check, no names or addresses); `save_scene` and `delete_scene` (in the *Saved items* switch); `export_playlist` (in *Save files*, into the chosen folder). 56 tools in all. Checked on the demo system by unit tests. Left out on purpose: lyrics (copyrighted, experimental), restoring backups, signing in to services, music folders and settings such as language.
 - **Choose what assistants may change**: under *Assistants can change things*, separate switches for *Saved items* (favorites, stations, podcasts, saved groups, queue as playlist), *Alarms*, *Room names and sound*, *Speaker updates* and *Save files*. A tool in a switched-off group isn't listed and is refused with a plain sentence. Everything that worked before stays on, except **speaker updates and saving files, which are now off until you switch them on**. Command line: `--mcp-allow` / `--mcp-deny` and `--mcp-files`. New `mcp.allow_saved`, `allow_alarms`, `allow_names`, `allow_updates`, `allow_files` and `files_folder` fields in `config.json`.
 
 ### Changed
