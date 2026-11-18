@@ -106,6 +106,8 @@ pub enum Cmd {
     SetLyrics(bool),
     /// Show or hide a page or feature (alarms, scenes, the update-install buttons).
     SetFeature(crate::config::Feature, bool),
+    /// Forget a system that isn't answering (by household id).
+    ForgetSystem(String),
     /// Look up lyrics for a song: artist, title, album, length in seconds.
     LoadLyrics(String, String, String, f32),
     /// Switch the once-a-day look for a newer Roomtone on or off.
@@ -827,6 +829,7 @@ fn run_live(b: &Backend, ctx: &Waker, cmd: Cmd) -> Result<(), String> {
         | Cmd::SetVersionCheck(_)
         | Cmd::SetLyrics(_)
         | Cmd::SetFeature(..)
+        | Cmd::ForgetSystem(_)
         | Cmd::LoadLyrics(..)
         | Cmd::CheckVersionNow
         | Cmd::SetMediaKeys(_)
@@ -1567,6 +1570,27 @@ fn run_common(b: &Backend, ctx: &Waker, cmd: Cmd) -> Result<Option<Cmd>, String>
                 b2.lock().s2.insert(hid, state);
                 ctx2.request_repaint();
             });
+            Ok(None)
+        }
+        Cmd::ForgetSystem(hid) => {
+            {
+                let mut s = b.lock();
+                let Some(i) = s.households.iter().position(|h| h.id == hid) else { return Ok(None) };
+                if s.households.len() < 2 || s.households[i].rooms.iter().any(|r| r.online == Some(true)) {
+                    return Err(crate::t!("That system is answering, or it's the only one, so it can't be forgotten.").to_string());
+                }
+                s.households.remove(i);
+                if s.active == i {
+                    s.active = 0;
+                    s.selected_group = None;
+                    s.browse.clear();
+                    s.alarms = None;
+                } else if s.active > i {
+                    s.active -= 1;
+                }
+                s.ensure_selection();
+            }
+            remember_speakers(b);
             Ok(None)
         }
         Cmd::SetFeature(feature, on) => {
@@ -2978,6 +3002,37 @@ mod unit {
         // A file that isn't a backup is refused with a message, not a crash.
         std::fs::write(&file, "{\"hello\": 1}").unwrap();
         assert!(b.send_and_wait(Cmd::ReadBackup(file), wait).is_err());
+    }
+
+    #[test]
+    fn only_a_silent_system_can_be_forgotten_and_never_the_last() {
+        let b = demo_backend();
+        let wait = Duration::from_secs(10);
+        let (first, second) = {
+            let s = b.lock();
+            (s.households[0].id.clone(), s.households[1].id.clone())
+        };
+        for r in b.lock().households[0].rooms.iter_mut() {
+            r.online = Some(true);
+        }
+        assert!(b.send_and_wait(Cmd::ForgetSystem(first.clone()), wait).is_err(), "one that answers stays");
+        for r in b.lock().households[0].rooms.iter_mut() {
+            r.online = Some(false);
+        }
+        b.lock().active = 0;
+        b.send_and_wait(Cmd::ForgetSystem(first.clone()), wait).unwrap();
+        {
+            let s = b.lock();
+            assert!(s.households.iter().all(|h| h.id != first));
+            assert_eq!(s.households[s.active].id, second, "the shown system moved to one that is left");
+        }
+        for r in b.lock().households[0].rooms.iter_mut() {
+            r.online = Some(false);
+        }
+        let n = b.lock().households.len();
+        if n == 1 {
+            assert!(b.send_and_wait(Cmd::ForgetSystem(second), wait).is_err(), "the last one stays");
+        }
     }
 
     #[test]

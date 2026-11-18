@@ -118,6 +118,8 @@ pub struct App {
     along: HashMap<String, String>,
     /// A software update waiting for the person to confirm: (household id, system, version).
     update_confirm: Option<(String, System, String)>,
+    /// Forgetting a system that isn't answering, waiting for the person to confirm: (household id, system).
+    forget_confirm: Option<(String, System)>,
     /// Which parts of a backup file to restore (ticked in Settings).
     backup_sections: crate::backup::Sections,
 }
@@ -247,6 +249,7 @@ impl App {
             shot_saved: Default::default(),
             applied_theme: String::new(),
             update_confirm: None,
+            forget_confirm: None,
             backup_sections: Default::default(),
             group_preset: open_new_group
                 .then(|| (None, crate::config::SavedGroup { name: "Downstairs".into(), household: "demo-s2".into(), rooms: vec!["D-LIVING".into(), "D-KITCHEN".into()] })),
@@ -496,6 +499,7 @@ impl App {
         self.scene_modal(ctx, s);
         self.group_preset_modal(ctx, s);
         self.update_modal(ctx);
+        self.forget_modal(ctx);
         self.toasts(ctx, s);
         self.announce_playing(ctx, s);
     }
@@ -1648,6 +1652,33 @@ impl App {
         }
         if keep {
             self.station_editor = Some(st);
+        }
+    }
+
+    /// "Forget this system?" before a system that isn't answering is taken off the list.
+    fn forget_modal(&mut self, ctx: &egui::Context) {
+        let Some((hid, system)) = self.forget_confirm.clone() else { return };
+        let mut keep = true;
+        let modal = egui::Modal::new(egui::Id::unique("forget_confirm")).frame(modal_frame()).show(ctx, |ui| {
+            ui.set_width(420.0);
+            ui.label(RichText::new(t!("Forget this {system} system?", system = system.label())).size(20.0).strong().color(TEXT()));
+            ui.add_space(6.0);
+            ui.label(RichText::new(t!("It's taken off this list. If it's on this network, searching for speakers adds it back.")).color(TEXT_DIM()));
+            ui.add_space(12.0);
+            ui.horizontal(|ui| {
+                ui.with_layout(Layout::right_to_left(Align::Center), |ui| {
+                    if pill(ui, None, t!("Forget"), true).clicked() {
+                        self.out.push(Cmd::ForgetSystem(hid.clone()));
+                        keep = false;
+                    }
+                    if pill(ui, None, t!("Cancel"), false).clicked() {
+                        keep = false;
+                    }
+                });
+            });
+        });
+        if modal.should_close() || !keep {
+            self.forget_confirm = None;
         }
     }
 

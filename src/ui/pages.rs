@@ -2113,6 +2113,18 @@ impl App {
                 if i == s.active {
                     chip(ui, t!("Active"), GOOD());
                 }
+                // Remembered from another network: every room checked and none answered.
+                let silent = s.phase == Phase::Live && !h.rooms.is_empty() && h.rooms.iter().all(|r| r.online == Some(false));
+                if silent {
+                    chip(ui, t!("Not on this network"), TEXT_DIM());
+                    if s.households.len() > 1 {
+                        ui.with_layout(Layout::right_to_left(Align::Center), |ui| {
+                            if pill(ui, None, t!("Forget"), false).clicked() {
+                                self.forget_confirm = Some((h.id.clone(), h.system));
+                            }
+                        });
+                    }
+                }
             });
             card_frame().show(ui, |ui| {
                 ui.set_width(ui.available_width());

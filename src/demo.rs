@@ -526,6 +526,7 @@ pub fn apply(s: &mut AppState, cmd: &Cmd) {
         | Cmd::SetVersionCheck(_)
         | Cmd::SetLyrics(_)
         | Cmd::SetFeature(..)
+        | Cmd::ForgetSystem(_)
         | Cmd::LoadLyrics(..)
         | Cmd::CheckVersionNow
         | Cmd::SetMediaKeys(_)

@@ -60,6 +60,7 @@ A summary line says how many speakers can't run S2 (a system with such speakers 
 | Control | What it does |
 | --- | --- |
 | *Search again* | Searches the network for speakers again. (*Reconnect*, in the sidebar under the systems list, retries your remembered speakers after a lost connection.) |
+| *Forget* (beside a system marked *Not on this network*) | Takes a remembered system that isn't answering off the list, after a confirmation. Not offered for the only system or one that answers. Searching for speakers adds it back if it's on this network. |
 | *Add a speaker by address* | Use when your network blocks discovery: type a speaker's IP address (find it in your router) and choose *Add*. Remembered in `speakers.json`. |
 | *Open demo* | Shows a made-up system (5 S2 rooms and 3 S1 rooms) so every screen can be tried. Nothing real is touched. |
 
@@ -259,7 +260,7 @@ Edit it by hand only if you know what you're doing; a file that can't be read is
 
 | File | What | Safe to delete? |
 | --- | --- | --- |
-| `speakers.json` | Speakers found last time, for a fast start. | Yes: Roomtone searches again. |
+| `speakers.json` | Speakers found last time, for a fast start. Systems not seen for 30 days are dropped (the newest is always kept). | Yes: Roomtone searches again. |
 | `config.json.broken-…` | A settings file Roomtone couldn't read, kept for you. | Yes, once you've recovered what you need. |
 | `songs.json` | Details of songs played from this computer. | Yes: rebuilt as needed. |
 | `window.json` | The window's size and position (and whether it was maximised), so Roomtone opens as you left it. Written a moment after you stop moving or resizing it. | Yes: it opens at the default size. |
