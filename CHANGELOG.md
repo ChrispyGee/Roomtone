@@ -4,6 +4,9 @@ All notable changes to Roomtone. The format follows [Keep a Changelog](https://k
 
 ## [Unreleased]
 
+### Checked
+- A real S2 speaker (a Play:3 on 86.11-82170): batched queue adds and range removal, and an internet radio station playing (reported format: AAC only) (maintainer, 2026-11-18).
+
 ## [0.9.1] — 2026-11-18
 
 Software updates show how they're going, queue changes are faster, and speakers are found sooner.
