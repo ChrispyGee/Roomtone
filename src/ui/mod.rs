@@ -331,6 +331,16 @@ impl App {
                 self.open(&Item { id: id.clone(), title: id, is_container: true, parent_id, class, uri, ..Default::default() });
             }
         }
+        // Test hook: picture a system remembered from another network (no room answers).
+        if self.frame >= 20 && std::env::var_os("ROOMTONE_TEST_SILENT").is_some() {
+            let mut st = self.backend.lock();
+            st.phase = crate::model::Phase::Live;
+            for h in st.households.iter_mut() {
+                for r in &mut h.rooms {
+                    r.online = Some(h.system != System::S1);
+                }
+            }
+        }
         if self.frame == 20 && std::env::var_os("ROOMTONE_TEST_S2").is_some() {
             let hid = self.backend.lock().households.iter().find(|h| h.system == System::S1).map(|h| h.id.clone());
             if let Some(hid) = hid {

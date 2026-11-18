@@ -798,3 +798,4 @@ Favorites and Playlists have a Try again button if your speakers don't answer	Fa
 The keyboard media keys are gone: macOS never sent them to Roomtone reliably	De mediatoetsen van het toetsenbord zijn verwijderd: macOS stuurde ze nooit betrouwbaar naar Roomtone
 Crash log	Crashlogboek
 Roomtone closed unexpectedly on {date}. The details are in crash.log in the settings folder; nothing is sent anywhere.	Roomtone is op {date} onverwacht gesloten. De details staan in crash.log in de instellingenmap; er wordt niets verzonden.
+Not on this network, so it can't be checked from here.	Niet op dit netwerk, dus vanaf hier niet te controleren.
