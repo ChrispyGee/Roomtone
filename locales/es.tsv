@@ -777,9 +777,6 @@ Room names and sound	Nombres de salas y sonido
 Save files	Guardar archivos
 Saved items	Elementos guardados
 What else assistants may change	Qué más pueden cambiar los asistentes
-Choose what assistants may change, one kind of change at a time, in Settings	En Ajustes, elige qué pueden cambiar los asistentes, tipo por tipo
-Alarms and Scenes stay out of the sidebar until you switch them on in Settings	Alarmas y Escenas no aparecen en la barra lateral hasta que las actives en Ajustes
-On Windows, Roomtone no longer opens an extra console window	En Windows, Roomtone ya no abre una ventana de consola adicional
 Couldn't read this from your speakers right now. Check that they're on and on this network, then try again.	Ahora no se ha podido leer esto de tus altavoces. Comprueba que estén encendidos y en esta red, y vuelve a intentarlo.
 Try again	Reintentar
 Assistants	Asistentes
@@ -795,3 +792,7 @@ That system is answering, or it's the only one, so it can't be forgotten.	Ese si
 Play {source} from {room}	Reproducir {source} desde {room}
 Connect in Settings	Conectar en Ajustes
 Podcasts and recordings	Podcasts y grabaciones
+Settings is now a row of tabs, and Music Services moved into it as Services	Los ajustes ahora son una fila de pestañas, y Servicios de música está dentro como Servicios
+Systems from other networks are forgotten after 30 days, and Roomtone starts on one that answers	Los sistemas de otras redes se olvidan a los 30 días, y Roomtone arranca con uno que responde
+Favorites and Playlists have a Try again button if your speakers don't answer	Favoritos y Listas tienen un botón Reintentar si tus altavoces no responden
+The keyboard media keys are gone: macOS never sent them to Roomtone reliably	Se han quitado las teclas multimedia: macOS nunca las enviaba a Roomtone de forma fiable
