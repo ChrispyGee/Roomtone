@@ -4,6 +4,9 @@ All notable changes to Roomtone. The format follows [Keep a Changelog](https://k
 
 ## [Unreleased]
 
+### Security
+- **The music server is harder to knock over.** The server that lets speakers fetch music from this computer (port 52880) now answers only computers on a local network, drops requests that aren't sent within 10 seconds or that are oversized (a request line over 8 KiB, more than 64 header lines), drops a speaker that stops reading for two minutes, and serves at most 64 connections at once. Before, anyone on the same Wi-Fi could stall it or make it use up memory by opening slow or endless connections. It never served files outside the folders you added.
+
 ## [0.9.0] — 2026-11-18
 
 A tidier interface, and better behaviour when you move between networks.

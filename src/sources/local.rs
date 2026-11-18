@@ -4,10 +4,12 @@
 
 use std::collections::{BTreeMap, BTreeSet, HashMap};
 use std::io::{BufRead, BufReader, Read, Seek, SeekFrom, Write};
-use std::net::{TcpListener, TcpStream, UdpSocket};
+use std::net::{IpAddr, TcpListener, TcpStream, UdpSocket};
 use std::path::{Path, PathBuf};
+use std::sync::atomic::{AtomicUsize, Ordering};
 use std::sync::{OnceLock, RwLock};
 use std::thread;
+use std::time::Duration;
 
 use lofty::prelude::*;
 
@@ -131,12 +133,67 @@ pub fn start_server() -> String {
     }
     thread::spawn(move || {
         for stream in listener.incoming().flatten() {
+            // Only machines on a home or office network (or this one) are served at all.
+            if !stream.peer_addr().is_ok_and(|p| is_local(p.ip())) {
+                continue;
+            }
+            // A speaker opens a few connections; a flood is turned away at once.
+            if OPEN.fetch_add(1, Ordering::SeqCst) >= MAX_CONNECTIONS {
+                OPEN.fetch_sub(1, Ordering::SeqCst);
+                let mut stream = stream;
+                let _ = stream.write_all(b"HTTP/1.1 503 Busy\r\nContent-Length: 0\r\nConnection: close\r\n\r\n");
+                continue;
+            }
             thread::spawn(move || {
+                let _release = Release;
                 let _ = serve(stream);
             });
         }
     });
     url
+}
+
+/// How many connections the file server handles at once.
+const MAX_CONNECTIONS: usize = 64;
+static OPEN: AtomicUsize = AtomicUsize::new(0);
+
+/// Gives a connection's place back when it ends, however it ends.
+struct Release;
+impl Drop for Release {
+    fn drop(&mut self) {
+        OPEN.fetch_sub(1, Ordering::SeqCst);
+    }
+}
+
+/// A request that hasn't been sent in this long is dropped.
+const READ_TIMEOUT: Duration = Duration::from_secs(10);
+/// A speaker that stops reading for this long is dropped (it pauses while its buffer is full).
+const WRITE_TIMEOUT: Duration = Duration::from_secs(120);
+/// The longest request line or header line, and the most header lines, that are read.
+const MAX_HEAD_LINE: usize = 8 * 1024;
+const MAX_HEAD_LINES: usize = 64;
+
+/// Is this address on this computer or a home or office network? (Loopback, private, link-local
+/// and unique-local addresses; never a public one.)
+pub(crate) fn is_local(ip: IpAddr) -> bool {
+    match ip {
+        IpAddr::V4(a) => a.is_loopback() || a.is_private() || a.is_link_local(),
+        IpAddr::V6(a) => {
+            if let Some(v4) = a.to_ipv4_mapped() {
+                return is_local(IpAddr::V4(v4));
+            }
+            a.is_loopback() || (a.segments()[0] & 0xfe00) == 0xfc00 || (a.segments()[0] & 0xffc0) == 0xfe80
+        }
+    }
+}
+
+/// Read one line of a request, but never more than `MAX_HEAD_LINE` bytes of it.
+fn head_line(reader: &mut BufReader<TcpStream>, out: &mut String) -> std::io::Result<usize> {
+    let n = reader.by_ref().take(MAX_HEAD_LINE as u64).read_line(out)?;
+    if n >= MAX_HEAD_LINE && !out.ends_with('\n') {
+        return Err(std::io::Error::new(std::io::ErrorKind::InvalidData, "request line too long"));
+    }
+    Ok(n)
 }
 
 fn hash_id(p: &Path) -> String {
@@ -438,13 +495,20 @@ pub fn search(term: &str) -> Vec<Item> {
 // ---------- the little web server ----------
 
 fn serve(mut stream: TcpStream) -> std::io::Result<()> {
+    stream.set_read_timeout(Some(READ_TIMEOUT))?;
+    stream.set_write_timeout(Some(WRITE_TIMEOUT))?;
     let mut reader = BufReader::new(stream.try_clone()?);
     let mut request = String::new();
-    reader.read_line(&mut request)?;
+    head_line(&mut reader, &mut request)?;
     let mut range: Option<(u64, Option<u64>)> = None;
+    let mut lines = 0;
     loop {
         let mut line = String::new();
-        if reader.read_line(&mut line)? == 0 || line == "\r\n" || line == "\n" {
+        lines += 1;
+        if lines > MAX_HEAD_LINES {
+            return Err(std::io::Error::new(std::io::ErrorKind::InvalidData, "too many header lines"));
+        }
+        if head_line(&mut reader, &mut line)? == 0 || line == "\r\n" || line == "\n" {
             break;
         }
         let lower = line.to_ascii_lowercase();
@@ -607,6 +671,60 @@ mod tests {
         assert_eq!(body.len(), 100);
         assert_eq!(&body[..4], b"RIFF");
         assert!(super::search("test").iter().any(|i| i.title == "Test Song"));
+    }
+}
+
+#[cfg(test)]
+mod server_limits {
+    use super::*;
+
+    #[test]
+    fn only_local_addresses_are_served() {
+        for ok in ["127.0.0.1", "10.1.2.3", "172.16.120.222", "172.31.0.1", "192.168.1.20", "169.254.3.4", "::1", "fd12::1", "fe80::1", "::ffff:192.168.1.5"] {
+            assert!(is_local(ok.parse().unwrap()), "{ok} is local");
+        }
+        for no in ["8.8.8.8", "172.32.0.1", "100.64.0.1", "2001:db8::1", "::ffff:8.8.8.8"] {
+            assert!(!is_local(no.parse().unwrap()), "{no} is not local");
+        }
+    }
+
+    fn pair() -> (TcpStream, TcpStream) {
+        let l = TcpListener::bind("127.0.0.1:0").unwrap();
+        let c = TcpStream::connect(l.local_addr().unwrap()).unwrap();
+        let (s, _) = l.accept().unwrap();
+        (c, s)
+    }
+
+    #[test]
+    fn an_endless_request_line_is_refused_not_buffered() {
+        let (mut client, server) = pair();
+        let t = thread::spawn(move || serve(server));
+        client.write_all(&vec![b'A'; MAX_HEAD_LINE * 3]).unwrap();
+        let r = t.join().unwrap();
+        assert!(r.is_err(), "a line with no end must be refused");
+    }
+
+    #[test]
+    fn too_many_header_lines_are_refused() {
+        let (mut client, server) = pair();
+        let t = thread::spawn(move || serve(server));
+        let mut req = String::from("GET /x HTTP/1.1\r\n");
+        for i in 0..200 {
+            req.push_str(&format!("X-{i}: y\r\n"));
+        }
+        client.write_all(req.as_bytes()).unwrap();
+        assert!(t.join().unwrap().is_err());
+    }
+
+    #[test]
+    fn a_short_ordinary_request_still_gets_an_answer() {
+        let (mut client, server) = pair();
+        let t = thread::spawn(move || serve(server));
+        client.write_all(b"GET /nothing HTTP/1.1\r\nHost: x\r\n\r\n").unwrap();
+        let mut got = String::new();
+        client.read_to_string(&mut got).unwrap();
+        assert!(got.starts_with("HTTP/1.1 404"), "{got}");
+        t.join().unwrap().unwrap();
     }
 }
 
