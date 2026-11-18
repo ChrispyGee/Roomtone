@@ -41,7 +41,11 @@ In the Rooms panel (right-hand side), *Arrange* shows up and down arrows on ever
 ### Systems and rooms
 Each system (S1 and S2 are shown separately) lists its rooms with their model and speaker software version. Choose a room to open its own settings ([kept on the speakers](#settings-kept-on-the-speakers)).
 
-### Software updates
+### Pages you use
+*Show Alarms* and *Show Scenes* add those pages to the sidebar (Scenes also adds its shortcuts to Home). Both are **off by default** so the app stays simple if you don't use them; someone who already had scenes keeps seeing them until they switch the page off. Fields: `show_alarms`, `show_scenes` (true/false; absent means "not chosen yet"). The speakers' own alarms keep working whether or not the page is shown.
+
+### Software updates (experimental)
+*Allow installing updates* (`allow_update_install`, off by default) decides whether the *Update all speakers* button is offered. Installing hasn't been tried on real speakers yet, so it's off until you switch it on; checking is always possible.
 *Check for updates* asks each system's own update service whether newer speaker software exists. *Update all speakers* asks for confirmation, then installs on every speaker of that system. S1 systems are only offered S1 updates; moving S1 to S2 isn't possible from the app. Nothing here is saved by Roomtone.
 
 ### Can this system move to S2?
@@ -177,6 +181,7 @@ Complete `config.json`, with every field at its default (the access key is made 
   "last_version_check": 0,
   "remember_history": true,
   "show_lyrics": false,
+  "allow_update_install": false,
   "media_keys": true
 }
 ```
@@ -200,6 +205,9 @@ Complete `config.json`, with every field at its default (the access key is made 
 | `media_keys` | true/false | `true` | Let the keyboard's media keys and the system's Now Playing control the selected room. |
 | `remember_history` | true/false | `true` | Keep a listening history on this computer. |
 | `show_lyrics` | true/false | `false` | Experimental: show lyrics on Now Playing, fetched from lrclib.net. |
+| `show_alarms` | true/false | not set (off) | Show the Alarms page in the sidebar. |
+| `show_scenes` | true/false | not set (on only if you already have scenes) | Show the Scenes page and its Home shortcuts. |
+| `allow_update_install` | true/false | `false` | Experimental: offer *Update all speakers*. |
 | `mcp.enabled` | true/false | `false` | Assistant link on. |
 | `mcp.allow_control` | true/false | `true` | Assistants may change things. |
 | `mcp.allow_saved`, `mcp.allow_alarms`, `mcp.allow_names` | true/false | `true` | Which kinds of change assistants may make (while `allow_control` is on). |

@@ -178,6 +178,27 @@ pub fn new_token() -> String {
     out
 }
 
+/// The things in the app that can be switched on or off in Settings.
+#[derive(Clone, Copy, Debug, PartialEq, Eq)]
+pub enum Feature {
+    Alarms,
+    Scenes,
+    UpdateInstall,
+}
+
+impl Config {
+    /// Is the Alarms page shown? Off until the person switches it on.
+    pub fn alarms_shown(&self) -> bool {
+        self.show_alarms.unwrap_or(false) || std::env::var_os("ROOMTONE_TEST_PAGES").is_some()
+    }
+
+    /// Is the Scenes page shown? Off until switched on, except that someone who already has scenes
+    /// keeps seeing them until they choose otherwise.
+    pub fn scenes_shown(&self) -> bool {
+        self.show_scenes.unwrap_or(!self.scenes.is_empty()) || std::env::var_os("ROOMTONE_TEST_PAGES").is_some()
+    }
+}
+
 impl Default for McpConfig {
     fn default() -> Self {
         McpConfig {
@@ -250,6 +271,15 @@ pub struct Config {
     /// lrclib.net for them.
     #[serde(default)]
     pub show_lyrics: bool,
+    /// Show the Alarms page. Off until switched on (`None`: never chosen, so off).
+    #[serde(default)]
+    pub show_alarms: Option<bool>,
+    /// Show the Scenes page and the Home shortcuts. Never chosen: shown only if scenes already exist.
+    #[serde(default)]
+    pub show_scenes: Option<bool>,
+    /// Show the buttons that install speaker software updates (experimental; off until switched on).
+    #[serde(default)]
+    pub allow_update_install: bool,
     /// Remember what was played (on this computer only) for Recently played and History.
     #[serde(default = "yes")]
     pub remember_history: bool,
@@ -282,6 +312,9 @@ impl Default for Config {
             last_version_check: 0,
             media_keys: true,
             show_lyrics: false,
+            show_alarms: None,
+            show_scenes: None,
+            allow_update_install: false,
             remember_history: true,
             room_order: vec![],
         }
@@ -413,6 +446,20 @@ impl Config {
 
 #[cfg(test)]
 mod unit {
+    #[test]
+    fn alarms_and_scenes_are_hidden_until_wanted_but_existing_scenes_stay() {
+        let mut c = Config::default();
+        assert!(!c.alarms_shown() && !c.scenes_shown(), "off by default");
+        c.scenes.push(Scene { name: "Movie night".into(), household: String::new(), rooms: vec![], group: true, play: String::new(), sleep_minutes: 0 });
+        assert!(c.scenes_shown(), "someone who already has scenes keeps them");
+        c.show_scenes = Some(false);
+        assert!(!c.scenes_shown(), "unless they switch the page off");
+        c.show_alarms = Some(true);
+        assert!(c.alarms_shown());
+        let old: Config = serde_json::from_str("{}").unwrap();
+        assert!(old.show_alarms.is_none() && old.show_scenes.is_none() && !old.allow_update_install);
+    }
+
     use super::*;
 
     #[test]

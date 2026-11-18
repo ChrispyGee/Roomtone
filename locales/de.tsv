@@ -763,6 +763,13 @@ Lyrics (experimental): switch it on in Settings to see the words of the song tha
 The project page now links straight to each download	Die Projektseite verlinkt jetzt direkt auf jeden Download
 Lyrics now wait and try again when the lyrics service is busy	Songtexte warten jetzt und versuchen es erneut, wenn der Songtext-Dienst ausgelastet ist
 Speakers on Wi-Fi, such as the Sonos One SL, now show as Wireless	Lautsprecher im WLAN, etwa der Sonos One SL, werden jetzt als „Drahtlos“ angezeigt
+Adds Alarms to the sidebar, to see and set the speakers' alarms.	Fügt Wecker zur Seitenleiste hinzu, um die Wecker der Lautsprecher zu sehen und einzustellen.
+Adds Scenes to the sidebar and shortcuts to Home, for one-click set-ups of rooms, volumes and music.	Fügt Szenen zur Seitenleiste und Kurzbefehle zur Startseite hinzu, für Einstellungen von Räumen, Lautstärken und Musik per Klick.
+Allow installing updates	Installieren von Updates erlauben
+Checking is always possible. Installing has not been tried on real speakers yet: speakers restart and music stops for a few minutes.	Prüfen ist immer möglich. Das Installieren wurde noch nicht an echten Lautsprechern ausprobiert: Die Lautsprecher starten neu und die Musik stoppt für einige Minuten.
+Pages you use	Seiten, die du nutzt
+Show Alarms	Wecker anzeigen
+Show Scenes	Szenen anzeigen
 Choose folder	Ordner wählen
 Favorites, stations, podcasts, saved groups, and saving the queue as a playlist.	Favoriten, Sender, Podcasts, gespeicherte Gruppen und die Warteschlange als Playlist speichern.
 Folder for assistants' files	Ordner für Dateien der Assistenten

@@ -9,6 +9,9 @@ All notable changes to Roomtone. The format follows [Keep a Changelog](https://k
 
 ### Changed
 - **Assistants save backups only into a folder you choose** (Settings › Assistant link › *Save files* › *Choose folder*). The `save_backup` tool and `roomtone backup NAME.json` now take a file name that is saved in that folder; a path elsewhere is refused. Before, any `.json` path on the computer was accepted. Checked by unit tests on the demo system.
+- **Alarms and Scenes are hidden until you want them**: *Settings › Pages you use* has *Show Alarms* and *Show Scenes*, both off by default so the sidebar and Home are simpler. If you already have scenes they stay visible until you switch the page off. The speakers' alarms keep working either way. New `show_alarms` and `show_scenes` fields in `config.json`.
+- **Speaker software updates are experimental**: the section is tagged *Experimental* and has a switch, *Allow installing updates* (off by default), that decides whether *Update all speakers* is offered. Checking for updates is always available.
+- **Restoring a backup and Play along are tagged *Experimental*** (no switch), because neither has been verified on real speakers.
 
 ### Fixed
 - **Windows: no more extra console window.** Starting Roomtone opened a black console window beside it, and closing that window closed the app. It is now a window program, so no console appears. Started from a terminal it still prints there (`--help`, `--mcp-info`, `--headless`, the command-line commands). One consequence: Command Prompt and PowerShell don't wait for window programs, so scripts that need the output or exit code should use `start /wait roomtone.exe …` (see docs/HEADLESS_AND_MCP.md). Compiles for Windows; **not yet run on Windows by us**: the reporter's Windows PC is the first test.

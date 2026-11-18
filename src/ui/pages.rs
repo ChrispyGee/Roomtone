@@ -65,6 +65,12 @@ impl App {
             self.container_page(ui, s, &top);
             return;
         }
+        // A page that was switched off in Settings isn't reachable (even if it was open).
+        match self.view {
+            View::Alarms if !s.config.alarms_shown() => self.view = View::Settings,
+            View::Scenes if !s.config.scenes_shown() => self.view = View::Settings,
+            _ => {}
+        }
         match self.view.clone() {
             View::Home => self.home(ui, s),
             View::Search => self.search_page(ui, s),
@@ -126,7 +132,9 @@ impl App {
             self.hero(ui, h, g);
             ui.add_space(22.0);
         }
-        self.scenes_row(ui, s);
+        if s.config.scenes_shown() {
+            self.scenes_row(ui, s);
+        }
         let gid = s.selected_group.clone();
         let mut favs: Vec<Item> = match self.browse(s, "FV:2") {
             Some(Browse::Ready(v)) => v.clone(),
@@ -2069,6 +2077,8 @@ impl App {
 
         self.updates_card(ui, s);
         ui.add_space(14.0);
+        self.pages_card(ui, s);
+        ui.add_space(14.0);
         section_title(ui, t!("Connection"));
         card_frame().show(ui, |ui| {
             ui.set_width(ui.available_width());
@@ -2357,9 +2367,26 @@ impl App {
         if s.households.is_empty() {
             return;
         }
-        section_title(ui, t!("Software updates"));
+        experimental_title(ui, t!("Software updates"));
+        let mut install = s.config.allow_update_install;
         card_frame().show(ui, |ui| {
             ui.set_width(ui.available_width());
+            ui.horizontal(|ui| {
+                ui.set_min_height(40.0);
+                ui.vertical(|ui| {
+                    ui.set_max_width((ui.available_width() - 76.0).max(120.0));
+                    ui.label(RichText::new(t!("Allow installing updates")).color(TEXT()));
+                    ui.label(
+                        RichText::new(t!("Checking is always possible. Installing has not been tried on real speakers yet: speakers restart and music stops for a few minutes."))
+                            .size(12.0)
+                            .color(TEXT_DIM()),
+                    );
+                });
+                ui.with_layout(Layout::right_to_left(Align::Center), |ui| {
+                    toggle(ui, &mut install, t!("Allow installing updates"));
+                });
+            });
+            ui.separator();
             for (i, h) in s.households.iter().enumerate() {
                 if i > 0 {
                     ui.separator();
@@ -2389,6 +2416,7 @@ impl App {
                         ui.label(RichText::new(text).size(12.5).color(color));
                     });
                     ui.with_layout(Layout::right_to_left(Align::Center), |ui| match state {
+                        Some(UpdateState::Available(_)) if !s.config.allow_update_install => {}
                         Some(UpdateState::Available(o)) => {
                             if pill(ui, None, t!("Update all speakers"), true).clicked() {
                                 self.update_confirm = Some((h.id.clone(), h.system, o.version.clone()));
@@ -2413,6 +2441,9 @@ impl App {
                     .color(TEXT_FAINT()),
             );
         });
+        if install != s.config.allow_update_install {
+            self.send(Cmd::SetFeature(crate::config::Feature::UpdateInstall, install));
+        }
     }
 
     /// Save and restore favorites, playlists, alarms and Roomtone's own lists and settings.
@@ -2458,7 +2489,14 @@ impl App {
             ui.separator();
             ui.horizontal(|ui| {
                 ui.set_min_height(40.0);
-                row(ui, t!("Restore from a backup"), t!("Adds what's in a backup file to this system. Nothing that's already there is changed or removed."));
+                ui.vertical(|ui| {
+                    ui.set_max_width((ui.available_width() - 200.0).max(160.0));
+                    ui.horizontal(|ui| {
+                        ui.label(RichText::new(t!("Restore from a backup")).color(TEXT()));
+                        chip(ui, t!("Experimental"), TEXT_DIM());
+                    });
+                    ui.label(RichText::new(t!("Adds what's in a backup file to this system. Nothing that's already there is changed or removed.")).size(12.0).color(TEXT_DIM()));
+                });
                 ui.with_layout(Layout::right_to_left(Align::Center), |ui| {
                     if pill(ui, None, t!("Choose a backup"), false).clicked() {
                         if let Some(path) = rfd::FileDialog::new().set_title(t!("Choose a backup")).add_filter("Roomtone backup", &["json"]).pick_file() {
@@ -2626,6 +2664,40 @@ impl App {
     }
 
     /// Lyrics for the song that's playing: experimental, and off until switched on.
+    /// Which optional pages appear in the sidebar.
+    fn pages_card(&mut self, ui: &mut Ui, s: &AppState) {
+        use crate::config::Feature;
+        section_title(ui, t!("Pages you use"));
+        let mut alarms = s.config.alarms_shown();
+        let mut scenes = s.config.scenes_shown();
+        let (a0, s0) = (alarms, scenes);
+        card_frame().show(ui, |ui| {
+            ui.set_width(ui.available_width());
+            let row = |ui: &mut Ui, title: &str, sub: &str, on: &mut bool| {
+                ui.horizontal(|ui| {
+                    ui.set_min_height(40.0);
+                    ui.vertical(|ui| {
+                        ui.set_max_width((ui.available_width() - 76.0).max(120.0));
+                        ui.label(RichText::new(title).color(TEXT()));
+                        ui.label(RichText::new(sub).size(12.0).color(TEXT_DIM()));
+                    });
+                    ui.with_layout(Layout::right_to_left(Align::Center), |ui| {
+                        toggle(ui, on, title);
+                    });
+                });
+            };
+            row(ui, t!("Show Alarms"), t!("Adds Alarms to the sidebar, to see and set the speakers' alarms."), &mut alarms);
+            ui.separator();
+            row(ui, t!("Show Scenes"), t!("Adds Scenes to the sidebar and shortcuts to Home, for one-click set-ups of rooms, volumes and music."), &mut scenes);
+        });
+        if alarms != a0 {
+            self.send(Cmd::SetFeature(Feature::Alarms, alarms));
+        }
+        if scenes != s0 {
+            self.send(Cmd::SetFeature(Feature::Scenes, scenes));
+        }
+    }
+
     fn lyrics_card(&mut self, ui: &mut Ui, s: &AppState) {
         experimental_title(ui, t!("Lyrics"));
         let mut on = s.config.show_lyrics;

@@ -104,6 +104,8 @@ pub enum Cmd {
     CheckConnections,
     /// Switch lyrics (experimental) on or off.
     SetLyrics(bool),
+    /// Show or hide a page or feature (alarms, scenes, the update-install buttons).
+    SetFeature(crate::config::Feature, bool),
     /// Look up lyrics for a song: artist, title, album, length in seconds.
     LoadLyrics(String, String, String, f32),
     /// Switch the once-a-day look for a newer Roomtone on or off.
@@ -808,6 +810,7 @@ fn run_live(b: &Backend, ctx: &Waker, cmd: Cmd) -> Result<(), String> {
         | Cmd::CheckConnections
         | Cmd::SetVersionCheck(_)
         | Cmd::SetLyrics(_)
+        | Cmd::SetFeature(..)
         | Cmd::LoadLyrics(..)
         | Cmd::CheckVersionNow
         | Cmd::SetMediaKeys(_)
@@ -1548,6 +1551,19 @@ fn run_common(b: &Backend, ctx: &Waker, cmd: Cmd) -> Result<Option<Cmd>, String>
                 b2.lock().s2.insert(hid, state);
                 ctx2.request_repaint();
             });
+            Ok(None)
+        }
+        Cmd::SetFeature(feature, on) => {
+            {
+                use crate::config::Feature;
+                let mut s = b.lock();
+                match feature {
+                    Feature::Alarms => s.config.show_alarms = Some(on),
+                    Feature::Scenes => s.config.show_scenes = Some(on),
+                    Feature::UpdateInstall => s.config.allow_update_install = on,
+                }
+            }
+            save(b);
             Ok(None)
         }
         Cmd::SetLyrics(on) => {
