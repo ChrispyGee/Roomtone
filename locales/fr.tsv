@@ -176,7 +176,6 @@ More from your system	Plus de votre système
 Most popular	Les plus populaires
 Music	Musique
 Music Library	Bibliothèque musicale
-Music Services	Services musicaux
 Music folders on this Mac, or drives and network shares mounted on it	Dossiers de musique sur ce Mac, ou disques et partages réseau montés dessus
 Music shared on your speakers' system and folders on this computer	Musique partagée sur le système de vos enceintes et dossiers de cet ordinateur
 My favourite station	Ma station préférée
@@ -367,7 +366,7 @@ That speaker	Cette enceinte
 The address should start with http:// or https://	L'adresse doit commencer par http:// ou https://
 The light on the speaker	Le voyant de l'enceinte
 The queue is empty	La file est vide
-The radio directory is switched off in Music Services.	L'annuaire radio est désactivé dans Services musicaux.
+The radio directory is switched off in Settings › Services.	L'annuaire radio est désactivé dans Réglages › Services.
 The speakers are taking a while to answer; try again in a moment.	Les enceintes mettent du temps à répondre ; réessayez dans un instant.
 The star in the player bar, the Now Playing page and the Home card	L'étoile de la barre de lecture, la page En lecture et la carte d'accueil
 There's already a group with that name.	Un groupe porte déjà ce nom.
@@ -427,7 +426,7 @@ version {version}	version {version}
 {program} · volume {volume} · {minutes} min	{program} · volume {volume} · {minutes} min
 {service} connected	{service} connecté
 {service} couldn't start a sign-in: {error}	{service} n'a pas pu lancer de connexion : {error}
-{service} is connected. Find it in Music Services and in Search.	{service} est connecté. Retrouvez-le dans Services musicaux et dans Rechercher.
+{service} is connected. Find it in Music Library and in Search.	{service} est connecté. Retrouvez-le dans la bibliothèque musicale et dans Rechercher.
 {source} couldn't be reached right now.	{source} est injoignable pour le moment.
 {system} speakers can only be grouped with rooms in the same system.	Les enceintes {system} ne peuvent être groupées qu'avec des pièces du même système.
 {system} system	Système {system}
@@ -445,7 +444,6 @@ Browsing works (1 section)	La navigation fonctionne (1 rubrique)
 Browsing works ({n} sections)	La navigation fonctionne ({n} rubriques)
 Check	Vérifier
 Checking…	Vérification…
-Free sources work straight away. Streaming services: sign in once, then browse, search and play them here.	Les sources gratuites fonctionnent tout de suite. Services de streaming : connectez-vous une fois, puis parcourez, recherchez et écoutez-les ici.
 Not connected	Non connecté
 Play along from your other system	Jouer avec votre autre système
 Plays along with {room}	Joue avec {room}
@@ -460,7 +458,7 @@ search failed: {error}	échec de la recherche : {error}
 search works (1 result)	la recherche fonctionne (1 résultat)
 search works ({n} results)	la recherche fonctionne ({n} résultats)
 {room} now plays along with {lead}	{room} joue maintenant avec {lead}
-{service} didn't start. In Music Services, try another account number (now {n}).	{service} n'a pas démarré. Dans Services musicaux, essayez un autre numéro de compte (actuellement {n}).
+{service} didn't start. In Settings › Services, try another account number (now {n}).	{service} n'a pas démarré. Dans Réglages › Services, essayez un autre numéro de compte (actuellement {n}).
 {service} plays with account {n} on this system; saved.	{service} lit avec le compte {n} sur ce système ; enregistré.
 {service} wouldn't play this ({error}). Check the account is added to your system in the speaker maker's app.	{service} n'a pas pu lire ceci ({error}). Vérifiez que le compte est ajouté à votre système dans l'app du fabricant des enceintes.
 1 saved favorite	1 favori enregistré
@@ -797,3 +795,5 @@ It's taken off this list. If it's on this network, searching for speakers adds i
 Forget	Oublier
 Not on this network	Pas sur ce réseau
 That system is answering, or it's the only one, so it can't be forgotten.	Ce système répond ou c'est le seul, il ne peut donc pas être oublié.
+Connect in Settings	Connecter dans les réglages
+Podcasts and recordings	Podcasts et enregistrements

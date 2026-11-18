@@ -33,7 +33,7 @@ How the file behaves:
 
 ## Settings page
 
-Open it from the sidebar. It is a row of six tabs with one shown at a time, in this order: **About**, **Playback**, **Speakers**, **Appearance**, **Assistants** and **Backups**. **About** is selected when the app starts. Where each setting below lives: *Playback*: listening history, lyrics, media keys; *Speakers*: systems and rooms, connection, software updates, instant updates; *Appearance*: light or dark, *Pages you use*, language; *About*: the about card and new versions of Roomtone. The sections, in this guide's order:
+Open it from the sidebar. It is a row of seven tabs with one shown at a time, in this order: **About**, **Playback**, **Services**, **Speakers**, **Appearance**, **Assistants** and **Backups**. **About** is selected when the app starts. Where each setting below lives: *Playback*: listening history, lyrics, media keys; *Services*: the free sources and streaming-service sign-ins; *Speakers*: systems and rooms, connection, software updates, instant updates; *Appearance*: light or dark, *Pages you use*, language; *About*: the about card and new versions of Roomtone. The sections, in this guide's order:
 
 ### Arranging the rooms
 In the Rooms panel (right-hand side), *Arrange* shows up and down arrows on every room card; use them to put the rooms in the order you like, then choose *Done*. The order is remembered on this computer for each system (saved as `room_order`). A group of rooms stands where its earliest-listed room is, and new rooms appear after the ones you've arranged. Nothing changes on the speakers.
@@ -132,11 +132,11 @@ Version, platform, your systems, the language in use, the address your computer 
 
 | Setting | Where in the app | File | Default |
 | --- | --- | --- | --- |
-| Which free music sources are on | Music Services: switch each source on or off | `services`: any of `"local"` (folders on this computer), `"radio"`, `"podcasts"`, `"archive"` (Internet Archive) | all four on |
+| Which free music sources are on | Settings › Services: switch each source on or off | `services`: any of `"local"` (folders on this computer), `"radio"`, `"podcasts"`, `"archive"` (Internet Archive) | all four on |
 | Music folders on this computer | Music Library › *Add folder* (and *Remove folder*) | `folders`: list of paths | none |
 | Radio stations you added | Radio › *Add station* (or *Save to My stations* on a stream) | `stations`: `{ "name", "url", "genre" }` | none |
 | Podcast shows you follow | a show's *Subscribe* button | `podcasts`: `{ "title", "author", "feed", "art" }` | none |
-| Streaming-service sign-ins | Music Services › *Connect*, *Disconnect*, and the account number if a service needs it | `accounts`: `{ "sid", "name", "uri", "manifest", "household", "device_id", "token", "key", "sn" }` | none |
+| Streaming-service sign-ins | Settings › Services › *Connect*, *Disconnect*, and the account number if a service needs it | `accounts`: `{ "sid", "name", "uri", "manifest", "household", "device_id", "token", "key", "sn" }` | none |
 | Favorites kept in the app (albums, artists, folders, podcast shows, archive recordings the speakers can't store) | the star on those items | `favorites` | none |
 | Scenes ("Movie night") | *Scenes* in the sidebar (*New scene*, *Edit*, *Delete*; Home shows them as buttons) | `scenes`: `{ "name", "household", "rooms", "group", "play", "sleep_minutes" }` | none |
 | Saved groups of rooms ("Downstairs") | Home › *Groups* (add or edit), or *Save as group* after grouping rooms | `groups`: `{ "name", "household", "rooms" }` | none |

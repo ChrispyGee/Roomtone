@@ -176,7 +176,6 @@ More from your system	Altro dal tuo sistema
 Most popular	Più popolari
 Music	Musica
 Music Library	Libreria musicale
-Music Services	Servizi musicali
 Music folders on this Mac, or drives and network shares mounted on it	Cartelle musicali su questo Mac, o dischi e condivisioni di rete montati su di esso
 Music shared on your speakers' system and folders on this computer	Musica condivisa sul sistema dei diffusori e cartelle di questo computer
 My favourite station	La mia stazione preferita
@@ -367,7 +366,7 @@ That speaker	Quel diffusore
 The address should start with http:// or https://	L'indirizzo deve iniziare con http:// o https://
 The light on the speaker	La spia sul diffusore
 The queue is empty	La coda è vuota
-The radio directory is switched off in Music Services.	L'elenco radio è disattivato in Servizi musicali.
+The radio directory is switched off in Settings › Services.	La directory radio è disattivata in Impostazioni › Servizi.
 The speakers are taking a while to answer; try again in a moment.	I diffusori ci mettono un po' a rispondere; riprova tra un momento.
 The star in the player bar, the Now Playing page and the Home card	La stella nella barra del lettore, la pagina In riproduzione e la scheda Home
 There's already a group with that name.	Esiste già un gruppo con quel nome.
@@ -427,7 +426,7 @@ version {version}	versione {version}
 {program} · volume {volume} · {minutes} min	{program} · volume {volume} · {minutes} min
 {service} connected	{service} collegato
 {service} couldn't start a sign-in: {error}	{service} non è riuscito ad avviare l'accesso: {error}
-{service} is connected. Find it in Music Services and in Search.	{service} è collegato. Lo trovi in Servizi musicali e in Cerca.
+{service} is connected. Find it in Music Library and in Search.	{service} è connesso. Lo trovi nella libreria musicale e nella ricerca.
 {source} couldn't be reached right now.	{source} non è raggiungibile ora.
 {system} speakers can only be grouped with rooms in the same system.	I diffusori {system} possono essere raggruppati solo con stanze dello stesso sistema.
 {system} system	Sistema {system}
@@ -445,7 +444,6 @@ Browsing works (1 section)	La navigazione funziona (1 sezione)
 Browsing works ({n} sections)	La navigazione funziona ({n} sezioni)
 Check	Verifica
 Checking…	Verifica in corso…
-Free sources work straight away. Streaming services: sign in once, then browse, search and play them here.	Le fonti gratuite funzionano subito. Servizi di streaming: accedi una volta, poi sfogliali, cercali e riproducili qui.
 Not connected	Non collegato
 Play along from your other system	Suona insieme dall'altro sistema
 Plays along with {room}	Suona insieme a {room}
@@ -460,7 +458,7 @@ search failed: {error}	ricerca non riuscita: {error}
 search works (1 result)	la ricerca funziona (1 risultato)
 search works ({n} results)	la ricerca funziona ({n} risultati)
 {room} now plays along with {lead}	{room} ora suona insieme a {lead}
-{service} didn't start. In Music Services, try another account number (now {n}).	{service} non è partito. In Servizi musicali prova un altro numero di account (ora {n}).
+{service} didn't start. In Settings › Services, try another account number (now {n}).	{service} non è partito. In Impostazioni › Servizi, prova un altro numero di account (ora {n}).
 {service} plays with account {n} on this system; saved.	{service} riproduce con l'account {n} su questo sistema; salvato.
 {service} wouldn't play this ({error}). Check the account is added to your system in the speaker maker's app.	{service} non ha potuto riprodurre questo ({error}). Controlla che l'account sia aggiunto al sistema nell'app del produttore dei diffusori.
 1 saved favorite	1 preferito salvato
@@ -797,3 +795,5 @@ It's taken off this list. If it's on this network, searching for speakers adds i
 Forget	Dimentica
 Not on this network	Non su questa rete
 That system is answering, or it's the only one, so it can't be forgotten.	Quel sistema risponde o è l'unico, quindi non può essere dimenticato.
+Connect in Settings	Collega nelle impostazioni
+Podcasts and recordings	Podcast e registrazioni

@@ -83,7 +83,6 @@ impl App {
             View::Settings => self.settings_page(ui, s),
             View::NowPlaying => self.now_playing_page(ui, s),
             View::Room(uuid) => self.room_page(ui, s, &uuid),
-            View::Services => self.services_page(ui, s),
             View::History => self.history_page(ui, s),
             View::Scenes => self.scenes_page(ui, s),
         }
@@ -565,10 +564,26 @@ impl App {
 
     fn library_root(&mut self, ui: &mut Ui, s: &AppState) {
         self.header(ui, t!("Music Library"), t!("Music shared on your speakers' system and folders on this computer"));
-        ui.horizontal(|ui| {
-            for (i, label) in [t!("Everything"), t!("On your system"), t!("On this computer"), t!("Streaming services")].iter().enumerate() {
-                if filter_chip(ui, label, self.library_scope == i).clicked() {
-                    self.library_scope = i;
+        let pods = s.config.service_on("podcasts");
+        let archive = s.config.service_on("archive");
+        // A source switched off in Settings › Services can't stay selected.
+        if (self.library_scope == 4 && !pods) || (self.library_scope == 5 && !archive) {
+            self.library_scope = 0;
+        }
+        ui.horizontal_wrapped(|ui| {
+            // Streaming and podcasts first, then what's on the system and this computer.
+            let mut chips = vec![(t!("Everything"), 0), (t!("Streaming services"), 3)];
+            if pods {
+                chips.push((t!("Podcasts"), 4));
+            }
+            chips.push((t!("On your system"), 1));
+            chips.push((t!("On this computer"), 2));
+            if archive {
+                chips.push((t!("Internet Archive"), 5));
+            }
+            for (label, scope) in chips {
+                if filter_chip(ui, label, self.library_scope == scope).clicked() {
+                    self.library_scope = scope;
                 }
             }
         });
@@ -610,6 +625,39 @@ impl App {
                     (id.to_string(), crate::i18n::tr(t).to_string(), crate::i18n::tr(sub).to_string(), if *id == "A:PLAYLISTS" { Icon::Playlist } else { Icon::Rooms })
                 })
                 .collect();
+            self.category_cards(ui, &cards);
+            ui.add_space(10.0);
+        }
+        let show_pods = pods && (self.library_scope == 0 || self.library_scope == 4);
+        let show_archive = archive && (self.library_scope == 0 || self.library_scope == 5);
+        if show_pods || show_archive {
+            section_title(
+                ui,
+                if self.library_scope == 4 {
+                    t!("Podcasts")
+                } else if self.library_scope == 5 {
+                    t!("Internet Archive")
+                } else {
+                    t!("Podcasts and recordings")
+                },
+            );
+            let mut cards: Vec<(String, String, String, Icon)> = vec![];
+            if show_pods {
+                cards.push((
+                    "POD:SUBS".into(),
+                    t!("Your podcasts").into(),
+                    crate::i18n::tr(crate::sources::SERVICES.iter().find(|x| x.id == "podcasts").map_or("", |x| x.blurb)).into(),
+                    Icon::Radio,
+                ));
+            }
+            if show_archive {
+                cards.push((
+                    "IA:FEATURED".into(),
+                    t!("Internet Archive").into(),
+                    crate::i18n::tr(crate::sources::SERVICES.iter().find(|x| x.id == "archive").map_or("", |x| x.blurb)).into(),
+                    Icon::Library,
+                ));
+            }
             self.category_cards(ui, &cards);
             ui.add_space(10.0);
         }
@@ -690,12 +738,14 @@ impl App {
                 ui.set_width(ui.available_width());
                 ui.horizontal(|ui| {
                     ui.vertical(|ui| {
+                        ui.set_max_width((ui.available_width() - 250.0).max(200.0));
                         ui.label(RichText::new(t!("No streaming services connected yet.")).color(TEXT()));
                         ui.label(RichText::new(t!("Connect Spotify, Amazon Music, Deezer, TIDAL or Qobuz, then browse them here.")).size(12.5).color(TEXT_DIM()));
                     });
                     ui.with_layout(Layout::right_to_left(Align::Center), |ui| {
-                        if pill(ui, Some(Icon::Services), t!("Music Services"), false).clicked() {
-                            self.go(View::Services);
+                        if pill(ui, Some(Icon::Services), t!("Connect in Settings"), false).clicked() {
+                            self.go(View::Settings);
+                            self.settings_tab = 2;
                         }
                     });
                 });
@@ -1179,7 +1229,6 @@ impl App {
                     (t!("Playlists"), View::Playlists),
                     (t!("Music Library"), View::Library),
                     (t!("Radio"), View::Radio),
-                    (t!("Music Services"), View::Services),
                     (t!("Line-In & TV"), View::Inputs),
                 ] {
                     if pill(ui, None, label, false).clicked() {
@@ -1317,7 +1366,7 @@ impl App {
         }
 
         if !s.config.service_on("radio") {
-            ui.label(RichText::new(t!("The radio directory is switched off in Music Services.")).color(TEXT_DIM()));
+            ui.label(RichText::new(t!("The radio directory is switched off in Settings › Services.")).color(TEXT_DIM()));
             return;
         }
         section_title(ui, t!("Radio directory"));
@@ -1370,8 +1419,8 @@ impl App {
         });
     }
 
-    fn services_page(&mut self, ui: &mut Ui, s: &AppState) {
-        self.header(ui, t!("Music Services"), t!("Free sources work straight away. Streaming services: sign in once, then browse, search and play them here."));
+    /// Settings › Services: switch free sources on or off, and connect streaming services.
+    fn services_tab(&mut self, ui: &mut Ui, s: &AppState) {
         section_title(ui, t!("Available now"));
         for svc in crate::sources::SERVICES.iter().filter(|x| x.ready) {
             card_frame().show(ui, |ui| {
@@ -1395,24 +1444,12 @@ impl App {
                                     self.library_scope = 2;
                                 }
                                 "podcasts" => {
-                                    self.go(View::Services);
-                                    self.open(&Item {
-                                        id: "POD:SUBS".into(),
-                                        title: t!("Your podcasts").into(),
-                                        class: "object.container".into(),
-                                        is_container: true,
-                                        ..Default::default()
-                                    });
+                                    self.go(View::Library);
+                                    self.library_scope = 4;
                                 }
                                 _ => {
-                                    self.go(View::Services);
-                                    self.open(&Item {
-                                        id: "IA:FEATURED".into(),
-                                        title: t!("Internet Archive").into(),
-                                        class: "object.container".into(),
-                                        is_container: true,
-                                        ..Default::default()
-                                    });
+                                    self.go(View::Library);
+                                    self.library_scope = 5;
                                 }
                             }
                         }
@@ -1471,7 +1508,8 @@ impl App {
                             ui.horizontal_wrapped(|ui| match &account {
                                 Some(a) => {
                                     if pill(ui, None, t!("Open"), false).clicked() {
-                                        self.go(View::Services);
+                                        self.go(View::Library);
+                                        self.library_scope = 3;
                                         self.open(&Item {
                                             id: format!("SVC:{}/", a.sid),
                                             title: a.name.clone(),
@@ -2054,10 +2092,10 @@ impl App {
             });
             ui.add_space(14.0);
         }
-        let names = [t!("About"), t!("Playback"), t!("Speakers"), t!("Appearance"), t!("Assistants"), t!("Backups")];
-        // Picture check: ROOMTONE_TEST_TAB=music (or speakers, appearance, assistants, backups) opens that tab.
+        let names = [t!("About"), t!("Playback"), t!("Services"), t!("Speakers"), t!("Appearance"), t!("Assistants"), t!("Backups")];
+        // Picture check: ROOMTONE_TEST_TAB=music (or services, speakers, appearance, assistants, backups) opens that tab.
         if let Ok(w) = std::env::var("ROOMTONE_TEST_TAB") {
-            if let Some(i) = ["about", "music", "speakers", "appearance", "assistants", "backups"].iter().position(|n| *n == w.trim()) {
+            if let Some(i) = ["about", "music", "services", "speakers", "appearance", "assistants", "backups"].iter().position(|n| *n == w.trim()) {
                 self.settings_tab = i;
             }
         }
@@ -2066,7 +2104,7 @@ impl App {
         }
         ui.add_space(16.0);
         set_title_mode(match self.settings_tab {
-            0 | 4 | 5 => TitleMode::Hidden,
+            0 | 5 | 6 => TitleMode::Hidden,
             _ => TitleMode::Compact,
         });
         match self.settings_tab {
@@ -2083,7 +2121,8 @@ impl App {
                 ui.add_space(14.0);
                 self.media_keys_card(ui, s);
             }
-            2 => {
+            2 => self.services_tab(ui, s),
+            3 => {
                 self.rooms_lists(ui, s);
                 self.connection_card(ui);
                 ui.add_space(14.0);
@@ -2091,14 +2130,14 @@ impl App {
                 ui.add_space(14.0);
                 self.events_card(ui, s);
             }
-            3 => {
+            4 => {
                 self.appearance_card(ui, s);
                 ui.add_space(14.0);
                 self.pages_card(ui, s);
                 ui.add_space(14.0);
                 self.language_card(ui, s);
             }
-            4 => self.assistant_card(ui, s),
+            5 => self.assistant_card(ui, s),
             _ => self.backup_card(ui, s),
         }
         set_title_mode(TitleMode::Normal);

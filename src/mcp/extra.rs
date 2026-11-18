@@ -213,7 +213,7 @@ impl Mcp {
                 } else if live && !s.music_services.iter().any(|m| m.sid == svc.sid) {
                     "not offered on this system"
                 } else {
-                    "ready to connect (sign in from Roomtone's Music Services page)"
+                    "ready to connect (sign in from Roomtone's Settings › Services)"
                 };
                 format!("{}: {state}", svc.name)
             })

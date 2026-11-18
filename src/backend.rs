@@ -630,7 +630,7 @@ fn play_from_service(b: &Backend, ip: &str, gid: &str, item: Item, how: PlayHow,
                         if let Ok(p) = speaker::poll_group(&ip2, false) {
                             let ours = service_of(&p.now.uri).or_else(|| service_of(&p.now.media_uri)) == Some(sid);
                             if ours && p.now.transport == Transport::Stopped {
-                                b2.lock().toast(crate::t!("{service} didn't start. In Music Services, try another account number (now {n}).", service = name2, n = sn), true);
+                                b2.lock().toast(crate::t!("{service} didn't start. In Settings › Services, try another account number (now {n}).", service = name2, n = sn), true);
                             }
                         }
                     });
@@ -1757,7 +1757,7 @@ fn connect_service(b: &Backend, ctx: &Waker, sid: u32) -> Result<(), String> {
                         s.config.accounts.retain(|a| a.sid != sid);
                         s.config.accounts.push(account);
                         if let Some(l) = s.link.as_mut() {
-                            l.status = crate::t!("{service} is connected. Find it in Music Services and in Search.", service = svc.name);
+                            l.status = crate::t!("{service} is connected. Find it in Music Library and in Search.", service = svc.name);
                             l.done = true;
                         }
                         s.toast(crate::t!("{service} connected", service = svc.name), false);

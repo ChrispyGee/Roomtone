@@ -142,7 +142,7 @@ fn call(acc: &Account, action: &str, args: &[(&str, &str)]) -> Result<String, St
             }
             Err(Fault::Other(e)) => {
                 if e.contains("LoginInvalid") || e.contains("AuthTokenExpired") {
-                    return Err(format!("{} needs you to sign in again (Music Services)", acc.name));
+                    return Err(format!("{} needs you to sign in again (Settings › Services)", acc.name));
                 }
                 return Err(e);
             }
