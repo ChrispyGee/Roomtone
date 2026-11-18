@@ -330,7 +330,7 @@ fn check_updates(b: &Backend, hid: &str) -> UpdateState {
     match speaker::check_for_update(&ip) {
         Ok(None) => UpdateState::UpToDate,
         Ok(Some(offer)) if offer.system() != system => UpdateState::UpToDate,
-        Ok(Some(offer)) if speaker::software_version(&ip).as_deref() == Some(offer.version.as_str()) => UpdateState::UpToDate,
+        Ok(Some(offer)) if speaker::software_version(&ip).is_some_and(|v| build_reached(&v, &offer.version)) => UpdateState::UpToDate,
         Ok(Some(offer)) => UpdateState::Available(offer),
         Err(e) => UpdateState::Failed(e),
     }
@@ -373,16 +373,18 @@ fn install_update(b: &Backend, ctx: &Waker, hid: &str, offer: &speaker::UpdateOf
     UpdateState::Progress(UpdateProgress { version: offer.version.clone(), total, done: 0, restarting: 0 })
 }
 
-/// A build such as "98.0-82170" as numbers to compare (`None`: not in that form).
-fn build_number(build: &str) -> Option<Vec<u64>> {
-    let nums: Option<Vec<u64>> = build.trim().split(['.', '-']).map(|p| p.parse().ok()).collect();
-    nums.filter(|n| n.len() >= 2)
+/// The build id of a build such as "98.0-82170" (`None`: not in that form). Only the id after
+/// the dash is compared: a speaker running "86.11-82170" is on the same release the update
+/// service calls "98.0-82170" (seen on a real speaker), and ids grow with each release.
+fn build_id(build: &str) -> Option<u64> {
+    let (head, id) = build.trim().split_once('-')?;
+    head.split('.').all(|p| p.parse::<u64>().is_ok()).then(|| id.parse().ok())?
 }
 
 /// Whether a room's build is the offered one or newer. A speaker can be taken further than the
 /// build we were offered (another controller's update, or a newer build published meanwhile).
 fn build_reached(build: &str, target: &str) -> bool {
-    match (build_number(build), build_number(target)) {
+    match (build_id(build), build_id(target)) {
         (Some(have), Some(want)) => have >= want,
         _ => build == target,
     }
@@ -3651,15 +3653,16 @@ mod unit {
     #[test]
     fn the_tally_counts_new_builds_and_silent_rooms() {
         let b = |s: &str| Some(s.to_string());
-        assert_eq!(tally(&[b("98.0-1"), b("65.1-2"), None, b("98.0-1")], "98.0-1"), (2, 1));
-        assert_eq!(tally(&[], "98.0-1"), (0, 0));
+        assert_eq!(tally(&[b("98.0-82170"), b("65.1-21040"), None, b("98.0-82170")], "98.0-82170"), (2, 1));
+        assert_eq!(tally(&[], "98.0-82170"), (0, 0));
     }
 
     #[test]
     fn a_newer_build_than_offered_counts_as_done() {
         assert!(build_reached("98.0-82170", "98.0-82170"));
         assert!(build_reached("98.1-82500", "98.0-82170"), "taken further by another controller");
-        assert!(build_reached("100.0-1", "98.0-82170"), "numbers, not text: 100 is more than 98");
+        assert!(build_reached("86.11-82170", "98.0-82170"), "the same release under another name, as seen on a real speaker");
+        assert!(build_reached("86.11-100000", "98.0-82170"), "numbers, not text: 100000 is more than 82170");
         assert!(!build_reached("73.0-42060", "98.0-82170"), "a stage on the way");
         assert!(!build_reached("65.1-21040", "98.0-82170"));
         assert!(build_reached("weird", "weird"), "unreadable builds only match exactly");
