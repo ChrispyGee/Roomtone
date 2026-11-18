@@ -35,7 +35,7 @@ The source of truth for **what Roomtone does**. Code, tests and docs should agre
 ## 2. Platforms and start-up
 
 - One program for macOS, Windows and Linux, built from the same code.
-- On start, the speakers remembered from last time (`speakers.json`) appear at once and are checked directly. A network search (SSDP) then runs in the background and adds anything new.
+- On start, the speakers remembered from last time (`speakers.json`) appear at once and are checked directly. A network search (SSDP) then runs in the background and adds anything new. Systems remembered from another network (say, the office) can't answer at home; when the one listed first doesn't answer and another does, the app starts on the one that does.
 - If no speakers answer, the **demo system** is shown (one made-up S2 system with 5 rooms and one S1 system with 3), so every screen can be tried. A banner says so and offers "Search again".
 - Lost contact (after the computer wakes from sleep, or after three failed polls in a row) triggers an automatic reconnect. Settings also offers a manual **Reconnect**.
 - Group state is polled about every second for the selected group, every 4 s for others and every 20 s for grouping (topology). A full background search runs every 2 minutes.

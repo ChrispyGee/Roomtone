@@ -5,7 +5,7 @@ All notable changes to Roomtone. The format follows [Keep a Changelog](https://k
 ## [Unreleased]
 
 ### Fixed
-- **Favorites and Playlists no longer get stuck on an error.** After one failed read of the speakers' library (a busy or sleeping speaker, say) the page kept showing "Check the internet connection" until you changed system or searched for speakers again. Now the message names the speakers, the reason is shown in small print, **Try again** asks again, and the request tries the next room if the first doesn't answer.
+- **Favorites and Playlists no longer get stuck on an error.** After one failed read of the speakers' library (a busy or sleeping speaker, say) the page kept showing "Check the internet connection" until you changed system or searched for speakers again. Now the message names the speakers, the reason is shown in small print, **Try again** asks again, and the request tries the next room if the first doesn't answer. The usual cause was a system remembered from another network (for example the office) being shown first when you're at home: the app now starts on a system that answers.
 
 ## [0.8.3] — 2026-11-18
 

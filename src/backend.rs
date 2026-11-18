@@ -1917,12 +1917,28 @@ fn quick_start(b: &Backend, ctx: &Waker) -> Result<(), String> {
                 r.problem = crate::t!("Not answering at its last known address").into();
             }
         }
+        prefer_reachable_system(&mut s);
         s.toast(crate::t!("Some speakers from last time aren't answering yet. Still looking…"), true);
     }
     ctx.request_repaint();
     let (b2, ctx2) = (b.clone(), ctx.clone());
     thread::spawn(move || background_scan(&b2, &ctx2));
     Ok(())
+}
+
+/// Systems remembered from another network can't answer here. If the one shown first doesn't,
+/// and another one does, start on the one that does (its rooms, its library, its playlists).
+fn prefer_reachable_system(s: &mut AppState) {
+    let answers = |h: &Household| h.rooms.iter().any(|r| r.online == Some(true));
+    if s.households.get(s.active).is_some_and(answers) {
+        return;
+    }
+    if let Some(i) = s.households.iter().position(answers) {
+        s.active = i;
+        s.selected_group = None;
+        s.browse.clear();
+        s.ensure_selection();
+    }
 }
 
 /// Everything by one artist: albums on this computer, in the system's library and on
@@ -3287,6 +3303,34 @@ mod unit {
         assert_eq!(scale_volume(30, 30, 60), 60);
         assert_eq!(scale_volume(80, 40, 100), 100, "never above 100");
         assert_eq!(scale_volume(10, 0, 25), 25, "from silence every room takes the new level");
+    }
+
+    #[test]
+    fn startup_prefers_a_system_that_answers_over_one_remembered_from_another_network() {
+        let mut s = AppState::default();
+        demo::load(&mut s);
+        assert!(s.households.len() >= 2);
+        for r in s.households[0].rooms.iter_mut() {
+            r.online = Some(false);
+        }
+        for r in s.households[1].rooms.iter_mut() {
+            r.online = Some(true);
+        }
+        s.active = 0;
+        prefer_reachable_system(&mut s);
+        assert_eq!(s.active, 1);
+        // Already on one that answers: stay.
+        prefer_reachable_system(&mut s);
+        assert_eq!(s.active, 1);
+        // Nothing answers: stay where we are.
+        for h in s.households.iter_mut() {
+            for r in h.rooms.iter_mut() {
+                r.online = Some(false);
+            }
+        }
+        s.active = 0;
+        prefer_reachable_system(&mut s);
+        assert_eq!(s.active, 0);
     }
 
     #[test]
