@@ -8,7 +8,7 @@ All notable changes to Roomtone. The format follows [Keep a Changelog](https://k
 - The Windows fix in 0.8.3 (no extra console window) works on a real Windows PC (maintainer, 2026-11-18).
 
 ### Changed
-- **Settings is tidier**: a row of six tabs, one shown at a time, in a sensible order: **About** (selected when the app starts), **Music & Playback**, **Speakers** (the rooms of each system, finding and adding speakers, software updates and instant updates, all together), **Appearance**, **Assistants** and **Backups**. *New versions* moved into About and *Pages you use* into Music & Playback. Nothing was removed; settings and their `config.json` fields are unchanged. The chosen tab isn't saved.
+- **Settings is tidier**: a row of six tabs, one shown at a time, in a sensible order: **About** (selected when the app starts), **Playback**, **Speakers** (the rooms of each system, finding and adding speakers, software updates and instant updates, all together), **Appearance**, **Assistants** and **Backups**. *New versions* moved into About and *Pages you use* into Playback. Nothing was removed; settings and their `config.json` fields are unchanged. The chosen tab isn't saved.
 
 ## [0.8.3] — 2026-11-18
 

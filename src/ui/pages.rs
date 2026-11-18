@@ -2041,7 +2041,7 @@ impl App {
             });
             ui.add_space(14.0);
         }
-        let names = [t!("About"), t!("Music & Playback"), t!("Speakers"), t!("Appearance"), t!("Assistants"), t!("Backups")];
+        let names = [t!("About"), t!("Playback"), t!("Speakers"), t!("Appearance"), t!("Assistants"), t!("Backups")];
         // Picture check: ROOMTONE_TEST_TAB=music (or speakers, appearance, assistants, backups) opens that tab.
         if let Ok(w) = std::env::var("ROOMTONE_TEST_TAB") {
             if let Some(i) = ["about", "music", "speakers", "appearance", "assistants", "backups"].iter().position(|n| *n == w.trim()) {
