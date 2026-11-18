@@ -7,10 +7,14 @@ All notable changes to Roomtone. The format follows [Keep a Changelog](https://k
 ### Changed
 - **Alarms are tagged *Experimental*.** The Alarms page, its switch in Settings and the assistant's alarm tools now say so: alarms have had little testing on real speakers, so check that one rings before you rely on it.
 
+### Fixed
+- **A clearer message when a streaming service isn't on the system you're playing on.** Roomtone's sign-in to a service (Spotify, say) belongs to one system, and speakers only play a service that has been added to their own system in the speaker maker's app. Playing Spotify on a second system (found on a new S2 speaker: every account number was refused with code 800) used to say only to check the account. It now says the service isn't added to *this* system yet, that Roomtone's sign-in belongs to your other one, and what to do.
+
 ### Added
 - **A ringing alarm can be snoozed.** When a speaker's alarm is ringing, a strip at the top of the window says so, with *Snooze 5 min*, *Snooze 10 min* and *Stop the alarm*, whichever page is open. Assistants get a `snooze_alarm` tool (57 tools in all), and `now_playing` shows `alarm_ringing`. Checked in the demo and with unit tests; the speakers' answer when no alarm rings was read on a real S1 and S2 speaker, but **a real ringing alarm hasn't been tried yet**.
 
 ### Checked
+- Spotify plays on a real S2 speaker (a Play:3) once Spotify has been added to that system in the speaker maker's app; before that it was refused with code 800 (maintainer, 2026-11-18).
 - A real S2 speaker (a Play:3 on 86.11-82170): batched queue adds and range removal, and an internet radio station playing (reported format: AAC only) (maintainer, 2026-11-18).
 
 ## [0.9.1] — 2026-11-18

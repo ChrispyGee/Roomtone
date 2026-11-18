@@ -808,6 +808,7 @@ Adding albums and playlists to the queue is faster, and one tap removes the song
 Speakers that start or come back are found within seconds, on every network connection	Les enceintes qui démarrent ou reviennent sont trouvées en quelques secondes, sur chaque connexion réseau
 If Roomtone closes unexpectedly it saves a crash log on your computer (never sent anywhere)	Si Roomtone se ferme de façon inattendue, il enregistre un journal d'incident sur votre ordinateur (envoyé nulle part)
 Alarms have had little testing on real speakers, so check that one rings before you rely on it.	Les alarmes ont été peu testées sur de vraies enceintes : vérifiez qu'une sonne avant de vous y fier.
+{service} isn't added to this system yet: Roomtone's {service} sign-in belongs to your other system. Add {service} to this system in the speaker maker's app, then try again. ({error})	{service} n'est pas encore ajouté à ce système : la connexion à {service} de Roomtone appartient à votre autre système. Ajoutez {service} à ce système dans l'appli du fabricant des enceintes, puis réessayez. ({error})
 Alarm ringing in {room}	Le réveil sonne dans {room}
 No alarm is ringing in that room right now	Aucun réveil ne sonne dans cette pièce pour le moment
 Snooze {n} min	Répéter {n} min
