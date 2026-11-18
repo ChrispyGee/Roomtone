@@ -190,8 +190,8 @@ fn base_tools() -> Vec<(&'static str, &'static str, Value, bool)> {
             json!({"type": "object", "properties": {"room": room, "confirm": {"type": "boolean"}}, "required": ["confirm"]}),
             true,
         ),
-        ("list_alarms", "Every alarm: time, days, room, what it plays and whether it's on.", json!({"type": "object", "properties": {}}), false),
-        ("set_alarm_enabled", "Turn an alarm on or off by its id from list_alarms.", json!({"type": "object", "properties": {"id": {"type": "string"}, "enabled": {"type": "boolean"}}, "required": ["id", "enabled"]}), true),
+        ("list_alarms", "Experimental: Every alarm: time, days, room, what it plays and whether it's on.", json!({"type": "object", "properties": {}}), false),
+        ("set_alarm_enabled", "Experimental: Turn an alarm on or off by its id from list_alarms.", json!({"type": "object", "properties": {"id": {"type": "string"}, "enabled": {"type": "boolean"}}, "required": ["id", "enabled"]}), true),
     ]
 }
 

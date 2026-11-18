@@ -1924,6 +1924,11 @@ impl App {
                 }
             });
         });
+        ui.horizontal_wrapped(|ui| {
+            chip(ui, t!("Experimental"), TEXT_DIM());
+            ui.label(RichText::new(t!("Alarms have had little testing on real speakers, so check that one rings before you rely on it.")).size(12.5).color(TEXT_DIM()));
+        });
+        ui.add_space(10.0);
         let Some(list) = &s.alarms else {
             self.ask_once("alarms", Duration::from_secs(10), Cmd::LoadAlarms);
             spinner_dots(ui, TEXT_DIM());
@@ -2795,7 +2800,7 @@ impl App {
                     });
                 });
             };
-            row(ui, t!("Show Alarms"), t!("Adds Alarms to the sidebar, to see and set the speakers' alarms."), &mut alarms);
+            row(ui, t!("Show Alarms"), t!("Experimental: adds Alarms to the sidebar, to see and set the speakers' alarms."), &mut alarms);
             ui.separator();
             row(ui, t!("Show Scenes"), t!("Adds Scenes to the sidebar and shortcuts to Home, for one-click set-ups of rooms, volumes and music."), &mut scenes);
         });

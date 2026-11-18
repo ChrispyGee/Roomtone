@@ -4,6 +4,9 @@ All notable changes to Roomtone. The format follows [Keep a Changelog](https://k
 
 ## [Unreleased]
 
+### Changed
+- **Alarms are tagged *Experimental*.** The Alarms page, its switch in Settings and the assistant's alarm tools now say so: alarms have had little testing on real speakers, so check that one rings before you rely on it.
+
 ### Checked
 - A real S2 speaker (a Play:3 on 86.11-82170): batched queue adds and range removal, and an internet radio station playing (reported format: AAC only) (maintainer, 2026-11-18).
 

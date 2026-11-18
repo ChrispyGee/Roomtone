@@ -757,7 +757,7 @@ Lyrics (experimental): switch it on in Settings to see the words of the song tha
 The project page now links straight to each download	Die Projektseite verlinkt jetzt direkt auf jeden Download
 Lyrics now wait and try again when the lyrics service is busy	Songtexte warten jetzt und versuchen es erneut, wenn der Songtext-Dienst ausgelastet ist
 Speakers on Wi-Fi, such as the Sonos One SL, now show as Wireless	Lautsprecher im WLAN, etwa der Sonos One SL, werden jetzt als „Drahtlos“ angezeigt
-Adds Alarms to the sidebar, to see and set the speakers' alarms.	Fügt Wecker zur Seitenleiste hinzu, um die Wecker der Lautsprecher zu sehen und einzustellen.
+Experimental: adds Alarms to the sidebar, to see and set the speakers' alarms.	Experimentell: Fügt Wecker zur Seitenleiste hinzu, um die Wecker der Lautsprecher zu sehen und einzustellen.
 Adds Scenes to the sidebar and shortcuts to Home, for one-click set-ups of rooms, volumes and music.	Fügt Szenen zur Seitenleiste und Kurzbefehle zur Startseite hinzu, für Einstellungen von Räumen, Lautstärken und Musik per Klick.
 Allow installing updates	Installieren von Updates erlauben
 Checking is always possible. Installing has not been tried on real speakers yet: speakers restart and music stops for a few minutes.	Prüfen ist immer möglich. Das Installieren wurde noch nicht an echten Lautsprechern ausprobiert: Die Lautsprecher starten neu und die Musik stoppt für einige Minuten.
@@ -807,3 +807,4 @@ Software updates show how many speakers are done, and when the update has finish
 Adding albums and playlists to the queue is faster, and one tap removes the songs already played	Alben und Playlists lassen sich schneller zur Warteschlange hinzufügen, und ein Tipp entfernt bereits gespielte Titel
 Speakers that start or come back are found within seconds, on every network connection	Lautsprecher, die starten oder zurückkommen, werden innerhalb von Sekunden gefunden, über jede Netzwerkverbindung
 If Roomtone closes unexpectedly it saves a crash log on your computer (never sent anywhere)	Wenn Roomtone unerwartet schließt, speichert es ein Absturzprotokoll auf deinem Computer (wird nirgends hingeschickt)
+Alarms have had little testing on real speakers, so check that one rings before you rely on it.	Alarme wurden kaum an echten Lautsprechern getestet. Prüfe also, ob einer klingelt, bevor du dich darauf verlässt.
