@@ -15,6 +15,7 @@
 //!                            stdin/stdout (how most assistants start an MCP server)
 //!   --mcp-on / --mcp-off     switch the assistant link on or off and quit
 //!   --mcp-read-only / --mcp-allow-control
+//!   --mcp-allow|--mcp-deny saved|alarms|names|updates, --mcp-files <folder> / --mcp-files-off
 //!                            let assistants only look, or also change things, and quit
 //!   --mcp-info               show the assistant link's settings and how to connect
 //!   --write-icon <file> [px] save the app icon (a PNG, or a Windows .ico) for the installers
@@ -105,6 +106,14 @@ fn main() {
             "--headless" => headless = true,
             "--mcp" | "--mcp-stdio" => stdio = true,
             "--mcp-on" | "--mcp-off" | "--mcp-read-only" | "--mcp-allow-control" => edits.push(a.clone()),
+            "--mcp-allow" | "--mcp-deny" | "--mcp-files" => match args.next() {
+                Some(v) => edits.push(format!("{a}={v}")),
+                None => {
+                    eprintln!("{a} needs a value (see --help)");
+                    std::process::exit(2);
+                }
+            },
+            "--mcp-files-off" => edits.push(a.clone()),
             "--mcp-port" => port = args.next().and_then(|p| p.parse().ok()),
             "--mcp-info" => info = true,
             "--help" | "-h" => {
@@ -191,7 +200,30 @@ fn mcp_settings(edits: &[String], port: Option<u16>, info: bool) -> i32 {
             "--mcp-off" => cfg.mcp.enabled = false,
             "--mcp-read-only" => cfg.mcp.allow_control = false,
             "--mcp-allow-control" => cfg.mcp.allow_control = true,
-            _ => {}
+            "--mcp-files-off" => cfg.mcp.allow_files = false,
+            other => {
+                if let Some((flag, value)) = other.split_once('=') {
+                    let on = flag == "--mcp-allow";
+                    match (flag, value) {
+                        ("--mcp-allow" | "--mcp-deny", "saved") => cfg.mcp.allow_saved = on,
+                        ("--mcp-allow" | "--mcp-deny", "alarms") => cfg.mcp.allow_alarms = on,
+                        ("--mcp-allow" | "--mcp-deny", "names") => cfg.mcp.allow_names = on,
+                        ("--mcp-allow" | "--mcp-deny", "updates") => cfg.mcp.allow_updates = on,
+                        ("--mcp-files", folder) => {
+                            if !std::path::Path::new(folder).is_dir() {
+                                eprintln!("{folder} isn't a folder that exists");
+                                return 2;
+                            }
+                            cfg.mcp.files_folder = folder.to_string();
+                            cfg.mcp.allow_files = true;
+                        }
+                        _ => {
+                            eprintln!("{flag} takes saved, alarms, names or updates (see --help)");
+                            return 2;
+                        }
+                    }
+                }
+            }
         }
     }
     if let Some(p) = port {
@@ -206,6 +238,17 @@ fn mcp_settings(edits: &[String], port: Option<u16>, info: bool) -> i32 {
     let m = &cfg.mcp;
     println!("Assistant link (MCP): {}", if m.enabled { "on" } else { "off" });
     println!("Assistants may: {}", if m.allow_control { "look and change things" } else { "only look" });
+    if m.allow_control {
+        let yn = |b: bool| if b { "yes" } else { "no" };
+        println!(
+            "  also: saved items {}, alarms {}, room names and sound {}, speaker updates {}, files {}",
+            yn(m.allow_saved),
+            yn(m.allow_alarms),
+            yn(m.allow_names),
+            yn(m.allow_updates),
+            if m.allow_files && !m.files_folder.trim().is_empty() { format!("yes, in {}", m.files_folder) } else { "no".to_string() }
+        );
+    }
     println!("Other computers: {}", if m.allow_network { "allowed (with the access key)" } else { "not allowed" });
     if info || m.enabled {
         let exe = help::exe();

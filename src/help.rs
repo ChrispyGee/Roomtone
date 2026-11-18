@@ -84,6 +84,11 @@ Assistant link (MCP) settings — each saves and quits
   --mcp-on, --mcp-off       switch the link on or off
   --mcp-read-only           assistants may only look
   --mcp-allow-control       assistants may also play, change volume, edit queues and group
+  --mcp-allow <what>        let assistants also change: saved (favorites, stations, podcasts,
+  --mcp-deny <what>         saved groups), alarms, names (room names and sound) or updates
+                            (speaker software); --mcp-deny turns one off again
+  --mcp-files <folder>      let assistants save backups, only into this folder
+  --mcp-files-off           stop assistants saving files
   --mcp-port <port>         port for the HTTP link (default 8790)
   --mcp-info                show the link's settings, address and access key
 
@@ -96,7 +101,7 @@ its assistant link switched on)
   {e} group ROOM ROOM …                            play these rooms together
   {e} status | now | queue | favorites | alarms    look only
   {e} scene NAME | scenes                          do a saved scene; list them
-  {e} backup FILE.json                             save a backup of favorites, playlists, alarms and settings
+  {e} backup NAME.json                             save a backup (favorites, playlists, alarms, settings) in the folder chosen for assistants
   Exit code 0 done, 1 refused, 2 not understood, 3 can't reach Roomtone.
 
 Help
@@ -302,6 +307,9 @@ mod unit {
             "--mcp-off",
             "--mcp-read-only",
             "--mcp-allow-control",
+            "--mcp-allow",
+            "--mcp-deny",
+            "--mcp-files",
             "--mcp-port",
             "--mcp-info",
             "--help mcp",

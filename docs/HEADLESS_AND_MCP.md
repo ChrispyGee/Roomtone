@@ -199,6 +199,7 @@ printf '%s\n' '{"jsonrpc":"2.0","id":1,"method":"initialize","params":{}}' \
 | `403` | Request came from a web page, or from another computer while *Allow other computers* is off |
 | "Couldn't open port 8790" in Settings | Another program, or another copy of Roomtone, already uses the port; pick another with `--mcp-port` |
 | Tools list without play/volume tools | *Assistants can change things* is off (look-only) |
+| `install_update`, `save_backup`, alarm, favorite or rename tools are missing | Their switch in Settings › Assistant link is off (updates and saving files are off until you switch them on; saving also needs a folder). `roomtone --mcp-info` shows which are on |
 
 ## 4. Following changes, and the command line
 

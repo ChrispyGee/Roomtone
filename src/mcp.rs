@@ -33,6 +33,73 @@ pub struct Mcp {
 
 type ToolResult = Result<String, String>;
 
+/// The kinds of changing tool the person can switch on or off separately (Settings › Assistant
+/// link). *Look-only* switches every changing tool off whatever these say.
+#[derive(Clone, Copy, Debug, PartialEq, Eq)]
+pub enum Allowance {
+    /// Play, volume, queue, grouping, inputs, scenes, play along: the main "may change things" switch.
+    Playback,
+    /// Favorites, stations, podcasts, saved groups, queue saved as a playlist.
+    Saved,
+    Alarms,
+    /// Room names and sound settings.
+    Names,
+    /// Installing speaker software updates.
+    Updates,
+    /// Writing files (backups) into the chosen folder.
+    Files,
+}
+
+impl Allowance {
+    /// Which group a tool belongs to (only meaningful for tools that change things).
+    pub fn of(tool: &str) -> Allowance {
+        match tool {
+            "add_favorite"
+            | "remove_favorite"
+            | "save_queue_as_playlist"
+            | "add_station"
+            | "remove_station"
+            | "subscribe_podcast"
+            | "unsubscribe_podcast"
+            | "save_group"
+            | "delete_saved_group" => Allowance::Saved,
+            "create_alarm" | "delete_alarm" | "set_alarm_enabled" => Allowance::Alarms,
+            "rename_room" | "set_sound" => Allowance::Names,
+            "install_update" => Allowance::Updates,
+            "save_backup" => Allowance::Files,
+            _ => Allowance::Playback,
+        }
+    }
+
+    pub fn allowed(self, c: &McpConfig) -> bool {
+        match self {
+            Allowance::Playback => true,
+            Allowance::Saved => c.allow_saved,
+            Allowance::Alarms => c.allow_alarms,
+            Allowance::Names => c.allow_names,
+            Allowance::Updates => c.allow_updates,
+            Allowance::Files => c.allow_files && !c.files_folder.trim().is_empty(),
+        }
+    }
+
+    /// What to tell an assistant (and, through it, the person) when the group is off.
+    fn off_message(self) -> &'static str {
+        match self {
+            Allowance::Playback => "Roomtone only lets assistants look, not change things. Allow control in Settings › Assistant link.",
+            Allowance::Saved => "Assistants aren't allowed to change favorites, stations, podcasts or saved groups. The person can allow it in Settings › Assistant link.",
+            Allowance::Alarms => "Assistants aren't allowed to change alarms. The person can allow it in Settings › Assistant link.",
+            Allowance::Names => "Assistants aren't allowed to rename rooms or change sound settings. The person can allow it in Settings › Assistant link.",
+            Allowance::Updates => "Assistants aren't allowed to install speaker updates. The person can allow it in Settings › Assistant link (and can always do it in the app).",
+            Allowance::Files => "Assistants aren't allowed to save files. The person can choose a folder and allow it in Settings › Assistant link.",
+        }
+    }
+}
+
+/// Is this tool available to assistants under these settings?
+fn tool_allowed(c: &McpConfig, name: &str, changes: bool) -> bool {
+    !changes || (c.allow_control && Allowance::of(name).allowed(c))
+}
+
 /// Every tool: (name, what it does, input schema, changes things?).
 fn tools() -> Vec<(&'static str, &'static str, Value, bool)> {
     let mut all = base_tools();
@@ -197,10 +264,10 @@ impl Mcp {
             }
             "ping" => Ok(json!({})),
             "tools/list" => {
-                let control = self.settings().allow_control;
+                let cfg = self.settings();
                 let list: Vec<Value> = tools()
                     .into_iter()
-                    .filter(|t| control || !t.3)
+                    .filter(|t| tool_allowed(&cfg, t.0, t.3))
                     .map(|(name, desc, schema, changes)| {
                         json!({"name": name, "description": desc, "inputSchema": schema, "annotations": {"readOnlyHint": !changes, "openWorldHint": false}})
                     })
@@ -212,10 +279,10 @@ impl Mcp {
                 let args = params.get("arguments").cloned().unwrap_or(json!({}));
                 match tools().iter().find(|t| t.0 == name) {
                     None => Err((-32602, format!("Unknown tool: {name}"))),
-                    Some(t) if t.3 && !self.settings().allow_control => Ok(json!({
-                        "content": [{"type": "text", "text": "Roomtone only lets assistants look, not change things. Allow control in Settings › Assistant link."}],
-                        "isError": true
-                    })),
+                    Some(t) if !tool_allowed(&self.settings(), t.0, t.3) => {
+                        let why = if self.settings().allow_control { Allowance::of(t.0).off_message() } else { Allowance::Playback.off_message() };
+                        Ok(json!({"content": [{"type": "text", "text": why}], "isError": true}))
+                    }
                     Some(_) => {
                         let out = self.call(name, &args);
                         let (text, err) = match out {
@@ -1133,12 +1200,12 @@ mod unit {
     fn tool_list_and_look_only_mode() {
         let m = link();
         let all = rpc(&m, 1, "tools/list", json!({}))["result"]["tools"].as_array().unwrap().len();
-        assert_eq!(all, tools().len());
-        assert_eq!(all, 51);
+        assert_eq!(tools().len(), 51);
+        assert_eq!(all, 49, "installing updates and saving files are off until switched on");
         let mut names: Vec<&str> = tools().iter().map(|t| t.0).collect();
         names.sort();
         names.dedup();
-        assert_eq!(names.len(), all, "tool names are unique");
+        assert_eq!(names.len(), tools().len(), "tool names are unique");
         for t in tools() {
             assert_eq!(t.2["type"], "object", "{} has an object schema", t.0);
         }
@@ -1242,6 +1309,7 @@ mod unit {
         let services = ok(&m, "list_services", json!({}));
         assert!(services.contains("Apple Music: favorites only"));
         assert!(tool(&m, "check_service", json!({"service": "Spotify"})).1, "not connected in the test settings");
+        m.b.lock().config.mcp.allow_updates = true;
         assert!(tool(&m, "install_update", json!({"room": "Kitchen"})).0.contains("confirm: true"));
         let updates = ok(&m, "check_for_updates", json!({}));
         assert!(updates.contains("S2 system: version"));
@@ -1317,18 +1385,72 @@ mod unit {
     }
 
     #[test]
-    fn a_backup_can_be_saved_but_never_over_something() {
+    fn a_backup_is_saved_only_in_the_chosen_folder_and_never_over_something() {
         let m = link();
         let dir = std::env::temp_dir().join(format!("roomtone-mcp-backup-{}", std::process::id()));
-        std::fs::create_dir_all(&dir).unwrap();
+        std::fs::create_dir_all(dir.join("inner")).unwrap();
+        // Nothing is written until a folder is chosen and files are allowed.
+        let (text, err) = tool(&m, "save_backup", json!({"file": "b.json"}));
+        assert!(err && text.contains("aren't allowed to save files"), "{text}");
+        {
+            let mut s = m.b.lock();
+            s.config.mcp.allow_files = true;
+            s.config.mcp.files_folder = dir.to_string_lossy().into_owned();
+        }
+        let said = ok(&m, "save_backup", json!({"file": "b.json"}));
         let file = dir.join("b.json");
-        let said = ok(&m, "save_backup", json!({"file": file.to_string_lossy()}));
         assert!(said.starts_with("Saved") && file.exists(), "{said}");
         assert!(crate::backup::Backup::parse(&std::fs::read_to_string(&file).unwrap()).is_ok());
-        assert!(tool(&m, "save_backup", json!({"file": file.to_string_lossy()})).0.contains("already exists"));
-        assert!(tool(&m, "save_backup", json!({"file": dir.join("b.txt").to_string_lossy()})).1, "only .json");
-        assert!(tool(&m, "save_backup", json!({"file": dir.join("nope").join("b.json").to_string_lossy()})).1, "folder must exist");
+        assert!(tool(&m, "save_backup", json!({"file": "b.json"})).0.contains("already exists"));
+        assert!(tool(&m, "save_backup", json!({"file": "b.txt"})).1, "only .json");
+        // A path inside the folder is fine; anywhere else, or climbing out, is not.
+        assert!(!tool(&m, "save_backup", json!({"file": dir.join("c.json").to_string_lossy()})).1);
+        assert!(tool(&m, "save_backup", json!({"file": dir.join("inner").join("d.json").to_string_lossy()})).0.contains("inside the chosen folder"));
+        assert!(tool(&m, "save_backup", json!({"file": "../x.json"})).0.contains("inside the chosen folder"));
+        assert!(tool(&m, "save_backup", json!({"file": std::env::temp_dir().join("elsewhere.json").to_string_lossy()})).0.contains("inside the chosen folder"));
+        assert!(!std::env::temp_dir().join("elsewhere.json").exists());
+        // Choosing a folder that doesn't exist says so.
+        m.b.lock().config.mcp.files_folder = dir.join("missing").to_string_lossy().into_owned();
+        assert!(tool(&m, "save_backup", json!({"file": "e.json"})).0.contains("doesn't exist"));
         let _ = std::fs::remove_dir_all(&dir);
+    }
+
+    #[test]
+    fn each_kind_of_change_can_be_switched_off_on_its_own() {
+        let m = link();
+        let listed = |m: &Mcp| -> Vec<String> {
+            rpc(m, 1, "tools/list", json!({}))["result"]["tools"].as_array().unwrap().iter().map(|t| t["name"].as_str().unwrap().to_string()).collect()
+        };
+        let has = |l: &[String], n: &str| l.iter().any(|x| x == n);
+        // Out of the box: everything that worked before still does, but updates and files are off.
+        let l = listed(&m);
+        assert!(has(&l, "playback") && has(&l, "add_favorite") && has(&l, "create_alarm") && has(&l, "rename_room"));
+        assert!(!has(&l, "install_update") && !has(&l, "save_backup"), "off until switched on");
+        let (text, err) = tool(&m, "install_update", json!({"confirm": true}));
+        assert!(err && text.contains("aren't allowed to install speaker updates"), "{text}");
+        // Each group goes on its own.
+        m.b.lock().config.mcp.allow_saved = false;
+        let l = listed(&m);
+        assert!(!has(&l, "add_favorite") && !has(&l, "add_station") && has(&l, "create_alarm") && has(&l, "playback"));
+        assert!(tool(&m, "add_favorite", json!({"current": true})).0.contains("favorites, stations"));
+        m.b.lock().config.mcp.allow_alarms = false;
+        assert!(!has(&listed(&m), "create_alarm") && !has(&listed(&m), "delete_alarm") && has(&listed(&m), "list_alarms"), "looking at alarms stays");
+        assert!(tool(&m, "create_alarm", json!({"room": "Bedroom", "time": "07:00"})).1);
+        m.b.lock().config.mcp.allow_names = false;
+        assert!(!has(&listed(&m), "rename_room") && !has(&listed(&m), "set_sound") && has(&listed(&m), "get_sound"));
+        assert!(tool(&m, "rename_room", json!({"room": "Bedroom", "name": "X"})).1);
+        // Updates on needs the master switch too; files need a folder as well as the switch.
+        m.b.lock().config.mcp.allow_updates = true;
+        assert!(has(&listed(&m), "install_update"));
+        m.b.lock().config.mcp.allow_files = true;
+        assert!(!has(&listed(&m), "save_backup"), "a folder must be chosen too");
+        m.b.lock().config.mcp.files_folder = "/tmp".into();
+        assert!(has(&listed(&m), "save_backup"));
+        // Look-only beats all of them.
+        m.b.lock().config.mcp.allow_control = false;
+        let l = listed(&m);
+        assert!(!has(&l, "install_update") && !has(&l, "save_backup") && !has(&l, "playback"));
+        assert!(tool(&m, "install_update", json!({"confirm": true})).0.contains("only lets assistants look"));
     }
 
     #[test]

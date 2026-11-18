@@ -96,11 +96,16 @@ Lets AI assistants that support MCP see and control your speakers. **Off until y
 | --- | --- | --- | --- |
 | *Let AI assistants use Roomtone* | `enabled` | off | The master switch. Off: assistants are refused. |
 | *Assistants can change things* | `allow_control` | on | On: they can play, pause, change volume, edit queues and group rooms. Off: look only. |
+| *Saved items* | `allow_saved` | on | Within *change things*: favorites, stations, podcasts, saved groups, saving the queue as a playlist. |
+| *Alarms* | `allow_alarms` | on | Make, delete, turn on and off alarms. |
+| *Room names and sound* | `allow_names` | on | Rename rooms; change bass, treble and other sound settings. |
+| *Speaker updates* | `allow_updates` | **off** | Install new speaker software (they restart). Always possible in the app. |
+| *Save files* and *Choose folder* | `allow_files`, `files_folder` | **off**, none | Assistants may save backups, only into the folder you choose. A folder is needed before this does anything. |
 | *Allow other computers* | `allow_network` | off | Off: only this computer can connect (`127.0.0.1`). On: assistants elsewhere in your home can connect, with the access key. |
 | *Port* | `port` | 8790 | The port of the web address (1024–65535). |
 | *Access key* / *New key* | `token` | random | The secret assistants send over the web address. *New key* replaces it; assistants using the old one need the new one. |
 
-The command line can change these too, each saving and quitting: `--mcp-on`, `--mcp-off`, `--mcp-read-only`, `--mcp-allow-control`, `--mcp-port <port>`, and `--mcp-info` to show them with the web address and key. *Copy setup*, *Copy web address* and *Copy access key* are conveniences and store nothing.
+The command line can change these too, each saving and quitting: `--mcp-on`, `--mcp-off`, `--mcp-read-only`, `--mcp-allow-control`, `--mcp-allow` / `--mcp-deny` `saved|alarms|names|updates`, `--mcp-files <folder>`, `--mcp-files-off`, `--mcp-port <port>`, and `--mcp-info` to show them with the web address and key. *Copy setup*, *Copy web address* and *Copy access key* are conveniences and store nothing.
 
 ### Backup and restore
 Saves what you've built up to one file, and puts it back, on this system or a new one. Not stored in `config.json`.
@@ -155,6 +160,12 @@ Complete `config.json`, with every field at its default (the access key is made 
   "mcp": {
     "enabled": false,
     "allow_control": true,
+    "allow_saved": true,
+    "allow_alarms": true,
+    "allow_names": true,
+    "allow_updates": false,
+    "allow_files": false,
+    "files_folder": "",
     "allow_network": false,
     "port": 8790,
     "token": "0123456789abcdef0123456789abcdef"
@@ -191,6 +202,9 @@ Complete `config.json`, with every field at its default (the access key is made 
 | `show_lyrics` | true/false | `false` | Experimental: show lyrics on Now Playing, fetched from lrclib.net. |
 | `mcp.enabled` | true/false | `false` | Assistant link on. |
 | `mcp.allow_control` | true/false | `true` | Assistants may change things. |
+| `mcp.allow_saved`, `mcp.allow_alarms`, `mcp.allow_names` | true/false | `true` | Which kinds of change assistants may make (while `allow_control` is on). |
+| `mcp.allow_updates` | true/false | `false` | Assistants may install speaker updates. |
+| `mcp.allow_files`, `mcp.files_folder` | true/false, text | `false`, empty | Assistants may save backups, only into this folder. |
 | `mcp.allow_network` | true/false | `false` | Other computers may connect. |
 | `mcp.port` | number | `8790` | Port of the assistant web address. |
 | `mcp.token` | text | random | The assistant access key. Created on first run and kept. |

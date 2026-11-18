@@ -4,6 +4,12 @@ All notable changes to Roomtone. The format follows [Keep a Changelog](https://k
 
 ## [Unreleased]
 
+### Added
+- **Choose what assistants may change**: under *Assistants can change things*, separate switches for *Saved items* (favorites, stations, podcasts, saved groups, queue as playlist), *Alarms*, *Room names and sound*, *Speaker updates* and *Save files*. A tool in a switched-off group isn't listed and is refused with a plain sentence. Everything that worked before stays on, except **speaker updates and saving files, which are now off until you switch them on**. Command line: `--mcp-allow` / `--mcp-deny` and `--mcp-files`. New `mcp.allow_saved`, `allow_alarms`, `allow_names`, `allow_updates`, `allow_files` and `files_folder` fields in `config.json`.
+
+### Changed
+- **Assistants save backups only into a folder you choose** (Settings › Assistant link › *Save files* › *Choose folder*). The `save_backup` tool and `roomtone backup NAME.json` now take a file name that is saved in that folder; a path elsewhere is refused. Before, any `.json` path on the computer was accepted. Checked by unit tests on the demo system.
+
 ## [0.8.2] — 2026-11-17
 
 ### Fixed
