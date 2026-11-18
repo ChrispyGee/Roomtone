@@ -4,6 +4,9 @@ All notable changes to Roomtone. The format follows [Keep a Changelog](https://k
 
 ## [Unreleased]
 
+### Security
+- **The music server is harder to knock over.** The server that lets speakers fetch music from this computer (port 52880) now answers only computers on a local network, drops requests that aren't sent within 10 seconds or that are oversized (a request line over 8 KiB, more than 64 header lines), drops a speaker that stops reading for two minutes, and serves at most 64 connections at once. Before, anyone on the same Wi-Fi could stall it or make it use up memory by opening slow or endless connections. It never served files outside the folders you added.
+
 ### Changed
 - **Clear first-run instructions for the unsigned apps.** macOS and Windows warn the first time Roomtone is opened because it isn't signed. The README had the old macOS advice (right-click, *Open*), which newer macOS removed: it now says **System Settings › Privacy & Security › Open Anyway**, and a new guide, [Opening Roomtone for the first time](docs/FIRST_RUN.md), covers macOS, Windows and Linux, the permission questions, checking your download, and why the apps aren't signed yet. The same short steps now end every release's notes and appear in Homebrew's install message. Roomtone for Mac is Apple silicon only, and the pages now say so.
 
