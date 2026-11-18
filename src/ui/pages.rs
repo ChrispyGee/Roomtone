@@ -2157,8 +2157,7 @@ impl App {
                     chip(ui, t!("Active"), GOOD());
                 }
                 // Remembered from another network: every room checked and none answered.
-                let silent = s.phase == Phase::Live && !h.rooms.is_empty() && h.rooms.iter().all(|r| r.online == Some(false));
-                if silent {
+                if is_silent(s, h) {
                     chip(ui, t!("Not on this network"), TEXT_DIM());
                     if s.households.len() > 1 {
                         ui.with_layout(Layout::right_to_left(Align::Center), |ui| {
@@ -2501,10 +2500,12 @@ impl App {
                 let mut versions: Vec<&str> = h.rooms.iter().map(|r| r.version.as_str()).filter(|v| !v.is_empty()).collect();
                 versions.sort();
                 versions.dedup();
-                let state = s.updates.get(&h.id);
+                let silent = is_silent(s, h);
+                let state = if silent { None } else { s.updates.get(&h.id) };
                 ui.horizontal(|ui| {
                     ui.set_min_height(44.0);
                     ui.vertical(|ui| {
+                        ui.set_max_width((ui.available_width() - 190.0).max(160.0));
                         ui.horizontal(|ui| {
                             ui.label(RichText::new(t!("{system} system", system = h.system.label())).color(TEXT()));
                             if !versions.is_empty() {
@@ -2512,6 +2513,7 @@ impl App {
                             }
                         });
                         let (text, color) = match state {
+                            None if silent => (t!("Not on this network, so it can't be checked from here.").to_string(), TEXT_DIM()),
                             None => (t!("Not checked yet").to_string(), TEXT_DIM()),
                             Some(UpdateState::Checking) => (t!("Checking…").to_string(), TEXT_DIM()),
                             Some(UpdateState::UpToDate) => (t!("Up to date").to_string(), GOOD()),
@@ -2530,6 +2532,7 @@ impl App {
                             }
                         }
                         Some(UpdateState::Checking) | Some(UpdateState::Installing(..)) => spinner_dots(ui, TEXT_DIM()),
+                        _ if silent => {}
                         _ => {
                             if pill(ui, Some(Icon::Refresh), t!("Check for updates"), false).clicked() {
                                 self.send(Cmd::CheckUpdates(h.id.clone()));
@@ -3278,4 +3281,9 @@ fn experimental_title(ui: &mut Ui, text: &str) {
         chip(ui, t!("Experimental"), TEXT_DIM());
     });
     ui.add_space(4.0);
+}
+
+/// A system remembered from another network: every room was checked and none answered.
+fn is_silent(s: &AppState, h: &crate::model::Household) -> bool {
+    s.phase == Phase::Live && !h.rooms.is_empty() && h.rooms.iter().all(|r| r.online == Some(false))
 }

@@ -798,3 +798,4 @@ Favorites and Playlists have a Try again button if your speakers don't answer	Pr
 The keyboard media keys are gone: macOS never sent them to Roomtone reliably	I tasti multimediali della tastiera sono stati rimossi: macOS non li inviava mai in modo affidabile a Roomtone
 Crash log	Registro degli arresti anomali
 Roomtone closed unexpectedly on {date}. The details are in crash.log in the settings folder; nothing is sent anywhere.	Roomtone si è chiuso in modo imprevisto il {date}. I dettagli sono in crash.log nella cartella delle impostazioni; non viene inviato nulla.
+Not on this network, so it can't be checked from here.	Non è su questa rete, quindi non si può controllare da qui.
