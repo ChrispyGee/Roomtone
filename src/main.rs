@@ -99,7 +99,7 @@ mod console {
                 if missing(GetStdHandle(which)) {
                     let file = std::fs::OpenOptions::new().read(!write).write(write).open(name);
                     if let Ok(f) = file {
-                        SetStdHandle(which, f.into_raw_handle() as *mut c_void);
+                        SetStdHandle(which, f.into_raw_handle());
                     }
                 }
             }
