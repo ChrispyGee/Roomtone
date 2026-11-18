@@ -211,7 +211,14 @@ pub struct Household {
     pub groups: Vec<Group>,
 }
 
+/// The id given to a speaker that reports no household (it was never set up in the Sonos app).
+pub const UNSET_PREFIX: &str = "unset-";
+
 impl Household {
+    /// False for a speaker that belongs to no system yet: its household id is empty.
+    pub fn is_set_up(&self) -> bool {
+        !self.id.is_empty() && !self.id.starts_with(UNSET_PREFIX)
+    }
     pub fn room(&self, uuid: &str) -> Option<&Room> {
         self.rooms.iter().find(|r| r.uuid == uuid)
     }
@@ -691,6 +698,16 @@ mod unit {
                 Group { id: "CCC".into(), coordinator: "CCC".into(), members: vec!["CCC".into()], ..Default::default() },
             ],
         }
+    }
+
+    #[test]
+    fn a_speaker_with_no_household_is_not_set_up() {
+        let mut h = home();
+        assert!(h.is_set_up());
+        h.id = String::new();
+        assert!(!h.is_set_up());
+        h.id = format!("{UNSET_PREFIX}10.0.0.5");
+        assert!(!h.is_set_up());
     }
 
     #[test]

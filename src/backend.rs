@@ -309,6 +309,9 @@ fn check_updates(b: &Backend, hid: &str) -> UpdateState {
     let (system, ip, demo_mode, demo_current) = {
         let s = b.lock();
         let Some(h) = s.households.iter().find(|h| h.id == hid) else { return UpdateState::Failed(crate::t!("That system isn't available right now").into()) };
+        if !h.is_set_up() {
+            return UpdateState::Failed(crate::t!("Not set up yet. Set this speaker up in the Sonos app, then check again.").into());
+        }
         (h.system, h.rooms.first().map(|r| r.ip.clone()), s.phase == Phase::Demo, h.rooms.iter().all(|r| r.version == "16.5"))
     };
     if demo_mode {
@@ -3488,6 +3491,20 @@ mod unit {
         assert_eq!(b.lock().linked_with(&a), Some(other.as_str()));
         b.send_and_wait(Cmd::Unlink(a.clone()), Duration::from_secs(5)).unwrap();
         assert!(b.lock().linked_with(&a).is_none());
+    }
+
+    #[test]
+    fn a_speaker_that_was_never_set_up_is_not_asked_for_updates() {
+        let b = demo_backend();
+        let id = {
+            let mut s = b.lock();
+            s.households[0].id = format!("{}10.0.0.5", crate::model::UNSET_PREFIX);
+            s.households[0].id.clone()
+        };
+        match check_updates(&b, &id) {
+            UpdateState::Failed(e) => assert!(e.starts_with("Not set up yet"), "{e}"),
+            other => panic!("expected a refusal, got {other:?}"),
+        }
     }
 
     #[test]

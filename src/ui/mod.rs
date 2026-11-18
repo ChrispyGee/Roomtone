@@ -331,6 +331,13 @@ impl App {
                 self.open(&Item { id: id.clone(), title: id, is_container: true, parent_id, class, uri, ..Default::default() });
             }
         }
+        // Test hook: picture a speaker that was never set up (no household).
+        if self.frame >= 20 && std::env::var_os("ROOMTONE_TEST_UNSET").is_some() {
+            let mut st = self.backend.lock();
+            if let Some(h) = st.households.iter_mut().find(|h| h.system == System::S1) {
+                h.id = format!("{}demo", crate::model::UNSET_PREFIX);
+            }
+        }
         // Test hook: picture a system remembered from another network (no room answers).
         if self.frame >= 20 && std::env::var_os("ROOMTONE_TEST_SILENT").is_some() {
             let mut st = self.backend.lock();

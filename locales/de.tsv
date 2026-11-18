@@ -799,3 +799,5 @@ The keyboard media keys are gone: macOS never sent them to Roomtone reliably	Die
 Crash log	Absturzprotokoll
 Roomtone closed unexpectedly on {date}. The details are in crash.log in the settings folder; nothing is sent anywhere.	Roomtone wurde am {date} unerwartet beendet. Die Einzelheiten stehen in crash.log im Einstellungsordner; es wird nichts gesendet.
 Not on this network, so it can't be checked from here.	Nicht in diesem Netzwerk, daher von hier nicht prüfbar.
+Not set up yet	Noch nicht eingerichtet
+Not set up yet. Set this speaker up in the Sonos app, then check again.	Noch nicht eingerichtet. Richte diesen Lautsprecher zuerst in der Sonos-App ein und prüfe dann erneut.

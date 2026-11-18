@@ -2157,7 +2157,9 @@ impl App {
                     chip(ui, t!("Active"), GOOD());
                 }
                 // Remembered from another network: every room checked and none answered.
-                if is_silent(s, h) {
+                if !h.is_set_up() {
+                    chip(ui, t!("Not set up yet"), TEXT_DIM());
+                } else if is_silent(s, h) {
                     chip(ui, t!("Not on this network"), TEXT_DIM());
                     if s.households.len() > 1 {
                         ui.with_layout(Layout::right_to_left(Align::Center), |ui| {
@@ -2500,8 +2502,9 @@ impl App {
                 let mut versions: Vec<&str> = h.rooms.iter().map(|r| r.version.as_str()).filter(|v| !v.is_empty()).collect();
                 versions.sort();
                 versions.dedup();
-                let silent = is_silent(s, h);
-                let state = if silent { None } else { s.updates.get(&h.id) };
+                let unset = !h.is_set_up();
+                let silent = !unset && is_silent(s, h);
+                let state = if silent || unset { None } else { s.updates.get(&h.id) };
                 ui.horizontal(|ui| {
                     ui.set_min_height(44.0);
                     ui.vertical(|ui| {
@@ -2513,6 +2516,7 @@ impl App {
                             }
                         });
                         let (text, color) = match state {
+                            None if unset => (t!("Not set up yet. Set this speaker up in the Sonos app, then check again.").to_string(), TEXT_DIM()),
                             None if silent => (t!("Not on this network, so it can't be checked from here.").to_string(), TEXT_DIM()),
                             None => (t!("Not checked yet").to_string(), TEXT_DIM()),
                             Some(UpdateState::Checking) => (t!("Checking…").to_string(), TEXT_DIM()),
@@ -2532,7 +2536,7 @@ impl App {
                             }
                         }
                         Some(UpdateState::Checking) | Some(UpdateState::Installing(..)) => spinner_dots(ui, TEXT_DIM()),
-                        _ if silent => {}
+                        _ if silent || unset => {}
                         _ => {
                             if pill(ui, Some(Icon::Refresh), t!("Check for updates"), false).clicked() {
                                 self.send(Cmd::CheckUpdates(h.id.clone()));

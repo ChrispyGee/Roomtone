@@ -10,6 +10,8 @@ All notable changes to Roomtone. The format follows [Keep a Changelog](https://k
 ### Fixed
 - **Software updates no longer show a raw error for a system that isn't on this network.** A system remembered from another network used to appear under Settings › Speakers › Software updates with a message such as *Couldn't check: … connection timed out*. It now says *Not on this network, so it can't be checked from here.* and has no *Check for updates* button. Long error messages for other systems also wrap instead of running under the button.
 
+- **A speaker that was never set up says so.** A speaker that belongs to no system yet (it reports no household, as when it's new and hasn't been set up in the Sonos app) used to show *Couldn't check: … code 801* under Software updates. It now says **Not set up yet. Set this speaker up in the Sonos app, then check again.**, has a *Not set up yet* tag in Settings › Speakers, and has no *Check for updates* button. Found on a new Play:3 whose own update service refuses the check until it is set up (read-only probe, 2026-11-18).
+
 ### Security
 - **The music server is harder to knock over.** The server that lets speakers fetch music from this computer (port 52880) now answers only computers on a local network, drops requests that aren't sent within 10 seconds or that are oversized (a request line over 8 KiB, more than 64 header lines), drops a speaker that stops reading for two minutes, and serves at most 64 connections at once. Before, anyone on the same Wi-Fi could stall it or make it use up memory by opening slow or endless connections. It never served files outside the folders you added.
 
