@@ -511,7 +511,6 @@ Check for updates	Zoeken naar updates
 Check for updates first.	Zoek eerst naar updates.
 Couldn't check: {error}	Kon niet controleren: {error}
 Every speaker in this system downloads version {version} and restarts. Music stops for a few minutes. Keep the speakers plugged in until they're back.	Elke speaker in dit systeem downloadt versie {version} en start opnieuw op. De muziek stopt een paar minuten. Laat de speakers aangesloten tot ze terug zijn.
-Installing {version}: speakers restart one by one	{version} wordt geïnstalleerd: speakers starten een voor een opnieuw op
 Sending the update to speaker {n} of {total}…	Update wordt naar speaker {n} van {total} gestuurd…
 Software updates	Software-updates
 Some speakers didn't take the update: {rooms}	Sommige speakers namen de update niet aan: {rooms}
@@ -803,3 +802,8 @@ Not set up yet	Nog niet ingesteld
 Not set up yet. Set this speaker up in the Sonos app, then check again.	Nog niet ingesteld. Stel deze speaker eerst in met de Sonos-app en controleer daarna opnieuw.
 Remove 1 played song	1 afgespeeld nummer verwijderen
 Remove {n} played songs	{n} afgespeelde nummers verwijderen
+Updating to {version}: {done} of {total} speakers done, {restarting} restarting	Bijwerken naar {version}: {done} van {total} speakers klaar, {restarting} starten opnieuw op
+Updating to {version}: {done} of {total} speakers done	Bijwerken naar {version}: {done} van {total} speakers klaar
+Updated to {version}	Bijgewerkt naar {version}
+The update hasn't finished after 45 minutes: {done} of {total} speakers are on {version}. They may still be working; check the speakers.	De update is na 45 minuten niet klaar: {done} van {total} speakers hebben {version}. Ze zijn misschien nog bezig; controleer de speakers.
+Update finished: every speaker is now on {version}.	Update klaar: alle speakers staan nu op {version}.

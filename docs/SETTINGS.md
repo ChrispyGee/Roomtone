@@ -46,7 +46,7 @@ Each system (S1 and S2 are shown separately) lists its rooms with their model an
 
 ### Software updates (experimental)
 *Allow installing updates* (`allow_update_install`, off by default) decides whether the *Update all speakers* button is offered. Installing hasn't been tried on real speakers yet, so it's off until you switch it on; checking is always possible.
-*Check for updates* asks each system's own update service whether newer speaker software exists. *Update all speakers* asks for confirmation, then installs on every speaker of that system. S1 systems are only offered S1 updates; moving S1 to S2 isn't possible from the app. Nothing here is saved by Roomtone.
+*Check for updates* asks each system's own update service whether newer speaker software exists. *Update all speakers* asks for confirmation, then installs on every speaker of that system and shows how many speakers are on the new software (speakers that aren't answering are counted as restarting) until all are, or says so after 45 minutes if they aren't. S1 systems are only offered S1 updates; moving S1 to S2 isn't possible from the app. Nothing here is saved by Roomtone.
 
 ### Can this system move to S2?
 Under an S1 system in *Software updates*, *Check my speakers* asks each speaker which model it is (read-only: nothing is changed) and lists every room with its model, model number and hardware version, and one of:
