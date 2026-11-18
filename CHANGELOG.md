@@ -5,6 +5,7 @@ All notable changes to Roomtone. The format follows [Keep a Changelog](https://k
 ## [Unreleased]
 
 ### Added
+- **A speaker that starts up or comes back is noticed at once.** Speakers announce themselves on the network when they start or return. Roomtone now listens for that (UDP port 1900, shared with other programs; if the port can't be shared, nothing changes) and, when a speaker it isn't talking to announces itself, searches after 3 seconds instead of waiting for the next regular search (every couple of minutes). Never more than one such search every 10 seconds. Speakers going away are still noticed by the regular checks.
 - **A crash log that stays on your computer.** If Roomtone closes unexpectedly it now writes what happened to `crash.log` in the settings folder (version, system, time, where, and a backtrace, with network addresses and your home folder blanked out). Settings › About shows a *Crash log* row with the date while the file exists, and the bug report form asks you to attach it. Nothing is sent anywhere.
 
 ### Fixed

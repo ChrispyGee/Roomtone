@@ -2,6 +2,7 @@
 //! calls they answer on port 1400 (`soap`), the actions this app performs (`speaker`) and
 //! the DIDL-Lite metadata they use for tracks and lists (`didl`).
 
+pub mod announce;
 pub mod didl;
 pub mod discovery;
 pub mod events;

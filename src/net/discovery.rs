@@ -45,7 +45,7 @@ pub(crate) fn pick_links(all: &[Candidate]) -> Vec<Link> {
     links
 }
 
-fn local_links() -> Vec<Link> {
+pub(crate) fn local_links() -> Vec<Link> {
     let Ok(all) = if_addrs::get_if_addrs() else { return vec![] };
     let candidates: Vec<Candidate> = all
         .iter()

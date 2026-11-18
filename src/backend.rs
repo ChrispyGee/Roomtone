@@ -202,6 +202,9 @@ impl Backend {
             let (b, ctx) = (backend.clone(), ctx.clone());
             thread::spawn(move || events_manager(b, ctx));
         }
+        if !demo_only {
+            watch_announcements(&backend, &ctx);
+        }
         {
             let b = backend.clone();
             thread::spawn(move || version_checker(b, ctx));
@@ -2019,6 +2022,33 @@ fn fetch_music_services(b: &Backend) {
     }
 }
 
+/// Whether a speaker's announcement is worth a search: it says it's here, and we aren't
+/// already talking to it.
+fn announcement_is_news(s: &AppState, a: &crate::net::announce::Announcement) -> bool {
+    s.phase == Phase::Live && !s.reconnecting && a.alive && !s.households.iter().any(|h| h.rooms.iter().any(|r| r.ip == a.ip && r.online == Some(true)))
+}
+
+/// Search at once when a speaker we aren't talking to announces itself (it just started, or
+/// came back onto the network), instead of waiting for the next regular search.
+fn watch_announcements(b: &Backend, ctx: &Waker) {
+    use std::sync::atomic::{AtomicBool, Ordering};
+    let (b, ctx, busy) = (b.clone(), ctx.clone(), Arc::new(AtomicBool::new(false)));
+    crate::net::announce::listen(move |a| {
+        if !announcement_is_news(&b.lock(), &a) || busy.swap(true, Ordering::SeqCst) {
+            return;
+        }
+        let (b2, ctx2, busy2) = (b.clone(), ctx.clone(), busy.clone());
+        thread::spawn(move || {
+            // Speakers announce several times in a row while starting up: let it settle, search once.
+            thread::sleep(Duration::from_secs(3));
+            background_scan(&b2, &ctx2);
+            // Not more often than every 10 seconds, however many notices arrive.
+            thread::sleep(Duration::from_secs(10));
+            busy2.store(false, Ordering::SeqCst);
+        });
+    });
+}
+
 /// Look for speakers that are new, moved or weren't answering, without disturbing the rest.
 fn background_scan(b: &Backend, ctx: &Waker) {
     if b.lock().phase != Phase::Live {
@@ -3491,6 +3521,29 @@ mod unit {
         assert_eq!(b.lock().linked_with(&a), Some(other.as_str()));
         b.send_and_wait(Cmd::Unlink(a.clone()), Duration::from_secs(5)).unwrap();
         assert!(b.lock().linked_with(&a).is_none());
+    }
+
+    #[test]
+    fn only_an_announcement_from_a_speaker_we_are_not_talking_to_is_news() {
+        use crate::net::announce::Announcement;
+        let b = demo_backend();
+        let mut s = b.lock();
+        s.phase = Phase::Live;
+        s.reconnecting = false;
+        let ip = "10.9.8.7".to_string();
+        s.households[0].rooms[0].ip = ip.clone();
+        s.households[0].rooms[0].online = Some(true);
+        let hello = |ip: &str, alive| Announcement { ip: ip.into(), alive };
+        assert!(!announcement_is_news(&s, &hello(&ip, true)), "already talking to it");
+        assert!(announcement_is_news(&s, &hello("10.9.8.99", true)), "a speaker we haven't met");
+        assert!(!announcement_is_news(&s, &hello("10.9.8.99", false)), "leaving isn't news");
+        s.households[0].rooms[0].online = Some(false);
+        assert!(announcement_is_news(&s, &hello(&ip, true)), "it was silent and is back");
+        s.reconnecting = true;
+        assert!(!announcement_is_news(&s, &hello(&ip, true)), "a reconnect is already searching");
+        s.reconnecting = false;
+        s.phase = Phase::Demo;
+        assert!(!announcement_is_news(&s, &hello(&ip, true)), "never in the demo");
     }
 
     #[test]
