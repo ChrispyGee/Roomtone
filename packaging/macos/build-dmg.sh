@@ -1,7 +1,8 @@
 #!/usr/bin/env bash
 # Builds Roomtone.app and a .dmg from target/release/roomtone (run `cargo build --release` first).
 # Usage: packaging/macos/build-dmg.sh <version> <output.dmg>
-# Not signed or notarised: macOS asks you to confirm the first launch (right-click › Open).
+# Not signed or notarised: macOS asks you to confirm the first launch (System Settings › Privacy &
+# Security › Open Anyway; docs/FIRST_RUN.md).
 set -euo pipefail
 
 version="${1:?version, e.g. 0.5.1}"
