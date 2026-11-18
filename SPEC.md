@@ -99,6 +99,8 @@ A **scene** is a named one-click set-up kept in `config.json` (`scenes`): a list
 
 On S1 systems, `https` addresses are relayed through this computer as plain `http`, because S1 speakers can't play some secure streams. The relayed address (`http://<this computer>:<port>/p/<code>.<ending>`) carries the original's audio file ending, or `.mp3`, because speakers refuse a plain web address that has none.
 
+When a page that reads the speakers' library (Favorites, Playlists, Music Library) can't load, it says so in words that name the speakers, not the internet, shows the technical reason in small print, and offers *Try again*. The request goes to the first room and, if it doesn't answer, to the next (up to four). A failed try is never kept for good: *Try again* asks again.
+
 ### 4.4 Streaming services
 Sign-in happens on the service's own web page, with a code when the service uses one. Status as tested on 2026-11-11 against a real S2 system:
 

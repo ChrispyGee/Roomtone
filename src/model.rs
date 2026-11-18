@@ -635,6 +635,10 @@ impl AppState {
         self.find_room(uuid).map(|(_, r)| r.ip.clone())
     }
     /// Any speaker of the active system, for library and alarm calls.
+    /// Every room's address in the active system, the first room's first.
+    pub fn room_ips(&self) -> Vec<String> {
+        self.household().map(|h| h.rooms.iter().map(|r| r.ip.clone()).filter(|ip| !ip.is_empty()).collect()).unwrap_or_default()
+    }
     pub fn any_ip(&self) -> Option<String> {
         self.household().and_then(|h| h.rooms.first()).map(|r| r.ip.clone())
     }

@@ -452,14 +452,27 @@ impl App {
         resp.context_menu(|ui| self.item_menu(ui, item, gid));
     }
 
-    fn loading_or<F: FnOnce(&mut Self, &mut Ui, &Vec<Item>)>(&mut self, ui: &mut Ui, b: Option<&Browse>, empty: &str, f: F) {
+    fn loading_or<F: FnOnce(&mut Self, &mut Ui, &Vec<Item>)>(&mut self, ui: &mut Ui, id: &str, b: Option<&Browse>, empty: &str, f: F) {
         match b {
             None | Some(Browse::Loading) => {
                 ui.add_space(20.0);
                 spinner_dots(ui, TEXT_DIM());
             }
             Some(Browse::Failed(e)) => {
-                ui.label(RichText::new(t!("Couldn't load this right now. Check the internet connection and try again.")).color(BAD())).on_hover_text(e);
+                let from_speakers = !id.starts_with("search:") && !crate::sources::is_source_id(id);
+                let text = if from_speakers {
+                    t!("Couldn't read this from your speakers right now. Check that they're on and on this network, then try again.")
+                } else {
+                    t!("Couldn't load this right now. Check the internet connection and try again.")
+                };
+                ui.label(RichText::new(text).color(BAD()));
+                ui.label(RichText::new(e).size(11.5).color(TEXT_FAINT()));
+                if !id.starts_with("search:") {
+                    ui.add_space(6.0);
+                    if pill(ui, None, t!("Try again"), false).clicked() {
+                        self.out.push(Cmd::Browse(id.to_string()));
+                    }
+                }
             }
             Some(Browse::Ready(items)) if items.is_empty() => {
                 ui.add_space(10.0);
@@ -535,7 +548,7 @@ impl App {
         if id == "FV:2" && !kept.is_empty() && matches!(b, Some(Browse::Ready(v)) if v.is_empty()) {
             // Nothing on the speakers yet; just show the app's own.
         } else {
-            self.loading_or(ui, b, empty, |me, ui, items| me.tile_grid(ui, items, gid.as_deref(), id));
+            self.loading_or(ui, id, b, empty, |me, ui, items| me.tile_grid(ui, items, gid.as_deref(), id));
         }
         if id == "FV:2" && !kept.is_empty() {
             ui.add_space(12.0);
@@ -1043,7 +1056,7 @@ impl App {
             }
             other => {
                 let other = other.cloned();
-                self.loading_or(ui, other.as_ref(), t!("Nothing here yet."), |_, _, _| {});
+                self.loading_or(ui, &id, other.as_ref(), t!("Nothing here yet."), |_, _, _| {});
                 None
             }
         };
@@ -1348,7 +1361,7 @@ impl App {
             format!("search:radio:{}", self.radio_searched)
         };
         let b = if self.radio_searched.is_empty() { self.browse(s, &key) } else { s.browse.get(&key) };
-        self.loading_or(ui, b, t!("No stations found."), |me, ui, items| {
+        self.loading_or(ui, &key, b, t!("No stations found."), |me, ui, items| {
             let shown = me.filter_bar(ui, &key, items);
             for (i, it) in shown.iter().take(120).enumerate() {
                 me.apply_jump(ui, i);

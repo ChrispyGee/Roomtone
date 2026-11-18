@@ -453,7 +453,10 @@ fn optimistic(s: &mut AppState, cmd: &Cmd) {
             }
         }
         Cmd::Browse(id) => {
-            s.browse.entry(id.clone()).or_insert(Browse::Loading);
+            // A failed try is asked again (the Try again button); anything else keeps what it has.
+            if !matches!(s.browse.get(id), Some(Browse::Ready(_) | Browse::Loading)) {
+                s.browse.insert(id.clone(), Browse::Loading);
+            }
         }
         Cmd::Search(t) => {
             for src in crate::sources::SEARCH_SOURCES {
@@ -700,6 +703,18 @@ fn need(o: Option<String>, what: &str) -> Result<String, String> {
     o.ok_or_else(|| crate::t!("{what} isn't available right now", what = crate::i18n::tr(what)))
 }
 
+/// Browse the speakers' library, asking the next room if one doesn't answer (up to four rooms).
+fn browse_any(ips: &[String], id: &str) -> Result<Vec<crate::model::Item>, String> {
+    let mut last = String::new();
+    for ip in ips.iter().take(4) {
+        match speaker::browse(ip, id) {
+            Ok(items) => return Ok(items),
+            Err(e) => last = e,
+        }
+    }
+    Err(last)
+}
+
 fn run_live(b: &Backend, ctx: &Waker, cmd: Cmd) -> Result<(), String> {
     let coord = |g: &str| need(b.lock().coordinator_ip(g), n_!("That room"));
     let room_ip = |r: &str| need(b.lock().room_ip(r), n_!("That speaker"));
@@ -751,11 +766,12 @@ fn run_live(b: &Backend, ctx: &Waker, cmd: Cmd) -> Result<(), String> {
         Cmd::RoomVolume(r, v) => speaker::set_volume(&room_ip(&r)?, v),
         Cmd::RoomMute(r, m) => speaker::set_mute(&room_ip(&r)?, m),
         Cmd::Browse(id) => {
-            let ip = need(b.lock().any_ip(), n_!("Your music library"))?;
+            let ips = b.lock().room_ips();
+            need(ips.first().cloned(), n_!("Your music library"))?;
             let b2 = b.clone();
             let ctx = ctx.clone();
             thread::spawn(move || {
-                let result = match speaker::browse(&ip, &id) {
+                let result = match browse_any(&ips, &id) {
                     Ok(mut items) => {
                         crate::sources::memory::enrich(&mut items);
                         Browse::Ready(items)
@@ -3271,6 +3287,17 @@ mod unit {
         assert_eq!(scale_volume(30, 30, 60), 60);
         assert_eq!(scale_volume(80, 40, 100), 100, "never above 100");
         assert_eq!(scale_volume(10, 0, 25), 25, "from silence every room takes the new level");
+    }
+
+    #[test]
+    fn a_failed_browse_is_asked_again_but_a_finished_one_is_kept() {
+        let mut s = AppState::default();
+        s.browse.insert("FV:2".into(), Browse::Failed("Browse: timed out".into()));
+        optimistic(&mut s, &Cmd::Browse("FV:2".into()));
+        assert!(matches!(s.browse.get("FV:2"), Some(Browse::Loading)), "asking again shows the spinner");
+        s.browse.insert("SQ:".into(), Browse::Ready(vec![]));
+        optimistic(&mut s, &Cmd::Browse("SQ:".into()));
+        assert!(matches!(s.browse.get("SQ:"), Some(Browse::Ready(_))));
     }
 
     #[test]
