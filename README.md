@@ -23,6 +23,7 @@ There are no ads, no call-homes and you can run it completely offline.
 - **Playback**: queue editing, shuffle, repeat, crossfade, sleep timer, line-in and TV inputs, alarms, room sound settings.
 - **Music from everywhere**: the system's library, folders on this computer, favorites and playlists, internet radio, podcasts, the Internet Archive, and streaming services (sign in to Spotify, Amazon Music, Deezer, TIDAL or Qobuz; favorites from Apple Music, YouTube Music and SoundCloud). One search box covers them all.
 - **Software updates** for each system, with S1 kept on S1.
+- **Moving between networks**: Roomtone remembers the systems it has seen, starts on one that answers, and forgets old ones after 30 days (or at once with *Forget* in Settings › Speakers).
 - **Scenes**: one click sets up a set of rooms: who plays together, how loud, what plays and when it stops ("Movie night"). On a Scenes page (an optional page: switch it on in Settings › Appearance › Pages you use), as buttons on Home, from the command line and for assistants.
 - **Assistant link (MCP)**: 56 tools (status, playback, volume, browse and search, favorites, queue, grouping, scenes, alarms, rooms, services, stations, podcasts, backups and updates), live resources that assistants can follow for changes, ready-made prompts and name suggestions. Off by default, with look-only mode, a separate switch for each kind of change (saved items, alarms, names and sound, speaker updates, saving files into a folder you choose) and an access key.
 - **Command line**: `roomtone play`, `volume 30 --room Kitchen`, `scene "Movie night"`, `backup file.json` and more control the running app, for scripts, Stream Deck and Shortcuts.
@@ -43,18 +44,18 @@ There are no ads, no call-homes and you can run it completely offline.
 
 ## Install
 
-Download Roomtone 0.8.3 (or see [all releases](https://github.com/ChrispyGee/Roomtone/releases/latest) and what changed):
+Download Roomtone 0.9.0 (or see [all releases](https://github.com/ChrispyGee/Roomtone/releases/latest) and what changed):
 
 | System | Download | How |
 | --- | --- | --- |
-| macOS (Apple silicon) | [`roomtone-v0.8.3-macos-arm64.dmg`](https://github.com/ChrispyGee/Roomtone/releases/download/v0.8.3/roomtone-v0.8.3-macos-arm64.dmg) | Open it and drag Roomtone to Applications. The app isn't signed by Apple yet: the first time, right-click it and choose *Open*. |
-| Windows 10/11 | [`roomtone-v0.8.3-windows-x64-setup.exe`](https://github.com/ChrispyGee/Roomtone/releases/download/v0.8.3/roomtone-v0.8.3-windows-x64-setup.exe) | Run it. It installs for your user only. SmartScreen may warn because the installer isn't signed: choose *More info*, then *Run anyway*. |
-| Debian, Ubuntu and similar | [`roomtone-v0.8.3-linux-x64.deb`](https://github.com/ChrispyGee/Roomtone/releases/download/v0.8.3/roomtone-v0.8.3-linux-x64.deb) | `sudo apt install ./roomtone-v0.8.3-linux-x64.deb` |
-| Fedora, openSUSE, RHEL and similar | [`roomtone-v0.8.3-linux-x64.rpm`](https://github.com/ChrispyGee/Roomtone/releases/download/v0.8.3/roomtone-v0.8.3-linux-x64.rpm) | `sudo dnf install ./roomtone-v0.8.3-linux-x64.rpm` |
+| macOS (Apple silicon) | [`roomtone-v0.9.0-macos-arm64.dmg`](https://github.com/ChrispyGee/Roomtone/releases/download/v0.9.0/roomtone-v0.9.0-macos-arm64.dmg) | Open it and drag Roomtone to Applications. The app isn't signed by Apple yet: the first time, right-click it and choose *Open*. |
+| Windows 10/11 | [`roomtone-v0.9.0-windows-x64-setup.exe`](https://github.com/ChrispyGee/Roomtone/releases/download/v0.9.0/roomtone-v0.9.0-windows-x64-setup.exe) | Run it. It installs for your user only. SmartScreen may warn because the installer isn't signed: choose *More info*, then *Run anyway*. |
+| Debian, Ubuntu and similar | [`roomtone-v0.9.0-linux-x64.deb`](https://github.com/ChrispyGee/Roomtone/releases/download/v0.9.0/roomtone-v0.9.0-linux-x64.deb) | `sudo apt install ./roomtone-v0.9.0-linux-x64.deb` |
+| Fedora, openSUSE, RHEL and similar | [`roomtone-v0.9.0-linux-x64.rpm`](https://github.com/ChrispyGee/Roomtone/releases/download/v0.9.0/roomtone-v0.9.0-linux-x64.rpm) | `sudo dnf install ./roomtone-v0.9.0-linux-x64.rpm` |
 | macOS (Homebrew) | `brew install --cask ChrispyGee/roomtone/roomtone` | Installs the same `.dmg` app from the project's tap. The same first-run confirmation applies (right-click, *Open*). |
-| Any | [`roomtone-v0.8.3-macos-arm64.tar.gz`](https://github.com/ChrispyGee/Roomtone/releases/download/v0.8.3/roomtone-v0.8.3-macos-arm64.tar.gz), [`roomtone-v0.8.3-windows-x64.zip`](https://github.com/ChrispyGee/Roomtone/releases/download/v0.8.3/roomtone-v0.8.3-windows-x64.zip), [`roomtone-v0.8.3-linux-x64.tar.gz`](https://github.com/ChrispyGee/Roomtone/releases/download/v0.8.3/roomtone-v0.8.3-linux-x64.tar.gz) | Just the program, README and licences; unpack and run. |
+| Any | [`roomtone-v0.9.0-macos-arm64.tar.gz`](https://github.com/ChrispyGee/Roomtone/releases/download/v0.9.0/roomtone-v0.9.0-macos-arm64.tar.gz), [`roomtone-v0.9.0-windows-x64.zip`](https://github.com/ChrispyGee/Roomtone/releases/download/v0.9.0/roomtone-v0.9.0-windows-x64.zip), [`roomtone-v0.9.0-linux-x64.tar.gz`](https://github.com/ChrispyGee/Roomtone/releases/download/v0.9.0/roomtone-v0.9.0-linux-x64.tar.gz) | Just the program, README and licences; unpack and run. |
 
-Every download's checksum is in [`SHA256SUMS`](https://github.com/ChrispyGee/Roomtone/releases/download/v0.8.3/SHA256SUMS) (check with `shasum -a 256 -c` or `sha256sum -c`).
+Every download's checksum is in [`SHA256SUMS`](https://github.com/ChrispyGee/Roomtone/releases/download/v0.9.0/SHA256SUMS) (check with `shasum -a 256 -c` or `sha256sum -c`).
 
 ## Build it yourself
 

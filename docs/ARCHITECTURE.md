@@ -133,7 +133,7 @@ Slow work (discovery, browsing, search, service sign-in) runs on its own short-l
 
 | Command | Checks |
 | --- | --- |
-| `cargo test` | 97 unit tests: protocol parsers (DIDL, topology, SOAP replies, update offers, streaming-service replies, podcast feeds, radio playlists), rules (volume scaling, play-along mirroring, account numbers, S1/S2 update guard), settings compatibility, translations, the demo system, and the assistant link end to end, including its HTTP security checks |
+| `cargo test` | 235 unit tests: protocol parsers (DIDL, topology, SOAP replies, update offers, streaming-service replies, podcast feeds, radio playlists), rules (volume scaling, play-along mirroring, account numbers, S1/S2 update guard), settings compatibility, translations, the demo system, and the assistant link end to end, including its HTTP security checks |
 | `cargo test -- --ignored --nocapture` with `ROOMTONE_SPEAKER=<ip>` | Read-only checks against real speakers: discovery, sign-in pages for each service, account numbers |
 | `cargo test service_deep -- --ignored --nocapture` | Read-only: home, one level down and a search on each connected service (uses your real settings) |
 | `roomtone --mcp --demo` with JSON-RPC lines on stdin | The assistant tools against the demo system |

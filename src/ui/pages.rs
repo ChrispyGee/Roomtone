@@ -2331,9 +2331,10 @@ impl App {
             ui.add_space(6.0);
             ui.label(RichText::new(t!("What's new in this version")).color(TEXT()).strong());
             for line in [
-                t!("Choose what assistants may change, one kind of change at a time, in Settings"),
-                t!("Alarms and Scenes stay out of the sidebar until you switch them on in Settings"),
-                t!("On Windows, Roomtone no longer opens an extra console window"),
+                t!("Settings is now a row of tabs, and Music Services moved into it as Services"),
+                t!("Systems from other networks are forgotten after 30 days, and Roomtone starts on one that answers"),
+                t!("Favorites and Playlists have a Try again button if your speakers don't answer"),
+                t!("The keyboard media keys are gone: macOS never sent them to Roomtone reliably"),
             ] {
                 ui.horizontal_wrapped(|ui| {
                     ui.label(RichText::new("•").color(ACCENT()));

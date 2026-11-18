@@ -1,4 +1,4 @@
-# Roomtone — specification (v0.8.3)
+# Roomtone — specification (v0.9.0)
 
 Project home: <https://github.com/ChrispyGee/Roomtone>
 
@@ -323,6 +323,8 @@ All in the app's data folder: `~/Library/Application Support/Roomtone/` (macOS),
 | Streaming **playback** and the account-number retry | Not yet heard on real speakers |
 | Play along between real S1 and S2 speakers | Demo system only |
 | Software updates (check and install) | Check: real S1 and S2 (read-only). Install: demo system only; tagged *Experimental* and off until switched on |
+| Forgetting old systems, and starting on a system that answers (0.9.0) | **Checked on a real setup by the maintainer (2026-11-18)**: one S1 system answering and two S2 systems remembered from another network; the app started on the S1 system, the others showed *Not on this network*, *Forget* removed one and it stayed gone after a restart. The 30-day rule and the ordering are unit-tested |
+| Settings tabs, Settings › Services, Music Library chips and cards, Line-In & TV rows (0.9.0) | Demo system and screenshots (English and German, light and dark). **Connect and Check for a streaming service from Settings › Services not yet tried on real speakers** (the same calls as before, moved) |
 | Windows: no console window (0.8.3) | **Confirmed on a real Windows PC by the maintainer (2026-11-18)**: the app starts with no console window. Printing to a terminal (`--help`, the command-line commands) not yet checked there |
 | S2 compatibility check | Read-only on a real S1 system of five Connect:Amps (ZP120, hardware 1.16.3.1, software generation 1 → *Check*); S2 speakers and the Connect/Play:5 generations not seen |
 | Backup: saving favorites, playlists and alarms | One real S1 system, read only (counts and round trip); demo system for everything else |
@@ -340,7 +342,7 @@ All in the app's data folder: `~/Library/Application Support/Roomtone/` (macOS),
 | Lyrics (experimental) | Unit tests (parser, look-up order, nothing sent unless on) and the demo system's made-up lyrics; one real look-up of a traditional song on lrclib.net returned timed lyrics (2026-11-16, ignored test `real_lookup`); **tried by the maintainer with real songs playing on real speakers (2026-11-16): works well**; accuracy and coverage depend on the community site |
 | Homebrew install and upgrade | Real Mac (0.6.2 installed and upgraded through the tap) |
 | Translations | Automated completeness test; not reviewed by native speakers |
-| Logic without speakers (parsers, rules, settings, demo system, assistant link incl. HTTP security) | About 220 unit tests (`cargo test`), run on every platform in CI |
+| Logic without speakers (parsers, rules, settings, demo system, assistant link incl. HTTP security) | About 235 unit tests (`cargo test`), run on every platform in CI |
 | Light mode | Screenshots of every page in the demo system |
 | Windows and Linux builds | Continuous integration (`.github/workflows/ci.yml`); not run by hand |
 

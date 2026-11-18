@@ -4,23 +4,28 @@ All notable changes to Roomtone. The format follows [Keep a Changelog](https://k
 
 ## [Unreleased]
 
+## [0.9.0] — 2026-11-18
+
+A tidier interface, and better behaviour when you move between networks.
+
 ### Added
-- **Old systems are forgotten.** A system Roomtone remembered from another network (the office, a friend's house) is dropped after 30 days without answering, and under Settings › Speakers a system that isn't answering is marked **Not on this network** with a **Forget** button. The most recently seen system is always kept, one that answers can't be forgotten, and the systems are listed (and the app starts) with the most recently seen first.
+- **Old systems are forgotten.** A system Roomtone remembered from another network (the office, a friend's house) is dropped after 30 days without answering, and under Settings › Speakers a system that isn't answering is marked **Not on this network** with a **Forget** button (it asks first). The most recently seen system is always kept, one that answers can't be forgotten, and the systems are listed, and the app starts, with the most recently seen first.
 
 ### Changed
-- **Music Services is now Settings › Services.** Signing in to streaming services, *Check*, the account number and the switches for the free sources (this computer, radio directory, podcasts, Internet Archive) moved to a **Services** tab in Settings, so the sidebar is shorter. **Podcasts** and **Internet Archive** are now in **Music Library** (cards under *Everything* and a filter chip each), where connected streaming services already were. Nothing was removed; settings and their `config.json` fields are unchanged, and `--view services` opens Settings.
+- **Settings is a row of seven tabs**, one shown at a time: **About** (selected when the app starts), **Playback**, **Services**, **Speakers**, **Appearance**, **Assistants** and **Backups**. Everything about your speakers is in **Speakers** (the rooms of each system, finding and adding speakers, software updates and instant updates); *New versions* is in About and **Pages you use** is in Appearance. Nothing was removed, settings and their `config.json` fields are unchanged, and the chosen tab isn't saved.
+- **Music Services is now Settings › Services.** Signing in to streaming services, *Check*, the account number and the switches for the free sources (this computer, radio directory, podcasts, Internet Archive) moved there, so the sidebar is shorter. **Podcasts** and **Internet Archive** are now in **Music Library**, as cards under *Everything* and a filter chip each (the chips run Everything, Streaming services, Podcasts, On your system, On this computer, Internet Archive), where connected streaming services already were. With no service connected, Music Library offers **Connect in Settings**. `--view services` opens Settings.
 - **Line-In & TV shows one row per speaker**, with a button for each of its inputs (Line-In, TV), instead of a separate row for each input.
-- **Pages you use moved to Settings › Appearance**, between the theme and the language, since it decides what the sidebar shows. Nothing else changed.
-- **Settings is tidier**: a row of six tabs, one shown at a time, in a sensible order: **About** (selected when the app starts), **Playback**, **Speakers** (the rooms of each system, finding and adding speakers, software updates and instant updates, all together), **Appearance**, **Assistants** and **Backups**. *New versions* moved into About and *Pages you use* into Playback. Nothing was removed; settings and their `config.json` fields are unchanged. The chosen tab isn't saved.
 
 ### Removed
 - **The keyboard media keys and system Now Playing** (added in 0.6.0, switch *Use the computer's media controls*) are gone. They never worked reliably on a Mac: macOS only sends the keys to a program that is itself playing media, and Roomtone's music plays on the speakers, so the keys went to whatever else had played last. Making Roomtone qualify meant playing a silent sound and competing with other apps for the keys, which would have confused more than it helped. Control rooms from the window or, for assistants, the assistant link. The `media_keys` field in `config.json` is ignored and kept so older files still load.
 
 ### Fixed
-- **Favorites and Playlists no longer get stuck on an error.** After one failed read of the speakers' library (a busy or sleeping speaker, say) the page kept showing "Check the internet connection" until you changed system or searched for speakers again. Now the message names the speakers, the reason is shown in small print, **Try again** asks again, and the request tries the next room if the first doesn't answer. The usual cause was a system remembered from another network (for example the office) being shown first when you're at home: the app now starts on a system that answers.
+- **Favorites and Playlists no longer get stuck on an error.** After one failed read of the speakers' library (a busy or sleeping speaker, say) the page kept showing "Check the internet connection" until you changed system or searched for speakers again. Now the message names the speakers, the reason is shown in small print, **Try again** asks again, and the request tries the next room if the first doesn't answer. The usual cause was a system remembered from another network being shown first when you're at home: the app now starts on a system that answers.
 
 ### Checked
 - The Windows fix in 0.8.3 (no extra console window) works on a real Windows PC (maintainer, 2026-11-18).
+- On a real setup with one S1 system answering and two S2 systems remembered from another network: the app starts on the S1 system, the others show *Not on this network*, *Forget* removes one and it stays gone after a restart.
+- Not checked on real speakers: *Connect* and *Check* for a streaming service from the new Services tab (they need a system with that service added); everything else new was checked in the demo.
 
 ## [0.8.3] — 2026-11-18
 
