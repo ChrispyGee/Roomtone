@@ -176,7 +176,6 @@ More from your system	Mehr aus deinem System
 Most popular	Am beliebtesten
 Music	Musik
 Music Library	Musikbibliothek
-Music Services	Musikdienste
 Music folders on this Mac, or drives and network shares mounted on it	Musikordner auf diesem Mac oder darauf eingebundene Laufwerke und Netzwerkfreigaben
 Music shared on your speakers' system and folders on this computer	Musik, die im System deiner Lautsprecher freigegeben ist, und Ordner auf diesem Computer
 My favourite station	Mein Lieblingssender
@@ -367,7 +366,7 @@ That speaker	Dieser Lautsprecher
 The address should start with http:// or https://	Die Adresse sollte mit http:// oder https:// beginnen
 The light on the speaker	Die Leuchte am Lautsprecher
 The queue is empty	Die Warteschlange ist leer
-The radio directory is switched off in Music Services.	Das Radioverzeichnis ist unter Musikdienste ausgeschaltet.
+The radio directory is switched off in Settings › Services.	Das Radioverzeichnis ist unter Einstellungen › Dienste ausgeschaltet.
 The speakers are taking a while to answer; try again in a moment.	Die Lautsprecher brauchen etwas länger; versuche es gleich noch einmal.
 The star in the player bar, the Now Playing page and the Home card	Der Stern in der Player-Leiste, die Seite „Läuft gerade“ und die Karte auf der Startseite
 There's already a group with that name.	Es gibt schon eine Gruppe mit diesem Namen.
@@ -427,7 +426,7 @@ version {version}	Version {version}
 {program} · volume {volume} · {minutes} min	{program} · Lautstärke {volume} · {minutes} Min.
 {service} connected	{service} verbunden
 {service} couldn't start a sign-in: {error}	{service} konnte keine Anmeldung starten: {error}
-{service} is connected. Find it in Music Services and in Search.	{service} ist verbunden. Du findest ihn unter Musikdienste und in der Suche.
+{service} is connected. Find it in Music Library and in Search.	{service} ist verbunden. Du findest ihn in der Musikbibliothek und in der Suche.
 {source} couldn't be reached right now.	{source} ist gerade nicht erreichbar.
 {system} speakers can only be grouped with rooms in the same system.	{system}-Lautsprecher lassen sich nur mit Räumen im selben System gruppieren.
 {system} system	{system}-System
@@ -445,7 +444,6 @@ Browsing works (1 section)	Durchsuchen funktioniert (1 Bereich)
 Browsing works ({n} sections)	Durchsuchen funktioniert ({n} Bereiche)
 Check	Prüfen
 Checking…	Wird geprüft…
-Free sources work straight away. Streaming services: sign in once, then browse, search and play them here.	Kostenlose Quellen funktionieren sofort. Streamingdienste: einmal anmelden, dann hier durchsuchen, suchen und abspielen.
 Not connected	Nicht verbunden
 Play along from your other system	Mitspielen aus deinem anderen System
 Plays along with {room}	Spielt mit {room}
@@ -460,7 +458,7 @@ search failed: {error}	Suche fehlgeschlagen: {error}
 search works (1 result)	Suche funktioniert (1 Treffer)
 search works ({n} results)	Suche funktioniert ({n} Treffer)
 {room} now plays along with {lead}	{room} spielt jetzt mit {lead} mit
-{service} didn't start. In Music Services, try another account number (now {n}).	{service} ist nicht gestartet. Probiere unter Musikdienste eine andere Kontonummer (jetzt {n}).
+{service} didn't start. In Settings › Services, try another account number (now {n}).	{service} ist nicht gestartet. Probiere unter Einstellungen › Dienste eine andere Kontonummer (jetzt {n}).
 {service} plays with account {n} on this system; saved.	{service} spielt in diesem System mit Konto {n}; gespeichert.
 {service} wouldn't play this ({error}). Check the account is added to your system in the speaker maker's app.	{service} konnte das nicht abspielen ({error}). Prüfe, ob das Konto in der App des Lautsprecherherstellers deinem System hinzugefügt ist.
 1 saved favorite	1 gespeicherter Favorit
@@ -798,3 +796,5 @@ Forget	Vergessen
 Not on this network	Nicht in diesem Netzwerk
 That system is answering, or it's the only one, so it can't be forgotten.	Dieses System antwortet oder ist das einzige und kann nicht vergessen werden.
 Play {source} from {room}	Spiele {source} von {room} ab
+Connect in Settings	In den Einstellungen verbinden
+Podcasts and recordings	Podcasts und Aufnahmen

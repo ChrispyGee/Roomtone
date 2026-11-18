@@ -176,7 +176,6 @@ More from your system	Meer uit je systeem
 Most popular	Populairst
 Music	Muziek
 Music Library	Muziekbibliotheek
-Music Services	Muziekdiensten
 Music folders on this Mac, or drives and network shares mounted on it	Muziekmappen op deze Mac, of schijven en netwerkshares die eraan gekoppeld zijn
 Music shared on your speakers' system and folders on this computer	Muziek gedeeld op het systeem van je speakers en mappen op deze computer
 My favourite station	Mijn favoriete zender
@@ -367,7 +366,7 @@ That speaker	Die speaker
 The address should start with http:// or https://	Het adres moet beginnen met http:// of https://
 The light on the speaker	Het lampje op de speaker
 The queue is empty	De wachtrij is leeg
-The radio directory is switched off in Music Services.	De radiogids staat uit in Muziekdiensten.
+The radio directory is switched off in Settings › Services.	De radiogids staat uit in Instellingen › Diensten.
 The speakers are taking a while to answer; try again in a moment.	De speakers doen er lang over om te antwoorden; probeer het zo opnieuw.
 The star in the player bar, the Now Playing page and the Home card	De ster in de spelerbalk, de pagina Nu aan het spelen en de kaart op Start
 There's already a group with that name.	Er is al een groep met die naam.
@@ -427,7 +426,7 @@ version {version}	versie {version}
 {program} · volume {volume} · {minutes} min	{program} · volume {volume} · {minutes} min
 {service} connected	{service} verbonden
 {service} couldn't start a sign-in: {error}	{service} kon geen aanmelding starten: {error}
-{service} is connected. Find it in Music Services and in Search.	{service} is verbonden. Je vindt het bij Muziekdiensten en in Zoeken.
+{service} is connected. Find it in Music Library and in Search.	{service} is verbonden. Je vindt het in de muziekbibliotheek en in Zoeken.
 {source} couldn't be reached right now.	{source} is nu niet bereikbaar.
 {system} speakers can only be grouped with rooms in the same system.	{system}-speakers kunnen alleen met ruimtes in hetzelfde systeem worden gegroepeerd.
 {system} system	{system}-systeem
@@ -445,7 +444,6 @@ Browsing works (1 section)	Bladeren werkt (1 onderdeel)
 Browsing works ({n} sections)	Bladeren werkt ({n} onderdelen)
 Check	Controleren
 Checking…	Controleren…
-Free sources work straight away. Streaming services: sign in once, then browse, search and play them here.	Gratis bronnen werken meteen. Streamingdiensten: meld je één keer aan en blader, zoek en speel ze daarna hier af.
 Not connected	Niet verbonden
 Play along from your other system	Meespelen vanuit je andere systeem
 Plays along with {room}	Speelt mee met {room}
@@ -460,7 +458,7 @@ search failed: {error}	zoeken mislukt: {error}
 search works (1 result)	zoeken werkt (1 resultaat)
 search works ({n} results)	zoeken werkt ({n} resultaten)
 {room} now plays along with {lead}	{room} speelt nu mee met {lead}
-{service} didn't start. In Music Services, try another account number (now {n}).	{service} startte niet. Probeer bij Muziekdiensten een ander accountnummer (nu {n}).
+{service} didn't start. In Settings › Services, try another account number (now {n}).	{service} is niet gestart. Probeer in Instellingen › Diensten een ander accountnummer (nu {n}).
 {service} plays with account {n} on this system; saved.	{service} speelt met account {n} op dit systeem; bewaard.
 {service} wouldn't play this ({error}). Check the account is added to your system in the speaker maker's app.	{service} kon dit niet afspelen ({error}). Controleer of het account in de app van de speakerfabrikant aan je systeem is toegevoegd.
 1 saved favorite	1 bewaarde favoriet
@@ -508,7 +506,7 @@ Hide Roomtone	Verberg Roomtone
 Hide Others	Verberg andere
 Show All	Toon alles
 Quit Roomtone	Stop Roomtone
-Services	Voorzieningen
+Services	Diensten
 Check for updates	Zoeken naar updates
 Check for updates first.	Zoek eerst naar updates.
 Couldn't check: {error}	Kon niet controleren: {error}
@@ -798,3 +796,5 @@ Forget	Vergeten
 Not on this network	Niet op dit netwerk
 That system is answering, or it's the only one, so it can't be forgotten.	Dat systeem antwoordt of is het enige, dus het kan niet worden vergeten.
 Play {source} from {room}	Speel {source} af van {room}
+Connect in Settings	Verbinden in Instellingen
+Podcasts and recordings	Podcasts en opnames

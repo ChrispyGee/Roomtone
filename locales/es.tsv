@@ -176,7 +176,6 @@ More from your system	Más de tu sistema
 Most popular	Más populares
 Music	Música
 Music Library	Biblioteca musical
-Music Services	Servicios de música
 Music folders on this Mac, or drives and network shares mounted on it	Carpetas de música en este Mac, o discos y unidades de red montados en él
 Music shared on your speakers' system and folders on this computer	Música compartida en el sistema de tus altavoces y carpetas de este ordenador
 My favourite station	Mi emisora favorita
@@ -367,7 +366,7 @@ That speaker	Ese altavoz
 The address should start with http:// or https://	La dirección debe empezar por http:// o https://
 The light on the speaker	La luz del altavoz
 The queue is empty	La cola está vacía
-The radio directory is switched off in Music Services.	El directorio de radio está desactivado en Servicios de música.
+The radio directory is switched off in Settings › Services.	El directorio de radio está desactivado en Ajustes › Servicios.
 The speakers are taking a while to answer; try again in a moment.	Los altavoces tardan en responder; inténtalo de nuevo en un momento.
 The star in the player bar, the Now Playing page and the Home card	La estrella de la barra del reproductor, la página Sonando y la tarjeta de Inicio
 There's already a group with that name.	Ya existe un grupo con ese nombre.
@@ -427,7 +426,7 @@ version {version}	versión {version}
 {program} · volume {volume} · {minutes} min	{program} · volumen {volume} · {minutes} min
 {service} connected	{service} conectado
 {service} couldn't start a sign-in: {error}	{service} no pudo iniciar sesión: {error}
-{service} is connected. Find it in Music Services and in Search.	{service} está conectado. Encuéntralo en Servicios de música y en Buscar.
+{service} is connected. Find it in Music Library and in Search.	{service} está conectado. Encuéntralo en la biblioteca musical y en la búsqueda.
 {source} couldn't be reached right now.	{source} no está disponible ahora.
 {system} speakers can only be grouped with rooms in the same system.	Los altavoces {system} solo se pueden agrupar con salas del mismo sistema.
 {system} system	Sistema {system}
@@ -445,7 +444,6 @@ Browsing works (1 section)	Explorar funciona (1 sección)
 Browsing works ({n} sections)	Explorar funciona ({n} secciones)
 Check	Comprobar
 Checking…	Comprobando…
-Free sources work straight away. Streaming services: sign in once, then browse, search and play them here.	Las fuentes gratuitas funcionan al instante. Servicios de streaming: inicia sesión una vez y luego explóralos, búscalos y reprodúcelos aquí.
 Not connected	Sin conectar
 Play along from your other system	Sonar junto con tu otro sistema
 Plays along with {room}	Suena junto con {room}
@@ -460,7 +458,7 @@ search failed: {error}	error al buscar: {error}
 search works (1 result)	la búsqueda funciona (1 resultado)
 search works ({n} results)	la búsqueda funciona ({n} resultados)
 {room} now plays along with {lead}	{room} ahora suena junto con {lead}
-{service} didn't start. In Music Services, try another account number (now {n}).	{service} no empezó. En Servicios de música, prueba otro número de cuenta (ahora {n}).
+{service} didn't start. In Settings › Services, try another account number (now {n}).	{service} no se inició. En Ajustes › Servicios, prueba con otro número de cuenta (ahora {n}).
 {service} plays with account {n} on this system; saved.	{service} reproduce con la cuenta {n} en este sistema; guardado.
 {service} wouldn't play this ({error}). Check the account is added to your system in the speaker maker's app.	{service} no pudo reproducir esto ({error}). Comprueba que la cuenta esté añadida a tu sistema en la app del fabricante de los altavoces.
 1 saved favorite	1 favorito guardado
@@ -798,3 +796,5 @@ Forget	Olvidar
 Not on this network	No está en esta red
 That system is answering, or it's the only one, so it can't be forgotten.	Ese sistema responde o es el único, así que no se puede olvidar.
 Play {source} from {room}	Reproducir {source} desde {room}
+Connect in Settings	Conectar en Ajustes
+Podcasts and recordings	Podcasts y grabaciones
