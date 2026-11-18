@@ -259,6 +259,7 @@ Edit it by hand only if you know what you're doing; a file that can't be read is
 | `speakers.json` | Speakers found last time, for a fast start. Systems not seen for 30 days are dropped (the newest is always kept). | Yes: Roomtone searches again. |
 | `config.json.broken-…` | A settings file Roomtone couldn't read, kept for you. | Yes, once you've recovered what you need. |
 | `songs.json` | Details of songs played from this computer. | Yes: rebuilt as needed. |
+| `crash.log` | Only exists if Roomtone has closed unexpectedly: what went wrong and where, with network addresses and your home folder blanked out. Stays on this computer; attach it to a bug report if you like. Settings › About shows when it was written. | Yes. |
 | `window.json` | The window's size and position (and whether it was maximised), so Roomtone opens as you left it. Written a moment after you stop moving or resizing it. | Yes: it opens at the default size. |
 | `history.json` | Your listening history (newest 500 songs and stations, with play counts). | Yes, or use *Clear history*. |
 | `podcast-progress.json` | Where you stopped in podcast episodes, and which are played (newest 300). Behind *Continue listening* and the *Played* labels. | Yes, but you lose your place in episodes. |

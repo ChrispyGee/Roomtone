@@ -796,3 +796,5 @@ Settings is now a row of tabs, and Music Services moved into it as Services	Los 
 Systems from other networks are forgotten after 30 days, and Roomtone starts on one that answers	Los sistemas de otras redes se olvidan a los 30 días, y Roomtone arranca con uno que responde
 Favorites and Playlists have a Try again button if your speakers don't answer	Favoritos y Listas tienen un botón Reintentar si tus altavoces no responden
 The keyboard media keys are gone: macOS never sent them to Roomtone reliably	Se han quitado las teclas multimedia: macOS nunca las enviaba a Roomtone de forma fiable
+Crash log	Registro de fallos
+Roomtone closed unexpectedly on {date}. The details are in crash.log in the settings folder; nothing is sent anywhere.	Roomtone se cerró inesperadamente el {date}. Los detalles están en crash.log, en la carpeta de ajustes; no se envía nada.

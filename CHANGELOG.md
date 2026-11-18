@@ -4,6 +4,9 @@ All notable changes to Roomtone. The format follows [Keep a Changelog](https://k
 
 ## [Unreleased]
 
+### Added
+- **A crash log that stays on your computer.** If Roomtone closes unexpectedly it now writes what happened to `crash.log` in the settings folder (version, system, time, where, and a backtrace, with network addresses and your home folder blanked out). Settings › About shows a *Crash log* row with the date while the file exists, and the bug report form asks you to attach it. Nothing is sent anywhere.
+
 ## [0.9.0] — 2026-11-18
 
 A tidier interface, and better behaviour when you move between networks.

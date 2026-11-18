@@ -36,6 +36,7 @@ mod backup;
 mod brand;
 mod cli;
 mod config;
+mod crash;
 mod csv;
 mod demo;
 mod diagnose;
@@ -110,6 +111,11 @@ mod console {
 fn main() {
     #[cfg(windows)]
     console::attach_to_terminal();
+    crash::install();
+    // Test hook: a real panic, to see what the crash log keeps (`ROOMTONE_TEST_PANIC=1`).
+    if std::env::var_os("ROOMTONE_TEST_PANIC").is_some() {
+        panic!("test panic: speaker at 192.168.1.9 for {}", std::env::var("HOME").unwrap_or_default());
+    }
     let mut args = std::env::args().skip(1);
     // `roomtone play`, `roomtone volume 30 --room Kitchen`: control the running Roomtone.
     {
