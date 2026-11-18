@@ -697,10 +697,11 @@ fn with_account_number(uri: &str, sn: u32) -> String {
 /// other accounts for that service and keep the one that works. After starting, check
 /// that it really plays and say what to try if it doesn't.
 fn play_from_service(b: &Backend, ip: &str, gid: &str, item: Item, how: PlayHow, sid: u32) -> Result<(), String> {
-    let (name, current) = {
+    let (name, current, other_system) = {
         let s = b.lock();
         let a = s.config.account(sid);
-        (a.map(|a| a.name.clone()).unwrap_or_default(), a.map(|a| a.sn.max(1)).unwrap_or(1))
+        let here = s.find_group(gid).map(|(h, _)| h.id.clone());
+        (a.map(|a| a.name.clone()).unwrap_or_default(), a.map(|a| a.sn.max(1)).unwrap_or(1), a.is_some_and(|a| is_other_system(&a.household, here.as_deref())))
     };
     let mut tries = vec![current];
     tries.extend((1..=6).filter(|n| *n != current));
@@ -743,11 +744,22 @@ fn play_from_service(b: &Backend, ip: &str, gid: &str, item: Item, how: PlayHow,
             }
         }
     }
-    Err(crate::t!(
-        "{service} wouldn't play this ({error}). Check the account is added to your system in the speaker maker's app.",
-        service = name,
-        error = first_error.unwrap_or_default()
-    ))
+    let error = first_error.unwrap_or_default();
+    Err(if other_system {
+        crate::t!(
+            "{service} isn't added to this system yet: Roomtone's {service} sign-in belongs to your other system. Add {service} to this system in the speaker maker's app, then try again. ({error})",
+            service = name,
+            error = error
+        )
+    } else {
+        crate::t!("{service} wouldn't play this ({error}). Check the account is added to your system in the speaker maker's app.", service = name, error = error)
+    })
+}
+
+/// Whether a service sign-in was made for a different system than the one playing: an account
+/// is added to one system at a time, so the other system's speakers don't know it.
+fn is_other_system(account_household: &str, playing_household: Option<&str>) -> bool {
+    !account_household.is_empty() && playing_household.is_some_and(|h| !h.is_empty() && h != account_household)
 }
 
 /// Try a connected service end to end without playing anything: home, a search and the account number.
@@ -3711,6 +3723,15 @@ mod unit {
             UpdateState::Unfinished(p) => assert_eq!((p.done, p.version.as_str()), (0, "new")),
             other => panic!("expected Unfinished, got {other:?}"),
         }
+    }
+
+    #[test]
+    fn a_service_sign_in_for_another_system_is_recognised() {
+        assert!(is_other_system("Sonos_S1", Some("Sonos_S2")));
+        assert!(!is_other_system("Sonos_S1", Some("Sonos_S1")));
+        assert!(!is_other_system("", Some("Sonos_S2")), "an old sign-in without a system is not blamed");
+        assert!(!is_other_system("Sonos_S1", None));
+        assert!(!is_other_system("Sonos_S1", Some("")));
     }
 
     #[test]

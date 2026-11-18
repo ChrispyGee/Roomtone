@@ -4,6 +4,9 @@ All notable changes to Roomtone. The format follows [Keep a Changelog](https://k
 
 ## [Unreleased]
 
+### Fixed
+- **A clearer message when a streaming service isn't on the system you're playing on.** Roomtone's sign-in to a service (Spotify, say) belongs to one system, and speakers only play a service that has been added to their own system in the speaker maker's app. Playing Spotify on a second system (found on a new S2 speaker: every account number was refused with code 800) used to say only to check the account. It now says the service isn't added to *this* system yet, that Roomtone's sign-in belongs to your other one, and what to do.
+
 ## [0.9.1] — 2026-11-18
 
 Software updates show how they're going, queue changes are faster, and speakers are found sooner.
