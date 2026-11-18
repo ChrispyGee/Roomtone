@@ -2022,7 +2022,7 @@ impl App {
     // ---------- Settings ----------
 
     fn settings_page(&mut self, ui: &mut Ui, s: &AppState) {
-        self.header(ui, t!("Settings"), t!("Systems, rooms and connection"));
+        self.header(ui, t!("Settings"), t!("Speakers, music, appearance and assistants"));
         if let Some(problem) = &s.config_problem {
             let (title, text) = match problem {
                 crate::config::Problem::SetAside { kept_as, .. } => (
@@ -2041,6 +2041,64 @@ impl App {
             });
             ui.add_space(14.0);
         }
+        self.group(ui, "settings_group_about", t!("About"), true, TitleMode::Hidden, |this, ui| {
+            this.about_card(ui, s);
+            ui.add_space(14.0);
+            set_title_mode(TitleMode::Compact);
+            this.new_version_card(ui, s);
+        });
+        self.group(ui, "settings_group_music", t!("Music & Playback"), false, TitleMode::Compact, |this, ui| {
+            this.history_card(ui, s);
+            ui.add_space(14.0);
+            this.lyrics_card(ui, s);
+            ui.add_space(14.0);
+            this.media_keys_card(ui, s);
+            ui.add_space(14.0);
+            this.pages_card(ui, s);
+        });
+        self.group(ui, "settings_group_speakers", t!("Speakers"), false, TitleMode::Compact, |this, ui| {
+            this.rooms_lists(ui, s);
+            this.connection_card(ui);
+            ui.add_space(14.0);
+            this.updates_card(ui, s);
+            ui.add_space(14.0);
+            this.events_card(ui, s);
+        });
+        self.group(ui, "settings_group_look", t!("Appearance and language"), false, TitleMode::Compact, |this, ui| {
+            this.appearance_card(ui, s);
+            ui.add_space(14.0);
+            this.language_card(ui, s);
+        });
+        self.group(ui, "settings_group_assistants", t!("Assistants"), false, TitleMode::Hidden, |this, ui| {
+            this.assistant_card(ui, s);
+        });
+        self.group(ui, "settings_group_backup", t!("Backup and restore"), false, TitleMode::Hidden, |this, ui| {
+            this.backup_card(ui, s);
+        });
+        set_title_mode(TitleMode::Normal);
+    }
+
+    /// One collapsible group of Settings. Only About starts open, every time the app starts.
+    fn group(&mut self, ui: &mut Ui, id: &str, title: &str, open: bool, titles: TitleMode, add: impl FnOnce(&mut Self, &mut Ui)) {
+        ui.add_space(6.0);
+        let mut header = egui::CollapsingHeader::new(RichText::new(title).size(19.0).strong().color(TEXT())).id_salt(id).default_open(open);
+        // Picture check: ROOMTONE_TEST_GROUPS=all, none, or a list such as speakers,music.
+        if let Ok(list) = std::env::var("ROOMTONE_TEST_GROUPS") {
+            let wanted = list.split(',').any(|w| w.trim() == "all" || id.ends_with(&format!("_{}", w.trim())));
+            header = header.open(Some(wanted));
+        }
+        header.show(ui, |ui| {
+            set_title_mode(titles);
+            ui.add_space(6.0);
+            add(self, ui);
+            ui.add_space(8.0);
+        });
+        set_title_mode(TitleMode::Normal);
+        ui.add_space(8.0);
+    }
+
+    /// The rooms of each system, one row per room (tap to open it).
+    fn rooms_lists(&mut self, ui: &mut Ui, s: &AppState) {
         for (i, h) in s.households.iter().enumerate() {
             ui.horizontal(|ui| {
                 ui.label(RichText::new(t!("{system} system", system = h.system.label())).size(19.0).color(TEXT()).strong());
@@ -2074,11 +2132,10 @@ impl App {
             });
             ui.add_space(14.0);
         }
+    }
 
-        self.updates_card(ui, s);
-        ui.add_space(14.0);
-        self.pages_card(ui, s);
-        ui.add_space(14.0);
+    /// Find speakers, add one by address, the can't-find-them check, and the demo system.
+    fn connection_card(&mut self, ui: &mut Ui) {
         section_title(ui, t!("Connection"));
         card_frame().show(ui, |ui| {
             ui.set_width(ui.available_width());
@@ -2126,26 +2183,6 @@ impl App {
                 });
             });
         });
-        ui.add_space(14.0);
-        self.appearance_card(ui, s);
-        ui.add_space(14.0);
-        self.language_card(ui, s);
-        ui.add_space(14.0);
-        self.events_card(ui, s);
-        ui.add_space(14.0);
-        self.history_card(ui, s);
-        ui.add_space(14.0);
-        self.lyrics_card(ui, s);
-        ui.add_space(14.0);
-        self.media_keys_card(ui, s);
-        ui.add_space(14.0);
-        self.new_version_card(ui, s);
-        ui.add_space(14.0);
-        self.backup_card(ui, s);
-        ui.add_space(14.0);
-        self.assistant_card(ui, s);
-        ui.add_space(14.0);
-        self.about_card(ui, s);
     }
 
     fn about_card(&mut self, ui: &mut Ui, s: &AppState) {
@@ -3192,9 +3229,10 @@ fn show_folder(path: &str) {
 
 /// A section title with an *Experimental* tag beside it.
 fn experimental_title(ui: &mut Ui, text: &str) {
+    let size = if title_mode() == TitleMode::Compact { 14.5 } else { 19.0 };
     ui.add_space(6.0);
     ui.horizontal(|ui| {
-        ui.label(RichText::new(text).size(19.0).color(TEXT()).strong());
+        ui.label(RichText::new(text).size(size).color(TEXT()).strong());
         chip(ui, t!("Experimental"), TEXT_DIM());
     });
     ui.add_space(4.0);

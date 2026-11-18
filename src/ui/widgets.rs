@@ -551,9 +551,42 @@ pub fn clipped_label(ui: &mut Ui, text: &str, size: f32, color: Color32, width: 
 }
 
 pub fn section_title(ui: &mut Ui, text: &str) {
-    ui.add_space(6.0);
-    ui.label(egui::RichText::new(text).size(19.0).color(TEXT()).strong());
-    ui.add_space(4.0);
+    match title_mode() {
+        TitleMode::Hidden => {}
+        TitleMode::Compact => {
+            ui.add_space(4.0);
+            ui.label(egui::RichText::new(text).size(14.5).color(TEXT()).strong());
+            ui.add_space(3.0);
+        }
+        TitleMode::Normal => {
+            ui.add_space(6.0);
+            ui.label(egui::RichText::new(text).size(19.0).color(TEXT()).strong());
+            ui.add_space(4.0);
+        }
+    }
+}
+
+/// How section titles are drawn: normally, smaller (inside a Settings group), or not at all (a
+/// group that holds a single card, whose group heading already says it).
+#[derive(Clone, Copy, Debug, PartialEq, Eq)]
+pub enum TitleMode {
+    Normal,
+    Compact,
+    Hidden,
+}
+
+thread_local! {
+    static TITLE_MODE: std::cell::Cell<TitleMode> = const { std::cell::Cell::new(TitleMode::Normal) };
+}
+
+/// Set for the rest of this frame's drawing (the window draws on one thread); Settings puts it back
+/// to `Normal` when it's done.
+pub fn set_title_mode(mode: TitleMode) {
+    TITLE_MODE.with(|m| m.set(mode));
+}
+
+pub fn title_mode() -> TitleMode {
+    TITLE_MODE.with(|m| m.get())
 }
 
 pub fn card_frame() -> egui::Frame {

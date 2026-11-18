@@ -4,6 +4,12 @@ All notable changes to Roomtone. The format follows [Keep a Changelog](https://k
 
 ## [Unreleased]
 
+### Checked
+- The Windows fix in 0.8.3 (no extra console window) works on a real Windows PC (maintainer, 2026-11-18).
+
+### Changed
+- **Settings is tidier**: six groups you can open and close, in a sensible order: **About** (open when the app starts), **Music & Playback**, **Speakers** (the rooms of each system, finding and adding speakers, software updates and instant updates, all together), **Appearance and language**, **Assistants**, and **Backup and restore**. *New versions* moved into About and *Pages you use* into Music & Playback. Nothing was removed; settings and their `config.json` fields are unchanged. Which groups are open isn't saved.
+
 ## [0.8.3] — 2026-11-18
 
 ### Added

@@ -33,7 +33,7 @@ How the file behaves:
 
 ## Settings page
 
-Open it from the sidebar. Sections, top to bottom:
+Open it from the sidebar. It has six groups you can open and close, in this order: **About**, **Music & Playback**, **Speakers**, **Appearance and language**, **Assistants** and **Backup and restore**. Only **About** is open when the app starts. Where each setting below lives: *Music & Playback*: listening history, lyrics, media keys and *Pages you use*; *Speakers*: systems and rooms, connection, software updates, instant updates; *Appearance and language*: light or dark, language; *About*: the about card and new versions of Roomtone. The sections, in this guide's order:
 
 ### Arranging the rooms
 In the Rooms panel (right-hand side), *Arrange* shows up and down arrows on every room card; use them to put the rooms in the order you like, then choose *Done*. The order is remembered on this computer for each system (saved as `room_order`). A group of rooms stands where its earliest-listed room is, and new rooms appear after the ones you've arranged. Nothing changes on the speakers.
