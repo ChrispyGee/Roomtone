@@ -373,10 +373,25 @@ fn install_update(b: &Backend, ctx: &Waker, hid: &str, offer: &speaker::UpdateOf
     UpdateState::Progress(UpdateProgress { version: offer.version.clone(), total, done: 0, restarting: 0 })
 }
 
+/// A build such as "98.0-82170" as numbers to compare (`None`: not in that form).
+fn build_number(build: &str) -> Option<Vec<u64>> {
+    let nums: Option<Vec<u64>> = build.trim().split(['.', '-']).map(|p| p.parse().ok()).collect();
+    nums.filter(|n| n.len() >= 2)
+}
+
+/// Whether a room's build is the offered one or newer. A speaker can be taken further than the
+/// build we were offered (another controller's update, or a newer build published meanwhile).
+fn build_reached(build: &str, target: &str) -> bool {
+    match (build_number(build), build_number(target)) {
+        (Some(have), Some(want)) => have >= want,
+        _ => build == target,
+    }
+}
+
 /// From one look at each room's software build (`None`: not answering): how many are on the
-/// new build, and how many aren't answering.
+/// new build (or newer), and how many aren't answering.
 fn tally(builds: &[Option<String>], target: &str) -> (usize, usize) {
-    (builds.iter().filter(|b| b.as_deref() == Some(target)).count(), builds.iter().filter(|b| b.is_none()).count())
+    (builds.iter().flatten().filter(|b| build_reached(b, target)).count(), builds.iter().filter(|b| b.is_none()).count())
 }
 
 /// Follow an update the speakers were told to install: look at each room's own software build
@@ -3638,6 +3653,17 @@ mod unit {
         let b = |s: &str| Some(s.to_string());
         assert_eq!(tally(&[b("98.0-1"), b("65.1-2"), None, b("98.0-1")], "98.0-1"), (2, 1));
         assert_eq!(tally(&[], "98.0-1"), (0, 0));
+    }
+
+    #[test]
+    fn a_newer_build_than_offered_counts_as_done() {
+        assert!(build_reached("98.0-82170", "98.0-82170"));
+        assert!(build_reached("98.1-82500", "98.0-82170"), "taken further by another controller");
+        assert!(build_reached("100.0-1", "98.0-82170"), "numbers, not text: 100 is more than 98");
+        assert!(!build_reached("73.0-42060", "98.0-82170"), "a stage on the way");
+        assert!(!build_reached("65.1-21040", "98.0-82170"));
+        assert!(build_reached("weird", "weird"), "unreadable builds only match exactly");
+        assert!(!build_reached("weird", "98.0-82170"));
     }
 
     #[test]
