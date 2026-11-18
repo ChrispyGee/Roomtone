@@ -130,6 +130,8 @@ Plays a speaker's line-in or TV input in the selected room. Each speaker with an
 ### 4.7 Alarms
 The **Alarms page** is hidden until *Settings › Appearance › Pages you use › Show Alarms* is switched on (`show_alarms`, off by default; the speakers' alarms keep working either way, and assistants have their own switch, §6.1). The **Scenes page** and its Home shortcuts follow *Show Scenes* (`show_scenes`; off by default, except that someone who already has scenes keeps seeing them until they choose). A hidden page isn't in the sidebar and can't be opened (`--view` is the exception only for the test hook `ROOMTONE_TEST_PAGES=1`, which shows both for screenshots).
 
+**A ringing alarm can be snoozed or stopped from anywhere** (not only on the Alarms page, which may be hidden): while a group plays, the app asks whether an alarm is ringing there (`GetRunningAlarmProperties`, at the slower full poll), and if one is, a strip at the top of the window says *Alarm ringing in {room}* with *Snooze 5 min*, *Snooze 10 min* and *Stop the alarm* (pause). Snoozing sends `SnoozeAlarm` (refused with a friendly message if nothing is ringing). The assistant has `snooze_alarm` (room, minutes, default 10; under *Playback*), and `now_playing` shows `alarm_ringing`.
+
 Create, edit, enable/disable and delete alarms. Each has a time, how often it repeats (every day, weekdays, weekends, once and so on), a room, what to play (the chime or any favorite), a volume and a duration.
 
 ### 4.8 Settings
@@ -218,6 +220,8 @@ Rooms are given by name (exact, or a unique part of a name) or id. Leaving the r
 | `set_mute` | Mute or unmute a room or its group |
 | `set_play_mode` | `shuffle`, `repeat` (off/all/one), `crossfade` |
 | `seek` | Jump to `seconds` |
+| `snooze_alarm` | Silence an alarm that is ringing in a room and have it ring again after some minutes (default 10); `now_playing` shows `alarm_ringing` |
+| `snooze_alarm` | Silence an alarm that is ringing in a room and have it ring again after `minutes` (default 10); `now_playing` shows `alarm_ringing` |
 | `sleep_timer` | Stop after `minutes` (0 = off) |
 | `list_favorites` *(read)* | Favorites with refs (`fav1`…) |
 | `list_playlists` *(read)* | Playlists with refs (`pl1`…) |
@@ -358,7 +362,7 @@ Quick checks that a change hasn't broken behaviour. Each needs no real speakers 
 
 1. `cargo test` passes: 103 unit tests, including that every phrase is translated and placeholders are kept.
 2. `roomtone --screenshot shots/x.png` saves a non-blank picture of the demo system within a few seconds.
-3. `roomtone --mcp --demo` with an `initialize` line, then `tools/list`, lists 53 tools when control is allowed (with speaker updates and saving files left off, as they are by default; 56 with every switch on) and 17 when look-only.
+3. `roomtone --mcp --demo` with an `initialize` line, then `tools/list`, lists 54 tools when control is allowed (with speaker updates and saving files left off, as they are by default; 57 with every switch on) and 17 when look-only.
 4. With the link off, `tools/call` answers error −32001.
 5. Over HTTP, a request without the key gets 401, one with `Origin: https://example.com` gets 403, and `--mcp-off` closes the port within ~2 s.
 6. In the demo: `play_along` from "Living Room" to "Office", then `playback next` on Living Room, changes Office's track too.

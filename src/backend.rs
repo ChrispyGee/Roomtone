@@ -37,6 +37,8 @@ pub enum Cmd {
     PlayItem(String, Item, PlayHow),
     LoadQueue(String),
     PlayQueueIndex(String, usize),
+    /// Silence the ringing alarm in this group and have it ring again after this many minutes.
+    SnoozeAlarm(String, u32),
     RemoveFromQueue(String, usize),
     /// Take this many songs out of the queue in one go, starting at this place (from 0).
     RemoveRangeFromQueue(String, usize, usize),
@@ -1020,6 +1022,17 @@ fn run_live(b: &Backend, ctx: &Waker, cmd: Cmd) -> Result<(), String> {
         Cmd::LineIn(g, src) => speaker::play_line_in(&coord(&g)?, &src).and_then(|_| refresh_group(b, &g)),
         Cmd::Tv(g, src) => speaker::play_tv(&coord(&g)?, &src).and_then(|_| refresh_group(b, &g)),
         Cmd::SleepTimer(g, m) => speaker::sleep_timer(&coord(&g)?, m),
+        Cmd::SnoozeAlarm(g, m) => {
+            let ip = coord(&g)?;
+            if !speaker::alarm_is_ringing(&ip) {
+                return Err(crate::t!("No alarm is ringing in that room right now").into());
+            }
+            speaker::snooze_alarm(&ip, m)?;
+            if let Some(gr) = b.lock().group_mut(&g) {
+                gr.alarm_ringing = false;
+            }
+            refresh_group(b, &g)
+        }
         Cmd::LoadRoomSettings(r) => {
             let st = speaker::room_settings(&room_ip(&r)?)?;
             if let Some(room) = b.lock().room_mut(&r) {
@@ -2420,6 +2433,9 @@ fn poll_one(b: &Backend, gid: &str, full: bool) {
         }
         if full {
             g.sleep_left = poll.sleep_left;
+            if let Some(ringing) = poll.alarm_ringing {
+                g.alarm_ringing = ringing;
+            }
         }
         if track_changed && g.queue.is_some() && full {
             // keep the queue; position highlight follows track_no

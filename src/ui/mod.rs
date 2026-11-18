@@ -359,6 +359,17 @@ impl App {
                 _ => {}
             }
         }
+        // Test hook: pretend an alarm is ringing in the selected group.
+        if self.frame >= 20 && std::env::var_os("ROOMTONE_TEST_ALARM").is_some() {
+            let mut st = self.backend.lock();
+            if let Some(gid) = st.selected_group.clone() {
+                if self.frame == 20 {
+                    if let Some(g) = st.group_mut(&gid) {
+                        g.alarm_ringing = true;
+                    }
+                }
+            }
+        }
         // Test hook: picture a speaker that was never set up (no household).
         if self.frame >= 20 && std::env::var_os("ROOMTONE_TEST_UNSET").is_some() {
             let mut st = self.backend.lock();
@@ -471,6 +482,27 @@ impl App {
             .resizable(false)
             .frame(egui::Frame::new().fill(BG()).inner_margin(egui::Margin { left: 8, right: 18, top: 22, bottom: 12 }))
             .show(root, |ui| self.right_panel(ui, s));
+
+        // An alarm is ringing somewhere: the way to snooze or stop it is always at hand.
+        let ringing = s.households.iter().flat_map(|h| h.groups.iter().map(move |g| (h, g))).find(|(_, g)| g.alarm_ringing);
+        if let Some((h, g)) = ringing {
+            egui::Panel::top("alarm").frame(egui::Frame::new().fill(ACCENT_SOFT()).inner_margin(egui::Margin { left: 30, right: 22, top: 10, bottom: 10 })).show(root, |ui| {
+                ui.horizontal_wrapped(|ui| {
+                    ui.label(RichText::new(t!("Alarm ringing in {room}", room = h.group_name(g))).color(ACCENT()).strong());
+                    ui.with_layout(Layout::right_to_left(Align::Center), |ui| {
+                        if pill(ui, None, t!("Stop the alarm"), false).clicked() {
+                            self.send(Cmd::Pause(g.id.clone()));
+                        }
+                        if pill(ui, None, &t!("Snooze {n} min", n = 10), true).clicked() {
+                            self.send(Cmd::SnoozeAlarm(g.id.clone(), 10));
+                        }
+                        if pill(ui, None, &t!("Snooze {n} min", n = 5), false).clicked() {
+                            self.send(Cmd::SnoozeAlarm(g.id.clone(), 5));
+                        }
+                    });
+                });
+            });
+        }
 
         egui::CentralPanel::default().frame(egui::Frame::new().fill(BG()).inner_margin(egui::Margin { left: 30, right: 22, top: 22, bottom: 0 })).show(root, |ui| {
             if household.is_none() {
