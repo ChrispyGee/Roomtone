@@ -25,7 +25,7 @@ pub(super) fn tools() -> Vec<(&'static str, &'static str, Value, bool)> {
         (
             "save_backup",
             "Save a backup file (.json) on this computer with the system's favorites, playlists and alarms and Roomtone's own lists and settings. Reads the speakers and writes only that file; restoring is done in the app.",
-            json!({"type": "object", "properties": {"file": {"type": "string", "description": "Where to save it, e.g. ~/roomtone-backup.json. Must end in .json; the folder must exist; an existing file is not overwritten."}}, "required": ["file"]}),
+            json!({"type": "object", "properties": {"file": {"type": "string", "description": "A file name ending in .json, e.g. roomtone-backup.json. It is saved in the folder the person chose in Settings; an existing file is not overwritten."}}, "required": ["file"]}),
             true,
         ),
         ("list_recent", "What was played recently from this app, with refs to play again.", json!({"type": "object", "properties": {}}), false),
@@ -255,22 +255,9 @@ impl Mcp {
                 crate::scene::apply(&self.b, &scene).map(|steps| format!("Scene “{}” is on. {}", scene.name, steps.join(" ")))
             }
             "save_backup" => {
-                let file = str_arg("file").ok_or("Say where to save it (file)")?;
-                let file = match file.strip_prefix("~/") {
-                    Some(rest) => {
-                        std::env::var_os("HOME").or_else(|| std::env::var_os("USERPROFILE")).map(|h| std::path::PathBuf::from(h).join(rest)).ok_or("Can't find the home folder")?
-                    }
-                    None => std::path::PathBuf::from(file),
-                };
-                if !file.extension().is_some_and(|e| e.eq_ignore_ascii_case("json")) {
-                    return Err("The file name must end in .json".into());
-                }
-                if file.exists() {
-                    return Err(format!("{} already exists; choose a new name so nothing is overwritten.", file.display()));
-                }
-                if !file.parent().map(|p| p.as_os_str().is_empty() || p.is_dir()).unwrap_or(false) {
-                    return Err("That folder doesn't exist".into());
-                }
+                let file = str_arg("file").ok_or("Say what to call it (file)")?;
+                let folder = self.b.lock().config.mcp.files_folder.clone();
+                let file = backup_path(&folder, &file)?;
                 self.b.lock().backup_result = None;
                 self.wait(Cmd::SaveBackup(file.clone(), crate::backup::Sections::default()))?;
                 match self.b.lock().backup_result.clone() {
@@ -626,4 +613,43 @@ pub(super) fn percent_decode(s: &str) -> String {
         i += 1;
     }
     String::from_utf8_lossy(&out).into_owned()
+}
+
+/// Where a backup may be written: always inside the folder the person chose. A bare file name goes
+/// there; a longer path must already point into it. The name must end in `.json`, nothing already
+/// there is overwritten, and the folder must exist.
+pub(super) fn backup_path(folder: &str, file: &str) -> Result<std::path::PathBuf, String> {
+    use std::path::{Component, Path, PathBuf};
+    let folder = folder.trim();
+    if folder.is_empty() {
+        return Err("No folder has been chosen for assistants' files. The person can choose one in Settings › Assistant link.".into());
+    }
+    let home = || std::env::var_os("HOME").or_else(|| std::env::var_os("USERPROFILE")).map(PathBuf::from).ok_or("Can't find the home folder");
+    let expand = |p: &str| -> Result<PathBuf, String> {
+        match p.strip_prefix("~/") {
+            Some(rest) => Ok(home()?.join(rest)),
+            None => Ok(PathBuf::from(p)),
+        }
+    };
+    let folder = std::fs::canonicalize(expand(folder)?).map_err(|_| "The folder chosen for assistants' files doesn't exist".to_string())?;
+    let given = expand(file.trim())?;
+    if given.components().any(|c| matches!(c, Component::ParentDir)) {
+        return Err("The file must be inside the chosen folder".into());
+    }
+    let target = if given.parent().is_none_or(|p| p.as_os_str().is_empty()) {
+        folder.join(&given)
+    } else {
+        let dir = std::fs::canonicalize(given.parent().unwrap_or(Path::new(""))).map_err(|_| "That folder doesn't exist".to_string())?;
+        if dir != folder {
+            return Err("The file must be inside the chosen folder".into());
+        }
+        dir.join(given.file_name().ok_or("Say what to call it (file)")?)
+    };
+    if !target.extension().is_some_and(|e| e.eq_ignore_ascii_case("json")) {
+        return Err("The file name must end in .json".into());
+    }
+    if target.exists() {
+        return Err(format!("{} already exists; choose a new name so nothing is overwritten.", target.display()));
+    }
+    Ok(target)
 }
