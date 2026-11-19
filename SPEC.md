@@ -65,7 +65,9 @@ The source of truth for **what Roomtone does**. Code, tests and docs should agre
 - **Group all**, **Pause all**, **Ungroup** for the active system.
 - **Play along across systems.** S1 and S2 speakers can't share a group: grouping is done by the speakers themselves, the two firmware generations can't sync with each other, and they are separate households. So the group editor can link a group to a group in another system:
   - The app starts the same stream, or the same queue at the same track and position (about 1 s ahead, to allow for start-up), on the other group.
-  - It then repeats play, pause, next, previous, seek, play mode, play-item, queue jumps, clearing the queue and the sleep timer there. Volumes stay separate.
+  - It then repeats play, pause, next, previous, seek, play mode, play-item, queue jumps, removing, moving and clearing songs in the queue, and the sleep timer on the other group. **This works from either side**: using the following group moves the leading one too, so the two keep the same queue and the same song. Volumes and other settings stay separate.
+  - **Keeping in step.** Every five seconds the app compares the two (the song, and whether each is playing). If they have been on different songs, or one playing and the other not, for 12 seconds (songs end a moment apart on two systems), the group the person used last is copied onto the other: the same queue, song and position, as when the link was made. It waits 10 seconds after the person last used either group, and copies no more than once every 30 seconds. With neither group used, the leading group wins.
+  - A speaker with nothing to skip to (the last song for *next*) is left alone rather than reporting an error.
   - The two may drift up to a second or two apart.
   - One link per group, no chains. Rooms of the same system are refused with "group them instead".
   - Links last until the app quits; they aren't saved.
@@ -326,7 +328,7 @@ All in the app's data folder: `~/Library/Application Support/Roomtone/` (macOS),
 | Discovery and control on a real **S1** speaker | Reported working by the maintainer in an earlier version |
 | Streaming sign-in pages (8 services), Spotify browse and search | Real services through an S2 system |
 | Streaming **playback** and the account-number retry | **Spotify plays on the maintainer's real S1 speakers (2026-11-18) and, once Spotify was added to the new system in the maker's app, on a real S2 Play:3 (2026-11-18)**; the account-number retry, other services and S2 systems not yet heard |
-| Play along between real S1 and S2 speakers | Demo system only |
+| Play along between real S1 and S2 speakers (queue edits and keeping in step, both directions) | Demo system and unit tests only |
 | Software updates (check and install) | Check: real S1 and S2 (read-only). Install: demo system only; tagged *Experimental* and off until switched on |
 | Forgetting old systems, and starting on a system that answers (0.9.0) | **Checked on a real setup by the maintainer (2026-11-18)**: one S1 system answering and two S2 systems remembered from another network; the app started on the S1 system, the others showed *Not on this network*, *Forget* removed one and it stayed gone after a restart. The 30-day rule and the ordering are unit-tested |
 | Settings tabs, Settings › Services, Music Library chips and cards, Line-In & TV rows (0.9.0) | Demo system and screenshots (English and German, light and dark). **Connect and Check for a streaming service from Settings › Services not yet tried on real speakers** (the same calls as before, moved) |

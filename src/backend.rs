@@ -227,8 +227,14 @@ impl Backend {
             optimistic(&mut s, &cmd);
         }
         let follow = {
-            let s = self.lock();
-            mirror(&s, &cmd)
+            let mut s = self.lock();
+            let out = mirror(&s, &cmd);
+            if let (Some(g), false) = (mirrored_group(&cmd), out.is_empty()) {
+                if let Some((lead, _)) = link_of(&s, g) {
+                    s.link_sync.entry(lead).or_default().acted = Some((g.clone(), Instant::now()));
+                }
+            }
+            out
         };
         let seq = self.seq.fetch_add(1, Ordering::SeqCst) + 1;
         let _ = self.tx.send((seq, cmd));
@@ -271,9 +277,9 @@ impl Backend {
     }
 }
 
-/// What a following group in another system should do when its leading group gets `cmd`.
-fn mirror(s: &AppState, cmd: &Cmd) -> Vec<Cmd> {
-    let gid = match cmd {
+/// The group a command is for, when the command is one that play along passes on.
+fn mirrored_group(cmd: &Cmd) -> Option<&String> {
+    match cmd {
         Cmd::Play(g)
         | Cmd::Pause(g)
         | Cmd::Next(g)
@@ -283,31 +289,102 @@ fn mirror(s: &AppState, cmd: &Cmd) -> Vec<Cmd> {
         | Cmd::PlayItem(g, ..)
         | Cmd::PlayItems(g, ..)
         | Cmd::PlayQueueIndex(g, _)
+        | Cmd::RemoveFromQueue(g, _)
+        | Cmd::RemoveRangeFromQueue(g, ..)
+        | Cmd::MoveInQueue(g, ..)
         | Cmd::ClearQueue(g)
-        | Cmd::SleepTimer(g, _) => g,
-        _ => return vec![],
-    };
-    s.links
-        .iter()
-        .filter(|(lead, follow)| lead == gid && s.find_group(follow).is_some())
-        .map(|(_, f)| {
-            let f = f.clone();
-            match cmd.clone() {
-                Cmd::Play(_) => Cmd::Play(f),
-                Cmd::Pause(_) => Cmd::Pause(f),
-                Cmd::Next(_) => Cmd::Next(f),
-                Cmd::Previous(_) => Cmd::Previous(f),
-                Cmd::Seek(_, p) => Cmd::Seek(f, p),
-                Cmd::SetPlayMode(_, a, r) => Cmd::SetPlayMode(f, a, r),
-                Cmd::PlayItem(_, i, h) => Cmd::PlayItem(f, i, h),
-                Cmd::PlayItems(_, i, h, t) => Cmd::PlayItems(f, i, h, t),
-                Cmd::PlayQueueIndex(_, i) => Cmd::PlayQueueIndex(f, i),
-                Cmd::ClearQueue(_) => Cmd::ClearQueue(f),
-                Cmd::SleepTimer(_, m) => Cmd::SleepTimer(f, m),
-                other => other,
+        | Cmd::SleepTimer(g, _) => Some(g),
+        _ => None,
+    }
+}
+
+/// The same command, for another group.
+fn retarget(cmd: &Cmd, f: &str) -> Cmd {
+    let f = f.to_string();
+    match cmd.clone() {
+        Cmd::Play(_) => Cmd::Play(f),
+        Cmd::Pause(_) => Cmd::Pause(f),
+        Cmd::Next(_) => Cmd::Next(f),
+        Cmd::Previous(_) => Cmd::Previous(f),
+        Cmd::Seek(_, p) => Cmd::Seek(f, p),
+        Cmd::SetPlayMode(_, a, r) => Cmd::SetPlayMode(f, a, r),
+        Cmd::PlayItem(_, i, h) => Cmd::PlayItem(f, i, h),
+        Cmd::PlayItems(_, i, h, t) => Cmd::PlayItems(f, i, h, t),
+        Cmd::PlayQueueIndex(_, i) => Cmd::PlayQueueIndex(f, i),
+        Cmd::RemoveFromQueue(_, i) => Cmd::RemoveFromQueue(f, i),
+        Cmd::RemoveRangeFromQueue(_, i, n) => Cmd::RemoveRangeFromQueue(f, i, n),
+        Cmd::MoveInQueue(_, a, b) => Cmd::MoveInQueue(f, a, b),
+        Cmd::ClearQueue(_) => Cmd::ClearQueue(f),
+        Cmd::SleepTimer(_, m) => Cmd::SleepTimer(f, m),
+        other => other,
+    }
+}
+
+/// The link a group is part of, as (leading group, following group).
+fn link_of(s: &AppState, gid: &str) -> Option<(String, String)> {
+    s.links.iter().find(|(l, f)| (l == gid || f == gid) && s.find_group(l).is_some() && s.find_group(f).is_some()).cloned()
+}
+
+/// What the other group of a play-along link should do when this one gets `cmd`. It works from
+/// either side: use the follower and the leader follows.
+fn mirror(s: &AppState, cmd: &Cmd) -> Vec<Cmd> {
+    let Some(gid) = mirrored_group(cmd) else { return vec![] };
+    let Some((lead, follow)) = link_of(s, gid) else { return vec![] };
+    let other = if &lead == gid { follow } else { lead };
+    vec![retarget(cmd, &other)]
+}
+
+/// Whether two linked groups are doing different things: other songs, or one playing while
+/// the other isn't. A moment's difference at the end of a song doesn't count; see `keep_links_in_step`.
+fn drifted(a: &NowPlaying, b: &NowPlaying) -> bool {
+    if a.is_empty() || b.is_empty() {
+        return false;
+    }
+    let same_song = a.title == b.title && (a.is_stream || b.is_stream || a.track_no == b.track_no);
+    let playing = |n: &NowPlaying| n.transport == Transport::Playing;
+    !same_song || playing(a) != playing(b)
+}
+
+/// How long two linked groups may differ before the one the person used last is copied over
+/// the other (songs change a moment apart on two systems, so a short difference is normal).
+const DRIFT_GRACE: Duration = Duration::from_secs(12);
+/// Don't copy again sooner than this, and not right after the person used either group.
+const RESYNC_GAP: Duration = Duration::from_secs(30);
+const QUIET_AFTER_USE: Duration = Duration::from_secs(10);
+
+/// Bring linked groups back in step when they've drifted apart for long enough (a command that
+/// one of them refused, a change made in the speaker maker's app). The group the person used
+/// last is the one the other follows; with no one having used either, the leading group.
+fn keep_links_in_step(b: &Backend) {
+    let links: Vec<(String, String)> = b.lock().links.clone();
+    for (lead, follow) in links {
+        let todo = {
+            let mut s = b.lock();
+            let (Some(l), Some(f)) = (s.find_group(&lead).map(|(_, g)| g.now.clone()), s.find_group(&follow).map(|(_, g)| g.now.clone())) else { continue };
+            let apart = drifted(&l, &f);
+            let st = s.link_sync.entry(lead.clone()).or_default();
+            if !apart {
+                st.drift_since = None;
+                continue;
             }
-        })
-        .collect()
+            let since = *st.drift_since.get_or_insert_with(Instant::now);
+            let used_lately = st.acted.as_ref().is_some_and(|(_, t)| t.elapsed() < QUIET_AFTER_USE);
+            let copied_lately = st.resynced.is_some_and(|t| t.elapsed() < RESYNC_GAP);
+            if since.elapsed() < DRIFT_GRACE || used_lately || copied_lately {
+                continue;
+            }
+            st.resynced = Some(Instant::now());
+            st.drift_since = None;
+            let from = match &st.acted {
+                Some((g, _)) if g == &follow => follow.clone(),
+                _ => lead.clone(),
+            };
+            let to = if from == lead { follow.clone() } else { lead.clone() };
+            (from, to)
+        };
+        let b2 = b.clone();
+        thread::spawn(move || sync_link(&b2, &todo.0, &todo.1));
+    }
 }
 
 /// Ask one speaker of the system for an update, and only accept one for the same generation:
@@ -1580,7 +1657,12 @@ fn run_common(b: &Backend, ctx: &Waker, cmd: Cmd) -> Result<Option<Cmd>, String>
             Ok(None)
         }
         Cmd::Unlink(gid) => {
-            b.lock().links.retain(|(l, f)| l != &gid && f != &gid);
+            {
+                let mut s = b.lock();
+                s.links.retain(|(l, f)| l != &gid && f != &gid);
+                let live: Vec<String> = s.links.iter().map(|(l, _)| l.clone()).collect();
+                s.link_sync.retain(|k, _| live.contains(k));
+            }
             Ok(None)
         }
         Cmd::CheckService(sid) => {
@@ -2639,6 +2721,7 @@ fn poller(b: Backend, ctx: Waker) {
                     remember_speakers(&b);
                 }
                 if tick.is_multiple_of(5) {
+                    keep_links_in_step(&b);
                     track_episodes(&b);
                     track_history(&b);
                 }
@@ -3598,7 +3681,62 @@ mod unit {
         assert!(matches!(out.as_slice(), [Cmd::Next(g)] if g == &follow));
         assert!(matches!(mirror(&s, &Cmd::Seek(lead.clone(), 42.0)).as_slice(), [Cmd::Seek(g, p)] if g == &follow && *p == 42.0));
         assert!(mirror(&s, &Cmd::GroupVolume(lead.clone(), 10)).is_empty(), "volumes stay separate");
-        assert!(mirror(&s, &Cmd::Pause(follow)).is_empty(), "the follower doesn't lead back");
+        assert!(matches!(mirror(&s, &Cmd::Pause(follow.clone())).as_slice(), [Cmd::Pause(g)] if g == &lead), "using the follower moves the leader too");
+        assert!(matches!(mirror(&s, &Cmd::RemoveFromQueue(lead.clone(), 2)).as_slice(), [Cmd::RemoveFromQueue(g, 2)] if g == &follow), "queue edits are passed on");
+        assert!(matches!(mirror(&s, &Cmd::RemoveRangeFromQueue(follow.clone(), 0, 3)).as_slice(), [Cmd::RemoveRangeFromQueue(g, 0, 3)] if g == &lead));
+        assert!(matches!(mirror(&s, &Cmd::MoveInQueue(lead.clone(), 1, 4)).as_slice(), [Cmd::MoveInQueue(g, 1, 4)] if g == &follow));
+        assert!(mirror(&s, &Cmd::SetCrossfade(lead.clone(), true)).is_empty(), "other settings stay separate");
+    }
+
+    #[test]
+    fn linked_groups_count_as_apart_only_for_a_different_song_or_state() {
+        let now = |title: &str, no: u32, t: Transport| NowPlaying { title: title.into(), track_no: no, transport: t, source: "Queue".into(), ..Default::default() };
+        let a = now("Bros", 1, Transport::Playing);
+        assert!(!drifted(&a, &now("Bros", 1, Transport::Playing)));
+        assert!(drifted(&a, &now("Every Cloud", 2, Transport::Playing)), "another song");
+        assert!(drifted(&a, &now("Bros", 1, Transport::Paused)), "one stopped");
+        assert!(!drifted(&now("Bros", 1, Transport::Paused), &now("Bros", 1, Transport::Stopped)), "paused and stopped are both not playing");
+        assert!(!drifted(&a, &NowPlaying::default()), "nothing to compare");
+        let radio = |t: Transport| NowPlaying { title: "6 Music".into(), is_stream: true, transport: t, ..Default::default() };
+        assert!(!drifted(&radio(Transport::Playing), &radio(Transport::Playing)));
+    }
+
+    #[test]
+    fn a_drifted_follower_is_copied_after_the_grace_period_and_the_last_used_side_wins() {
+        let b = demo_backend();
+        let (lead, follow) = {
+            let s = b.lock();
+            (s.households[0].groups[0].id.clone(), s.households[1].groups[0].id.clone())
+        };
+        {
+            let mut s = b.lock();
+            s.links.push((lead.clone(), follow.clone()));
+            s.group_mut(&lead).unwrap().now.title = "One".into();
+            s.group_mut(&lead).unwrap().now.transport = Transport::Playing;
+            s.group_mut(&follow).unwrap().now.title = "Two".into();
+            s.group_mut(&follow).unwrap().now.transport = Transport::Playing;
+        }
+        keep_links_in_step(&b);
+        assert!(b.lock().link_sync[&lead].drift_since.is_some(), "noticed, but waits");
+        assert!(b.lock().link_sync[&lead].resynced.is_none());
+        {
+            let mut s = b.lock();
+            let st = s.link_sync.get_mut(&lead).unwrap();
+            st.drift_since = Some(Instant::now() - DRIFT_GRACE - Duration::from_secs(1));
+            st.acted = Some((lead.clone(), Instant::now() - QUIET_AFTER_USE - Duration::from_secs(1)));
+        }
+        keep_links_in_step(&b);
+        assert!(b.lock().link_sync[&lead].resynced.is_some(), "copied after the grace period");
+        {
+            // Using a group lately keeps it from being overruled.
+            let mut s = b.lock();
+            let st = s.link_sync.get_mut(&lead).unwrap();
+            st.resynced = None;
+            st.drift_since = Some(Instant::now() - DRIFT_GRACE - Duration::from_secs(1));
+            st.acted = Some((follow.clone(), Instant::now()));
+        }
+        keep_links_in_step(&b);
+        assert!(b.lock().link_sync[&lead].resynced.is_none(), "not right after the person used it");
     }
 
     #[test]

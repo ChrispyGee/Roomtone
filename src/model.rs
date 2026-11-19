@@ -105,6 +105,17 @@ pub fn parse_play_mode(mode: &str) -> (bool, Repeat) {
     }
 }
 
+/// Bookkeeping for one play-along link: who was last used, and whether the two have drifted apart.
+#[derive(Clone, Debug, Default)]
+pub struct LinkSync {
+    /// The group the person last used and when: the one the other follows if they drift.
+    pub acted: Option<(String, Instant)>,
+    /// Since when the two have been on different songs or in different states.
+    pub drift_since: Option<Instant>,
+    /// When the follower was last brought back in step.
+    pub resynced: Option<Instant>,
+}
+
 #[derive(Clone, Debug, Default)]
 pub struct NowPlaying {
     pub title: String,
@@ -534,6 +545,8 @@ pub struct AppState {
     /// S1 and S2 speakers can't truly group, so the app starts the same music on both and
     /// passes on play, pause, skips and seeks.
     pub links: Vec<(String, String)>,
+    /// How each link is getting on, by the leading group's id (see `LinkSync`).
+    pub link_sync: HashMap<String, LinkSync>,
     /// Software update status by system (household id).
     pub updates: HashMap<String, UpdateState>,
     /// What the *Can it move to S2?* look found, by system.
@@ -615,6 +628,7 @@ impl Default for AppState {
             version_check_asked: false,
             service_checks: HashMap::new(),
             links: vec![],
+            link_sync: HashMap::new(),
             updates: HashMap::new(),
             s2: HashMap::new(),
             diagnosis: None,
