@@ -4,6 +4,9 @@ All notable changes to Roomtone. The format follows [Keep a Changelog](https://k
 
 ## [Unreleased]
 
+### Fixed
+- **Wired or wireless is now shown for a speaker on Wi-Fi whose traffic isn't counted on its own interfaces.** The check read the speaker's network counters only; some S2 speakers count Wi-Fi traffic on an internal bridge, so the Rooms panel and the assistant's room list showed nothing for them. When the counters can't tell, Roomtone now uses the wireless mode the system reports for that speaker. Checked on a real S2 Play:3 moved between Wi-Fi and cable (2026-11-19): on Wi-Fi the counters were silent and the system reported wireless; on the cable the counters said wired and the system agreed.
+
 ## [0.9.2] — 2026-11-19
 
 A ringing alarm can be snoozed, play along keeps both systems in step, and alarms say when a system has no time zone.

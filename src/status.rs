@@ -50,6 +50,21 @@ pub fn from_ifconfig(text: &str) -> Connection {
     }
 }
 
+/// What the system itself says about one speaker: its zone list gives each member a
+/// `WirelessMode` (0: cable, 1: wireless). Used when the traffic counts can't decide, which
+/// happens on a speaker whose Wi-Fi traffic isn't counted on any interface of its own.
+pub fn from_topology(state: &str, ip: &str) -> Connection {
+    let Ok(doc) = roxmltree::Document::parse(state) else { return Connection::Unknown };
+    let member = doc.descendants().find(|n| {
+        n.tag_name().name() == "ZoneGroupMember" && n.attribute("Location").is_some_and(|l| l.trim_start_matches("http://").split(':').next() == Some(ip))
+    });
+    match member.and_then(|m| m.attribute("WirelessMode")) {
+        Some("0") => Connection::Wired,
+        Some("1") => Connection::Wireless,
+        _ => Connection::Unknown,
+    }
+}
+
 #[cfg(test)]
 mod unit {
     use super::*;
@@ -77,6 +92,21 @@ mod unit {
         // The layout a Sonos One SL (S2) reports on Wi-Fi: its traffic is on `apcli0`, none on `eth0`.
         let t = "<Command cmdline='/sbin/ifconfig'>apcli0    Link encap:Ethernet  HWaddr 00:00\n          RX packets:7663411 errors:0\n\nbr0       Link encap:Ethernet  HWaddr 00:00\n          RX packets:7655978 errors:0\n\neth0      Link encap:Ethernet  HWaddr 00:00\n          RX packets:0 errors:0\n\nra0       Link encap:Ethernet  HWaddr 00:00\n          RX packets:0 errors:0\n</Command>";
         assert_eq!(from_ifconfig(t), Connection::Wireless);
+    }
+
+    #[test]
+    fn the_systems_own_report_decides_when_traffic_cannot() {
+        let state = |mode: &str| {
+            format!(
+                "<ZoneGroups><ZoneGroup Coordinator=\"RINCON_A\"><ZoneGroupMember UUID=\"RINCON_A\" Location=\"http://10.0.0.5:1400/xml/device_description.xml\" ZoneName=\"Den\" WirelessMode=\"{mode}\" ChannelFreq=\"5200\"/><ZoneGroupMember UUID=\"RINCON_B\" Location=\"http://10.0.0.6:1400/xml/device_description.xml\" ZoneName=\"Office\" WirelessMode=\"0\"/></ZoneGroup></ZoneGroups>"
+            )
+        };
+        assert_eq!(from_topology(&state("1"), "10.0.0.5"), Connection::Wireless);
+        assert_eq!(from_topology(&state("0"), "10.0.0.5"), Connection::Wired);
+        assert_eq!(from_topology(&state("1"), "10.0.0.6"), Connection::Wired, "each member is read for itself");
+        assert_eq!(from_topology(&state("2"), "10.0.0.5"), Connection::Unknown, "other modes are not guessed");
+        assert_eq!(from_topology(&state("1"), "10.0.0.9"), Connection::Unknown, "not a member");
+        assert_eq!(from_topology("not xml", "10.0.0.5"), Connection::Unknown);
     }
 
     #[test]
