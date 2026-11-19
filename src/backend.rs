@@ -2499,7 +2499,7 @@ fn refresh_topology(b: &Backend) -> Result<(), String> {
         s.households.iter().enumerate().filter_map(|(i, h)| h.rooms.first().map(|r| (i, r.ip.clone(), h.id.clone()))).collect()
     };
     for (i, ip, id) in targets {
-        let new = discovery::household_from(&ip, Some(id))?;
+        let new = discovery::household_again(&ip, &id)?;
         let mut s = b.lock();
         if let Some(old) = s.households.get(i) {
             let merged = merge_household(old, new);
@@ -2507,6 +2507,7 @@ fn refresh_topology(b: &Backend) -> Result<(), String> {
         }
         s.ensure_selection();
     }
+    drop_repeated_systems(&mut b.lock());
     poll_everything(b);
     Ok(())
 }
@@ -2709,7 +2710,7 @@ fn try_reconnect(b: &Backend) -> bool {
     let mut all_ok = true;
     let mut searched: Option<Vec<discovery::Found>> = None;
     for (i, id, ips) in targets {
-        let mut fresh = ips.iter().find_map(|ip| discovery::household_from(ip, Some(id.clone())).ok());
+        let mut fresh = ips.iter().find_map(|ip| discovery::household_again(ip, &id).ok());
         if fresh.is_none() {
             let found = searched.get_or_insert_with(|| discovery::search(Duration::from_millis(2500)));
             for f in found.iter() {
@@ -2736,7 +2737,25 @@ fn try_reconnect(b: &Backend) -> bool {
             None => all_ok = false,
         }
     }
+    drop_repeated_systems(&mut b.lock());
     all_ok
+}
+
+/// A speaker that was reset and then set up in a system already listed shows up twice once it
+/// reports its new system: keep the first, which now has every room of it.
+fn drop_repeated_systems(s: &mut AppState) {
+    let mut i = 0;
+    while i < s.households.len() {
+        if s.households[..i].iter().any(|h| h.id == s.households[i].id) {
+            s.households.remove(i);
+            if s.active > i {
+                s.active -= 1;
+            }
+            s.active = s.active.min(s.households.len().saturating_sub(1));
+        } else {
+            i += 1;
+        }
+    }
 }
 
 /// Ask every room for its state at once, so one slow speaker doesn't hold up the rest.
@@ -4001,6 +4020,28 @@ mod unit {
             UpdateState::Unfinished(p) => assert_eq!((p.done, p.version.as_str()), (0, "new")),
             other => panic!("expected Unfinished, got {other:?}"),
         }
+    }
+
+    #[test]
+    fn a_reset_speaker_that_joined_a_listed_system_is_not_listed_twice() {
+        let b = demo_backend();
+        let mut s = b.lock();
+        let first = s.households[0].clone();
+        let mut again = first.clone();
+        again.rooms.truncate(1);
+        s.households.push(again);
+        let mut other = first.clone();
+        other.id = "Sonos_other".into();
+        s.households.push(other);
+        s.active = 1;
+        let before = s.households.len();
+        drop_repeated_systems(&mut s);
+        assert_eq!(s.households.len(), before - 1);
+        assert_eq!(s.households[0].rooms.len(), first.rooms.len(), "the one with every room stays");
+        assert_eq!(s.households.iter().filter(|h| h.id == first.id).count(), 1);
+        assert!(s.active < s.households.len());
+        drop_repeated_systems(&mut s);
+        assert_eq!(s.households.len(), before - 1, "nothing more to drop");
     }
 
     #[test]

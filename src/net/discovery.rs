@@ -211,6 +211,31 @@ pub(crate) fn parse_zone_groups(state: &str) -> Result<ZoneGroups, String> {
 
 /// Ask one speaker for its whole system: rooms and who is grouped with whom.
 pub fn household_from(ip: &str, household_id: Option<String>) -> Result<Household, String> {
+    household_with(ip, household_id, None)
+}
+
+/// Ask a speaker we already know again. What it says now wins over what was remembered: a
+/// speaker that was reset or set up again belongs to a different system (or none). The
+/// remembered id is used only when the speaker doesn't say.
+pub fn household_again(ip: &str, remembered: &str) -> Result<Household, String> {
+    household_with(ip, None, Some(remembered))
+}
+
+/// The id of a system: the one the speaker announced, else what it says when asked, else (it
+/// didn't answer) the remembered one, else a made-up one from its address.
+fn choose_id(announced: Option<String>, asked: impl FnOnce() -> Option<String>, remembered: Option<&str>, ip: &str) -> String {
+    if let Some(h) = announced.filter(|h| !h.is_empty()) {
+        return h;
+    }
+    match asked() {
+        Some(h) if !h.is_empty() => h,
+        // The speaker answered but belongs to no system: it was never set up.
+        Some(_) => format!("{}{ip}", crate::model::UNSET_PREFIX),
+        None => remembered.filter(|h| !h.is_empty()).map(String::from).unwrap_or_else(|| format!("household-{ip}")),
+    }
+}
+
+fn household_with(ip: &str, announced: Option<String>, remembered: Option<&str>) -> Result<Household, String> {
     let reply = soap::call(ip, soap::ZONE_TOPOLOGY, "GetZoneGroupState", &[])?;
     let state = reply.get("ZoneGroupState").cloned().unwrap_or_default();
     let (mut rooms, mut groups, versions) = parse_zone_groups(&state)?;
@@ -225,15 +250,7 @@ pub fn household_from(ip: &str, household_id: Option<String>) -> Result<Househol
         }
     }
     let system = system.unwrap_or_else(|| system_from("", versions.first().map(String::as_str).unwrap_or("")));
-    let id = match household_id.filter(|h| !h.is_empty()) {
-        Some(h) => h,
-        None => match soap::call(ip, soap::DEVICE_PROPS, "GetHouseholdID", &[]).ok().and_then(|m| m.get("CurrentHouseholdID").cloned()) {
-            Some(h) if !h.is_empty() => h,
-            // The speaker answered but belongs to no system: it was never set up.
-            Some(_) => format!("{}{ip}", crate::model::UNSET_PREFIX),
-            None => format!("household-{ip}"),
-        },
-    };
+    let id = choose_id(announced, || soap::call(ip, soap::DEVICE_PROPS, "GetHouseholdID", &[]).ok().and_then(|m| m.get("CurrentHouseholdID").cloned()), remembered, ip);
     rooms.sort_by_key(|a| a.name.to_lowercase());
     groups.sort_by_key(|g| rooms.iter().position(|r| r.uuid == g.coordinator).unwrap_or(usize::MAX));
     Ok(Household { id, system, rooms, groups })
@@ -242,6 +259,17 @@ pub fn household_from(ip: &str, household_id: Option<String>) -> Result<Househol
 #[cfg(test)]
 mod tests {
     use super::*;
+
+    #[test]
+    fn a_speaker_that_changed_system_is_believed_over_the_remembered_one() {
+        let asked = |h: &'static str| move || Some(h.to_string());
+        assert_eq!(choose_id(Some("Sonos_new".into()), || panic!("announced is enough"), Some("Sonos_old"), "10.0.0.7"), "Sonos_new");
+        assert_eq!(choose_id(None, asked("Sonos_new"), Some("Sonos_old"), "10.0.0.7"), "Sonos_new", "asked, it names its new system");
+        assert_eq!(choose_id(Some(String::new()), asked("Sonos_new"), None, "10.0.0.7"), "Sonos_new", "an empty announcement is no answer");
+        assert_eq!(choose_id(None, asked(""), Some("Sonos_old"), "10.0.0.7"), format!("{}10.0.0.7", crate::model::UNSET_PREFIX), "reset: no system, whatever was remembered");
+        assert_eq!(choose_id(None, || None, Some("Sonos_old"), "10.0.0.7"), "Sonos_old", "no answer: keep what was remembered");
+        assert_eq!(choose_id(None, || None, None, "10.0.0.7"), "household-10.0.0.7");
+    }
 
     fn cand(ip: [u8; 4], b: Option<[u8; 4]>, up: bool) -> Candidate {
         Candidate { ip: Ipv4Addr::from(ip), broadcast: b.map(Ipv4Addr::from), up }
