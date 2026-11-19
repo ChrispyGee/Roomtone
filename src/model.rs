@@ -507,6 +507,8 @@ pub struct AppState {
     pub selected_group: Option<String>,
     pub browse: HashMap<String, Browse>,
     pub alarms: Option<Vec<Alarm>>,
+    /// The system's alarms can't ring because it has no time zone set (read when alarms load).
+    pub alarms_zone_unset: bool,
     pub toasts: Vec<Toast>,
     pub manual_ips: Vec<String>,
     pub recent: Vec<Item>,
@@ -606,6 +608,7 @@ impl Default for AppState {
             selected_group: None,
             browse: HashMap::new(),
             alarms: None,
+            alarms_zone_unset: false,
             toasts: vec![],
             manual_ips: vec![],
             recent: vec![],

@@ -816,3 +816,4 @@ Snoozed: the alarm rings again in {n} minutes	Répété : le réveil sonnera de 
 Stop the alarm	Arrêter le réveil
 {a} and {b} have different queues, so they can't be kept in step. Link them again to copy one onto the other.	{a} et {b} ont des files d'attente différentes et ne peuvent donc pas rester synchronisés. Liez-les à nouveau pour copier l'une sur l'autre.
 Shuffle is off while {room} plays along, because two systems can't shuffle the same way.	La lecture aléatoire est désactivée tant que {room} joue en parallèle, car deux systèmes ne peuvent pas mélanger de la même façon.
+This system's time zone isn't set, so its alarms won't ring. Set the time zone in the Sonos app, then check again.	Ce système n'a pas de fuseau horaire défini, donc ses alarmes ne sonneront pas. Réglez le fuseau horaire dans l'app Sonos, puis vérifiez à nouveau.

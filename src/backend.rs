@@ -1216,23 +1216,30 @@ fn run_live(b: &Backend, ctx: &Waker, cmd: Cmd) -> Result<(), String> {
             Ok(())
         }
         Cmd::LoadAlarms => {
-            let list = speaker::alarms(&need(b.lock().any_ip(), n_!("Alarms"))?)?;
-            b.lock().alarms = Some(list);
-            Ok(())
+            let ip = need(b.lock().any_ip(), n_!("Alarms"))?;
+            load_alarms(b, &ip)
         }
         Cmd::SaveAlarm(a) => {
             let ip = need(b.lock().any_ip(), n_!("Alarms"))?;
             speaker::save_alarm(&ip, &a)?;
-            b.lock().alarms = Some(speaker::alarms(&ip)?);
-            Ok(())
+            load_alarms(b, &ip)
         }
         Cmd::DeleteAlarm(id) => {
             let ip = need(b.lock().any_ip(), n_!("Alarms"))?;
             speaker::delete_alarm(&ip, &id)?;
-            b.lock().alarms = Some(speaker::alarms(&ip)?);
-            Ok(())
+            load_alarms(b, &ip)
         }
     }
+}
+
+/// Read the system's alarms, and whether it has a time zone (without one they never ring).
+fn load_alarms(b: &Backend, ip: &str) -> Result<(), String> {
+    let list = speaker::alarms(ip)?;
+    let unset = speaker::time_zone_is_set(ip) == Some(false);
+    let mut s = b.lock();
+    s.alarms = Some(list);
+    s.alarms_zone_unset = unset;
+    Ok(())
 }
 
 /// Work that doesn't depend on the speakers: settings, other music sources and search.
