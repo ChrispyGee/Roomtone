@@ -15,6 +15,7 @@ All notable changes to Roomtone. The format follows [Keep a Changelog](https://k
 
 ### Checked
 - Spotify plays on a real S2 speaker (a Play:3) once Spotify has been added to that system in the speaker maker's app; before that it was refused with code 800 (maintainer, 2026-11-18).
+- A real S2 speaker (a Play:3, 2026-11-19): switched on while Roomtone was already running it appeared by itself about 45 seconds later, before the regular two-minute search was due, so the announcement listener did it; unplugged it showed as not answering within a few minutes and came back by itself. The operation behind *Remove N played songs* (removing the first three of six queued songs) kept the current song and moved it to position 1; the button's own click wasn't tried.
 - A real S2 speaker (a Play:3 on 86.11-82170): batched queue adds and range removal, and an internet radio station playing (reported format: AAC only) (maintainer, 2026-11-18).
 
 ## [0.9.1] — 2026-11-18
