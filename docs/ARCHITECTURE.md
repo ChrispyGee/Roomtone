@@ -126,7 +126,7 @@ Slow work (discovery, browsing, search, service sign-in) runs on its own short-l
 
 ## Adding things
 
-- **A new action**: add a `Cmd` variant, handle it in `run_common` (no speakers needed) or `run_live` (speakers) and in `demo::apply`, add an `optimistic` arm if the screen should react at once, and a `mirror` arm if play-along groups should follow.
+- **A new action**: add a `Cmd` variant, handle it in `run_common` (no speakers needed) or `run_live` (speakers) and in `demo::apply`, add an `optimistic` arm if the screen should react at once, and the `mirrored_group` / `retarget` arms if play-along groups should follow (they follow from either side, and `keep_links_in_step` brings drifted groups back every five seconds).
 - **A new assistant tool**: add a row to `tools()` in `mcp.rs` (name, description, JSON schema, whether it changes things) and an arm in `Mcp::call`. Tools that change things are hidden and refused automatically when the person allows looking only.
 - **A new streaming service**: add it to `sources::SERVICES` with its service number (`sid`). Sign-in, browse and search come from `smapi.rs`. Give it a `note` if it can only play favorites.
 - **A new page**: add a `View` variant, a sidebar entry in `ui/mod.rs` and a function in `ui/pages.rs`.

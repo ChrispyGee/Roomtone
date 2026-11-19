@@ -814,3 +814,4 @@ No alarm is ringing in that room right now	In questa stanza non sta suonando nes
 Snooze {n} min	Posticipa {n} min
 Snoozed: the alarm rings again in {n} minutes	Posticipata: la sveglia suonerà di nuovo tra {n} minuti
 Stop the alarm	Ferma la sveglia
+{a} and {b} have different queues, so they can't be kept in step. Link them again to copy one onto the other.	{a} e {b} hanno code diverse, quindi non possono restare sincronizzate. Collegale di nuovo per copiare una sull'altra.
