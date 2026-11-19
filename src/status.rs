@@ -55,9 +55,9 @@ pub fn from_ifconfig(text: &str) -> Connection {
 /// happens on a speaker whose Wi-Fi traffic isn't counted on any interface of its own.
 pub fn from_topology(state: &str, ip: &str) -> Connection {
     let Ok(doc) = roxmltree::Document::parse(state) else { return Connection::Unknown };
-    let member = doc.descendants().find(|n| {
-        n.tag_name().name() == "ZoneGroupMember" && n.attribute("Location").is_some_and(|l| l.trim_start_matches("http://").split(':').next() == Some(ip))
-    });
+    let member = doc
+        .descendants()
+        .find(|n| n.tag_name().name() == "ZoneGroupMember" && n.attribute("Location").is_some_and(|l| l.trim_start_matches("http://").split(':').next() == Some(ip)));
     match member.and_then(|m| m.attribute("WirelessMode")) {
         Some("0") => Connection::Wired,
         Some("1") => Connection::Wireless,
