@@ -410,7 +410,8 @@ impl Mcp {
                 }
                 let summary = format!("{:02}:{:02} · {} · {}", alarm.hour, alarm.minute, recurrence_label(&alarm.recurrence), alarm.program_name);
                 self.wait(Cmd::SaveAlarm(alarm))?;
-                Ok(format!("New alarm: {summary}"))
+                let note = if self.b.lock().alarms_zone_unset { super::ZONE_UNSET_NOTE } else { "" };
+                Ok(format!("{note}New alarm: {summary}"))
             }
             "delete_alarm" => {
                 let id = str_arg("id").unwrap_or_default().trim_matches(['[', ']']).to_string();

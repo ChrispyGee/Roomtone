@@ -20,6 +20,9 @@ use crate::net::speaker::PlayHow;
 mod extra;
 pub mod notify;
 
+/// Said with the alarm tools when the system has no time zone: its alarms can't ring.
+pub(crate) const ZONE_UNSET_NOTE: &str = "Warning: this system's time zone isn't set, so its alarms won't ring. Set the time zone in the Sonos app. ";
+
 const PROTOCOLS: &[&str] = &["2025-11-25", "2025-06-18", "2025-03-26", "2024-11-05"];
 
 #[derive(Clone)]
@@ -864,26 +867,28 @@ impl Mcp {
                 self.wait(Cmd::LoadAlarms)?;
                 let s = self.b.lock();
                 let list = s.alarms.clone().unwrap_or_default();
+                let warning = if s.alarms_zone_unset { ZONE_UNSET_NOTE } else { "" };
                 if list.is_empty() {
-                    return Ok("No alarms yet.".to_string());
+                    return Ok(format!("{warning}No alarms yet."));
                 }
-                Ok(list
-                    .iter()
-                    .map(|al| {
-                        format!(
-                            "[{}] {:02}:{:02} · {} · {} · {} · volume {} · {}",
-                            al.id,
-                            al.hour,
-                            al.minute,
-                            recurrence_label(&al.recurrence),
-                            self_name(&s, &al.room_uuid),
-                            if al.program_name.is_empty() { "chime".to_string() } else { al.program_name.clone() },
-                            al.volume,
-                            if al.enabled { "on" } else { "off" }
-                        )
-                    })
-                    .collect::<Vec<_>>()
-                    .join("\n"))
+                Ok(warning.to_string()
+                    + &list
+                        .iter()
+                        .map(|al| {
+                            format!(
+                                "[{}] {:02}:{:02} · {} · {} · {} · volume {} · {}",
+                                al.id,
+                                al.hour,
+                                al.minute,
+                                recurrence_label(&al.recurrence),
+                                self_name(&s, &al.room_uuid),
+                                if al.program_name.is_empty() { "chime".to_string() } else { al.program_name.clone() },
+                                al.volume,
+                                if al.enabled { "on" } else { "off" }
+                            )
+                        })
+                        .collect::<Vec<_>>()
+                        .join("\n"))
             }
             "set_alarm_enabled" => {
                 let id = str_arg("id").unwrap_or_default();
@@ -1358,9 +1363,14 @@ mod unit {
         let m = link();
         let made = ok(&m, "create_alarm", json!({"room": "Bedroom", "time": "06:45", "days": ["mon", "fri"], "volume": 12}));
         assert!(made.contains("06:45") && made.contains("Mon, Fri"));
+        assert!(!made.contains("time zone"), "no warning while the time zone is set");
         assert!(tool(&m, "create_alarm", json!({"room": "Bedroom", "time": "25:00"})).1);
         let list = ok(&m, "list_alarms", json!({}));
-        assert!(list.contains("06:45"));
+        assert!(list.contains("06:45") && !list.contains("time zone"));
+        m.b.lock().alarms_zone_unset = true;
+        assert!(ok(&m, "list_alarms", json!({})).starts_with("Warning: this system's time zone isn't set"), "said when listing");
+        assert!(ok(&m, "create_alarm", json!({"room": "Bedroom", "time": "07:15"})).contains("time zone isn't set"), "said when creating");
+        m.b.lock().alarms_zone_unset = false;
         assert!(tool(&m, "delete_alarm", json!({"id": "nope"})).1);
         assert!(ok(&m, "rename_room", json!({"room": "Patio", "name": "Garden"})).contains("Garden"));
         assert!(m.b.lock().households.iter().any(|h| h.rooms.iter().any(|r| r.name == "Garden")));

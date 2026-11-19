@@ -370,6 +370,10 @@ impl App {
                 }
             }
         }
+        // Test hook: picture a system with no time zone set (its alarms can't ring).
+        if self.frame >= 20 && std::env::var_os("ROOMTONE_TEST_ZONE").is_some() {
+            self.backend.lock().alarms_zone_unset = true;
+        }
         // Test hook: picture a speaker that was never set up (no household).
         if self.frame >= 20 && std::env::var_os("ROOMTONE_TEST_UNSET").is_some() {
             let mut st = self.backend.lock();
