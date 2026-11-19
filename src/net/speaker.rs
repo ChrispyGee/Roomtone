@@ -725,10 +725,17 @@ pub fn device_details(ip: &str) -> Option<crate::s2::Details> {
     crate::s2::parse_description(&text)
 }
 
-/// How a speaker is connected (cable or wireless), from its own network counters (read-only).
+/// How a speaker is connected (cable or wireless), from its own network counters; when those
+/// can't tell, from what its system reports about it (read-only).
 pub fn connection(ip: &str) -> Option<crate::status::Connection> {
+    use crate::status::Connection;
     let text = soap::get_text(&format!("http://{ip}:1400/status/ifconfig")).ok()?;
-    Some(crate::status::from_ifconfig(&text))
+    let counted = crate::status::from_ifconfig(&text);
+    if counted != Connection::Unknown {
+        return Some(counted);
+    }
+    let reported = soap::call(ip, soap::ZONE_TOPOLOGY, "GetZoneGroupState", &[]).ok().and_then(|r| r.get("ZoneGroupState").cloned());
+    Some(reported.map(|state| crate::status::from_topology(&state, ip)).unwrap_or(Connection::Unknown))
 }
 
 /// The speaker's build number ("softwareVersion" in its description).
