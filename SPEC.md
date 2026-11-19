@@ -1,4 +1,4 @@
-# Roomtone — specification (v0.9.1)
+# Roomtone — specification (v0.9.2)
 
 Project home: <https://github.com/ChrispyGee/Roomtone>
 
@@ -308,7 +308,7 @@ All in the app's data folder: `~/Library/Application Support/Roomtone/` (macOS),
 | Port | Direction | Use |
 | --- | --- | --- |
 | UDP 1900 (multicast 239.255.255.250) | out/in | Finding speakers (SSDP): the search goes out of every network connection, and the port is shared and listened on for speakers announcing themselves (`NOTIFY`). An announcement from a speaker we aren't already talking to starts one search, after 3 s and not more than every 10 s. The announcement is used only as a hint that a speaker may be new; its address is never contacted because of it |
-| TCP 1400 on each speaker | out | Control (UPnP/SOAP), artwork, device details |
+| TCP 1400 on each speaker | out | Control (UPnP/SOAP), artwork, device details; a room that is playing is also asked whether an alarm is ringing on each check, and the system's time zone is read when alarms load |
 | TCP 52880 (or a free port) on this computer | in | Speakers fetch music from this computer and S1 https relays. Only addresses on this computer or a local network (loopback, private, link-local, unique-local) are answered; a request that isn't sent within 10 s, a request line over 8 KiB or more than 64 header lines is dropped, a speaker that stops reading for 2 minutes is dropped, and at most 64 connections are served at once |
 | A free TCP port on this computer (only while *Speaker updates* is on) | in | Speakers send change notices (UPnP events); anything not from a subscribed speaker with its subscription id is refused |
 | TCP 8790 (configurable) | in | Assistant link over HTTP, 127.0.0.1 unless other computers are allowed |

@@ -2349,10 +2349,10 @@ impl App {
             ui.add_space(6.0);
             ui.label(RichText::new(t!("What's new in this version")).color(TEXT()).strong());
             for line in [
-                t!("Software updates show how many speakers are done, and when the update has finished"),
-                t!("Adding albums and playlists to the queue is faster, and one tap removes the songs already played"),
-                t!("Speakers that start or come back are found within seconds, on every network connection"),
-                t!("If Roomtone closes unexpectedly it saves a crash log on your computer (never sent anywhere)"),
+                t!("A ringing alarm can be snoozed or stopped from a bar at the top of the window"),
+                t!("Play along keeps both systems on the same song, whichever room you use"),
+                t!("Alarms say when a system has no time zone, and are marked Experimental"),
+                t!("A clearer message when a streaming service isn't set up on the system you play on"),
             ] {
                 ui.horizontal_wrapped(|ui| {
                     ui.label(RichText::new("•").color(ACCENT()));

@@ -42,7 +42,7 @@ In the Rooms panel (right-hand side), *Arrange* shows up and down arrows on ever
 Each system (S1 and S2 are shown separately) lists its rooms with their model and speaker software version. Choose a room to open its own settings ([kept on the speakers](#settings-kept-on-the-speakers)).
 
 ### Pages you use
-*Show Alarms* and *Show Scenes* add those pages to the sidebar (Scenes also adds its shortcuts to Home). Both are **off by default** so the app stays simple if you don't use them; someone who already had scenes keeps seeing them until they switch the page off. Fields: `show_alarms`, `show_scenes` (true/false; absent means "not chosen yet"). The speakers' own alarms keep working whether or not the page is shown. Alarms is tagged *Experimental* (little testing on real speakers).
+*Show Alarms* and *Show Scenes* add those pages to the sidebar (Scenes also adds its shortcuts to Home). Both are **off by default** so the app stays simple if you don't use them; someone who already had scenes keeps seeing them until they switch the page off. Fields: `show_alarms`, `show_scenes` (true/false; absent means "not chosen yet"). The speakers' own alarms keep working whether or not the page is shown. Alarms is tagged *Experimental* (little testing on real speakers). If the system has no time zone set (a new speaker not fully set up), the page says its alarms won't ring and to set the time zone in the Sonos app.
 
 ### Software updates (experimental)
 *Allow installing updates* (`allow_update_install`, off by default) decides whether the *Update all speakers* button is offered. Installing hasn't been tried on real speakers yet, so it's off until you switch it on; checking is always possible.

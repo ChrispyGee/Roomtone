@@ -803,10 +803,6 @@ Updating to {version}: {done} of {total} speakers done	Aggiornamento a {version}
 Updated to {version}	Aggiornato a {version}
 The update hasn't finished after 45 minutes: {done} of {total} speakers are on {version}. They may still be working; check the speakers.	L'aggiornamento non è finito dopo 45 minuti: {done} di {total} altoparlanti hanno {version}. Potrebbero essere ancora al lavoro; controlla gli altoparlanti.
 Update finished: every speaker is now on {version}.	Aggiornamento terminato: tutti gli altoparlanti sono ora su {version}.
-Software updates show how many speakers are done, and when the update has finished	Gli aggiornamenti software mostrano quanti altoparlanti hanno finito e quando l'aggiornamento è completo
-Adding albums and playlists to the queue is faster, and one tap removes the songs already played	Aggiungere album e playlist alla coda è più veloce, e un tocco rimuove i brani già riprodotti
-Speakers that start or come back are found within seconds, on every network connection	Gli altoparlanti che si avviano o tornano vengono trovati in pochi secondi, su ogni connessione di rete
-If Roomtone closes unexpectedly it saves a crash log on your computer (never sent anywhere)	Se Roomtone si chiude all'improvviso, salva un registro degli arresti sul tuo computer (non viene inviato da nessuna parte)
 Alarms have had little testing on real speakers, so check that one rings before you rely on it.	Le sveglie sono state provate poco su altoparlanti reali: controlla che una suoni prima di fidarti.
 {service} isn't added to this system yet: Roomtone's {service} sign-in belongs to your other system. Add {service} to this system in the speaker maker's app, then try again. ({error})	{service} non è ancora stato aggiunto a questo sistema: l'accesso a {service} di Roomtone appartiene all'altro tuo sistema. Aggiungi {service} a questo sistema nell'app del produttore degli altoparlanti e riprova. ({error})
 Alarm ringing in {room}	La sveglia suona in {room}
@@ -817,3 +813,7 @@ Stop the alarm	Ferma la sveglia
 {a} and {b} have different queues, so they can't be kept in step. Link them again to copy one onto the other.	{a} e {b} hanno code diverse, quindi non possono restare sincronizzate. Collegale di nuovo per copiare una sull'altra.
 Shuffle is off while {room} plays along, because two systems can't shuffle the same way.	La riproduzione casuale è disattivata finché {room} suona in parallelo, perché due sistemi non possono mescolare allo stesso modo.
 This system's time zone isn't set, so its alarms won't ring. Set the time zone in the Sonos app, then check again.	Questo sistema non ha un fuso orario impostato, quindi le sue sveglie non suoneranno. Imposta il fuso orario nell'app Sonos, poi ricontrolla.
+A ringing alarm can be snoozed or stopped from a bar at the top of the window	Una sveglia che suona può essere rimandata o fermata da una barra in alto nella finestra
+Play along keeps both systems on the same song, whichever room you use	Play along mantiene i due sistemi sullo stesso brano, qualunque stanza usi
+Alarms say when a system has no time zone, and are marked Experimental	Le sveglie avvisano quando a un sistema manca il fuso orario e sono contrassegnate come sperimentali
+A clearer message when a streaming service isn't set up on the system you play on	Un messaggio più chiaro quando un servizio di streaming non è configurato sul sistema in uso

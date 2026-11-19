@@ -26,7 +26,7 @@ Each call is an HTTP POST to `http://<ip>:1400<control path>` with `SOAPACTION: 
 | ContentDirectory (`/MediaServer/ContentDirectory/Control`) | `Browse` (`BrowseDirectChildren`), `CreateObject` (add favorite), `DestroyObject` (remove favorite or playlist) |
 | ZoneGroupTopology (`/ZoneGroupTopology/Control`) | `GetZoneGroupState`, `CheckForUpdate`, `BeginSoftwareUpdate` |
 | DeviceProperties (`/DeviceProperties/Control`) | `GetHouseholdID`, `GetZoneAttributes`, `SetZoneAttributes` (rename), `GetLEDState`, `SetLEDState` |
-| AlarmClock (`/AlarmClock/Control`) | `ListAlarms`, `CreateAlarm`, `UpdateAlarm`, `DestroyAlarm` |
+| AlarmClock (`/AlarmClock/Control`) | `ListAlarms`, `CreateAlarm`, `UpdateAlarm`, `DestroyAlarm`, `GetTimeNow` (its `CurrentTimeZone` is all zeros when the system has no time zone set, and then its alarms never ring; read when alarms load) |
 | MusicServices (`/MusicServices/Control`) | `ListAvailableServices` (the services this system offers, with their numbers and API addresses) |
 | SystemProperties (`/SystemProperties/Control`) | `GetString` (the device id used for streaming sign-in) |
 
