@@ -814,3 +814,4 @@ No alarm is ringing in that room right now	In diesem Raum klingelt gerade kein W
 Snooze {n} min	{n} Min. Schlummern
 Snoozed: the alarm rings again in {n} minutes	Geschlummert: Der Wecker klingelt in {n} Minuten wieder
 Stop the alarm	Wecker ausschalten
+{a} and {b} have different queues, so they can't be kept in step. Link them again to copy one onto the other.	{a} und {b} haben unterschiedliche Warteschlangen und lassen sich deshalb nicht im Gleichschritt halten. Verknüpfe sie erneut, um eine auf die andere zu kopieren.

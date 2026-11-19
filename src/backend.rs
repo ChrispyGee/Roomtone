@@ -250,6 +250,17 @@ impl Backend {
         seq
     }
 
+    /// Hand a command to the worker without passing it on to a linked group (for the copy that
+    /// brings a linked group back in step, which must not bounce back).
+    fn send_alone(&self, cmd: Cmd) {
+        {
+            let mut s = self.lock();
+            optimistic(&mut s, &cmd);
+        }
+        let n = self.seq.fetch_add(1, Ordering::SeqCst) + 1;
+        let _ = self.tx.send((n, cmd));
+    }
+
     /// Send a command and wait (up to `timeout`) for the worker to finish it.
     /// Returns the error it ran into, if any.
     pub fn send_and_wait(&self, cmd: Cmd, timeout: Duration) -> Result<(), String> {
@@ -352,9 +363,35 @@ const DRIFT_GRACE: Duration = Duration::from_secs(12);
 const RESYNC_GAP: Duration = Duration::from_secs(30);
 const QUIET_AFTER_USE: Duration = Duration::from_secs(10);
 
+/// Put `to` on the song and in the play state `from` is in. The queues are left alone: copying a
+/// queue between an S1 and an S2 system loses the songs one of them can't take (a real test went
+/// from 76 songs to 71 over two copies), so only linking copies one. Two queues of different
+/// length are not touched; the person is told to link them again.
+fn realign(b: &Backend, from: &str, to: &str) {
+    let _ = load_queue(b, from);
+    let _ = load_queue(b, to);
+    let (a, c, names) = {
+        let s = b.lock();
+        let (Some((hf, gf)), Some((ht, gt))) = (s.find_group(from), s.find_group(to)) else { return };
+        ((gf.now.clone(), gf.queue.as_ref().map(|q| q.len())), (gt.now.clone(), gt.queue.as_ref().map(|q| q.len())), (hf.group_name(gf), ht.group_name(gt)))
+    };
+    let streams = a.0.is_stream || c.0.is_stream;
+    if !streams && a.1 != c.1 {
+        b.lock().toast(crate::t!("{a} and {b} have different queues, so they can't be kept in step. Link them again to copy one onto the other.", a = names.0, b = names.1), true);
+        return;
+    }
+    let src = a.0;
+    if !streams && src.track_no != c.0.track_no && src.track_no > 0 {
+        b.send_alone(Cmd::PlayQueueIndex(to.to_string(), (src.track_no - 1) as usize));
+        b.send_alone(Cmd::Seek(to.to_string(), src.live_position() + 1.0));
+    }
+    b.send_alone(if src.transport == Transport::Playing { Cmd::Play(to.to_string()) } else { Cmd::Pause(to.to_string()) });
+}
+
 /// Bring linked groups back in step when they've drifted apart for long enough (a command that
-/// one of them refused, a change made in the speaker maker's app). The group the person used
-/// last is the one the other follows; with no one having used either, the leading group.
+/// one of them refused, a change made in the speaker maker's app): the song and play state of the
+/// group the person used last are copied to the other; with no one having used either, the leading
+/// group's.
 fn keep_links_in_step(b: &Backend) {
     let links: Vec<(String, String)> = b.lock().links.clone();
     for (lead, follow) in links {
@@ -383,7 +420,7 @@ fn keep_links_in_step(b: &Backend) {
             (from, to)
         };
         let b2 = b.clone();
-        thread::spawn(move || sync_link(&b2, &todo.0, &todo.1));
+        thread::spawn(move || realign(&b2, &todo.0, &todo.1));
     }
 }
 

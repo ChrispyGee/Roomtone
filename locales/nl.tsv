@@ -814,3 +814,4 @@ No alarm is ringing in that room right now	In die kamer gaat nu geen wekker af
 Snooze {n} min	{n} min snoozen
 Snoozed: the alarm rings again in {n} minutes	Gesnoozed: de wekker gaat over {n} minuten opnieuw af
 Stop the alarm	Wekker uitzetten
+{a} and {b} have different queues, so they can't be kept in step. Link them again to copy one onto the other.	{a} en {b} hebben verschillende wachtrijen en kunnen daarom niet gelijk blijven lopen. Koppel ze opnieuw om de ene naar de andere te kopiëren.
