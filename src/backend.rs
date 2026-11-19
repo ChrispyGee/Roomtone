@@ -2607,9 +2607,10 @@ fn poll_one(b: &Backend, gid: &str, full: bool) {
         }
         if full {
             g.sleep_left = poll.sleep_left;
-            if let Some(ringing) = poll.alarm_ringing {
-                g.alarm_ringing = ringing;
-            }
+        }
+        // Every poll answers this, so a ringing alarm shows (and clears) for any room.
+        if let Some(ringing) = poll.alarm_ringing {
+            g.alarm_ringing = ringing;
         }
         if track_changed && g.queue.is_some() && full {
             // keep the queue; position highlight follows track_no
