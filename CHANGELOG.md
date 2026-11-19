@@ -4,6 +4,9 @@ All notable changes to Roomtone. The format follows [Keep a Changelog](https://k
 
 ## [Unreleased]
 
+### Fixed
+- **A speaker that was reset or set up again is believed when it names a different system.** Roomtone used to keep the system it remembered for a known speaker, so a factory-reset speaker stayed under its old system (or showed the old state after being set up again) until the saved speakers were cleared. Now each check of a known speaker asks it which system it belongs to; if it joined a system already listed, the two entries merge. Checked on a real speaker: a forged old system for the S2 Den was replaced with its real one on the next start.
+
 ## [0.9.2] — 2026-11-19
 
 A ringing alarm can be snoozed, play along keeps both systems in step, and alarms say when a system has no time zone.
