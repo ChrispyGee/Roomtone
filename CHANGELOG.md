@@ -8,6 +8,7 @@ All notable changes to Roomtone. The format follows [Keep a Changelog](https://k
 - **Alarms are tagged *Experimental*.** The Alarms page, its switch in Settings and the assistant's alarm tools now say so: alarms have had little testing on real speakers, so check that one rings before you rely on it.
 
 ### Fixed
+- **Next and Previous no longer report an error when there is nothing to skip to.** With *Play along*, the two systems can be on different songs, so one speaker skipped and the other refused with "Next was refused (HTTP 500, code 711)". A speaker with no next (or previous) song is now simply left alone. Other refusals still show.
 - **A clearer message when a streaming service isn't on the system you're playing on.** Roomtone's sign-in to a service (Spotify, say) belongs to one system, and speakers only play a service that has been added to their own system in the speaker maker's app. Playing Spotify on a second system (found on a new S2 speaker: every account number was refused with code 800) used to say only to check the account. It now says the service isn't added to *this* system yet, that Roomtone's sign-in belongs to your other one, and what to do.
 
 ### Added
