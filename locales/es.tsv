@@ -803,10 +803,6 @@ Updating to {version}: {done} of {total} speakers done	Actualizando a {version}:
 Updated to {version}	Actualizado a {version}
 The update hasn't finished after 45 minutes: {done} of {total} speakers are on {version}. They may still be working; check the speakers.	La actualización no ha terminado tras 45 minutos: {done} de {total} altavoces tienen {version}. Puede que sigan trabajando; revisa los altavoces.
 Update finished: every speaker is now on {version}.	Actualización terminada: todos los altavoces están ahora en {version}.
-Software updates show how many speakers are done, and when the update has finished	Las actualizaciones de software muestran cuántos altavoces han terminado y cuándo ha acabado la actualización
-Adding albums and playlists to the queue is faster, and one tap removes the songs already played	Añadir álbumes y listas a la cola es más rápido, y un toque quita las canciones ya reproducidas
-Speakers that start or come back are found within seconds, on every network connection	Los altavoces que arrancan o vuelven se encuentran en segundos, por cualquier conexión de red
-If Roomtone closes unexpectedly it saves a crash log on your computer (never sent anywhere)	Si Roomtone se cierra inesperadamente, guarda un registro de fallos en tu ordenador (no se envía a ninguna parte)
 Alarms have had little testing on real speakers, so check that one rings before you rely on it.	Las alarmas se han probado poco en altavoces reales, así que comprueba que una suena antes de fiarte de ella.
 {service} isn't added to this system yet: Roomtone's {service} sign-in belongs to your other system. Add {service} to this system in the speaker maker's app, then try again. ({error})	{service} aún no está añadido a este sistema: el inicio de sesión de {service} en Roomtone pertenece a tu otro sistema. Añade {service} a este sistema en la app del fabricante de los altavoces y vuelve a intentarlo. ({error})
 Alarm ringing in {room}	La alarma suena en {room}
@@ -817,3 +813,7 @@ Stop the alarm	Parar la alarma
 {a} and {b} have different queues, so they can't be kept in step. Link them again to copy one onto the other.	{a} y {b} tienen colas distintas, así que no se pueden mantener sincronizadas. Vincúlalas de nuevo para copiar una en la otra.
 Shuffle is off while {room} plays along, because two systems can't shuffle the same way.	El modo aleatorio está desactivado mientras {room} suena en paralelo, porque dos sistemas no pueden mezclar igual.
 This system's time zone isn't set, so its alarms won't ring. Set the time zone in the Sonos app, then check again.	Este sistema no tiene zona horaria, así que sus alarmas no sonarán. Configura la zona horaria en la app de Sonos y vuelve a comprobarlo.
+A ringing alarm can be snoozed or stopped from a bar at the top of the window	Una alarma que suena se puede posponer o detener desde una barra en la parte superior de la ventana
+Play along keeps both systems on the same song, whichever room you use	Play along mantiene los dos sistemas en la misma canción, controles la habitación que controles
+Alarms say when a system has no time zone, and are marked Experimental	Las alarmas avisan cuando a un sistema le falta la zona horaria y están marcadas como experimentales
+A clearer message when a streaming service isn't set up on the system you play on	Un mensaje más claro cuando un servicio de streaming no está configurado en el sistema donde reproduces

@@ -4,6 +4,10 @@ All notable changes to Roomtone. The format follows [Keep a Changelog](https://k
 
 ## [Unreleased]
 
+## [0.9.2] — 2026-11-19
+
+A ringing alarm can be snoozed, play along keeps both systems in step, and alarms say when a system has no time zone.
+
 ### Changed
 - **Alarms are tagged *Experimental*.** The Alarms page, its switch in Settings and the assistant's alarm tools now say so: alarms have had little testing on real speakers, so check that one rings before you rely on it.
 

@@ -803,10 +803,6 @@ Updating to {version}: {done} of {total} speakers done	Bijwerken naar {version}:
 Updated to {version}	Bijgewerkt naar {version}
 The update hasn't finished after 45 minutes: {done} of {total} speakers are on {version}. They may still be working; check the speakers.	De update is na 45 minuten niet klaar: {done} van {total} speakers hebben {version}. Ze zijn misschien nog bezig; controleer de speakers.
 Update finished: every speaker is now on {version}.	Update klaar: alle speakers staan nu op {version}.
-Software updates show how many speakers are done, and when the update has finished	Software-updates tonen hoeveel speakers klaar zijn en wanneer de update klaar is
-Adding albums and playlists to the queue is faster, and one tap removes the songs already played	Albums en afspeellijsten aan de wachtrij toevoegen gaat sneller, en met één tik verdwijnen de al gespeelde nummers
-Speakers that start or come back are found within seconds, on every network connection	Speakers die opstarten of terugkomen worden binnen seconden gevonden, via elke netwerkverbinding
-If Roomtone closes unexpectedly it saves a crash log on your computer (never sent anywhere)	Als Roomtone onverwacht sluit, bewaart het een crashlogboek op je computer (wordt nergens naartoe gestuurd)
 Alarms have had little testing on real speakers, so check that one rings before you rely on it.	Wekkers zijn weinig getest op echte speakers, controleer dus of er een afgaat voordat je erop vertrouwt.
 {service} isn't added to this system yet: Roomtone's {service} sign-in belongs to your other system. Add {service} to this system in the speaker maker's app, then try again. ({error})	{service} is nog niet aan dit systeem toegevoegd: de {service}-aanmelding van Roomtone hoort bij je andere systeem. Voeg {service} toe aan dit systeem in de app van de speakerfabrikant en probeer het opnieuw. ({error})
 Alarm ringing in {room}	De wekker gaat in {room}
@@ -817,3 +813,7 @@ Stop the alarm	Wekker uitzetten
 {a} and {b} have different queues, so they can't be kept in step. Link them again to copy one onto the other.	{a} en {b} hebben verschillende wachtrijen en kunnen daarom niet gelijk blijven lopen. Koppel ze opnieuw om de ene naar de andere te kopiëren.
 Shuffle is off while {room} plays along, because two systems can't shuffle the same way.	Willekeurig afspelen is uit zolang {room} meespeelt, omdat twee systemen niet hetzelfde kunnen schudden.
 This system's time zone isn't set, so its alarms won't ring. Set the time zone in the Sonos app, then check again.	Voor dit systeem is geen tijdzone ingesteld, dus de wekkers gaan niet af. Stel de tijdzone in de Sonos-app in en controleer opnieuw.
+A ringing alarm can be snoozed or stopped from a bar at the top of the window	Een afgaande wekker kun je uitstellen of stoppen via een balk bovenaan het venster
+Play along keeps both systems on the same song, whichever room you use	Play along houdt beide systemen op hetzelfde nummer, in welke kamer je ook bedient
+Alarms say when a system has no time zone, and are marked Experimental	Wekkers melden dat een systeem geen tijdzone heeft en zijn als experimenteel gemarkeerd
+A clearer message when a streaming service isn't set up on the system you play on	Een duidelijkere melding als een streamingdienst niet is ingesteld op het systeem waarop je speelt
