@@ -104,14 +104,20 @@ pub fn poll_group(ip: &str, full: bool) -> R<GroupPoll> {
             .and_then(|v| v.get("RemainingSleepTimerDuration").cloned())
             .filter(|v| !v.is_empty())
             .map(|v| didl::parse_time(&v) as u32);
-        // An alarm can only be ringing while the group plays, so only ask then.
-        out.alarm_ringing = Some(matches!(out.now.transport, Transport::Playing | Transport::Transitioning) && alarm_is_ringing(ip));
     }
+    // Every poll asks, full or not: the *Snooze* strip must appear for a room nobody is looking at.
+    // An alarm can only be ringing while the group plays, so the extra request is made only then.
+    out.alarm_ringing = Some(may_be_ringing(&out.now.transport) && alarm_is_ringing(ip));
     Ok(out)
 }
 
 /// Whether an alarm is ringing: the speaker answers with the alarm's id; with none ringing it
 /// answers with an error (800, seen on real S1 and S2 speakers).
+/// An alarm can only be ringing while the group is playing (or just starting to).
+pub(crate) fn may_be_ringing(t: &Transport) -> bool {
+    matches!(t, Transport::Playing | Transport::Transitioning)
+}
+
 pub fn alarm_is_ringing(ip: &str) -> bool {
     avt(ip, "GetRunningAlarmProperties", &[]).ok().and_then(|r| r.get("AlarmID").cloned()).is_some_and(|id| !id.trim().is_empty())
 }
@@ -727,6 +733,13 @@ pub fn begin_update(ip: &str, url: &str) -> R<()> {
 
 #[cfg(test)]
 mod unit {
+    #[test]
+    fn an_alarm_is_only_looked_for_while_the_group_plays() {
+        use crate::model::Transport::*;
+        assert!(super::may_be_ringing(&Playing) && super::may_be_ringing(&Transitioning));
+        assert!(!super::may_be_ringing(&Paused) && !super::may_be_ringing(&Stopped));
+    }
+
     use super::*;
 
     fn song(uri: &str) -> Item {
