@@ -815,3 +815,4 @@ Snooze {n} min	{n} min snoozen
 Snoozed: the alarm rings again in {n} minutes	Gesnoozed: de wekker gaat over {n} minuten opnieuw af
 Stop the alarm	Wekker uitzetten
 {a} and {b} have different queues, so they can't be kept in step. Link them again to copy one onto the other.	{a} en {b} hebben verschillende wachtrijen en kunnen daarom niet gelijk blijven lopen. Koppel ze opnieuw om de ene naar de andere te kopiëren.
+This system's time zone isn't set, so its alarms won't ring. Set the time zone in the Sonos app, then check again.	Voor dit systeem is geen tijdzone ingesteld, dus de wekkers gaan niet af. Stel de tijdzone in de Sonos-app in en controleer opnieuw.

@@ -1928,6 +1928,12 @@ impl App {
             chip(ui, t!("Experimental"), TEXT_DIM());
             ui.label(RichText::new(t!("Alarms have had little testing on real speakers, so check that one rings before you rely on it.")).size(12.5).color(TEXT_DIM()));
         });
+        if s.alarms_zone_unset {
+            ui.add_space(6.0);
+            ui.label(
+                RichText::new(t!("This system's time zone isn't set, so its alarms won't ring. Set the time zone in the Sonos app, then check again.")).size(12.5).color(ACCENT()),
+            );
+        }
         ui.add_space(10.0);
         let Some(list) = &s.alarms else {
             self.ask_once("alarms", Duration::from_secs(10), Cmd::LoadAlarms);

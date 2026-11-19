@@ -541,6 +541,18 @@ pub fn rename(ip: &str, name: &str) -> R<()> {
     .map(|_| ())
 }
 
+/// Whether a time zone is set, from the speaker's `CurrentTimeZone` (all zeros when it isn't).
+/// A system with no time zone can't say when "07:00" is, so its alarms never ring.
+pub fn zone_is_set(zone: &str) -> bool {
+    zone.chars().any(|c| c != '0')
+}
+
+/// `Some(false)` when the system has no time zone set; `None` if it couldn't be read.
+pub fn time_zone_is_set(ip: &str) -> Option<bool> {
+    let reply = call(ip, ALARM_CLOCK, "GetTimeNow", &[]).ok()?;
+    reply.get("CurrentTimeZone").map(|z| zone_is_set(z))
+}
+
 pub fn alarms(ip: &str) -> R<Vec<Alarm>> {
     let reply = call(ip, ALARM_CLOCK, "ListAlarms", &[])?;
     let list = reply.get("CurrentAlarmList").cloned().unwrap_or_default();
@@ -727,6 +739,13 @@ pub fn begin_update(ip: &str, url: &str) -> R<()> {
 
 #[cfg(test)]
 mod unit {
+    #[test]
+    fn a_time_zone_of_all_zeros_is_not_set() {
+        assert!(!super::zone_is_set("0000000000000000000000000000"));
+        assert!(!super::zone_is_set(""));
+        assert!(super::zone_is_set("00000a000502000003000501ffc4"));
+    }
+
     use super::*;
 
     fn song(uri: &str) -> Item {
