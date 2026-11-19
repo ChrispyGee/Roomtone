@@ -815,3 +815,4 @@ Snooze {n} min	{n} Min. Schlummern
 Snoozed: the alarm rings again in {n} minutes	Geschlummert: Der Wecker klingelt in {n} Minuten wieder
 Stop the alarm	Wecker ausschalten
 {a} and {b} have different queues, so they can't be kept in step. Link them again to copy one onto the other.	{a} und {b} haben unterschiedliche Warteschlangen und lassen sich deshalb nicht im Gleichschritt halten. Verknüpfe sie erneut, um eine auf die andere zu kopieren.
+This system's time zone isn't set, so its alarms won't ring. Set the time zone in the Sonos app, then check again.	Für dieses System ist keine Zeitzone eingestellt, daher klingeln seine Wecker nicht. Stelle die Zeitzone in der Sonos-App ein und prüfe dann erneut.
