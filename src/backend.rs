@@ -596,9 +596,34 @@ fn follow_update(b: &Backend, ctx: &Waker, hid: &str, version: &str) -> UpdateSt
     state
 }
 
+/// What both groups of a new link should have for shuffle and repeat: the leader's repeat, and
+/// shuffle off. Two systems can't shuffle the same way (each picks its own random next song), so
+/// with shuffle on they drift apart on the first skip. `None` when both already are that way.
+fn link_play_mode(lead: (bool, Repeat), follow: (bool, Repeat)) -> Option<(bool, Repeat)> {
+    let want = (false, lead.1);
+    (lead != want || follow != want).then_some(want)
+}
+
 /// Start on the following group whatever the leading group plays now.
 fn sync_link(b: &Backend, lead: &str, follow: &str) {
     let demo_mode = b.lock().phase == Phase::Demo;
+    // Same repeat on both, and no shuffle, before anything plays.
+    let modes = {
+        let s = b.lock();
+        match (s.find_group(lead), s.find_group(follow)) {
+            (Some((h, l)), Some((_, f))) => Some(((l.shuffle, l.repeat), (f.shuffle, f.repeat), h.group_name(l), l.shuffle)),
+            _ => None,
+        }
+    };
+    if let Some((lm, fm, lead_name, was_shuffled)) = modes {
+        if let Some((shuffle, repeat)) = link_play_mode(lm, fm) {
+            // Sent to the leader; the link passes it on to the follower.
+            b.send(Cmd::SetPlayMode(lead.to_string(), shuffle, repeat));
+            if was_shuffled {
+                b.lock().toast(crate::t!("Shuffle is off while {room} plays along, because two systems can't shuffle the same way.", room = lead_name), false);
+            }
+        }
+    }
     if !demo_mode {
         let _ = load_queue(b, lead);
     }
@@ -3842,6 +3867,39 @@ mod unit {
         b.send_and_wait(Cmd::Next(gid.clone()), Duration::from_secs(5)).unwrap();
         assert!(wait_for(3, || b.lock().find_group(&gid).unwrap().1.now.title != before), "next track");
         assert!(b.lock().done_seq > 0);
+    }
+
+    #[test]
+    fn linking_gives_both_groups_the_same_repeat_and_no_shuffle() {
+        assert_eq!(link_play_mode((false, Repeat::All), (false, Repeat::All)), None, "already alike");
+        assert_eq!(link_play_mode((false, Repeat::Off), (false, Repeat::Off)), None);
+        assert_eq!(link_play_mode((true, Repeat::All), (false, Repeat::Off)), Some((false, Repeat::All)), "shuffle off, the leader's repeat");
+        assert_eq!(link_play_mode((false, Repeat::One), (false, Repeat::Off)), Some((false, Repeat::One)), "repeat copied");
+        assert_eq!(link_play_mode((false, Repeat::Off), (true, Repeat::Off)), Some((false, Repeat::Off)), "the follower's shuffle goes off too");
+        let b = demo_backend();
+        let (lead, follow) = {
+            let s = b.lock();
+            (s.households[0].groups[0].id.clone(), s.households[1].groups[0].id.clone())
+        };
+        {
+            let mut s = b.lock();
+            let l = s.group_mut(&lead).unwrap();
+            l.shuffle = true;
+            l.repeat = Repeat::All;
+            let f = s.group_mut(&follow).unwrap();
+            f.shuffle = false;
+            f.repeat = Repeat::Off;
+        }
+        b.send_and_wait(Cmd::LinkGroups(lead.clone(), follow.clone()), Duration::from_secs(5)).unwrap();
+        assert!(
+            wait_for(5, || {
+                let s = b.lock();
+                let (l, f) = (s.find_group(&lead).unwrap().1, s.find_group(&follow).unwrap().1);
+                !l.shuffle && !f.shuffle && l.repeat == Repeat::All && f.repeat == Repeat::All
+            }),
+            "both groups end up with the leader's repeat and no shuffle"
+        );
+        assert!(b.lock().toasts.iter().any(|t| t.text.contains("Shuffle is off")), "the person is told");
     }
 
     #[test]
