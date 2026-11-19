@@ -757,7 +757,7 @@ Lyrics (experimental): switch it on in Settings to see the words of the song tha
 The project page now links straight to each download	La page du projet renvoie désormais directement à chaque téléchargement
 Lyrics now wait and try again when the lyrics service is busy	Les paroles patientent désormais et réessaient quand le service de paroles est occupé
 Speakers on Wi-Fi, such as the Sonos One SL, now show as Wireless	Les enceintes en Wi-Fi, comme la Sonos One SL, s'affichent désormais « Sans fil »
-Adds Alarms to the sidebar, to see and set the speakers' alarms.	Ajoute Réveils à la barre latérale, pour voir et régler les réveils des enceintes.
+Experimental: adds Alarms to the sidebar, to see and set the speakers' alarms.	Expérimental : Ajoute Réveils à la barre latérale, pour voir et régler les réveils des enceintes.
 Adds Scenes to the sidebar and shortcuts to Home, for one-click set-ups of rooms, volumes and music.	Ajoute Scènes à la barre latérale et des raccourcis à l'Accueil, pour régler pièces, volumes et musique en un clic.
 Allow installing updates	Autoriser l'installation des mises à jour
 Checking is always possible. Installing has not been tried on real speakers yet: speakers restart and music stops for a few minutes.	La vérification est toujours possible. L'installation n'a pas encore été essayée sur de vraies enceintes : elles redémarrent et la musique s'arrête quelques minutes.
@@ -807,6 +807,7 @@ Software updates show how many speakers are done, and when the update has finish
 Adding albums and playlists to the queue is faster, and one tap removes the songs already played	Ajouter des albums et des playlists à la file d'attente est plus rapide, et un geste retire les titres déjà joués
 Speakers that start or come back are found within seconds, on every network connection	Les enceintes qui démarrent ou reviennent sont trouvées en quelques secondes, sur chaque connexion réseau
 If Roomtone closes unexpectedly it saves a crash log on your computer (never sent anywhere)	Si Roomtone se ferme de façon inattendue, il enregistre un journal d'incident sur votre ordinateur (envoyé nulle part)
+Alarms have had little testing on real speakers, so check that one rings before you rely on it.	Les alarmes ont été peu testées sur de vraies enceintes : vérifiez qu'une sonne avant de vous y fier.
 {service} isn't added to this system yet: Roomtone's {service} sign-in belongs to your other system. Add {service} to this system in the speaker maker's app, then try again. ({error})	{service} n'est pas encore ajouté à ce système : la connexion à {service} de Roomtone appartient à votre autre système. Ajoutez {service} à ce système dans l'appli du fabricant des enceintes, puis réessayez. ({error})
 Alarm ringing in {room}	Le réveil sonne dans {room}
 No alarm is ringing in that room right now	Aucun réveil ne sonne dans cette pièce pour le moment

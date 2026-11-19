@@ -47,7 +47,7 @@ pub(super) fn tools() -> Vec<(&'static str, &'static str, Value, bool)> {
         ("rename_room", "Give a room a new name.", json!({"type": "object", "properties": {"room": room, "name": {"type": "string"}}, "required": ["room", "name"]}), true),
         (
             "create_alarm",
-            "Make a new alarm. time is \"HH:MM\" (24-hour). days: daily, weekdays, weekends, once, or a list such as [\"mon\", \"wed\"]. Plays the chime unless a ref (a favorite or station) is given.",
+            "Experimental: make a new alarm. time is \"HH:MM\" (24-hour). days: daily, weekdays, weekends, once, or a list such as [\"mon\", \"wed\"]. Plays the chime unless a ref (a favorite or station) is given.",
             json!({"type": "object", "properties": {
                 "room": room, "time": {"type": "string"},
                 "days": {"description": "daily, weekdays, weekends, once, or a list of day names"},
@@ -57,7 +57,7 @@ pub(super) fn tools() -> Vec<(&'static str, &'static str, Value, bool)> {
             }, "required": ["room", "time"]}),
             true,
         ),
-        ("delete_alarm", "Delete an alarm by its id from list_alarms.", json!({"type": "object", "properties": {"id": {"type": "string"}}, "required": ["id"]}), true),
+        ("delete_alarm", "Experimental: delete an alarm by its id from list_alarms.", json!({"type": "object", "properties": {"id": {"type": "string"}}, "required": ["id"]}), true),
         (
             "save_group",
             "Save a named group of rooms (from one system) to use later with use_saved_group. Replaces a saved group of the same name.",

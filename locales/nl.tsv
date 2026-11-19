@@ -757,7 +757,7 @@ Lyrics (experimental): switch it on in Settings to see the words of the song tha
 The project page now links straight to each download	De projectpagina verwijst nu rechtstreeks naar elke download
 Lyrics now wait and try again when the lyrics service is busy	Songteksten wachten nu en proberen het opnieuw als de songtekstdienst druk is
 Speakers on Wi-Fi, such as the Sonos One SL, now show as Wireless	Speakers op wifi, zoals de Sonos One SL, worden nu als ‘Draadloos’ getoond
-Adds Alarms to the sidebar, to see and set the speakers' alarms.	Voegt Wekkers toe aan de zijbalk, om de wekkers van de speakers te zien en in te stellen.
+Experimental: adds Alarms to the sidebar, to see and set the speakers' alarms.	Experimenteel: Voegt Wekkers toe aan de zijbalk, om de wekkers van de speakers te zien en in te stellen.
 Adds Scenes to the sidebar and shortcuts to Home, for one-click set-ups of rooms, volumes and music.	Voegt Scènes toe aan de zijbalk en snelkoppelingen op Start, voor kamers, volumes en muziek met één klik.
 Allow installing updates	Installeren van updates toestaan
 Checking is always possible. Installing has not been tried on real speakers yet: speakers restart and music stops for a few minutes.	Controleren kan altijd. Installeren is nog niet op echte speakers geprobeerd: de speakers starten opnieuw op en de muziek stopt een paar minuten.
@@ -807,6 +807,7 @@ Software updates show how many speakers are done, and when the update has finish
 Adding albums and playlists to the queue is faster, and one tap removes the songs already played	Albums en afspeellijsten aan de wachtrij toevoegen gaat sneller, en met één tik verdwijnen de al gespeelde nummers
 Speakers that start or come back are found within seconds, on every network connection	Speakers die opstarten of terugkomen worden binnen seconden gevonden, via elke netwerkverbinding
 If Roomtone closes unexpectedly it saves a crash log on your computer (never sent anywhere)	Als Roomtone onverwacht sluit, bewaart het een crashlogboek op je computer (wordt nergens naartoe gestuurd)
+Alarms have had little testing on real speakers, so check that one rings before you rely on it.	Wekkers zijn weinig getest op echte speakers, controleer dus of er een afgaat voordat je erop vertrouwt.
 {service} isn't added to this system yet: Roomtone's {service} sign-in belongs to your other system. Add {service} to this system in the speaker maker's app, then try again. ({error})	{service} is nog niet aan dit systeem toegevoegd: de {service}-aanmelding van Roomtone hoort bij je andere systeem. Voeg {service} toe aan dit systeem in de app van de speakerfabrikant en probeer het opnieuw. ({error})
 Alarm ringing in {room}	De wekker gaat in {room}
 No alarm is ringing in that room right now	In die kamer gaat nu geen wekker af
