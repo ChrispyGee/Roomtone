@@ -815,3 +815,4 @@ Snooze {n} min	{n} Min. Schlummern
 Snoozed: the alarm rings again in {n} minutes	Geschlummert: Der Wecker klingelt in {n} Minuten wieder
 Stop the alarm	Wecker ausschalten
 {a} and {b} have different queues, so they can't be kept in step. Link them again to copy one onto the other.	{a} und {b} haben unterschiedliche Warteschlangen und lassen sich deshalb nicht im Gleichschritt halten. Verknüpfe sie erneut, um eine auf die andere zu kopieren.
+Shuffle is off while {room} plays along, because two systems can't shuffle the same way.	Zufallswiedergabe ist aus, solange {room} mitspielt, weil zwei Systeme nicht gleich mischen können.

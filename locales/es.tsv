@@ -815,3 +815,4 @@ Snooze {n} min	Posponer {n} min
 Snoozed: the alarm rings again in {n} minutes	Pospuesta: la alarma vuelve a sonar en {n} minutos
 Stop the alarm	Parar la alarma
 {a} and {b} have different queues, so they can't be kept in step. Link them again to copy one onto the other.	{a} y {b} tienen colas distintas, así que no se pueden mantener sincronizadas. Vincúlalas de nuevo para copiar una en la otra.
+Shuffle is off while {room} plays along, because two systems can't shuffle the same way.	El modo aleatorio está desactivado mientras {room} suena en paralelo, porque dos sistemas no pueden mezclar igual.
