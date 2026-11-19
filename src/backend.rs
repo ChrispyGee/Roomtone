@@ -288,6 +288,17 @@ impl Backend {
     }
 }
 
+/// A speaker with no song to skip to (the last song of a queue for *Next*, the first for *Previous*,
+/// or a stream) refuses with UPnP code 711 (or 701, "transition not available"). That isn't a
+/// fault: with *Play along* the two systems can be on different songs, and the one that has
+/// nothing to skip to must not report an error while the other skips.
+fn nothing_to_skip_to(r: Result<(), String>) -> Result<(), String> {
+    match r {
+        Err(e) if e.contains("code 711") || e.contains("code 701") => Ok(()),
+        other => other,
+    }
+}
+
 /// The group a command is for, when the command is one that play along passes on.
 fn mirrored_group(cmd: &Cmd) -> Option<&String> {
     match cmd {
@@ -984,8 +995,8 @@ fn run_live(b: &Backend, ctx: &Waker, cmd: Cmd) -> Result<(), String> {
         }
         Cmd::Play(g) => speaker::play(&coord(&g)?).and_then(|_| refresh_group(b, &g)),
         Cmd::Pause(g) => speaker::pause(&coord(&g)?).and_then(|_| refresh_group(b, &g)),
-        Cmd::Next(g) => speaker::next(&coord(&g)?).and_then(|_| refresh_group(b, &g)),
-        Cmd::Previous(g) => speaker::previous(&coord(&g)?).and_then(|_| refresh_group(b, &g)),
+        Cmd::Next(g) => nothing_to_skip_to(speaker::next(&coord(&g)?)).and_then(|_| refresh_group(b, &g)),
+        Cmd::Previous(g) => nothing_to_skip_to(speaker::previous(&coord(&g)?)).and_then(|_| refresh_group(b, &g)),
         Cmd::Seek(g, p) => speaker::seek(&coord(&g)?, p),
         Cmd::SetPlayMode(g, sh, rp) => speaker::set_play_mode(&coord(&g)?, play_mode(sh, rp)),
         Cmd::SetCrossfade(g, on) => speaker::set_crossfade(&coord(&g)?, on),
@@ -3705,6 +3716,16 @@ mod unit {
         let mut s = AppState::default();
         crate::demo::load(&mut s);
         s
+    }
+
+    #[test]
+    fn skipping_with_nothing_to_skip_to_is_not_an_error() {
+        let refused = |c: u32| Err(format!("Next was refused (HTTP 500, code {c})"));
+        assert!(nothing_to_skip_to(refused(711)).is_ok());
+        assert!(nothing_to_skip_to(refused(701)).is_ok());
+        assert!(nothing_to_skip_to(refused(402)).is_err(), "other refusals still show");
+        assert!(nothing_to_skip_to(Err("Next: timed out".into())).is_err());
+        assert!(nothing_to_skip_to(Ok(())).is_ok());
     }
 
     #[test]
