@@ -2887,7 +2887,16 @@ fn now_secs() -> u64 {
 /// Is it time to look (asked for, or switched on and a day has passed)?
 fn version_check_due(b: &Backend) -> bool {
     let s = b.lock();
-    s.version_check_asked || (s.config.check_new_versions && now_secs().saturating_sub(s.config.last_version_check) >= crate::version::EVERY.as_secs())
+    if s.version_check_asked {
+        return true;
+    }
+    if !s.config.check_new_versions {
+        return false;
+    }
+    // After a failed look, wait longer each time instead of asking every few seconds.
+    let wait = if s.version_failures > 0 { crate::version::retry_after(s.version_failures).as_secs() } else { 0 };
+    let since_failure = now_secs().saturating_sub(s.version_failed_at);
+    since_failure >= wait && now_secs().saturating_sub(s.config.last_version_check) >= crate::version::EVERY.as_secs()
 }
 
 /// One look, with `fetch` standing in for the network (so tests don't use it).
@@ -2907,7 +2916,11 @@ fn check_for_new_version(b: &Backend, ctx: &Waker, fetch: &dyn Fn(&str) -> Resul
                 s.toast(crate::t!("Roomtone {version} is available. See Settings.", version = r.version), false);
             }
         }
-        if !matches!(outcome, crate::version::Outcome::Failed(_)) {
+        if matches!(outcome, crate::version::Outcome::Failed(_)) {
+            s.version_failures = s.version_failures.saturating_add(1);
+            s.version_failed_at = now_secs();
+        } else {
+            s.version_failures = 0;
             s.config.last_version_check = now_secs();
         }
         s.new_version = outcome;
@@ -3587,8 +3600,25 @@ mod unit {
         {
             let s = b.lock();
             assert!(matches!(&s.new_version, crate::version::Outcome::Failed(m) if m == "offline"));
-            assert_eq!(s.config.last_version_check, kept, "a failed look doesn't count, so it's tried again soon");
+            assert_eq!(s.config.last_version_check, kept, "a failed look doesn't count, so it's tried again");
+            assert_eq!(s.version_failures, 1);
         }
+        // Switched on and a day overdue, but a look just failed: wait before asking again.
+        {
+            let mut s = b.lock();
+            s.config.check_new_versions = true;
+            s.config.last_version_check = now_secs() - crate::version::EVERY.as_secs() - 5;
+            s.version_failed_at = now_secs();
+        }
+        assert!(!version_check_due(&b), "just failed: not straight away");
+        b.lock().version_failed_at = now_secs() - crate::version::retry_after(1).as_secs() - 1;
+        assert!(version_check_due(&b), "after the wait it tries again");
+        b.lock().version_check_asked = true;
+        b.lock().version_failed_at = now_secs();
+        assert!(version_check_due(&b), "Check now ignores the wait");
+        check_for_new_version(&b, &ctx, &same);
+        assert_eq!(b.lock().version_failures, 0, "a good look clears the count");
+        b.lock().config.check_new_versions = false;
 
         // Switched on: due after a day, not before.
         {

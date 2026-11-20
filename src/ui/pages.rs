@@ -2758,8 +2758,17 @@ impl App {
                         Outcome::Newer(r) => {
                             ui.label(RichText::new(t!("Version {version} is available (you have {current})", version = r.version, current = current)).size(12.5).color(ACCENT()));
                             let url = if r.url.is_empty() { format!("{}/releases/latest", crate::help::REPO_URL) } else { r.url.clone() };
-                            if pill(ui, None, t!("Open download page"), true).clicked() {
+                            let brew = crate::version::installed_with_homebrew();
+                            if pill(ui, None, t!("Open download page"), !brew).clicked() {
                                 ui.ctx().open_url(egui::OpenUrl::new_tab(url));
+                            }
+                            if brew {
+                                ui.label(RichText::new(t!("Installed with Homebrew, so update with:")).size(12.5).color(TEXT_DIM()));
+                                ui.label(RichText::new(crate::version::BREW_UPGRADE).monospace().size(12.0).color(TEXT()));
+                                if ui.add(egui::Button::new(RichText::new(t!("Copy")).size(12.0)).corner_radius(10.0)).clicked() {
+                                    ui.ctx().copy_text(crate::version::BREW_UPGRADE.to_string());
+                                    self.toast_here(t!("Copied"));
+                                }
                             }
                         }
                         Outcome::UpToDate => {

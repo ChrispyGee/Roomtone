@@ -4,7 +4,11 @@ All notable changes to Roomtone. The format follows [Keep a Changelog](https://k
 
 ## [Unreleased]
 
+### Changed
+- **A new version found on a Homebrew install shows the command to update it.** *Settings › About › New versions* now says `brew upgrade --cask roomtone` with a *Copy* button when Roomtone was installed with Homebrew; *Open download page* stays as the other choice. Not yet checked in the window on a Homebrew install.
+
 ### Fixed
+- **A failed look for a new version is no longer repeated every 20 seconds.** Offline, or rate limited by GitHub, Roomtone now waits 5 minutes, then 15, 45, about 2¼ hours and at most 6 hours between tries. *Check now* still looks at once.
 - **Wired or wireless is now shown for a speaker on Wi-Fi whose traffic isn't counted on its own interfaces.** The check read the speaker's network counters only; some S2 speakers count Wi-Fi traffic on an internal bridge, so the Rooms panel and the assistant's room list showed nothing for them. When the counters can't tell, Roomtone now uses the wireless mode the system reports for that speaker. Checked on a real S2 Play:3 moved between Wi-Fi and cable (2026-11-19): on Wi-Fi the counters were silent and the system reported wireless; on the cable the counters said wired and the system agreed.
 - **A speaker that was reset or set up again is believed when it names a different system.** Roomtone used to keep the system it remembered for a known speaker, so a factory-reset speaker stayed under its old system (or showed the old state after being set up again) until the saved speakers were cleared. Now each check of a known speaker asks it which system it belongs to; if it joined a system already listed, the two entries merge. Checked on a real speaker: a forged old system for the S2 Den was replaced with its real one on the next start.
 
