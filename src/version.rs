@@ -10,6 +10,31 @@ use std::time::Duration;
 /// How long to wait between automatic checks.
 pub const EVERY: Duration = Duration::from_secs(24 * 60 * 60);
 
+/// How long to wait before looking again after `failures` failed looks in a row (5 minutes,
+/// then 15, 45, 2¼ hours, and never more than 6 hours), so an offline or rate-limited computer
+/// isn't asking every few seconds.
+pub fn retry_after(failures: u32) -> Duration {
+    let minutes = 5u64.saturating_mul(3u64.saturating_pow(failures.saturating_sub(1)));
+    Duration::from_secs(minutes.min(6 * 60) * 60)
+}
+
+/// The command that updates Roomtone when it was installed with Homebrew.
+pub const BREW_UPGRADE: &str = "brew upgrade --cask roomtone";
+
+/// Was Roomtone installed with Homebrew? Homebrew keeps a folder per installed cask.
+pub fn installed_with_homebrew() -> bool {
+    static ANSWER: std::sync::OnceLock<bool> = std::sync::OnceLock::new();
+    *ANSWER.get_or_init(|| {
+        let mut prefixes: Vec<std::path::PathBuf> = ["/opt/homebrew", "/usr/local"].iter().map(Into::into).collect();
+        prefixes.extend(std::env::var_os("HOMEBREW_PREFIX").map(std::path::PathBuf::from));
+        cask_installed_under(&prefixes)
+    })
+}
+
+fn cask_installed_under(prefixes: &[std::path::PathBuf]) -> bool {
+    prefixes.iter().any(|p| p.join("Caskroom").join("roomtone").is_dir())
+}
+
 /// What the latest release is.
 #[derive(Clone, Debug, PartialEq, Eq)]
 pub struct Release {
@@ -88,6 +113,26 @@ pub fn fetch_over_https(url: &str) -> Result<String, String> {
 #[cfg(test)]
 mod unit {
     use super::*;
+
+    #[test]
+    fn a_failed_look_is_retried_later_and_later() {
+        let mins = |n| retry_after(n).as_secs() / 60;
+        assert_eq!((mins(1), mins(2), mins(3), mins(4), mins(5)), (5, 15, 45, 135, 360));
+        assert_eq!((mins(6), mins(50), mins(u32::MAX)), (360, 360, 360), "never more than 6 hours");
+        assert_eq!(mins(0), 5, "no failures yet is not shorter than the first");
+    }
+
+    #[test]
+    fn a_homebrew_install_is_told_by_its_cask_folder() {
+        let dir = std::env::temp_dir().join(format!("roomtone-brew-{}", std::process::id()));
+        let _ = std::fs::remove_dir_all(&dir);
+        assert!(!cask_installed_under(std::slice::from_ref(&dir)));
+        std::fs::create_dir_all(dir.join("Caskroom").join("other")).unwrap();
+        assert!(!cask_installed_under(std::slice::from_ref(&dir)), "another cask is not this one");
+        std::fs::create_dir_all(dir.join("Caskroom").join("roomtone")).unwrap();
+        assert!(cask_installed_under(&[std::path::PathBuf::from("/nonexistent"), dir.clone()]));
+        let _ = std::fs::remove_dir_all(&dir);
+    }
 
     #[test]
     fn versions_are_read_and_compared() {

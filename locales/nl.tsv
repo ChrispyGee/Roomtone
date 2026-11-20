@@ -625,6 +625,7 @@ Once a day Roomtone looks at this project's release page on GitHub. Nothing is s
 Looking…	Bezig met kijken…
 Version {version} is available (you have {current})	Versie {version} is beschikbaar (je hebt {current})
 Open download page	Downloadpagina openen
+Installed with Homebrew, so update with:	Geïnstalleerd met Homebrew, dus werk bij met:
 You have the latest version ({current})	Je hebt de nieuwste versie ({current})
 Couldn't check: {error}	Controleren mislukt: {error}
 You have version {current}	Je hebt versie {current}

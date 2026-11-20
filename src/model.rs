@@ -541,6 +541,9 @@ pub struct AppState {
     pub lyrics: HashMap<String, crate::lyrics::State>,
     /// A check was asked for (*Check now*) and hasn't run yet.
     pub version_check_asked: bool,
+    /// Looks that failed in a row, and when the last one did (kept in memory only).
+    pub version_failures: u32,
+    pub version_failed_at: u64,
     /// Results of "Check" on the Music Services page, by service number (empty: checking).
     pub service_checks: HashMap<u32, String>,
     /// Groups in different systems playing the same thing: (leading group, following group).
@@ -629,6 +632,8 @@ impl Default for AppState {
             version_checking: false,
             lyrics: HashMap::new(),
             version_check_asked: false,
+            version_failures: 0,
+            version_failed_at: 0,
             service_checks: HashMap::new(),
             links: vec![],
             link_sync: HashMap::new(),

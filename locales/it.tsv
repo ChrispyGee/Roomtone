@@ -625,6 +625,7 @@ Once a day Roomtone looks at this project's release page on GitHub. Nothing is s
 Looking…	Controllo…
 Version {version} is available (you have {current})	È disponibile la versione {version} (hai la {current})
 Open download page	Apri la pagina di download
+Installed with Homebrew, so update with:	Installato con Homebrew, quindi aggiorna con:
 You have the latest version ({current})	Hai l’ultima versione ({current})
 Couldn't check: {error}	Impossibile controllare: {error}
 You have version {current}	Hai la versione {current}
