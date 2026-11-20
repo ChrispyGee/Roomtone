@@ -4,6 +4,9 @@ All notable changes to Roomtone. The format follows [Keep a Changelog](https://k
 
 ## [Unreleased]
 
+### Added
+- **A newer Roomtone can be downloaded from the New versions card.** When a newer version is found, *Download* fetches the installer for this computer (the .dmg on an Apple-silicon Mac, the setup program on 64-bit Windows, the .deb, .rpm or .tar.gz on 64-bit Linux) from this project's own release page into your Downloads folder, checks it against the release's `SHA256SUMS`, and then offers *Open* and *Show in folder*. A file that doesn't match is deleted. Nothing is downloaded until you press the button, and nothing is installed for you. Homebrew installs keep the `brew upgrade` line instead. A new library, `sha2`, does the checking. Not yet checked on a real release.
+
 ### Changed
 - **A new version found on a Homebrew install shows the command to update it.** *Settings › About › New versions* now says `brew upgrade --cask roomtone` with a *Copy* button when Roomtone was installed with Homebrew; *Open download page* stays as the other choice. Checked on this Homebrew-installed Mac with a pretend newer version (2026-11-20): the command and *Copy* show on their own line under the version line.
 

@@ -376,7 +376,17 @@ impl App {
         }
         // Test hook: picture a newer Roomtone being out.
         if self.frame >= 20 && std::env::var_os("ROOMTONE_TEST_NEWER").is_some() {
-            self.backend.lock().new_version = crate::version::Outcome::Newer(crate::version::Release { version: "99.0.0".into(), url: String::new() });
+            self.backend.lock().new_version = crate::version::Outcome::Newer(crate::version::Release {
+                version: "99.0.0".into(),
+                assets: ["macos-arm64.dmg", "windows-x64-setup.exe", "linux-x64.deb", "linux-x64.rpm", "linux-x64.tar.gz"]
+                    .iter()
+                    .map(|n| {
+                        let name = format!("roomtone-v99.0.0-{n}");
+                        crate::version::Asset { url: format!("{}/releases/download/v99.0.0/{name}", crate::help::REPO_URL), name, size: 7_700_000 }
+                    })
+                    .collect(),
+                ..Default::default()
+            });
         }
         // Test hook: picture a speaker that was never set up (no household).
         if self.frame >= 20 && std::env::var_os("ROOMTONE_TEST_UNSET").is_some() {

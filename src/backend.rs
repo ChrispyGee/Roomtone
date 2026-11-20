@@ -118,6 +118,8 @@ pub enum Cmd {
     SetVersionCheck(bool),
     /// Look for a newer Roomtone now.
     CheckVersionNow,
+    /// Download the installer for this computer from the newer release and check it.
+    DownloadUpdate,
     /// Switch listening history on or off (what's already kept stays until cleared).
     SetHistory(bool),
     /// Forget everything in the listening history.
@@ -1094,6 +1096,7 @@ fn run_live(b: &Backend, ctx: &Waker, cmd: Cmd) -> Result<(), String> {
         | Cmd::ForgetSystem(_)
         | Cmd::LoadLyrics(..)
         | Cmd::CheckVersionNow
+        | Cmd::DownloadUpdate
         | Cmd::SetHistory(_)
         | Cmd::ClearHistory
         | Cmd::MarkEpisode(..)
@@ -1938,6 +1941,10 @@ fn run_common(b: &Backend, ctx: &Waker, cmd: Cmd) -> Result<Option<Cmd>, String>
         }
         Cmd::CheckVersionNow => {
             b.lock().version_check_asked = true;
+            Ok(None)
+        }
+        Cmd::DownloadUpdate => {
+            start_update_download(b, ctx);
             Ok(None)
         }
         Cmd::SetEvents(on) => {
@@ -2923,12 +2930,49 @@ fn check_for_new_version(b: &Backend, ctx: &Waker, fetch: &dyn Fn(&str) -> Resul
             s.version_failures = 0;
             s.config.last_version_check = now_secs();
         }
+        if first_time && !matches!(s.update_download, crate::update::Download::Working(..)) {
+            s.update_download = Default::default();
+        }
         s.new_version = outcome;
         s.version_checking = false;
     }
     let cfg = b.lock().config.clone();
     let _ = cfg.save();
     ctx.request_repaint();
+}
+
+/// Fetch the installer for this computer from the newer release, on a thread of its own.
+fn start_update_download(b: &Backend, ctx: &Waker) {
+    use crate::update::Download;
+    let release = {
+        let mut s = b.lock();
+        let crate::version::Outcome::Newer(r) = &s.new_version else { return };
+        if matches!(s.update_download, Download::Working(..)) {
+            return;
+        }
+        let r = r.clone();
+        let Some(asset) = crate::update::pick_asset(&r, crate::update::Platform::here()) else { return };
+        s.update_download = Download::Working(0, asset.size);
+        r
+    };
+    let (b2, ctx2) = (b.clone(), ctx.clone());
+    thread::spawn(move || {
+        let Some(asset) = crate::update::pick_asset(&release, crate::update::Platform::here()).cloned() else { return };
+        let mut last = (std::time::Instant::now(), 0u64);
+        let result = crate::update::download(&release, &asset, &crate::update::downloads_dir(), |done, total| {
+            // Not more than a few times a second.
+            if last.0.elapsed() >= Duration::from_millis(250) || done == total {
+                last = (std::time::Instant::now(), done);
+                b2.lock().update_download = Download::Working(done, total);
+                ctx2.request_repaint();
+            }
+        });
+        b2.lock().update_download = match result {
+            Ok(path) => Download::Ready(path),
+            Err(e) => Download::Failed(e),
+        };
+        ctx2.request_repaint();
+    });
 }
 
 /// Count what each group has been playing for a while into the listening history, and keep

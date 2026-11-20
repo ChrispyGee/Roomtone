@@ -621,10 +621,14 @@ Search this queue	Rechercher dans cette file
 Jump to {letter}	Aller à {letter}
 New versions	Nouvelles versions
 Tell me when a new version of Roomtone is out	Prévenez-moi quand une nouvelle version de Roomtone sort
-Once a day Roomtone looks at this project's release page on GitHub. Nothing is sent about you, and nothing is installed or downloaded for you.	Une fois par jour, Roomtone consulte la page des versions de ce projet sur GitHub. Rien n’est envoyé à votre sujet et rien n’est installé ni téléchargé à votre place.
+Once a day Roomtone looks at this project's release page on GitHub. Nothing is sent about you. A new version is downloaded only when you press Download, and nothing is installed for you.	Une fois par jour, Roomtone consulte la page des versions de ce projet sur GitHub. Rien n'est envoyé à votre sujet. Une nouvelle version n'est téléchargée que lorsque vous appuyez sur Télécharger, et rien n'est installé pour vous.
 Looking…	Recherche…
 Version {version} is available (you have {current})	La version {version} est disponible (vous avez la {current})
 Open download page	Ouvrir la page de téléchargement
+Download	Télécharger
+Downloading… {percent}%	Téléchargement… {percent} %
+Downloaded and checked: {name}	Téléchargé et vérifié : {name}
+Show in folder	Afficher dans le dossier
 Installed with Homebrew, so update with:	Installé avec Homebrew, donc mettez à jour avec :
 You have the latest version ({current})	Vous avez la dernière version ({current})
 Couldn't check: {error}	Vérification impossible : {error}

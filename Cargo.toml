@@ -23,6 +23,7 @@ rfd = "0.18"
 winit = "0.30"
 if-addrs = "0.15.0"
 socket2 = { version = "0.6.5", features = ["all"] }
+sha2 = { version = "0.10", default-features = false }
 
 [target.'cfg(target_os = "macos")'.dependencies]
 objc2 = "0.6"
