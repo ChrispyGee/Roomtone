@@ -2737,7 +2737,7 @@ impl App {
                     ui.label(RichText::new(t!("Tell me when a new version of Roomtone is out")).color(TEXT()));
                     ui.label(
                         RichText::new(t!(
-                            "Once a day Roomtone looks at this project's release page on GitHub. Nothing is sent about you, and nothing is installed or downloaded for you."
+                            "Once a day Roomtone looks at this project's release page on GitHub. Nothing is sent about you. A new version is downloaded only when you press Download, and nothing is installed for you."
                         ))
                         .size(12.0)
                         .color(TEXT_DIM()),
@@ -2759,7 +2759,35 @@ impl App {
                             ui.label(RichText::new(t!("Version {version} is available (you have {current})", version = r.version, current = current)).size(12.5).color(ACCENT()));
                             let url = if r.url.is_empty() { format!("{}/releases/latest", crate::help::REPO_URL) } else { r.url.clone() };
                             let brew = crate::version::installed_with_homebrew();
-                            if pill(ui, None, t!("Open download page"), !brew).clicked() {
+                            let asset = crate::update::pick_asset(r, crate::update::Platform::here()).filter(|_| !brew);
+                            use crate::update::Download;
+                            match (&s.update_download, asset) {
+                                (Download::Working(done, total), _) => {
+                                    spinner_dots(ui, TEXT_DIM());
+                                    let percent = if *total > 0 { (done * 100 / total).min(100) } else { 0 };
+                                    ui.label(RichText::new(t!("Downloading… {percent}%", percent = percent)).size(12.5).color(TEXT_DIM()));
+                                }
+                                (Download::Ready(path), _) => {
+                                    let name = path.file_name().map(|n| n.to_string_lossy().to_string()).unwrap_or_default();
+                                    ui.label(RichText::new(t!("Downloaded and checked: {name}", name = name)).size(12.5).color(GOOD()));
+                                    if pill(ui, None, t!("Open"), true).clicked() {
+                                        crate::update::open(path);
+                                    }
+                                    if pill(ui, None, t!("Show in folder"), false).clicked() {
+                                        crate::update::reveal(path);
+                                    }
+                                }
+                                (state, Some(_)) => {
+                                    if let Download::Failed(e) = state {
+                                        ui.label(RichText::new(e).size(12.5).color(BAD()));
+                                    }
+                                    if pill(ui, None, t!("Download"), true).clicked() {
+                                        self.send(Cmd::DownloadUpdate);
+                                    }
+                                }
+                                (_, None) => {}
+                            }
+                            if pill(ui, None, t!("Open download page"), asset.is_none() && !brew).clicked() {
                                 ui.ctx().open_url(egui::OpenUrl::new_tab(url));
                             }
                         }

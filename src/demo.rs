@@ -527,6 +527,7 @@ pub fn apply(s: &mut AppState, cmd: &Cmd) {
         | Cmd::SetLyrics(_)
         | Cmd::SetFeature(..)
         | Cmd::ForgetSystem(_)
+        | Cmd::DownloadUpdate
         | Cmd::LoadLyrics(..)
         | Cmd::CheckVersionNow
         | Cmd::SetHistory(_)

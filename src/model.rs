@@ -541,6 +541,8 @@ pub struct AppState {
     pub lyrics: HashMap<String, crate::lyrics::State>,
     /// A check was asked for (*Check now*) and hasn't run yet.
     pub version_check_asked: bool,
+    /// The installer being fetched for a newer Roomtone.
+    pub update_download: crate::update::Download,
     /// Looks that failed in a row, and when the last one did (kept in memory only).
     pub version_failures: u32,
     pub version_failed_at: u64,
@@ -632,6 +634,7 @@ impl Default for AppState {
             version_checking: false,
             lyrics: HashMap::new(),
             version_check_asked: false,
+            update_download: Default::default(),
             version_failures: 0,
             version_failed_at: 0,
             service_checks: HashMap::new(),

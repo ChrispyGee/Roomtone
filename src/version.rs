@@ -25,6 +25,10 @@ pub const BREW_UPGRADE: &str = "brew upgrade --cask roomtone";
 pub fn installed_with_homebrew() -> bool {
     static ANSWER: std::sync::OnceLock<bool> = std::sync::OnceLock::new();
     *ANSWER.get_or_init(|| {
+        // Picture checks: ROOMTONE_TEST_HOMEBREW=0 or 1 says what the answer is.
+        if let Some(v) = std::env::var_os("ROOMTONE_TEST_HOMEBREW") {
+            return v == "1";
+        }
         let mut prefixes: Vec<std::path::PathBuf> = ["/opt/homebrew", "/usr/local"].iter().map(Into::into).collect();
         prefixes.extend(std::env::var_os("HOMEBREW_PREFIX").map(std::path::PathBuf::from));
         cask_installed_under(&prefixes)
@@ -36,12 +40,22 @@ fn cask_installed_under(prefixes: &[std::path::PathBuf]) -> bool {
 }
 
 /// What the latest release is.
-#[derive(Clone, Debug, PartialEq, Eq)]
+#[derive(Clone, Debug, Default, PartialEq, Eq)]
 pub struct Release {
     /// "0.5.5" (no leading `v`).
     pub version: String,
     /// The release's page.
     pub url: String,
+    /// The files attached to it.
+    pub assets: Vec<Asset>,
+}
+
+/// One file attached to a release.
+#[derive(Clone, Debug, PartialEq, Eq)]
+pub struct Asset {
+    pub name: String,
+    pub url: String,
+    pub size: u64,
 }
 
 /// What the last check found.
@@ -81,7 +95,22 @@ pub fn parse_release(json: &str) -> Option<Release> {
     let tag = v.get("tag_name")?.as_str()?;
     parse(tag)?;
     let url = v.get("html_url").and_then(|u| u.as_str()).filter(|u| u.starts_with("https://")).unwrap_or("").to_string();
-    Some(Release { version: tag.trim_start_matches(['v', 'V']).to_string(), url })
+    let assets = v
+        .get("assets")
+        .and_then(|a| a.as_array())
+        .map(|list| {
+            list.iter()
+                .filter_map(|a| {
+                    Some(Asset {
+                        name: a.get("name")?.as_str()?.to_string(),
+                        url: a.get("browser_download_url")?.as_str()?.to_string(),
+                        size: a.get("size").and_then(|s| s.as_u64()).unwrap_or(0),
+                    })
+                })
+                .collect()
+        })
+        .unwrap_or_default();
+    Some(Release { version: tag.trim_start_matches(['v', 'V']).to_string(), url, assets })
 }
 
 /// The address of the latest-release record for this project.
@@ -149,7 +178,7 @@ mod unit {
     #[test]
     fn github_replies_are_read() {
         let ok = r#"{"tag_name":"v0.6.0","html_url":"https://github.com/ChrispyGee/Roomtone/releases/tag/v0.6.0","draft":false,"prerelease":false,"name":"Roomtone 0.6.0"}"#;
-        assert_eq!(parse_release(ok), Some(Release { version: "0.6.0".into(), url: "https://github.com/ChrispyGee/Roomtone/releases/tag/v0.6.0".into() }));
+        assert_eq!(parse_release(ok), Some(Release { version: "0.6.0".into(), url: "https://github.com/ChrispyGee/Roomtone/releases/tag/v0.6.0".into(), assets: vec![] }));
         assert!(parse_release(r#"{"tag_name":"v0.6.0","prerelease":true}"#).is_none(), "pre-releases aren't offered");
         assert!(parse_release(r#"{"tag_name":"v0.6.0","draft":true}"#).is_none());
         assert!(parse_release(r#"{"message":"Not Found"}"#).is_none());

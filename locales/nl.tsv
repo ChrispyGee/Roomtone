@@ -621,10 +621,14 @@ Search this queue	Zoeken in deze wachtrij
 Jump to {letter}	Ga naar {letter}
 New versions	Nieuwe versies
 Tell me when a new version of Roomtone is out	Laat me weten als er een nieuwe versie van Roomtone is
-Once a day Roomtone looks at this project's release page on GitHub. Nothing is sent about you, and nothing is installed or downloaded for you.	Eén keer per dag kijkt Roomtone op de releasepagina van dit project op GitHub. Er wordt niets over jou verstuurd en er wordt niets voor je geïnstalleerd of gedownload.
+Once a day Roomtone looks at this project's release page on GitHub. Nothing is sent about you. A new version is downloaded only when you press Download, and nothing is installed for you.	Eén keer per dag kijkt Roomtone op de releasepagina van dit project bij GitHub. Er wordt niets over jou verstuurd. Een nieuwe versie wordt alleen gedownload als je op Downloaden drukt, en er wordt niets voor je geïnstalleerd.
 Looking…	Bezig met kijken…
 Version {version} is available (you have {current})	Versie {version} is beschikbaar (je hebt {current})
 Open download page	Downloadpagina openen
+Download	Downloaden
+Downloading… {percent}%	Downloaden… {percent}%
+Downloaded and checked: {name}	Gedownload en gecontroleerd: {name}
+Show in folder	Tonen in map
 Installed with Homebrew, so update with:	Geïnstalleerd met Homebrew, dus werk bij met:
 You have the latest version ({current})	Je hebt de nieuwste versie ({current})
 Couldn't check: {error}	Controleren mislukt: {error}

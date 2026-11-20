@@ -59,6 +59,7 @@ mod status;
 #[cfg(test)]
 mod test_support;
 mod ui;
+mod update;
 mod version;
 mod window;
 
