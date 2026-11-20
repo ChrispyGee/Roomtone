@@ -621,7 +621,7 @@ Search this queue	Buscar en esta cola
 Jump to {letter}	Ir a {letter}
 New versions	Versiones nuevas
 Tell me when a new version of Roomtone is out	Avísame cuando salga una versión nueva de Roomtone
-Once a day Roomtone looks at this project's release page on GitHub. Nothing is sent about you. A new version is downloaded only when you press Download, and nothing is installed for you.	Una vez al día, Roomtone mira la página de versiones de este proyecto en GitHub. No se envía nada sobre ti. Una versión nueva solo se descarga cuando pulsas Descargar, y no se instala nada por ti.
+When it starts, and then once a day, Roomtone looks at this project's release page on GitHub. Nothing is sent about you. A new version is downloaded only when you press Download, and nothing is installed for you.	Al iniciarse y después una vez al día, Roomtone mira la página de versiones de este proyecto en GitHub. No se envía nada sobre ti. Una versión nueva solo se descarga cuando pulsas Descargar, y no se instala nada por ti.
 Looking…	Buscando…
 Version {version} is available (you have {current})	Hay una versión {version} disponible (tienes la {current})
 Open download page	Abrir la página de descarga

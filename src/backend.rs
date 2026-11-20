@@ -2876,14 +2876,25 @@ fn demo_details(model: &str) -> crate::s2::Details {
     }
 }
 
-/// Looks for a newer Roomtone: once a day while the setting is on, and whenever *Check now* is
-/// pressed. Only ever reads the project's release page.
+/// Looks for a newer Roomtone: a few seconds after start-up and then once a day while the
+/// setting is on, and whenever *Check now* is pressed. Only ever reads the project's release page.
 fn version_checker(b: Backend, ctx: Waker) {
+    thread::sleep(Duration::from_secs(5));
+    ask_at_startup(&b);
     loop {
-        thread::sleep(Duration::from_secs(20));
         if version_check_due(&b) {
             check_for_new_version(&b, &ctx, &crate::version::fetch_over_https);
         }
+        thread::sleep(Duration::from_secs(20));
+    }
+}
+
+/// A fresh start knows nothing about newer versions, so look once straight away (if switched on)
+/// instead of waiting for the day to pass.
+fn ask_at_startup(b: &Backend) {
+    let mut s = b.lock();
+    if s.config.check_new_versions {
+        s.version_check_asked = true;
     }
 }
 
@@ -3618,7 +3629,8 @@ mod unit {
         let same = move |_: &str| Ok(format!(r#"{{"tag_name":"v{current}"}}"#));
         let offline = |_: &str| Err("offline".to_string());
 
-        assert!(!{ b.lock().config.check_new_versions }, "off until switched on");
+        // The scratch settings folder is shared between runs, so start from a known state.
+        b.lock().config.check_new_versions = false;
         b.lock().config.last_version_check = 0;
         assert!(!version_check_due(&b), "switched off and nobody asked: no check");
         b.lock().version_check_asked = true;
@@ -3673,6 +3685,20 @@ mod unit {
         assert!(!version_check_due(&b));
         b.lock().config.last_version_check = now_secs() - crate::version::EVERY.as_secs() - 5;
         assert!(version_check_due(&b));
+        b.lock().config.check_new_versions = false;
+
+        // At start-up: looks straight away when switched on, even if it looked a minute ago.
+        {
+            let mut s = b.lock();
+            s.config.last_version_check = now_secs();
+            s.version_check_asked = false;
+        }
+        ask_at_startup(&b);
+        assert!(!version_check_due(&b), "switched off: no look at start-up");
+        b.lock().config.check_new_versions = true;
+        ask_at_startup(&b);
+        assert!(version_check_due(&b), "switched on: looks at start-up");
+        b.lock().version_check_asked = false;
         b.lock().config.check_new_versions = false;
     }
 

@@ -2737,7 +2737,7 @@ impl App {
                     ui.label(RichText::new(t!("Tell me when a new version of Roomtone is out")).color(TEXT()));
                     ui.label(
                         RichText::new(t!(
-                            "Once a day Roomtone looks at this project's release page on GitHub. Nothing is sent about you. A new version is downloaded only when you press Download, and nothing is installed for you."
+                            "When it starts, and then once a day, Roomtone looks at this project's release page on GitHub. Nothing is sent about you. A new version is downloaded only when you press Download, and nothing is installed for you."
                         ))
                         .size(12.0)
                         .color(TEXT_DIM()),
