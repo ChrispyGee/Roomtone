@@ -61,7 +61,7 @@ pub fn sums_asset(release: &Release) -> Option<&Asset> {
     release.assets.iter().find(|a| a.name == "SHA256SUMS" && is_ours(&a.url, "SHA256SUMS"))
 }
 
-/// `sha256sum` output ("<hex>  <name>", the name possibly after a `*`) → name → hex.
+/// `sha256sum` output (`hex  name`, the name possibly after a `*`) → name → hex.
 pub fn parse_sums(text: &str) -> HashMap<String, String> {
     text.lines()
         .filter_map(|l| {
