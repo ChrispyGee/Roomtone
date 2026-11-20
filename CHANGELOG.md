@@ -5,7 +5,7 @@ All notable changes to Roomtone. The format follows [Keep a Changelog](https://k
 ## [Unreleased]
 
 ### Changed
-- **A new version found on a Homebrew install shows the command to update it.** *Settings › About › New versions* now says `brew upgrade --cask roomtone` with a *Copy* button when Roomtone was installed with Homebrew; *Open download page* stays as the other choice. Not yet checked in the window on a Homebrew install.
+- **A new version found on a Homebrew install shows the command to update it.** *Settings › About › New versions* now says `brew upgrade --cask roomtone` with a *Copy* button when Roomtone was installed with Homebrew; *Open download page* stays as the other choice. Checked on this Homebrew-installed Mac with a pretend newer version (2026-11-20): the command and *Copy* show on their own line under the version line.
 
 ### Fixed
 - **A failed look for a new version is no longer repeated every 20 seconds.** Offline, or rate limited by GitHub, Roomtone now waits 5 minutes, then 15, 45, about 2¼ hours and at most 6 hours between tries. *Check now* still looks at once.

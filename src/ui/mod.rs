@@ -374,6 +374,10 @@ impl App {
         if self.frame >= 20 && std::env::var_os("ROOMTONE_TEST_ZONE").is_some() {
             self.backend.lock().alarms_zone_unset = true;
         }
+        // Test hook: picture a newer Roomtone being out.
+        if self.frame >= 20 && std::env::var_os("ROOMTONE_TEST_NEWER").is_some() {
+            self.backend.lock().new_version = crate::version::Outcome::Newer(crate::version::Release { version: "99.0.0".into(), url: String::new() });
+        }
         // Test hook: picture a speaker that was never set up (no household).
         if self.frame >= 20 && std::env::var_os("ROOMTONE_TEST_UNSET").is_some() {
             let mut st = self.backend.lock();
