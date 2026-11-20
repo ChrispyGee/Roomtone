@@ -46,7 +46,7 @@ There are no ads, no call-homes and you can run it completely offline.
 
 > [!IMPORTANT]
 > **Roomtone isn't signed yet, so macOS and Windows warn you the first time you open it.** That is expected, and you only do it once.
-> - **Mac** (Apple silicon only): open the app, click *Done*, then **System Settings › Privacy & Security › Open Anyway**.
+> - **Mac** (Apple silicon only): open the app, click *Done*, then **System Settings › Privacy & Security › Open Anyway**. Comfortable with Terminal? One line skips that: `xattr -dr com.apple.quarantine /Applications/Roomtone.app` ([details](docs/FIRST_RUN.md#macos)).
 > - **Windows**: when SmartScreen says "Windows protected your PC", click **More info › Run anyway**.
 > - Say **Allow** when it asks to find devices on your local network, or it can't see your speakers.
 >
