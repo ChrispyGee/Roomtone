@@ -1,0 +1,86 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Privacy: Roomtone</title>
+<meta name="description" content="What Roomtone and this website do and don't send.">
+<meta name="theme-color" content="#0d0e12">
+<link rel="icon" href="favicon.svg" type="image/svg+xml">
+<link rel="apple-touch-icon" href="img/icon-180.png">
+<link rel="stylesheet" href="style.css">
+<meta property="og:title" content="Privacy: Roomtone">
+<meta property="og:description" content="Free, open-source desktop app for macOS, Windows and Linux. Controls S1 and S2 speakers side by side.">
+<meta property="og:type" content="website">
+<!-- Set og:image and og:url to full addresses (https://<domain>/img/social.jpg) once the domain is chosen. -->
+<meta name="twitter:card" content="summary_large_image">
+</head>
+<body>
+<a class="skip" href="#main">Skip to the content</a>
+<header class="site">
+  <div class="wrap">
+    <a class="brand" href="./"><img src="img/icon-64.png" alt="" width="30" height="30">Roomtone</a>
+    <nav class="main" aria-label="Main">
+      <a href="./#why">Why</a>
+      <a href="./#features">Features</a>
+      <a href="./#assistants">Assistants and scripts</a>
+      <a href="./#privacy">Privacy</a>
+      <a href="./#faq">Questions</a>
+      <a href="https://github.com/ChrispyGee/Roomtone">GitHub</a>
+      <a class="cta" href="download.html">Download</a>
+    </nav>
+  </div>
+</header>
+
+<main id="main">
+<section class="hero" style="padding-bottom:8px">
+  <div class="wrap narrow">
+    <h1>Privacy</h1>
+    <p class="lead">The short version: Roomtone doesn't track you, and neither does this website.</p>
+  </div>
+</section>
+<section style="padding-top:24px">
+  <div class="wrap narrow prose">
+    <h2>The app</h2>
+    <ul>
+      <li><strong>No telemetry, no ads, no accounts of its own.</strong> Nothing is sent anywhere except your speakers, the music sources you use, the services you sign in to and, only if you switch <em>Lyrics</em> on, lrclib.net.</li>
+      <li><strong>Your data stays on your computer.</strong> Settings, scenes, sign-ins, the assistant access key and your listening history are files in your user folder, readable only by you.</li>
+      <li><strong>Looking for a new version is your choice.</strong> It's off until you switch it on. When on, Roomtone reads this project's latest release record from GitHub when it starts and then about once a day. The only thing that identifies the app is its normal <code>User-Agent</code> with the version number. A new version is downloaded only when you press <em>Download</em>, and nothing is installed for you.</li>
+      <li><strong>The assistant link is off by default,</strong> with an access key, a look-only mode and a switch for each kind of change.</li>
+      <li><strong>It works offline.</strong> You don't need the internet to control speakers on your own network.</li>
+    </ul>
+    <p>The full list of network connections is in the project's <a href="https://github.com/ChrispyGee/Roomtone/blob/main/SPEC.md">specification</a> (section 9), and the code is open for anyone to read.</p>
+
+    <h2>This website</h2>
+    <ul>
+      <li>No cookies, no analytics, no advertising, no third-party fonts or scripts.</li>
+      <li>The download page asks GitHub which version is newest, so it can show the right file. GitHub can see your address when that happens, as it does when you visit any GitHub page. If that fails, the buttons simply go to the releases page.</li>
+      <li>Links to GitHub take you to GitHub, which has its own privacy policy.</li>
+    </ul>
+    <h2>Questions</h2>
+    <p>Open an <a href="https://github.com/ChrispyGee/Roomtone/issues/new/choose">issue</a> and ask.</p>
+  </div>
+</section>
+</main>
+
+<footer class="site">
+  <div class="wrap">
+    <div class="cols">
+      <div><strong style="color:var(--text)">Roomtone</strong><br>A free controller for S1 and S2 speakers.</div>
+      <ul aria-label="Project">
+        <li><a href="download.html">Download</a></li>
+        <li><a href="https://github.com/ChrispyGee/Roomtone/releases">Releases and changes</a></li>
+        <li><a href="https://github.com/ChrispyGee/Roomtone/blob/main/docs/ROADMAP.md">Roadmap</a></li>
+      </ul>
+      <ul aria-label="Help">
+        <li><a href="https://github.com/ChrispyGee/Roomtone/issues/new/choose">Report a problem</a></li>
+        <li><a href="https://github.com/ChrispyGee/Roomtone/blob/main/CONTRIBUTING.md">Contribute</a></li>
+        <li><a href="privacy.html">Privacy</a></li>
+      </ul>
+    </div>
+    <p class="legal">Roomtone is an independent project. It isn't made, endorsed or supported by any speaker maker or music service, and their names and trademarks belong to their owners. It uses the speakers' local network interfaces, which may change with their software updates. Dual-licensed under MIT or Apache 2.0.</p>
+  </div>
+</footer>
+<script src="site.js" defer></script>
+</body>
+</html>
