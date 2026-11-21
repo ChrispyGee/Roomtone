@@ -1,0 +1,118 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Download Roomtone</title>
+<meta name="description" content="Download Roomtone for macOS, Windows and Linux. Free and open source.">
+<meta name="theme-color" content="#0d0e12">
+<link rel="icon" href="favicon.svg" type="image/svg+xml">
+<link rel="apple-touch-icon" href="img/icon-180.png">
+<link rel="stylesheet" href="style.css">
+<meta property="og:title" content="Download Roomtone">
+<meta property="og:description" content="Free, open-source desktop app for macOS, Windows and Linux. Controls S1 and S2 speakers side by side.">
+<meta property="og:type" content="website">
+<!-- Set og:image and og:url to full addresses (https://<domain>/img/social.jpg) once the domain is chosen. -->
+<meta name="twitter:card" content="summary_large_image">
+</head>
+<body>
+<a class="skip" href="#main">Skip to the content</a>
+<header class="site">
+  <div class="wrap">
+    <a class="brand" href="./"><img src="img/icon-64.png" alt="" width="30" height="30">Roomtone</a>
+    <nav class="main" aria-label="Main">
+      <a href="./#why">Why</a>
+      <a href="./#features">Features</a>
+      <a href="./#assistants">Assistants and scripts</a>
+      <a href="./#privacy">Privacy</a>
+      <a href="./#faq">Questions</a>
+      <a href="https://github.com/ChrispyGee/Roomtone">GitHub</a>
+      <a class="cta" href="download.html" aria-current="page">Download</a>
+    </nav>
+  </div>
+</header>
+
+<main id="main">
+<section class="hero" style="padding-bottom:8px">
+  <div class="wrap">
+    <h1>Download Roomtone</h1>
+    <p class="lead">Version <strong data-version>…</strong>. Free, with no account. Pick your computer.</p>
+  </div>
+</section>
+<section style="padding-top:24px">
+  <div class="wrap">
+    <div class="platforms">
+      <div class="platform" data-platform="mac">
+        <h3>macOS</h3>
+        <p>Apple silicon Macs (M1 and later). Open the .dmg and drag Roomtone to Applications.</p>
+        <a class="btn primary" data-dl="mac" href="https://github.com/ChrispyGee/Roomtone/releases/latest">Download for Mac</a>
+        <p class="alt-links">Or with Homebrew:</p>
+        <pre><code>brew install --cask ChrispyGee/roomtone/roomtone</code></pre>
+      </div>
+      <div class="platform" data-platform="win">
+        <h3>Windows</h3>
+        <p>Windows 10 and 11 (64-bit). Run the setup program; it installs for your user only.</p>
+        <a class="btn primary" data-dl="win" href="https://github.com/ChrispyGee/Roomtone/releases/latest">Download for Windows</a>
+      </div>
+      <div class="platform" data-platform="linux">
+        <h3>Linux</h3>
+        <p>64-bit. Choose the package for your system.</p>
+        <a class="btn primary" data-dl="deb" href="https://github.com/ChrispyGee/Roomtone/releases/latest">Debian, Ubuntu (.deb)</a>
+        <a class="btn" data-dl="rpm" href="https://github.com/ChrispyGee/Roomtone/releases/latest">Fedora, openSUSE (.rpm)</a>
+        <p class="alt-links">Then, for example: <code>sudo apt install ./<span data-fill="deb">roomtone.deb</span></code></p>
+      </div>
+    </div>
+    <p class="fine center">Other downloads, older versions and what changed in each: <a href="https://github.com/ChrispyGee/Roomtone/releases">all releases</a>.</p>
+
+    <div class="narrow wrap" style="padding:0;margin-top:56px" id="first-run">
+      <h2>The first time you open it</h2>
+      <div class="note"><p><strong>Roomtone isn't signed by Apple or Microsoft yet,</strong> so your computer asks you to confirm the first time. That's expected, and you only do it once.</p></div>
+      <h3 style="margin-top:28px">On a Mac</h3>
+      <ol class="steps">
+        <li>Open Roomtone from Applications. macOS says it can't check the app. Click <em>Done</em>.</li>
+        <li>Open <strong>System Settings › Privacy &amp; Security</strong> and scroll to <strong>Security</strong>.</li>
+        <li>Click <strong>Open Anyway</strong> next to the message about Roomtone, then <strong>Open</strong>, and confirm with your password or Touch ID.</li>
+      </ol>
+      <p style="color:var(--dim)">Comfortable with Terminal? This one line removes the "downloaded from the internet" mark from Roomtone only:</p>
+      <pre><code>xattr -dr com.apple.quarantine /Applications/Roomtone.app</code></pre>
+      <h3 style="margin-top:28px">On Windows</h3>
+      <p style="color:var(--dim)">When SmartScreen says "Windows protected your PC", click <strong>More info</strong>, then <strong>Run anyway</strong>.</p>
+      <h3 style="margin-top:28px">Allow it to find your speakers</h3>
+      <p style="color:var(--dim)">Say <strong>Allow</strong> when asked to find devices on your local network. Without that, Roomtone can't see your speakers. On a Mac you can change it later in <strong>System Settings › Privacy &amp; Security › Local Network</strong>.</p>
+      <p style="color:var(--dim)">No speakers nearby? Roomtone shows a demo system with made-up rooms so you can try everything.</p>
+      <p><a href="https://github.com/ChrispyGee/Roomtone/blob/main/docs/FIRST_RUN.md">Full step-by-step guide</a></p>
+
+      <h2 style="margin-top:48px">Check your download</h2>
+      <p style="color:var(--dim)">Every release lists a checksum for each file in <a data-dl="sums" href="https://github.com/ChrispyGee/Roomtone/releases/latest">SHA256SUMS</a>. Put it in the same folder as your download and run:</p>
+<pre><code>shasum -a 256 -c --ignore-missing SHA256SUMS      # macOS
+sha256sum -c --ignore-missing SHA256SUMS          # Linux</code></pre>
+      <p style="color:var(--dim)">A line ending in <code>OK</code> means the file is exactly what the project published.</p>
+
+      <h2 style="margin-top:48px">Build it yourself</h2>
+      <p style="color:var(--dim)">Roomtone is open source (MIT or Apache 2.0). The <a href="https://github.com/ChrispyGee/Roomtone#build-it-yourself">README</a> shows how to build it with Rust.</p>
+    </div>
+  </div>
+</section>
+</main>
+
+<footer class="site">
+  <div class="wrap">
+    <div class="cols">
+      <div><strong style="color:var(--text)">Roomtone</strong><br>A free controller for S1 and S2 speakers.</div>
+      <ul aria-label="Project">
+        <li><a href="download.html">Download</a></li>
+        <li><a href="https://github.com/ChrispyGee/Roomtone/releases">Releases and changes</a></li>
+        <li><a href="https://github.com/ChrispyGee/Roomtone/blob/main/docs/ROADMAP.md">Roadmap</a></li>
+      </ul>
+      <ul aria-label="Help">
+        <li><a href="https://github.com/ChrispyGee/Roomtone/issues/new/choose">Report a problem</a></li>
+        <li><a href="https://github.com/ChrispyGee/Roomtone/blob/main/CONTRIBUTING.md">Contribute</a></li>
+        <li><a href="privacy.html">Privacy</a></li>
+      </ul>
+    </div>
+    <p class="legal">Roomtone is an independent project. It isn't made, endorsed or supported by any speaker maker or music service, and their names and trademarks belong to their owners. It uses the speakers' local network interfaces, which may change with their software updates. Dual-licensed under MIT or Apache 2.0.</p>
+  </div>
+</footer>
+<script src="site.js" defer></script>
+</body>
+</html>
