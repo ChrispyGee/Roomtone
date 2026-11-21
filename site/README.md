@@ -34,6 +34,19 @@ Checked on 2026-11-21 with DNS and WHOIS lookups. This only shows what *looks* u
 | Looks taken | `roomtone.com`, `.app`, `.io`, `.dev`, `.fm`, `.net`, `.org`, `.co`, `.cc`, `.xyz`, `.live`, `.space`, `.site`, `.studio`, `.tools`, `.tech`, `getroomtone.com`, `roomtoneapp.com`, `tryroomtone.com` |
 | Looked free | `roomtone.audio`, `roomtone.music`, `roomtone.me`, `roomtone.sh`, `useroomtone.com` |
 
+### Shortlist (2026-11-21): `.music`, `.me`, `.com`
+
+Sticker prices per year from registrar pages on that date, not quotes; check the checkout price (and whether the exact name is a "premium" one) before buying.
+
+| Domain | First year | Renewal | Notes |
+| --- | --- | --- | --- |
+| `roomtone.music` | $38.62 | $38.62 | Says what it is. Watch for cheap first-year promotions that renew at about $40. |
+| `roomtone.me` | $17.27 | $17.27 | Cheap, but reads as a personal site. |
+| `useroomtone.com` | $11.81 | $11.81 | The plain `.com`; the other `.com` forms are taken. |
+| `roomtone.audio` (dropped) | $103.50 | $103.50 | About $100 a year at most registrars; Gandi renews at about $304. |
+
+Prices from Porkbun (the first three and `.audio`), checked against Dynadot and OVH for `.audio`.
+
 Things to weigh:
 
 - **`roomtone.audio` or `roomtone.music`** say what it is, and are exactly the name. New-style endings often cost more each year, and some are priced as "premium"; check the renewal price, not the first-year offer.
