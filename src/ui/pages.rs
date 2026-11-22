@@ -3407,6 +3407,42 @@ impl App {
             if hc != s.config.high_contrast {
                 self.send(Cmd::SetContrast(hc));
             }
+            #[cfg(target_os = "macos")]
+            {
+                ui.separator();
+                let (mut bar, mut keep) = (s.config.menu_bar, s.config.menu_bar_keep);
+                ui.horizontal(|ui| {
+                    ui.set_min_height(40.0);
+                    ui.vertical(|ui| {
+                        ui.set_max_width((ui.available_width() - 64.0).max(120.0));
+                        ui.label(RichText::new(t!("Show in the menu bar")).color(TEXT()));
+                        ui.label(
+                            RichText::new(t!("A speaker icon at the top of the screen with what's playing, play and pause, volume and your rooms.")).size(12.0).color(TEXT_DIM()),
+                        );
+                    });
+                    ui.with_layout(Layout::right_to_left(Align::Center), |ui| {
+                        toggle(ui, &mut bar, t!("Show in the menu bar"));
+                    });
+                });
+                if bar {
+                    ui.horizontal(|ui| {
+                        ui.set_min_height(40.0);
+                        ui.vertical(|ui| {
+                            ui.set_max_width((ui.available_width() - 64.0).max(120.0));
+                            ui.label(RichText::new(t!("Keep running when the window is closed")).color(TEXT()));
+                            ui.label(
+                                RichText::new(t!("Closing the window hides Roomtone instead of quitting. Open it again, or quit, from the menu bar.")).size(12.0).color(TEXT_DIM()),
+                            );
+                        });
+                        ui.with_layout(Layout::right_to_left(Align::Center), |ui| {
+                            toggle(ui, &mut keep, t!("Keep running when the window is closed"));
+                        });
+                    });
+                }
+                if bar != s.config.menu_bar || keep != s.config.menu_bar_keep {
+                    self.send(Cmd::SetMenuBar(bar, keep));
+                }
+            }
         });
     }
 

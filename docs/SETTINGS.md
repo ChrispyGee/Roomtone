@@ -70,6 +70,9 @@ File: `theme` (`"auto"`, `"light"`, `"dark"`). Default `auto`. For one run only:
 *High contrast* (**off by default**): stronger text, outlines on every control, brighter accent and status colours and stronger slider tracks, in both light and dark. Text and the dim text reach at least 7:1 against the background (WCAG AAA); the faint text and accent colours at least 4.5:1. The usual palettes keep text at 4.5:1 or better but use fainter wording for secondary notes (about 3:1) and a deeper orange that is about 3:1 on light backgrounds, which is why this switch exists. Changes at once.
 File: `high_contrast` (`true` / `false`), default `false`. For one run only: the environment variable `ROOMTONE_CONTRAST=1`.
 
+*Show in the menu bar* (**Mac only, off by default**): a speaker icon at the top of the screen. Its menu shows what's playing in the chosen room, *Play*/*Pause*, *Next*, *Previous*, *Volume* (*Louder* and *Quieter* by the volume step, *Mute*), the rooms to choose from (the ticked one is the room it controls, the same room as in the window), *Pause all rooms*, *Open Roomtone* and *Quit Roomtone*. The menu is built each time it opens. *Keep running when the window is closed* (on by default, shown when the menu bar is on): closing the window hides Roomtone instead of quitting, so the speakers, alarm fades and the assistant link keep working; *Open Roomtone* brings it back, and ⌘Q or *Quit Roomtone* quits.
+File: `menu_bar` (`true` / `false`), default `false`; `menu_bar_keep` (`true` / `false`), default `true`.
+
 ### Language
 *App language*: **Automatic** (follows your computer's language), or English, German, French, Spanish, Italian or Dutch. Changes at once; anything not yet translated shows in English.
 File: `language` (`"auto"` or `"en"`, `"de"`, `"fr"`, `"es"`, `"it"`, `"nl"`). Default `auto`. For one run only: `--lang`, or the `ROOMTONE_LANG` environment variable.
@@ -194,6 +197,8 @@ Complete `config.json`, with every field at its default (the access key is made 
   },
   "theme": "auto",
   "high_contrast": false,
+  "menu_bar": false,
+  "menu_bar_keep": true,
   "speaker_events": false,
   "room_order": [],
   "check_new_versions": false,
@@ -218,6 +223,8 @@ Complete `config.json`, with every field at its default (the access key is made 
 | `language` | text | `"auto"` | `auto`, or `en`, `de`, `fr`, `es`, `it`, `nl`. |
 | `theme` | text | `"auto"` | `auto`, `light` or `dark`. |
 | `high_contrast` | true/false | `false` | Stronger text, outlines and colours. |
+| `menu_bar` | true/false | `false` | Mac only: show Roomtone in the menu bar. |
+| `menu_bar_keep` | true/false | `true` | With the menu bar on, closing the window keeps Roomtone running instead of quitting. |
 | `speaker_events` | true/false | `false` | Instant updates from the speakers. |
 | `room_order` | list of text | `[]` | The order you arranged your rooms in (room ids, first to last). Rooms not listed come after, in the speakers' own order. Managed by *Arrange* in the Rooms panel. |
 | `check_new_versions` | true/false | `false` | Look for a newer Roomtone at start-up and about once a day. |

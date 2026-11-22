@@ -2228,7 +2228,20 @@ impl eframe::App for App {
         theme::sync(ctx);
         self.handle_screenshot(ctx);
         #[cfg(target_os = "macos")]
-        crate::macos_about::install();
+        {
+            crate::macos_about::install();
+            // The menu bar icon (not in picture-taking runs). With it on, closing the window can
+            // leave Roomtone running there: hide the app rather than let it close.
+            let (on, keep) = {
+                let s = self.backend.lock();
+                (s.config.menu_bar && self.shot.is_none(), s.config.menu_bar_keep)
+            };
+            crate::macos_menubar::install(&self.backend, on);
+            if on && keep && ctx.input(|i| i.viewport().close_requested()) {
+                ctx.send_viewport_cmd(egui::ViewportCommand::CancelClose);
+                crate::macos_menubar::hide_app();
+            }
+        }
         self.remember_the_window(ctx);
         let backend = self.backend.clone();
         {

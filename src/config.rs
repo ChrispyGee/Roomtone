@@ -142,6 +142,10 @@ impl Default for FrameConfig {
     }
 }
 
+fn default_true() -> bool {
+    true
+}
+
 fn default_frame_port() -> u16 {
     8791
 }
@@ -365,6 +369,12 @@ pub struct Config {
     /// Stronger text, lines and colours for people who find the usual ones hard to see.
     #[serde(default)]
     pub high_contrast: bool,
+    /// Show Roomtone in the Mac's menu bar (a menu of what's playing, rooms and controls).
+    #[serde(default)]
+    pub menu_bar: bool,
+    /// With the menu bar on, closing the window leaves Roomtone running there instead of quitting.
+    #[serde(default = "default_true")]
+    pub menu_bar_keep: bool,
     /// One-off timers made by Roomtone (see `AlarmTimer`).
     #[serde(default)]
     pub alarm_timers: Vec<AlarmTimer>,
@@ -437,6 +447,8 @@ impl Default for Config {
             frame: FrameConfig::default(),
             theme: default_theme(),
             high_contrast: false,
+            menu_bar: false,
+            menu_bar_keep: true,
             alarm_timers: vec![],
             alarm_fades: vec![],
             volume_limits: VolumeLimits::default(),

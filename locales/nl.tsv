@@ -386,6 +386,17 @@ Unknown room	Onbekende ruimte
 Unsubscribe	Abonnement opzeggen
 Up next	Hierna
 Volume	Volume
+No speakers found yet	Nog geen speakers gevonden
+No rooms found yet	Nog geen kamers gevonden
+Volume {n}	Volume {n}
+Louder	Harder
+Quieter	Zachter
+Pause all rooms	Alle kamers pauzeren
+Open Roomtone	Roomtone openen
+Show in the menu bar	Tonen in de menubalk
+A speaker icon at the top of the screen with what's playing, play and pause, volume and your rooms.	Een luidsprekerpictogram bovenaan het scherm met wat er speelt, afspelen en pauzeren, volume en je kamers.
+Keep running when the window is closed	Blijven draaien als het venster wordt gesloten
+Closing the window hides Roomtone instead of quitting. Open it again, or quit, from the menu bar.	Het venster sluiten verbergt Roomtone in plaats van het af te sluiten. Open het opnieuw of sluit af via de menubalk.
 Fade in	Zacht opbouwen
 Over {n} minutes	Over {n} minuten
 Starts quietly and rises to the volume above. Roomtone does this, so it needs to be running. If it isn't, the alarm stays quiet.	Begint zacht en loopt op tot het volume hierboven. Roomtone doet dat, dus het moet draaien. Anders blijft de wekker zacht.
