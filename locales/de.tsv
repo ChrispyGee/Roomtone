@@ -386,6 +386,11 @@ Unknown room	Unbekannter Raum
 Unsubscribe	Abo beenden
 Up next	Als Nächstes
 Volume	Lautstärke
+Volume limits: a highest volume for each room, and quiet hours	Lautstärkelimits: eine Höchstlautstärke für jeden Raum und Ruhezeiten
+Alarms can be copied or made in several rooms at once, and a timer rings a chime	Wecker lassen sich kopieren oder in mehreren Räumen gleichzeitig anlegen, und ein Timer läutet einen Signalton
+Drag rooms to group them, drag songs in the queue, or drop songs on the window to play them	Räume zum Gruppieren ziehen, Songs in der Warteschlange ziehen oder Songs auf das Fenster ziehen, um sie abzuspielen
+Sliders are read out in words, and there is a High contrast setting	Regler werden in Worten vorgelesen, und es gibt eine Einstellung für hohen Kontrast
+A now-playing address for picture frames and tablets (experimental)	Eine „Läuft gerade“-Adresse für Bilderrahmen und Tablets (experimentell)
 Now-playing display	Anzeige „Läuft gerade“
 Show what's playing on a picture frame or tablet	Zeige auf einem Bilderrahmen oder Tablet, was läuft
 Gives other screens on your home network a web address that shows the cover and song that's playing. It can only look: nothing can be played or changed through it. Anyone on your network who has the address can see what you're playing, so keep it to yourself. This is experimental and may change.	Gibt anderen Bildschirmen in deinem Heimnetz eine Webadresse, die Cover und Titel des laufenden Songs zeigt. Sie kann nur zeigen: Darüber lässt sich nichts abspielen oder ändern. Jeder in deinem Netz, der die Adresse hat, sieht, was du hörst. Behalte sie also für dich. Das ist experimentell und kann sich ändern.
@@ -868,7 +873,3 @@ Stop the alarm	Wecker ausschalten
 {a} and {b} have different queues, so they can't be kept in step. Link them again to copy one onto the other.	{a} und {b} haben unterschiedliche Warteschlangen und lassen sich deshalb nicht im Gleichschritt halten. Verknüpfe sie erneut, um eine auf die andere zu kopieren.
 Shuffle is off while {room} plays along, because two systems can't shuffle the same way.	Zufallswiedergabe ist aus, solange {room} mitspielt, weil zwei Systeme nicht gleich mischen können.
 This system's time zone isn't set, so its alarms won't ring. Set the time zone in the Sonos app, then check again.	Für dieses System ist keine Zeitzone eingestellt, daher klingeln seine Wecker nicht. Stelle die Zeitzone in der Sonos-App ein und prüfe dann erneut.
-A ringing alarm can be snoozed or stopped from a bar at the top of the window	Ein klingelnder Wecker lässt sich über eine Leiste oben im Fenster verschieben oder stoppen
-Play along keeps both systems on the same song, whichever room you use	Play along hält beide Systeme beim gleichen Titel, egal in welchem Raum du steuerst
-Alarms say when a system has no time zone, and are marked Experimental	Wecker zeigen an, wenn einem System die Zeitzone fehlt, und sind als experimentell gekennzeichnet
-A clearer message when a streaming service isn't set up on the system you play on	Eine klarere Meldung, wenn ein Streamingdienst im abspielenden System nicht eingerichtet ist

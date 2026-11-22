@@ -386,6 +386,11 @@ Unknown room	Onbekende ruimte
 Unsubscribe	Abonnement opzeggen
 Up next	Hierna
 Volume	Volume
+Volume limits: a highest volume for each room, and quiet hours	Volumelimieten: een hoogste volume voor elke kamer en stille uren
+Alarms can be copied or made in several rooms at once, and a timer rings a chime	Wekkers kunnen worden gekopieerd of in meerdere kamers tegelijk worden gemaakt, en een timer laat een belsignaal horen
+Drag rooms to group them, drag songs in the queue, or drop songs on the window to play them	Sleep kamers om ze te groeperen, nummers in de wachtrij, of zet nummers op het venster neer om ze af te spelen
+Sliders are read out in words, and there is a High contrast setting	Schuifregelaars worden in woorden voorgelezen en er is een instelling voor hoog contrast
+A now-playing address for picture frames and tablets (experimental)	Een 'nu aan het spelen'-adres voor fotolijsten en tablets (experimenteel)
 Now-playing display	Nu-aan-het-spelen-scherm
 Show what's playing on a picture frame or tablet	Toon wat er speelt op een fotolijst of tablet
 Gives other screens on your home network a web address that shows the cover and song that's playing. It can only look: nothing can be played or changed through it. Anyone on your network who has the address can see what you're playing, so keep it to yourself. This is experimental and may change.	Geeft andere schermen in je thuisnetwerk een webadres dat de hoes en het nummer toont dat nu speelt. Het kan alleen laten zien: er kan niets mee worden afgespeeld of gewijzigd. Iedereen in je netwerk die het adres heeft, kan zien wat je luistert, dus houd het voor jezelf. Dit is experimenteel en kan veranderen.
@@ -868,7 +873,3 @@ Stop the alarm	Wekker uitzetten
 {a} and {b} have different queues, so they can't be kept in step. Link them again to copy one onto the other.	{a} en {b} hebben verschillende wachtrijen en kunnen daarom niet gelijk blijven lopen. Koppel ze opnieuw om de ene naar de andere te kopiëren.
 Shuffle is off while {room} plays along, because two systems can't shuffle the same way.	Willekeurig afspelen is uit zolang {room} meespeelt, omdat twee systemen niet hetzelfde kunnen schudden.
 This system's time zone isn't set, so its alarms won't ring. Set the time zone in the Sonos app, then check again.	Voor dit systeem is geen tijdzone ingesteld, dus de wekkers gaan niet af. Stel de tijdzone in de Sonos-app in en controleer opnieuw.
-A ringing alarm can be snoozed or stopped from a bar at the top of the window	Een afgaande wekker kun je uitstellen of stoppen via een balk bovenaan het venster
-Play along keeps both systems on the same song, whichever room you use	Play along houdt beide systemen op hetzelfde nummer, in welke kamer je ook bedient
-Alarms say when a system has no time zone, and are marked Experimental	Wekkers melden dat een systeem geen tijdzone heeft en zijn als experimenteel gemarkeerd
-A clearer message when a streaming service isn't set up on the system you play on	Een duidelijkere melding als een streamingdienst niet is ingesteld op het systeem waarop je speelt

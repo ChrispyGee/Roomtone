@@ -386,6 +386,11 @@ Unknown room	Sala desconocida
 Unsubscribe	Cancelar suscripción
 Up next	A continuación
 Volume	Volumen
+Volume limits: a highest volume for each room, and quiet hours	Límites de volumen: un volumen máximo para cada habitación y horas de silencio
+Alarms can be copied or made in several rooms at once, and a timer rings a chime	Las alarmas se pueden copiar o crear en varias habitaciones a la vez, y un temporizador hace sonar un aviso
+Drag rooms to group them, drag songs in the queue, or drop songs on the window to play them	Arrastra habitaciones para agruparlas, canciones en la cola, o suelta canciones en la ventana para reproducirlas
+Sliders are read out in words, and there is a High contrast setting	Los controles deslizantes se leen en palabras y hay un ajuste de alto contraste
+A now-playing address for picture frames and tablets (experimental)	Una dirección de reproducción actual para marcos de fotos y tabletas (experimental)
 Now-playing display	Pantalla de reproducción actual
 Show what's playing on a picture frame or tablet	Mostrar lo que suena en un marco de fotos o una tableta
 Gives other screens on your home network a web address that shows the cover and song that's playing. It can only look: nothing can be played or changed through it. Anyone on your network who has the address can see what you're playing, so keep it to yourself. This is experimental and may change.	Da a otras pantallas de tu red doméstica una dirección web que muestra la portada y la canción que suena. Solo puede mostrar: no se puede reproducir ni cambiar nada a través de ella. Cualquiera en tu red que tenga la dirección puede ver lo que escuchas, así que guárdala para ti. Es experimental y puede cambiar.
@@ -868,7 +873,3 @@ Stop the alarm	Parar la alarma
 {a} and {b} have different queues, so they can't be kept in step. Link them again to copy one onto the other.	{a} y {b} tienen colas distintas, así que no se pueden mantener sincronizadas. Vincúlalas de nuevo para copiar una en la otra.
 Shuffle is off while {room} plays along, because two systems can't shuffle the same way.	El modo aleatorio está desactivado mientras {room} suena en paralelo, porque dos sistemas no pueden mezclar igual.
 This system's time zone isn't set, so its alarms won't ring. Set the time zone in the Sonos app, then check again.	Este sistema no tiene zona horaria, así que sus alarmas no sonarán. Configura la zona horaria en la app de Sonos y vuelve a comprobarlo.
-A ringing alarm can be snoozed or stopped from a bar at the top of the window	Una alarma que suena se puede posponer o detener desde una barra en la parte superior de la ventana
-Play along keeps both systems on the same song, whichever room you use	Play along mantiene los dos sistemas en la misma canción, controles la habitación que controles
-Alarms say when a system has no time zone, and are marked Experimental	Las alarmas avisan cuando a un sistema le falta la zona horaria y están marcadas como experimentales
-A clearer message when a streaming service isn't set up on the system you play on	Un mensaje más claro cuando un servicio de streaming no está configurado en el sistema donde reproduces

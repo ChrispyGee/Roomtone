@@ -386,6 +386,11 @@ Unknown room	Stanza sconosciuta
 Unsubscribe	Annulla iscrizione
 Up next	Prossimi
 Volume	Volume
+Volume limits: a highest volume for each room, and quiet hours	Limiti di volume: un volume massimo per ogni stanza e ore di silenzio
+Alarms can be copied or made in several rooms at once, and a timer rings a chime	Le sveglie si possono copiare o creare in più stanze insieme, e un timer fa suonare un avviso
+Drag rooms to group them, drag songs in the queue, or drop songs on the window to play them	Trascina le stanze per raggrupparle, i brani nella coda, o rilascia brani sulla finestra per riprodurli
+Sliders are read out in words, and there is a High contrast setting	I cursori sono letti a parole e c'è un'impostazione per l'alto contrasto
+A now-playing address for picture frames and tablets (experimental)	Un indirizzo «in riproduzione» per cornici digitali e tablet (sperimentale)
 Now-playing display	Schermata «In riproduzione»
 Show what's playing on a picture frame or tablet	Mostra cosa suona su una cornice digitale o un tablet
 Gives other screens on your home network a web address that shows the cover and song that's playing. It can only look: nothing can be played or changed through it. Anyone on your network who has the address can see what you're playing, so keep it to yourself. This is experimental and may change.	Dà agli altri schermi della tua rete domestica un indirizzo web che mostra la copertina e il brano in riproduzione. Può solo mostrare: non si può riprodurre né cambiare nulla. Chiunque nella tua rete abbia l'indirizzo può vedere cosa ascolti, quindi tienilo per te. È sperimentale e può cambiare.
@@ -868,7 +873,3 @@ Stop the alarm	Ferma la sveglia
 {a} and {b} have different queues, so they can't be kept in step. Link them again to copy one onto the other.	{a} e {b} hanno code diverse, quindi non possono restare sincronizzate. Collegale di nuovo per copiare una sull'altra.
 Shuffle is off while {room} plays along, because two systems can't shuffle the same way.	La riproduzione casuale è disattivata finché {room} suona in parallelo, perché due sistemi non possono mescolare allo stesso modo.
 This system's time zone isn't set, so its alarms won't ring. Set the time zone in the Sonos app, then check again.	Questo sistema non ha un fuso orario impostato, quindi le sue sveglie non suoneranno. Imposta il fuso orario nell'app Sonos, poi ricontrolla.
-A ringing alarm can be snoozed or stopped from a bar at the top of the window	Una sveglia che suona può essere rimandata o fermata da una barra in alto nella finestra
-Play along keeps both systems on the same song, whichever room you use	Play along mantiene i due sistemi sullo stesso brano, qualunque stanza usi
-Alarms say when a system has no time zone, and are marked Experimental	Le sveglie avvisano quando a un sistema manca il fuso orario e sono contrassegnate come sperimentali
-A clearer message when a streaming service isn't set up on the system you play on	Un messaggio più chiaro quando un servizio di streaming non è configurato sul sistema in uso
