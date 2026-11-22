@@ -55,6 +55,8 @@ npm run pack         # builds the .streamDeckPlugin file
 npm run watch        # rebuild on change; `npx streamdeck link io.github.chrispygee.roomtone.sdPlugin` installs it for development
 ```
 
+Stream Deck won't install a plugin over one with the same version (its log says `AlreadyInstalled`), so raise `Version` in `manifest.json` (for example `0.1.1.0`) before packing a new build to install over an old one, or use `npx streamdeck link` while developing.
+
 A test that talks to a real (demo) Roomtone is skipped unless you start one and tell it the key:
 
 ```sh
