@@ -386,6 +386,12 @@ Unknown room	Onbekende ruimte
 Unsubscribe	Abonnement opzeggen
 Up next	Hierna
 Volume	Volume
+{n} of 100	{n} van 100
+{pos} of {total}	{pos} van {total}
+{n} on a scale from -10 to +10	{n} op een schaal van -10 tot +10
+Controlling {room}	Bedient {room}
+High contrast	Hoog contrast
+Stronger text, outlines and colours, for when the usual ones are hard to see.	Sterkere tekst, omlijningen en kleuren, voor als de gewone moeilijk te zien zijn.
 At these times every room is held to a lower volume. Uses the speakers' clock.	Op deze tijden geldt voor elke kamer een lager volume. Gaat op de klok van de speakers.
 Drag or type to set a limit	Sleep of typ om een limiet in te stellen
 From	Van

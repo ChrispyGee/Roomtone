@@ -547,6 +547,7 @@ pub fn apply(s: &mut AppState, cmd: &Cmd) {
         | Cmd::Unlink(_)
         | Cmd::CheckUpdates(_)
         | Cmd::InstallUpdate(_)
+        | Cmd::SetContrast(_)
         | Cmd::SetTheme(_) => {}
         Cmd::AddFolder(_) | Cmd::RemoveFolder(_) | Cmd::Rescan | Cmd::AddStation(_) | Cmd::RemoveStation(_) | Cmd::Subscribe(_) | Cmd::Unsubscribe(_) | Cmd::SetService(..) => {}
         Cmd::PlayItem(gid, item, how) => {

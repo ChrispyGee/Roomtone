@@ -104,6 +104,7 @@ pub enum Cmd {
     CheckService(u32),
     /// Switch the appearance: "auto", "light" or "dark".
     SetTheme(String),
+    SetContrast(bool),
     /// Switch speaker events (instant updates instead of polling) on or off.
     SetEvents(bool),
     /// Ask each speaker of a system whether it could move to S2 (read-only).
@@ -1116,6 +1117,7 @@ fn run_live(b: &Backend, ctx: &Waker, cmd: Cmd) -> Result<(), String> {
         | Cmd::CheckUpdates(_)
         | Cmd::InstallUpdate(_)
         | Cmd::SetTheme(_)
+        | Cmd::SetContrast(_)
         | Cmd::SetEvents(_)
         | Cmd::CheckS2(_)
         | Cmd::Diagnose
@@ -1911,6 +1913,11 @@ fn run_common(b: &Backend, ctx: &Waker, cmd: Cmd) -> Result<Option<Cmd>, String>
                 b2.lock().service_checks.insert(sid, result);
                 ctx2.request_repaint();
             });
+            Ok(None)
+        }
+        Cmd::SetContrast(on) => {
+            b.lock().config.high_contrast = on;
+            save(b);
             Ok(None)
         }
         Cmd::SetTheme(code) => {
@@ -4416,6 +4423,18 @@ mod unit {
         assert_eq!(b.lock().config.theme, "light");
         b.send_and_wait(Cmd::SetTheme("purple".into()), Duration::from_secs(5)).unwrap();
         assert_eq!(b.lock().config.theme, "auto");
+    }
+
+    #[test]
+    fn high_contrast_is_off_until_switched_on_and_is_remembered() {
+        assert!(!crate::config::Config::default().high_contrast);
+        let old: crate::config::Config = serde_json::from_str("{}").unwrap();
+        assert!(!old.high_contrast, "a settings file from before this setting reads as off");
+        let b = demo_backend();
+        b.send_and_wait(Cmd::SetContrast(true), Duration::from_secs(5)).unwrap();
+        assert!(b.lock().config.high_contrast);
+        b.send_and_wait(Cmd::SetContrast(false), Duration::from_secs(5)).unwrap();
+        assert!(!b.lock().config.high_contrast);
     }
 
     #[test]

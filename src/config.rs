@@ -318,6 +318,9 @@ pub struct Config {
     /// Appearance: "auto" follows the computer, or "light" / "dark".
     #[serde(default = "default_theme")]
     pub theme: String,
+    /// Stronger text, lines and colours for people who find the usual ones hard to see.
+    #[serde(default)]
+    pub high_contrast: bool,
     /// One-off timers made by Roomtone (see `AlarmTimer`).
     #[serde(default)]
     pub alarm_timers: Vec<AlarmTimer>,
@@ -385,6 +388,7 @@ impl Default for Config {
             language: default_language(),
             mcp: McpConfig::default(),
             theme: default_theme(),
+            high_contrast: false,
             alarm_timers: vec![],
             volume_limits: VolumeLimits::default(),
             speaker_events: false,

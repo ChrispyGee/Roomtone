@@ -151,7 +151,8 @@ impl App {
                             ui.with_layout(Layout::right_to_left(Align::Center), |ui| {
                                 let mut set = sc.rooms[p].volume.is_some();
                                 let mut v = sc.rooms[p].volume.unwrap_or(r.volume) as f32 / 100.0;
-                                let (_, changed) = slider(ui, ("scene_vol", &r.uuid), t!("Volume"), &mut v, 120.0, if set { ACCENT() } else { TEXT_FAINT() });
+                                let said = t!("{n} of 100", n = (v * 100.0).round() as u32);
+                                let (_, changed) = slider(ui, ("scene_vol", &r.uuid), t!("Volume"), &mut v, 120.0, if set { ACCENT() } else { TEXT_FAINT() }, &said);
                                 if changed {
                                     set = true;
                                     sc.rooms[p].volume = Some((v * 100.0).round() as u8);

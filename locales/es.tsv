@@ -386,6 +386,12 @@ Unknown room	Sala desconocida
 Unsubscribe	Cancelar suscripción
 Up next	A continuación
 Volume	Volumen
+{n} of 100	{n} de 100
+{pos} of {total}	{pos} de {total}
+{n} on a scale from -10 to +10	{n} en una escala de -10 a +10
+Controlling {room}	Controlando {room}
+High contrast	Alto contraste
+Stronger text, outlines and colours, for when the usual ones are hard to see.	Texto, contornos y colores más marcados, para cuando los habituales cuesten de ver.
 At these times every room is held to a lower volume. Uses the speakers' clock.	En estos horarios cada habitación queda limitada a un volumen más bajo. Usa el reloj de los altavoces.
 Drag or type to set a limit	Arrastra o escribe para fijar un límite
 From	Desde

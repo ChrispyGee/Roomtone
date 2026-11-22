@@ -386,6 +386,12 @@ Unknown room	Stanza sconosciuta
 Unsubscribe	Annulla iscrizione
 Up next	Prossimi
 Volume	Volume
+{n} of 100	{n} su 100
+{pos} of {total}	{pos} su {total}
+{n} on a scale from -10 to +10	{n} su una scala da -10 a +10
+Controlling {room}	Controllo di {room}
+High contrast	Contrasto elevato
+Stronger text, outlines and colours, for when the usual ones are hard to see.	Testo, contorni e colori più marcati, per quando quelli abituali sono difficili da vedere.
 At these times every room is held to a lower volume. Uses the speakers' clock.	In questi orari ogni stanza è limitata a un volume più basso. Usa l'orologio degli speaker.
 Drag or type to set a limit	Trascina o digita per impostare un limite
 From	Dalle

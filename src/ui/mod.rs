@@ -830,7 +830,8 @@ impl App {
                 let key = format!("g:{}", g.id);
                 let mut v = self.shown_volume(&key, g.volume);
                 let w = ui.available_width() - 76.0;
-                let (sr, changed) = slider(ui, &key, t!("Volume"), &mut v, w, if selected { ACCENT() } else { TEXT_DIM() });
+                let said = t!("{n} of 100", n = (v * 100.0).round() as u32);
+                let (sr, changed) = slider(ui, &key, t!("Volume"), &mut v, w, if selected { ACCENT() } else { TEXT_DIM() }, &said);
                 inner_hot |= sr.hovered() || sr.dragged();
                 if changed {
                     self.local_vol.insert(key.clone(), (v, Instant::now()));
@@ -1131,7 +1132,8 @@ impl App {
             let mut v = if dur > 0.0 { self.seek_drag.unwrap_or(pos / dur) } else { 0.0 };
             let w = ui.available_width() - label_w - 10.0;
             if dur > 0.0 {
-                let (r, changed) = slider(ui, "seek", t!("Playback position"), &mut v, w, TEXT());
+                let said = t!("{pos} of {total}", pos = fmt_time(v * dur), total = fmt_time(dur));
+                let (r, changed) = slider(ui, "seek", t!("Playback position"), &mut v, w, TEXT(), &said);
                 if changed {
                     self.seek_drag = Some(v);
                 }
@@ -1160,7 +1162,8 @@ impl App {
         let key = format!("g:{gid}");
         let mut v = self.shown_volume(&key, g.volume);
         let sw = (right.width() - 150.0).clamp(80.0, 150.0);
-        let (_, changed) = slider(&mut rui, "bar_vol", t!("Volume"), &mut v, sw, TEXT());
+        let said = t!("{n} of 100", n = (v * 100.0).round() as u32);
+        let (_, changed) = slider(&mut rui, "bar_vol", t!("Volume"), &mut v, sw, TEXT(), &said);
         if changed {
             self.local_vol.insert(key, (v, Instant::now()));
             self.send(Cmd::GroupVolume(gid.clone(), (v * 100.0).round() as u8));
@@ -2134,6 +2137,9 @@ impl eframe::App for App {
             theme::set_appearance(ctx, &wanted);
             self.applied_theme = wanted;
         }
+        // High contrast: the person's setting, or a one-off ROOMTONE_CONTRAST=1 for picture checks.
+        let contrast = std::env::var("ROOMTONE_CONTRAST").map(|v| v == "1").unwrap_or_else(|_| self.backend.lock().config.high_contrast);
+        theme::set_contrast(ctx, contrast);
         theme::sync(ctx);
         self.handle_screenshot(ctx);
         #[cfg(target_os = "macos")]
@@ -2169,6 +2175,17 @@ impl eframe::App for App {
                         i.consume_key(Modifiers::COMMAND, Key::ArrowDown),
                     )
                 });
+                // Ctrl (Cmd on a Mac) with 1 to 9 picks that room card, so a keyboard or screen-reader
+                // user needn't Tab through the whole panel. It says which room it picked.
+                let number = ctx.input_mut(|i| {
+                    [Key::Num1, Key::Num2, Key::Num3, Key::Num4, Key::Num5, Key::Num6, Key::Num7, Key::Num8, Key::Num9].iter().position(|k| i.consume_key(Modifiers::COMMAND, *k))
+                });
+                if let (Some(n), Some(h)) = (number, s.households.get(s.active)) {
+                    if let Some(g) = h.ordered_groups(&s.config.room_order).get(n) {
+                        self.select = Some(g.id.clone());
+                        self.notes.push(t!("Controlling {room}", room = h.group_name(g)));
+                    }
+                }
                 if let Some((_, g)) = s.selected_group.as_ref().and_then(|g| s.find_group(g)) {
                     if next {
                         self.out.push(Cmd::Next(g.id.clone()));

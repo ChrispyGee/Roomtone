@@ -386,6 +386,12 @@ Unknown room	Unbekannter Raum
 Unsubscribe	Abo beenden
 Up next	Als Nächstes
 Volume	Lautstärke
+{n} of 100	{n} von 100
+{pos} of {total}	{pos} von {total}
+{n} on a scale from -10 to +10	{n} auf einer Skala von -10 bis +10
+Controlling {room}	Steuert {room}
+High contrast	Hoher Kontrast
+Stronger text, outlines and colours, for when the usual ones are hard to see.	Kräftigerer Text, Umrisse und Farben, wenn die üblichen schwer zu erkennen sind.
 At these times every room is held to a lower volume. Uses the speakers' clock.	Zu diesen Zeiten gilt für jeden Raum eine niedrigere Lautstärke. Es zählt die Uhr der Lautsprecher.
 Drag or type to set a limit	Ziehen oder tippen, um ein Limit zu setzen
 From	Von
