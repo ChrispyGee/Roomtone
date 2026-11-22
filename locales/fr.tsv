@@ -386,6 +386,10 @@ Unknown room	Pièce inconnue
 Unsubscribe	Se désabonner
 Up next	À suivre
 Volume	Volume
+Drop songs to play them in {room}	Déposez des morceaux pour les lire dans {room}
+Joining {room} to {other}	{room} rejoint {other}
+Pick a room first, then drop the songs on the window	Choisissez d'abord une pièce, puis déposez les morceaux sur la fenêtre
+There were no songs to play in what you dropped	Il n'y avait aucun morceau à lire dans ce que vous avez déposé
 Volume keys move the volume by	Les touches de volume changent le volume de
 Ctrl (Cmd on a Mac) with the up and down arrow keys. A smaller step is gentler for quiet listening.	Ctrl (Cmd sur un Mac) avec les flèches haut et bas. Un pas plus petit est plus doux pour une écoute à faible volume.
 Match all rooms to this volume	Régler toutes les pièces sur ce volume

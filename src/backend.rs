@@ -73,6 +73,8 @@ pub enum Cmd {
     SaveAlarm(Alarm),
     DeleteAlarm(String),
     PlayItems(String, Vec<Item>, PlayHow, String),
+    /// Songs (or folders of songs) dropped on the window, to play in this group.
+    PlayFiles(String, Vec<std::path::PathBuf>),
     AddFolder(String),
     RemoveFolder(String),
     Rescan,
@@ -1081,6 +1083,7 @@ fn run_live(b: &Backend, ctx: &Waker, cmd: Cmd) -> Result<(), String> {
         | Cmd::SetAccountNumber(..)
         | Cmd::SetLanguage(_)
         | Cmd::SetMcp(_)
+        | Cmd::PlayFiles(..)
         | Cmd::CheckService(_)
         | Cmd::LinkGroups(..)
         | Cmd::Unlink(_)
@@ -1257,6 +1260,17 @@ fn run_common(b: &Backend, ctx: &Waker, cmd: Cmd) -> Result<Option<Cmd>, String>
         }
     };
     match cmd {
+        Cmd::PlayFiles(g, paths) => {
+            // The music server must be running for the speakers to fetch the songs.
+            crate::sources::local::start_server();
+            let items = crate::sources::local::add_dropped(&paths);
+            if items.is_empty() {
+                b.lock().toast(crate::t!("There were no songs to play in what you dropped"), true);
+                return Ok(None);
+            }
+            let title = if items.len() == 1 { items[0].title.clone() } else { crate::t!("{n} songs", n = items.len()) };
+            Ok(Some(Cmd::PlayItems(g, items, PlayHow::Now, title)))
+        }
         Cmd::MoveGroup(gid, delta) => {
             {
                 let mut s = b.lock();
