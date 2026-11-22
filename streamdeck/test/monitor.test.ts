@@ -31,3 +31,20 @@ test("a problem is passed on to the buttons that were waiting", async () => {
   assert.ok(problems.length >= 1 && problems.every((p) => p === "key"));
   stop();
 });
+
+test("a button that is given another room follows that one and lets the old one go", async () => {
+  const asked: string[] = [];
+  const monitor = new Monitor({ nowPlaying: async (room) => (asked.push(room ?? "selected"), song(room ?? "selected")) }, 60_000);
+  const heard: string[] = [];
+  monitor.follow("key-1", "Cinema", (now) => heard.push(now?.room ?? ""));
+  await monitor.refresh();
+  asked.length = 0;
+  heard.length = 0;
+  monitor.follow("key-1", "Office", (now) => heard.push(now?.room ?? ""));
+  await monitor.refresh();
+  assert.deepEqual([...new Set(asked)], ["Office"], "only the new room is asked about");
+  assert.ok(heard.length >= 1 && heard.every((r) => r === "Office"));
+  assert.equal(monitor.watching, 1);
+  monitor.unfollow("key-1");
+  assert.equal(monitor.watching, 0);
+});

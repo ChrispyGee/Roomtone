@@ -61,6 +61,20 @@ export class Monitor {
     }
   }
 
+  private readonly followers = new Map<string, () => void>();
+
+  /** Like `watch`, for the button `id`: following again (another room, say) lets go of the room before. */
+  follow(id: string, room: string | undefined, listener: Listener): void {
+    this.followers.get(id)?.();
+    this.followers.set(id, this.watch(room, listener));
+  }
+
+  /** The button `id` has gone. */
+  unfollow(id: string): void {
+    this.followers.get(id)?.();
+    this.followers.delete(id);
+  }
+
   get watching(): number {
     return this.watchers.size;
   }

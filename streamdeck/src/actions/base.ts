@@ -1,6 +1,6 @@
 // The parts that every Roomtone button does the same way.
 
-import { SingletonAction, type WillAppearEvent, type WillDisappearEvent } from "@elgato/streamdeck";
+import { SingletonAction, type DidReceiveSettingsEvent, type WillAppearEvent, type WillDisappearEvent } from "@elgato/streamdeck";
 import type { Action } from "@elgato/streamdeck";
 
 import { client, monitor } from "../context.ts";
@@ -15,7 +15,6 @@ export interface RoomSettings {
 }
 
 export abstract class RoomtoneAction<S extends RoomSettings = RoomSettings> extends SingletonAction<S> {
-  private readonly stops = new Map<string, () => void>();
   private readonly problems = new ProblemMemory();
 
   /** A button that wants to follow what is playing says what to do with it. */
@@ -31,32 +30,40 @@ export abstract class RoomtoneAction<S extends RoomSettings = RoomSettings> exte
     if (action.isKey()) await action.setTitle(problemLabel(problem.kind));
   }
 
+  /** A button that remembers what it last saw lets go of it here. */
+  protected forgetState(_id: string): void {}
+
   /** Things work again: take the error off the button's face (back to its own title, or the one the person typed). */
   protected async recovered(action: Action<S>): Promise<void> {
     if (this.problems.clear(action.id) && action.isKey()) await action.setTitle();
   }
 
-  override async onWillAppear(ev: WillAppearEvent<S>): Promise<void> {
+  /** (Re)start following the room in `settings`; the one before is let go. */
+  private start(action: Action<S>, settings: S): void {
     if (!this.follows()) return;
-    const action = ev.action;
-    this.stops.get(action.id)?.();
-    this.stops.set(
-      action.id,
-      monitor.watch(ev.payload.settings.room, async (now, problem) => {
-        const settings = await action.getSettings().catch(() => ev.payload.settings);
-        if (problem) await this.problem(action, problem);
-        else {
-          await this.recovered(action);
-          await this.draw(action, now, settings);
-        }
-      }),
-    );
+    monitor.follow(action.id, settings.room, async (now, problem) => {
+      const current = await action.getSettings().catch(() => settings);
+      if (problem) await this.problem(action, problem);
+      else {
+        await this.recovered(action);
+        await this.draw(action, now, current);
+      }
+    });
+  }
+
+  override async onWillAppear(ev: WillAppearEvent<S>): Promise<void> {
+    this.start(ev.action, ev.payload.settings);
+  }
+
+  /** The person changed this button's settings (another room, say): follow that. */
+  override onDidReceiveSettings(ev: DidReceiveSettingsEvent<S>): void {
+    this.start(ev.action, ev.payload.settings);
   }
 
   override onWillDisappear(ev: WillDisappearEvent<S>): void {
-    this.stops.get(ev.action.id)?.();
-    this.stops.delete(ev.action.id);
+    monitor.unfollow(ev.action.id);
     this.problems.forget(ev.action.id);
+    this.forgetState(ev.action.id);
   }
 
   /** Run a button's job; if Roomtone says no, show the alert on the button; look again shortly after. */

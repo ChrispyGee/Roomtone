@@ -73,35 +73,44 @@ export class VolumeDown extends VolumeKey {
 /** Mute or unmute; shows a crossed-out speaker while muted. */
 @action({ UUID: `${ID}.mute` })
 export class Mute extends RoomtoneAction {
-  private last: NowPlaying | undefined;
+  // Each key may follow a different room, so each remembers its own.
+  private readonly seen = new Map<string, NowPlaying | undefined>();
+
+  protected override forgetState(id: string): void {
+    this.seen.delete(id);
+  }
 
   protected override follows(): boolean {
     return true;
   }
 
   protected override async draw(a: Action<RoomSettings>, now: NowPlaying | undefined): Promise<void> {
-    this.last = now;
+    this.seen.set(a.id, now);
     if (a.isKey()) {
       await a.setState(now?.muted ? 1 : 0);
     }
   }
 
   override async onKeyDown(ev: KeyDownEvent<RoomSettings>): Promise<void> {
-    await this.act(ev.action, () => this.client.setMute(!(this.last?.muted ?? false), ev.payload.settings.room));
+    await this.act(ev.action, () => this.client.setMute(!(this.seen.get(ev.action.id)?.muted ?? false), ev.payload.settings.room));
   }
 }
 
 /** The dial (Stream Deck +): turn for volume, press to mute, tap the screen to play or pause. */
 @action({ UUID: `${ID}.volumedial` })
 export class VolumeDial extends RoomtoneAction<StepSettings> {
-  private last: NowPlaying | undefined;
+  private readonly seen = new Map<string, NowPlaying | undefined>();
+
+  protected override forgetState(id: string): void {
+    this.seen.delete(id);
+  }
 
   protected override follows(): boolean {
     return true;
   }
 
   protected override async draw(a: Action<StepSettings>, now: NowPlaying | undefined, settings: StepSettings): Promise<void> {
-    this.last = now;
+    this.seen.set(a.id, now);
     if (!a.isDial()) return;
     await a.setFeedback({
       title: settings.room?.trim() || now?.room || "Volume",
@@ -120,7 +129,7 @@ export class VolumeDial extends RoomtoneAction<StepSettings> {
   }
 
   override async onDialDown(ev: DialDownEvent<StepSettings>): Promise<void> {
-    await this.act(ev.action, () => this.client.setMute(!(this.last?.muted ?? false), ev.payload.settings.room));
+    await this.act(ev.action, () => this.client.setMute(!(this.seen.get(ev.action.id)?.muted ?? false), ev.payload.settings.room));
   }
 
   override async onTouchTap(ev: TouchTapEvent<StepSettings>): Promise<void> {

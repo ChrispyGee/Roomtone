@@ -74,7 +74,7 @@ export class RoomtoneClient {
 
   private async initialize(): Promise<void> {
     const response = await this.post(
-      { jsonrpc: "2.0", id: this.nextId++, method: "initialize", params: { protocolVersion: "2025-11-25", capabilities: {}, clientInfo: { name: "roomtone-streamdeck", version: "0.1.3" } } },
+      { jsonrpc: "2.0", id: this.nextId++, method: "initialize", params: { protocolVersion: "2025-11-25", capabilities: {}, clientInfo: { name: "roomtone-streamdeck", version: "0.1.4" } } },
       false,
     );
     this.session = response.headers.get("Mcp-Session-Id") ?? undefined;
