@@ -51,6 +51,7 @@ This is the map of the code. What the app should do is in [SPEC.md](../SPEC.md);
 | `crash.rs` | The local crash log: a panic hook that writes `crash.log` (addresses and the home folder blanked out); nothing is sent |
 | `known.rs` | `speakers.json`: speakers from last time, for an instant start; forgets systems unseen for 30 days |
 | `demo.rs` | The made-up S1 and S2 systems, and how commands change them (`apply`, `tick`) |
+| `frame.rs` | The now-playing display: a read-only HTTP service (page, `art.jpg`, `now.json`) behind a secret in the address; `start` opens and closes the port as settings change |
 | `mcp.rs` | The MCP server: tool list, `Mcp::handle` (JSON-RPC), `serve_stdio`, `start_http` (opens and closes the port as settings change) |
 | `i18n.rs` | `t!`, `tn!`, `n_!`, language detection, the tables in `locales/*.tsv`, and the tests that check every phrase is translated |
 | `net/announce.rs` | Listens for speakers announcing themselves (SSDP `NOTIFY`) so a new or returning speaker is searched for at once |

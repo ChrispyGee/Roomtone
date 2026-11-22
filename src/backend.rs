@@ -143,6 +143,7 @@ pub enum Cmd {
     SetLanguage(String),
     /// Change the assistant link (MCP) settings.
     SetMcp(crate::config::McpConfig),
+    SetFrame(crate::config::FrameConfig),
 }
 
 impl Cmd {
@@ -1081,6 +1082,7 @@ fn run_live(b: &Backend, ctx: &Waker, cmd: Cmd) -> Result<(), String> {
         | Cmd::SetAccountNumber(..)
         | Cmd::SetLanguage(_)
         | Cmd::SetMcp(_)
+        | Cmd::SetFrame(_)
         | Cmd::CheckService(_)
         | Cmd::LinkGroups(..)
         | Cmd::Unlink(_)
@@ -1773,6 +1775,15 @@ fn run_common(b: &Backend, ctx: &Waker, cmd: Cmd) -> Result<Option<Cmd>, String>
         }
         Cmd::SetMcp(m) => {
             b.lock().config.mcp = m;
+            save(b);
+            Ok(None)
+        }
+        Cmd::SetFrame(mut f) => {
+            if f.token.trim().is_empty() {
+                f.token = crate::config::new_token();
+            }
+            f.port = f.port.clamp(1024, 65535);
+            b.lock().config.frame = f;
             save(b);
             Ok(None)
         }

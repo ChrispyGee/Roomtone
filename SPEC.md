@@ -168,6 +168,15 @@ The groups hold these things:
   - what's new in this version, help commands to copy, and buttons for the project page, *Settings guide*, *Report a problem* and *Latest version* (on GitHub);
   - credits (Radio Browser, the Apple Podcasts directory search, the Internet Archive, the open-source libraries) and a note that the app is independent of the speaker maker and the music services.
 
+### 4.8a Now-playing display
+An optional, read-only web address that shows what is playing, for a picture frame, tablet, small screen or script on the home network. **Off until switched on** in *Settings › Playback › Now-playing display* (`frame.enabled`). While on, Roomtone listens on TCP port 8791 (`frame.port`) on all network connections, in the window and in `--headless`. It can't play, pause or change anything: only `GET` and `HEAD` are answered.
+- **Every address starts with a secret** (`frame.token`, 32 hex digits, made by Roomtone; *New address* replaces it): `/<secret>/`. A picture frame can't send a password, so the secret is the access control. A missing or wrong secret, or the display being off, gets a plain `404`. The secret is compared without stopping at the first difference. Anyone on the network who has the address can see what is playing, which the settings text says.
+- `/<secret>/` is a full-screen page (plain HTML with a small script, no outside scripts, fonts or images, and a content security policy): the cover fills the screen on black, with the song and artist under it; paused fades the cover, nothing playing goes black. It asks `now.json` every 2 s and loads a new cover only when the song or its cover changes. `?text=0` hides the words, `?fit=cover` fills the screen instead of fitting it, `?size=` sets the cover's size. `/<secret>` redirects to `/<secret>/`.
+- `/<secret>/art.jpg` is the cover of what is playing now, always a JPEG, scaled down to fit `?size=` (64 to 2000, default 800; never enlarged). Roomtone fetches it from the speaker and keeps the last one, so a frame asking often doesn't make the speaker send it again. With no cover, or if it can't be fetched, a small dark square is sent so a frame always gets a picture.
+- `/<secret>/now.json` is `{"playing", "title", "artist", "album", "room", "has_art", "id"}`; `id` changes whenever the song or its cover does. With nothing to show everything is empty and `playing` is false.
+- **Which room**: *Room to show* (`frame.room`, a room's name) follows that room's group; empty follows the room being used in the window, or, with no window or none chosen, the first group that is playing.
+- At most 16 connections are served at once; a 17th gets `503`.
+
 ### 4.9 Languages
 - English, German, French, Spanish, Italian and Dutch.
 - Every phrase is looked up by its English text; anything missing falls back to English, and a test fails the build if a phrase is untranslated.
@@ -312,6 +321,7 @@ All in the app's data folder: `~/Library/Application Support/Roomtone/` (macOS),
 | TCP 52880 (or a free port) on this computer | in | Speakers fetch music from this computer and S1 https relays. Only addresses on this computer or a local network (loopback, private, link-local, unique-local) are answered; a request that isn't sent within 10 s, a request line over 8 KiB or more than 64 header lines is dropped, a speaker that stops reading for 2 minutes is dropped, and at most 64 connections are served at once |
 | A free TCP port on this computer (only while *Speaker updates* is on) | in | Speakers send change notices (UPnP events); anything not from a subscribed speaker with its subscription id is refused |
 | TCP 8790 (configurable) | in | Assistant link over HTTP, 127.0.0.1 unless other computers are allowed |
+| TCP 8791 (configurable, only while *Now-playing display* is on) | in | Read-only now-playing page, cover and description (§4.8a); every address starts with a secret, other requests get 404 |
 | HTTPS to github.com release downloads (only when *Download* is pressed in *New versions*) | out | One `GET` of `SHA256SUMS` and one of the installer, from this project's own release; the same `User-Agent`; saved to the Downloads folder |
 | HTTPS to api.github.com (only if *New versions* is on, or *Check now* is pressed) | out | One `GET` of this project's latest release; the only thing sent that identifies the app is the usual `User-Agent: Roomtone/<version>`; no account, no identifier |
 | HTTPS to lrclib.net (only if *Lyrics* is on and Now Playing is open) | out | One or two `GET`s per new song with its title, artist, album and length (a `User-Agent` with the app version and project address); no account, no identifier; the answer is kept in memory only |
@@ -327,6 +337,7 @@ All in the app's data folder: `~/Library/Application Support/Roomtone/` (macOS),
 | Area | Verified how |
 | --- | --- |
 | Discovery, live status, browsing, favorites on real **S2** speakers | Real speakers (2026-11-11); **a real Play:3 on S2 software (2026-11-18)**: playback of an internet radio station (AAC) started, advanced and paused, volume was set and restored. Streaming-service playback on S2 not yet heard |
+| Now-playing display (§4.8a) | A pretend speaker serving a cover and the demo system in tests (secret, read-only, scaling, HEAD, changing the secret); the page in a real browser on the demo system. **Not yet on a real picture frame or tablet, nor with a real speaker's cover** |
 | Discovery and control on a real **S1** speaker | Reported working by the maintainer in an earlier version |
 | Streaming sign-in pages (8 services), Spotify browse and search | Real services through an S2 system |
 | Streaming **playback** and the account-number retry | **Spotify plays on the maintainer's real S1 speakers (2026-11-18) and, once Spotify was added to the new system in the maker's app, on a real S2 Play:3 (2026-11-18)**; the account-number retry, other services and S2 systems not yet heard |

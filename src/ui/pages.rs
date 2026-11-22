@@ -2150,6 +2150,8 @@ impl App {
                 ui.add_space(14.0);
                 self.history_card(ui, s);
                 ui.add_space(14.0);
+                self.frame_card(ui, s);
+                ui.add_space(14.0);
                 self.lyrics_card(ui, s);
             }
             2 => self.services_tab(ui, s),
@@ -2871,6 +2873,87 @@ impl App {
         }
         if scenes != s0 {
             self.send(Cmd::SetFeature(Feature::Scenes, scenes));
+        }
+    }
+
+    /// The now-playing display: a read-only address a picture frame, tablet or script can open.
+    fn frame_card(&mut self, ui: &mut Ui, s: &AppState) {
+        section_title(ui, t!("Now-playing display"));
+        let mut f = s.config.frame.clone();
+        let before = f.clone();
+        card_frame().show(ui, |ui| {
+            ui.set_width(ui.available_width());
+            ui.horizontal(|ui| {
+                ui.set_min_height(40.0);
+                ui.vertical(|ui| {
+                    ui.set_max_width((ui.available_width() - 64.0).max(120.0));
+                    ui.label(RichText::new(t!("Show what's playing on a picture frame or tablet")).color(TEXT()));
+                    ui.label(
+                        RichText::new(t!(
+                            "Gives other screens on your home network a web address that shows the cover and song that's playing. It can only look: nothing can be played or changed through it. Anyone on your network who has the address can see what you're playing, so keep it to yourself."
+                        ))
+                        .size(12.0)
+                        .color(TEXT_DIM()),
+                    );
+                });
+                ui.with_layout(Layout::right_to_left(Align::Center), |ui| {
+                    toggle(ui, &mut f.enabled, t!("Show what's playing on a picture frame or tablet"));
+                });
+            });
+            if f.enabled {
+                ui.add_space(6.0);
+                ui.horizontal(|ui| {
+                    let (color, text) = match s.frame_status.split_once(':') {
+                        Some(("ok", port)) => (GOOD(), t!("Ready on port {port}", port = port)),
+                        Some(("err", e)) => (BAD(), t!("Couldn't open port {port}: {error}", port = f.port, error = e)),
+                        _ => (TEXT_DIM(), t!("Starting…").to_string()),
+                    };
+                    let (r, _) = ui.allocate_exact_size(vec2(8.0, 8.0), Sense::hover());
+                    ui.painter().circle_filled(r.center(), 4.0, color);
+                    ui.label(RichText::new(text).size(12.5).color(color));
+                });
+                ui.add_space(6.0);
+                ui.horizontal(|ui| {
+                    ui.label(RichText::new(t!("Room to show")).color(TEXT_DIM()));
+                    let shown = if f.room.trim().is_empty() { t!("The room I'm using").to_string() } else { f.room.clone() };
+                    egui::ComboBox::from_id_salt("frame_room").width(220.0).selected_text(shown).show_ui(ui, |ui| {
+                        ui.selectable_value(&mut f.room, String::new(), t!("The room I'm using"));
+                        for h in &s.households {
+                            for r in &h.rooms {
+                                ui.selectable_value(&mut f.room, r.name.clone(), r.name.clone());
+                            }
+                        }
+                    });
+                });
+                ui.add_space(6.0);
+                // ROOMTONE_TEST_HOST: picture checks show a made-up address instead of this computer's.
+                let host = std::env::var("ROOMTONE_TEST_HOST").unwrap_or_else(|_| crate::sources::local::lan_ip());
+                let address = crate::frame::address(&f, &host);
+                ui.label(RichText::new(t!("Open this address on the frame or tablet")).color(TEXT_DIM()));
+                ui.label(RichText::new(&address).monospace().color(TEXT()));
+                ui.add_space(6.0);
+                ui.horizontal_wrapped(|ui| {
+                    if pill(ui, Some(Icon::Plus), t!("Copy address"), true).clicked() {
+                        ui.ctx().copy_text(address.clone());
+                        self.toast_here(t!("Address copied"));
+                    }
+                    if pill(ui, None, t!("Open here"), false).clicked() {
+                        ui.ctx().open_url(egui::OpenUrl::new_tab(crate::frame::address(&f, "127.0.0.1")));
+                    }
+                    if pill(ui, Some(Icon::Refresh), t!("New address"), false).on_hover_text(t!("Screens using the old address will stop working until you give them the new one")).clicked() {
+                        f.token = crate::config::new_token();
+                    }
+                });
+                ui.add_space(4.0);
+                ui.label(
+                    RichText::new(t!("Add ?text=0 to hide the song's name, or ?fit=cover to fill the screen. The same address ends in art.jpg for just the cover and now.json for a description."))
+                        .size(12.0)
+                        .color(TEXT_DIM()),
+                );
+            }
+        });
+        if f != before {
+            self.send(Cmd::SetFrame(f));
         }
     }
 

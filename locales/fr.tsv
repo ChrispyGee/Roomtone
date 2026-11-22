@@ -386,6 +386,19 @@ Unknown room	Pièce inconnue
 Unsubscribe	Se désabonner
 Up next	À suivre
 Volume	Volume
+Now-playing display	Affichage « en cours de lecture »
+Show what's playing on a picture frame or tablet	Afficher ce qui joue sur un cadre photo ou une tablette
+Gives other screens on your home network a web address that shows the cover and song that's playing. It can only look: nothing can be played or changed through it. Anyone on your network who has the address can see what you're playing, so keep it to yourself.	Donne aux autres écrans de votre réseau domestique une adresse web qui montre la pochette et le titre en cours. Elle ne peut que montrer : rien ne peut être lu ou modifié par ce biais. Toute personne de votre réseau qui a l'adresse peut voir ce que vous écoutez, gardez-la donc pour vous.
+Ready on port {port}	Prêt sur le port {port}
+Room to show	Pièce à afficher
+The room I'm using	La pièce que j'utilise
+Open this address on the frame or tablet	Ouvrez cette adresse sur le cadre ou la tablette
+Copy address	Copier l'adresse
+Address copied	Adresse copiée
+Open here	Ouvrir ici
+New address	Nouvelle adresse
+Screens using the old address will stop working until you give them the new one	Les écrans qui utilisent l'ancienne adresse cesseront de fonctionner tant que vous ne leur donnez pas la nouvelle
+Add ?text=0 to hide the song's name, or ?fit=cover to fill the screen. The same address ends in art.jpg for just the cover and now.json for a description.	Ajoutez ?text=0 pour masquer le nom du morceau, ou ?fit=cover pour remplir l'écran. La même adresse terminée par art.jpg donne la pochette seule, et par now.json une description.
 Volume keys move the volume by	Les touches de volume changent le volume de
 Ctrl (Cmd on a Mac) with the up and down arrow keys. A smaller step is gentler for quiet listening.	Ctrl (Cmd sur un Mac) avec les flèches haut et bas. Un pas plus petit est plus doux pour une écoute à faible volume.
 Match all rooms to this volume	Régler toutes les pièces sur ce volume

@@ -386,6 +386,19 @@ Unknown room	Stanza sconosciuta
 Unsubscribe	Annulla iscrizione
 Up next	Prossimi
 Volume	Volume
+Now-playing display	Schermata «In riproduzione»
+Show what's playing on a picture frame or tablet	Mostra cosa suona su una cornice digitale o un tablet
+Gives other screens on your home network a web address that shows the cover and song that's playing. It can only look: nothing can be played or changed through it. Anyone on your network who has the address can see what you're playing, so keep it to yourself.	Dà agli altri schermi della tua rete domestica un indirizzo web che mostra la copertina e il brano in riproduzione. Può solo mostrare: non si può riprodurre né cambiare nulla. Chiunque nella tua rete abbia l'indirizzo può vedere cosa ascolti, quindi tienilo per te.
+Ready on port {port}	Pronto sulla porta {port}
+Room to show	Stanza da mostrare
+The room I'm using	La stanza che sto usando
+Open this address on the frame or tablet	Apri questo indirizzo sulla cornice o sul tablet
+Copy address	Copia indirizzo
+Address copied	Indirizzo copiato
+Open here	Apri qui
+New address	Nuovo indirizzo
+Screens using the old address will stop working until you give them the new one	Gli schermi che usano il vecchio indirizzo smetteranno di funzionare finché non darai loro quello nuovo
+Add ?text=0 to hide the song's name, or ?fit=cover to fill the screen. The same address ends in art.jpg for just the cover and now.json for a description.	Aggiungi ?text=0 per nascondere il nome del brano, o ?fit=cover per riempire lo schermo. Lo stesso indirizzo che termina con art.jpg dà solo la copertina e con now.json una descrizione.
 Volume keys move the volume by	I tasti del volume cambiano il volume di
 Ctrl (Cmd on a Mac) with the up and down arrow keys. A smaller step is gentler for quiet listening.	Ctrl (Cmd su un Mac) con le frecce su e giù. Un passo più piccolo è più delicato per l'ascolto a basso volume.
 Match all rooms to this volume	Imposta tutte le stanze su questo volume

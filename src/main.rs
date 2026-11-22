@@ -40,6 +40,7 @@ mod crash;
 mod csv;
 mod demo;
 mod diagnose;
+mod frame;
 mod help;
 mod history;
 mod known;
@@ -349,6 +350,7 @@ fn run_headless(demo: bool, stdio: bool) {
         return;
     }
     mcp::start_http(link, backend::Waker::none());
+    frame::start(frame::Frame::new(b.clone()), backend::Waker::none());
     eprintln!("Roomtone is running without a window. Press Ctrl+C to stop.");
     let mut last = String::new();
     loop {
