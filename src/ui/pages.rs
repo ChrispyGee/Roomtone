@@ -2878,7 +2878,7 @@ impl App {
 
     /// The now-playing display: a read-only address a picture frame, tablet or script can open.
     fn frame_card(&mut self, ui: &mut Ui, s: &AppState) {
-        section_title(ui, t!("Now-playing display"));
+        experimental_title(ui, t!("Now-playing display"));
         let mut f = s.config.frame.clone();
         let before = f.clone();
         card_frame().show(ui, |ui| {
@@ -2890,7 +2890,7 @@ impl App {
                     ui.label(RichText::new(t!("Show what's playing on a picture frame or tablet")).color(TEXT()));
                     ui.label(
                         RichText::new(t!(
-                            "Gives other screens on your home network a web address that shows the cover and song that's playing. It can only look: nothing can be played or changed through it. Anyone on your network who has the address can see what you're playing, so keep it to yourself."
+                            "Gives other screens on your home network a web address that shows the cover and song that's playing. It can only look: nothing can be played or changed through it. Anyone on your network who has the address can see what you're playing, so keep it to yourself. This is experimental and may change."
                         ))
                         .size(12.0)
                         .color(TEXT_DIM()),

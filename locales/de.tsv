@@ -388,7 +388,7 @@ Up next	Als Nächstes
 Volume	Lautstärke
 Now-playing display	Anzeige „Läuft gerade“
 Show what's playing on a picture frame or tablet	Zeige auf einem Bilderrahmen oder Tablet, was läuft
-Gives other screens on your home network a web address that shows the cover and song that's playing. It can only look: nothing can be played or changed through it. Anyone on your network who has the address can see what you're playing, so keep it to yourself.	Gibt anderen Bildschirmen in deinem Heimnetz eine Webadresse, die Cover und Titel des laufenden Songs zeigt. Sie kann nur zeigen: Darüber lässt sich nichts abspielen oder ändern. Jeder in deinem Netz, der die Adresse hat, sieht, was du hörst. Behalte sie also für dich.
+Gives other screens on your home network a web address that shows the cover and song that's playing. It can only look: nothing can be played or changed through it. Anyone on your network who has the address can see what you're playing, so keep it to yourself. This is experimental and may change.	Gibt anderen Bildschirmen in deinem Heimnetz eine Webadresse, die Cover und Titel des laufenden Songs zeigt. Sie kann nur zeigen: Darüber lässt sich nichts abspielen oder ändern. Jeder in deinem Netz, der die Adresse hat, sieht, was du hörst. Behalte sie also für dich. Das ist experimentell und kann sich ändern.
 Ready on port {port}	Bereit an Port {port}
 Room to show	Anzuzeigender Raum
 The room I'm using	Der Raum, den ich gerade nutze

@@ -90,8 +90,8 @@ File: `show_lyrics` (`true` / `false`), default `false`.
 ### Volume
 *Volume keys move the volume by* (**5 by default**; choose 1, 2, 5 or 10): how far Ctrl (Cmd on a Mac) with the up and down arrow keys moves the volume of the selected room or group. A smaller step suits quiet listening. A slider that has the keyboard focus still moves by 1 with the arrow keys and by 10 with Shift.
 File: `volume_step` (`1`, `2`, `5` or `10`), default `5`; any other number is read as `5`.
-### Now-playing display
-*Show what's playing on a picture frame or tablet* (**off by default**): gives other screens on your home network a web address that shows the cover and song that's playing. It is **read-only** (nothing can be played or changed through it) and works while Roomtone is running, in the window or with `--headless`. The address looks like `http://<this computer>:8791/<secret>/`; the secret is made for you, and *New address* replaces it (screens using the old one stop working). Anyone on your network who has the address can see what you're playing. *Room to show* picks a room, or follows the room you're using. *Copy address* and *Open here* help you set it up.
+### Now-playing display (experimental)
+*Show what's playing on a picture frame or tablet* (**off by default**, tagged *Experimental*; tried only with the demo system and a pretend speaker, not yet on a real frame): gives other screens on your home network a web address that shows the cover and song that's playing. It is **read-only** (nothing can be played or changed through it) and works while Roomtone is running, in the window or with `--headless`. The address looks like `http://<this computer>:8791/<secret>/`; the secret is made for you, and *New address* replaces it (screens using the old one stop working). Anyone on your network who has the address can see what you're playing. *Room to show* picks a room, or follows the room you're using. *Copy address* and *Open here* help you set it up.
 Add `?text=0` to the address to hide the song's name, `?fit=cover` to fill the screen, `?size=1200` to ask for a particular cover size. The same address ending in `art.jpg` is just the cover (a JPEG) and ending in `now.json` is a description (`playing`, `title`, `artist`, `album`, `room`, `has_art`, `id`), for frames, Home Assistant and scripts. Details: SPEC §4.8a.
 File: `frame` (see the table below). To use it with `--headless` and no window, set `"enabled": true` in the file.
 ### Listening history
@@ -216,7 +216,7 @@ Complete `config.json`, with every field at its default (the access key is made 
 | `media_keys` | true/false | `true` | **Not used any more.** The keyboard media keys feature was removed after 0.8.3; the field is still read and kept so older settings files load. |
 | `volume_step` | 1, 2, 5, 10 | `5` | How far the volume keyboard shortcut (Ctrl or Cmd with the up and down arrows) moves the volume. |
 | `remember_history` | true/false | `true` | Keep a listening history on this computer. |
-| `frame` | object | off | The now-playing display: `enabled` (false), `port` (8791), `token` (the secret in the address; made for you) and `room` (a room's name; empty follows the room being used). |
+| `frame` | object | off | Experimental: the now-playing display: `enabled` (false), `port` (8791), `token` (the secret in the address; made for you) and `room` (a room's name; empty follows the room being used). |
 | `show_lyrics` | true/false | `false` | Experimental: show lyrics on Now Playing, fetched from lrclib.net. |
 | `show_alarms` | true/false | not set (off) | Show the Alarms page in the sidebar. |
 | `show_scenes` | true/false | not set (on only if you already have scenes) | Show the Scenes page and its Home shortcuts. |
