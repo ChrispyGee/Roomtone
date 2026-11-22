@@ -44,7 +44,7 @@
           "Image": "imgs/actions/pause"
         }
       ],
-      "UserTitleEnabled": false
+      "UserTitleEnabled": true
     },
     {
       "Name": "Next song",
@@ -59,7 +59,7 @@
           "Image": "imgs/actions/next"
         }
       ],
-      "UserTitleEnabled": false
+      "UserTitleEnabled": true
     },
     {
       "Name": "Previous song",
@@ -74,7 +74,7 @@
           "Image": "imgs/actions/previous"
         }
       ],
-      "UserTitleEnabled": false
+      "UserTitleEnabled": true
     },
     {
       "Name": "Now Playing",
@@ -140,7 +140,7 @@
           "Image": "imgs/actions/muted"
         }
       ],
-      "UserTitleEnabled": false
+      "UserTitleEnabled": true
     },
     {
       "Name": "Scene",
@@ -170,7 +170,7 @@
           "Image": "imgs/actions/pauseall"
         }
       ],
-      "UserTitleEnabled": false
+      "UserTitleEnabled": true
     },
     {
       "Name": "Volume Dial",

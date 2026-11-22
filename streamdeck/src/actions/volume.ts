@@ -83,7 +83,6 @@ export class Mute extends RoomtoneAction {
     this.last = now;
     if (a.isKey()) {
       await a.setState(now?.muted ? 1 : 0);
-      await a.setTitle("");
     }
   }
 

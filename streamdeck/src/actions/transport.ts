@@ -15,7 +15,6 @@ export class PlayPause extends RoomtoneAction {
   protected override async draw(a: Action<RoomSettings>, now: NowPlaying | undefined): Promise<void> {
     if (a.isKey()) {
       await a.setState(now?.state === "playing" ? 1 : 0);
-      await a.setTitle("");
     }
   }
   override async onKeyDown(ev: KeyDownEvent<RoomSettings>): Promise<void> {
