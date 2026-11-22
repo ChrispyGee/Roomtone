@@ -291,6 +291,9 @@ Prompts (ready-made instructions an assistant can offer the person): `play_for_m
 
 Each changing tool waits until the speakers have answered (up to 20 s). It then returns a one-line summary, or the speakers' error with `isError: true`. Refs last until the next list of the same kind.
 
+### 6.5 Stream Deck plugin (experimental)
+`streamdeck/` holds an **experimental** Elgato Stream Deck plugin (TypeScript, the official `@elgato/streamdeck` SDK, Node.js 24, Stream Deck 7.1 or later), separate from the Roomtone program and built with `npm` (see `streamdeck/README.md`). It is a client of the assistant link (§6), not a new interface: it sends only the tool calls `now_playing` (every 2 seconds while a button that shows something is on screen, once per room), `playback`, `set_volume` (whole group), `set_mute`, `apply_scene`, `pause_all`, `list_scenes` and `get_status`, to `http://<host>:<port>/mcp` (default `127.0.0.1:8790`) with the access key as a bearer token, and needs *Let AI assistants use Roomtone* and *Assistants can change things* on. Roomtone's volume limits (§4.8b) apply to what it sends. It has ten actions (play/pause, next, previous, now playing, volume up and down with hold-to-repeat, mute, scene, pause all, and a volume dial for Stream Deck +), a settings page for the connection, room, step and scene, and says on a button's face when Roomtone isn't running, the key is wrong or the link is off. Nothing in Roomtone changed for it, and it adds no network destination to §9. Checked with unit tests (a pretend Roomtone), Elgato's manifest validator, a build, and a test against a real demo Roomtone; **not tried on real Stream Deck hardware**.
+
 ## 7. Command-line options
 
 | Option | Effect |

@@ -1,0 +1,128 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<title>Roomtone</title>
+<style>
+  :root { color-scheme: dark; }
+  body { margin: 0; padding: 10px 12px 16px; font: 13px/1.4 system-ui, "Segoe UI", sans-serif; color: #d8d8d8; background: #2d2d2d; }
+  h2 { font-size: 12px; font-weight: 600; margin: 16px 0 6px; color: #fff; text-transform: uppercase; letter-spacing: .04em; }
+  h2:first-child { margin-top: 2px; }
+  label { display: block; margin: 8px 0 3px; color: #b8b8b8; }
+  input, select { box-sizing: border-box; width: 100%; padding: 5px 7px; color: #fff; background: #1d1d1d; border: 1px solid #555; border-radius: 3px; font: inherit; }
+  input:focus, select:focus { outline: 2px solid #ff8c52; outline-offset: 0; }
+  button { margin-top: 10px; padding: 5px 12px; color: #fff; background: #4a4a4a; border: 1px solid #666; border-radius: 3px; font: inherit; cursor: pointer; }
+  button:hover { background: #5a5a5a; }
+  .hint { color: #999; font-size: 12px; margin-top: 3px; }
+  .note { margin-top: 14px; padding: 7px 9px; background: #3a3320; border: 1px solid #6b5a22; border-radius: 3px; color: #e8d9a0; font-size: 12px; }
+  #status { margin-top: 6px; min-height: 1.4em; }
+  .ok { color: #7fd99a; } .bad { color: #ff8686; }
+  [hidden] { display: none !important; }
+</style>
+</head>
+<body>
+<div class="note">Experimental: this plugin is new and has had little testing on real Stream Decks.</div>
+
+<h2>This button</h2>
+<div id="step-row" hidden>
+  <label for="step">Volume step</label>
+  <input id="step" type="number" min="1" max="25" step="1" placeholder="5">
+  <div class="hint">How much each press, or turn of the dial, changes the volume (1 to 25).</div>
+</div>
+<div id="scene-row" hidden>
+  <label for="scene">Scene</label>
+  <input id="scene" type="text" list="scene-list" placeholder="A scene's name">
+  <datalist id="scene-list"></datalist>
+  <div class="hint">The name of one of Roomtone's scenes. Make them on its Scenes page.</div>
+</div>
+<div id="room-row">
+  <label for="room">Room</label>
+  <input id="room" type="text" placeholder="The room selected in Roomtone">
+  <div class="hint">Leave blank to follow the room selected in Roomtone, or type a room's name such as Kitchen.</div>
+</div>
+
+<h2>Connection (all buttons)</h2>
+<label for="host">Roomtone is on</label>
+<input id="host" type="text" placeholder="127.0.0.1">
+<label for="port">Port</label>
+<input id="port" type="number" min="1" max="65535" placeholder="8790">
+<label for="key">Access key</label>
+<input id="key" type="password" autocomplete="off" placeholder="Copy it from Roomtone's Settings › Assistants">
+<div class="hint">In Roomtone: Settings › Assistants, switch on <b>Let AI assistants use Roomtone</b> and copy the access key. Buttons need <b>Assistants can change things</b> on.</div>
+<button id="check" type="button">Check the connection</button>
+<div id="status" role="status" aria-live="polite"></div>
+
+<script>
+  let ws, uuid, actionName = "", settings = {}, globals = {};
+  const $ = (id) => document.getElementById(id);
+  const send = (message) => ws && ws.readyState === 1 && ws.send(JSON.stringify(message));
+
+  function connectElgatoStreamDeckSocket(port, inUUID, registerEvent, _info, actionInfo) {
+    uuid = inUUID;
+    const info = JSON.parse(actionInfo);
+    actionName = info.action || "";
+    settings = (info.payload && info.payload.settings) || {};
+    ws = new WebSocket("ws://127.0.0.1:" + port);
+    ws.onopen = () => {
+      send({ event: registerEvent, uuid });
+      send({ event: "getGlobalSettings", context: uuid });
+      showSettings();
+      if (actionName.endsWith(".scene")) send({ event: "sendToPlugin", action: actionName, context: uuid, payload: { request: "scenes" } });
+    };
+    ws.onmessage = (e) => {
+      const m = JSON.parse(e.data);
+      if (m.event === "didReceiveGlobalSettings") { globals = (m.payload && m.payload.settings) || {}; showGlobals(); }
+      if (m.event === "didReceiveSettings") { settings = (m.payload && m.payload.settings) || {}; showSettings(); }
+      if (m.event === "sendToPropertyInspector") reply(m.payload || {});
+    };
+  }
+  window.connectElgatoStreamDeckSocket = connectElgatoStreamDeckSocket;
+
+  function reply(p) {
+    if (p.reply === "check") {
+      $("status").className = p.ok ? "ok" : "bad";
+      $("status").textContent = p.message || "";
+    } else if (p.reply === "scenes" && p.ok) {
+      $("scene-list").replaceChildren(...(p.scenes || []).map((name) => Object.assign(document.createElement("option"), { value: name })));
+    }
+  }
+
+  function showSettings() {
+    const volume = /\.(volumeup|volumedown|volumedial)$/.test(actionName);
+    const scene = actionName.endsWith(".scene");
+    $("step-row").hidden = !volume;
+    $("scene-row").hidden = !scene;
+    $("room-row").hidden = scene;
+    $("step").value = settings.step ?? "";
+    $("scene").value = settings.scene ?? "";
+    $("room").value = settings.room ?? "";
+  }
+
+  function showGlobals() {
+    $("host").value = globals.host ?? "";
+    $("port").value = globals.port ?? "";
+    $("key").value = globals.key ?? "";
+  }
+
+  function saveSettings() {
+    settings = { ...settings, room: $("room").value.trim(), step: $("step").value === "" ? undefined : Number($("step").value), scene: $("scene").value.trim() };
+    send({ event: "setSettings", context: uuid, payload: settings });
+  }
+
+  function saveGlobals() {
+    globals = { host: $("host").value.trim(), port: $("port").value === "" ? undefined : Number($("port").value), key: $("key").value.trim() };
+    send({ event: "setGlobalSettings", context: uuid, payload: globals });
+  }
+
+  for (const id of ["step", "scene", "room"]) $(id).addEventListener("change", saveSettings);
+  for (const id of ["host", "port", "key"]) $(id).addEventListener("change", saveGlobals);
+  $("check").addEventListener("click", () => {
+    saveGlobals();
+    $("status").className = "";
+    $("status").textContent = "Checking…";
+    // Give Stream Deck a moment to hand the new settings to the plugin, then ask it to try.
+    setTimeout(() => send({ event: "sendToPlugin", action: actionName, context: uuid, payload: { request: "check" } }), 400);
+  });
+</script>
+</body>
+</html>
