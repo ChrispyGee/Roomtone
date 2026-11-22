@@ -67,6 +67,8 @@ A summary line says how many speakers can't run S2 (a system with such speakers 
 ### Appearance
 *Light or dark*: **Automatic** (follows your computer, live), **Light** or **Dark**. Changes at once.
 File: `theme` (`"auto"`, `"light"`, `"dark"`). Default `auto`. For one run only: `--theme`.
+*High contrast* (**off by default**): stronger text, outlines on every control, brighter accent and status colours and stronger slider tracks, in both light and dark. Text and the dim text reach at least 7:1 against the background (WCAG AAA); the faint text and accent colours at least 4.5:1. The usual palettes keep text at 4.5:1 or better but use fainter wording for secondary notes (about 3:1) and a deeper orange that is about 3:1 on light backgrounds, which is why this switch exists. Changes at once.
+File: `high_contrast` (`true` / `false`), default `false`. For one run only: the environment variable `ROOMTONE_CONTRAST=1`.
 
 ### Language
 *App language*: **Automatic** (follows your computer's language), or English, German, French, Spanish, Italian or Dutch. Changes at once; anything not yet translated shows in English.
@@ -191,6 +193,7 @@ Complete `config.json`, with every field at its default (the access key is made 
     "room": ""
   },
   "theme": "auto",
+  "high_contrast": false,
   "speaker_events": false,
   "room_order": [],
   "check_new_versions": false,
@@ -214,6 +217,7 @@ Complete `config.json`, with every field at its default (the access key is made 
 | `scenes` | list | `[]` | Scenes. Each: `name`, `household`, `rooms` (a list of `{ "room": name, "volume": 0-100 or null, "bass": -10..10 or null, "treble": -10..10 or null, "night": true, false or null, "speech": true, false or null }`; a room that's already playing leads the group, otherwise the first), `group` (play together, default true), `play` (a favorite or playlist name, or empty), `sleep_minutes` (0 for none). |
 | `language` | text | `"auto"` | `auto`, or `en`, `de`, `fr`, `es`, `it`, `nl`. |
 | `theme` | text | `"auto"` | `auto`, `light` or `dark`. |
+| `high_contrast` | true/false | `false` | Stronger text, outlines and colours. |
 | `speaker_events` | true/false | `false` | Instant updates from the speakers. |
 | `room_order` | list of text | `[]` | The order you arranged your rooms in (room ids, first to last). Rooms not listed come after, in the speakers' own order. Managed by *Arrange* in the Rooms panel. |
 | `check_new_versions` | true/false | `false` | Look for a newer Roomtone at start-up and about once a day. |

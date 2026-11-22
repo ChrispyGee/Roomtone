@@ -399,6 +399,12 @@ Open here	Ouvrir ici
 New address	Nouvelle adresse
 Screens using the old address will stop working until you give them the new one	Les écrans qui utilisent l'ancienne adresse cesseront de fonctionner tant que vous ne leur donnez pas la nouvelle
 Add ?text=0 to hide the song's name, or ?fit=cover to fill the screen. The same address ends in art.jpg for just the cover and now.json for a description.	Ajoutez ?text=0 pour masquer le nom du morceau, ou ?fit=cover pour remplir l'écran. La même adresse terminée par art.jpg donne la pochette seule, et par now.json une description.
+{n} of 100	{n} sur 100
+{pos} of {total}	{pos} sur {total}
+{n} on a scale from -10 to +10	{n} sur une échelle de -10 à +10
+Controlling {room}	Commande {room}
+High contrast	Contraste élevé
+Stronger text, outlines and colours, for when the usual ones are hard to see.	Texte, contours et couleurs plus marqués, quand les habituels sont difficiles à voir.
 At these times every room is held to a lower volume. Uses the speakers' clock.	À ces heures, chaque pièce est limitée à un volume plus bas. Selon l'horloge des enceintes.
 Drag or type to set a limit	Faites glisser ou saisissez pour fixer une limite
 From	De

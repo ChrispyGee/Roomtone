@@ -1681,7 +1681,8 @@ impl App {
                 let pos = g.now.live_position();
                 if dur > 0.0 {
                     let mut v = self.seek_drag.unwrap_or(pos / dur);
-                    let (r, changed) = slider(ui, "np_seek", t!("Playback position"), &mut v, cw, ACCENT());
+                    let said = t!("{pos} of {total}", pos = fmt_time(v * dur), total = fmt_time(dur));
+                    let (r, changed) = slider(ui, "np_seek", t!("Playback position"), &mut v, cw, ACCENT(), &said);
                     if changed {
                         self.seek_drag = Some(v);
                     }
@@ -1906,7 +1907,8 @@ impl App {
             }
             let mut v = self.shown_volume(key, volume);
             let w = ui.available_width() - 40.0;
-            let (_, changed) = slider(ui, key, name, &mut v, w, if strong { ACCENT() } else { TEXT() });
+            let said = t!("{n} of 100", n = (v * 100.0).round() as u32);
+            let (_, changed) = slider(ui, key, name, &mut v, w, if strong { ACCENT() } else { TEXT() }, &said);
             if changed {
                 self.local_vol.insert(key.to_string(), (v, Instant::now()));
                 self.send(set((v * 100.0).round() as u8));
@@ -1963,7 +1965,8 @@ impl App {
             ui.horizontal(|ui| {
                 ui.label(RichText::new(t!("Volume")).color(TEXT_DIM()));
                 let mut v = self.timer_volume as f32 / 100.0;
-                if slider(ui, "timer_vol", t!("Volume"), &mut v, 140.0, ACCENT()).1 {
+                let said = t!("{n} of 100", n = self.timer_volume);
+                if slider(ui, "timer_vol", t!("Volume"), &mut v, 140.0, ACCENT(), &said).1 {
                     self.timer_volume = (v * 100.0).round() as u8;
                 }
                 ui.label(RichText::new(self.timer_volume.to_string()).color(TEXT_DIM()));
@@ -2170,7 +2173,8 @@ impl App {
             ui.label(RichText::new(t!("Volume")).color(TEXT_DIM()));
             ui.horizontal(|ui| {
                 let mut v = a.volume as f32 / 100.0;
-                if slider(ui, "alarm_vol", t!("Volume"), &mut v, 180.0, ACCENT()).1 {
+                let said = t!("{n} of 100", n = (v * 100.0).round() as u32);
+                if slider(ui, "alarm_vol", t!("Volume"), &mut v, 180.0, ACCENT(), &said).1 {
                     a.volume = (v * 100.0).round() as u8;
                 }
                 ui.label(RichText::new(a.volume.to_string()).color(TEXT_DIM()));
@@ -3364,6 +3368,22 @@ impl App {
                     }
                 });
             });
+            ui.separator();
+            let mut hc = s.config.high_contrast;
+            ui.horizontal(|ui| {
+                ui.set_min_height(40.0);
+                ui.vertical(|ui| {
+                    ui.set_max_width((ui.available_width() - 64.0).max(120.0));
+                    ui.label(RichText::new(t!("High contrast")).color(TEXT()));
+                    ui.label(RichText::new(t!("Stronger text, outlines and colours, for when the usual ones are hard to see.")).size(12.0).color(TEXT_DIM()));
+                });
+                ui.with_layout(Layout::right_to_left(Align::Center), |ui| {
+                    toggle(ui, &mut hc, t!("High contrast"));
+                });
+            });
+            if hc != s.config.high_contrast {
+                self.send(Cmd::SetContrast(hc));
+            }
         });
     }
 
@@ -3605,7 +3625,8 @@ impl App {
                     });
                     ui.label(RichText::new("−").color(TEXT_FAINT()));
                     let mut v = (value + 10) as f32 / 20.0;
-                    let (_, changed) = slider(ui, label, label, &mut v, w - 190.0, ACCENT());
+                    let said = t!("{n} on a scale from -10 to +10", n = format!("{:+}", (v * 20.0).round() as i32 - 10));
+                    let (_, changed) = slider(ui, label, label, &mut v, w - 190.0, ACCENT(), &said);
                     ui.label(RichText::new("+").color(TEXT_FAINT()));
                     let nv = (v * 20.0).round() as i32 - 10;
                     ui.label(RichText::new(format!("{nv:+}")).size(12.5).color(TEXT_DIM()));

@@ -10,6 +10,12 @@ use std::sync::atomic::{AtomicBool, Ordering};
 use eframe::egui::{self, Color32, FontFamily, FontId, Stroke, TextStyle};
 
 static DARK: AtomicBool = AtomicBool::new(true);
+static CONTRAST: AtomicBool = AtomicBool::new(false);
+
+/// Is the *High contrast* palette in use (stronger text, lines and tints)?
+pub fn high_contrast() -> bool {
+    CONTRAST.load(Ordering::Relaxed)
+}
 
 /// Is the dark palette in use?
 pub fn is_dark() -> bool {
@@ -25,45 +31,53 @@ const fn rgb(r: u8, g: u8, b: u8) -> Color32 {
 }
 
 macro_rules! palette {
-    ($($(#[$doc:meta])* $name:ident: $dark:expr, $light:expr;)*) => {
+    ($($(#[$doc:meta])* $name:ident: $dark:expr, $light:expr, $hc_dark:expr, $hc_light:expr;)*) => {
         $(
             $(#[$doc])*
             #[allow(non_snake_case)]
             #[inline]
             pub fn $name() -> Color32 {
-                if is_dark() { $dark } else { $light }
+                match (is_dark(), high_contrast()) {
+                    (true, false) => $dark,
+                    (false, false) => $light,
+                    (true, true) => $hc_dark,
+                    (false, true) => $hc_light,
+                }
             }
         )*
     };
 }
 
+// Each colour has four values: dark, light, and a stronger dark and light for *High contrast*.
 palette! {
     /// The window background.
-    BG: rgb(13, 14, 18), rgb(244, 244, 247);
+    BG: rgb(13, 14, 18), rgb(244, 244, 247), rgb(0, 0, 0), rgb(255, 255, 255);
     /// The sidebar and the bottom bar.
-    SIDEBAR: rgb(18, 19, 24), rgb(234, 235, 240);
+    SIDEBAR: rgb(18, 19, 24), rgb(234, 235, 240), rgb(8, 8, 10), rgb(240, 240, 244);
     /// Cards.
-    SURFACE: rgb(26, 28, 35), rgb(255, 255, 255);
+    SURFACE: rgb(26, 28, 35), rgb(255, 255, 255), rgb(16, 16, 20), rgb(255, 255, 255);
     /// Buttons and raised parts of cards.
-    SURFACE_HI: rgb(36, 39, 49), rgb(230, 231, 237);
-    SURFACE_HOVER: rgb(44, 47, 59), rgb(218, 220, 228);
-    LINE: rgb(44, 47, 58), rgb(212, 214, 222);
-    TEXT: rgb(242, 243, 246), rgb(22, 23, 28);
-    TEXT_DIM: rgb(154, 160, 176), rgb(84, 89, 102);
-    TEXT_FAINT: rgb(98, 104, 120), rgb(134, 139, 152);
+    SURFACE_HI: rgb(36, 39, 49), rgb(230, 231, 237), rgb(40, 42, 52), rgb(222, 224, 232);
+    SURFACE_HOVER: rgb(44, 47, 59), rgb(218, 220, 228), rgb(62, 65, 80), rgb(200, 203, 214);
+    LINE: rgb(44, 47, 58), rgb(212, 214, 222), rgb(160, 166, 184), rgb(90, 94, 108);
+    TEXT: rgb(242, 243, 246), rgb(22, 23, 28), rgb(255, 255, 255), rgb(0, 0, 0);
+    TEXT_DIM: rgb(154, 160, 176), rgb(84, 89, 102), rgb(214, 218, 230), rgb(40, 44, 56);
+    TEXT_FAINT: rgb(98, 104, 120), rgb(134, 139, 152), rgb(176, 182, 198), rgb(84, 89, 102);
     /// The orange of the brand; a little deeper on light backgrounds for contrast.
-    ACCENT: rgb(255, 140, 82), rgb(230, 104, 42);
-    ACCENT_SOFT: rgb(64, 40, 30), rgb(255, 230, 216);
-    GOOD: rgb(88, 214, 141), rgb(26, 146, 80);
-    BAD: rgb(255, 99, 99), rgb(204, 50, 50);
-    S1_TINT: rgb(120, 170, 255), rgb(48, 104, 214);
-    S2_TINT: rgb(255, 140, 82), rgb(230, 104, 42);
+    ACCENT: rgb(255, 140, 82), rgb(230, 104, 42), rgb(255, 170, 120), rgb(170, 60, 8);
+    ACCENT_SOFT: rgb(64, 40, 30), rgb(255, 230, 216), rgb(90, 52, 36), rgb(255, 222, 204);
+    GOOD: rgb(88, 214, 141), rgb(26, 146, 80), rgb(110, 235, 160), rgb(10, 100, 46);
+    BAD: rgb(255, 99, 99), rgb(204, 50, 50), rgb(255, 130, 130), rgb(170, 20, 20);
+    S1_TINT: rgb(120, 170, 255), rgb(48, 104, 214), rgb(150, 195, 255), rgb(20, 70, 180);
+    S2_TINT: rgb(255, 140, 82), rgb(230, 104, 42), rgb(255, 170, 120), rgb(170, 60, 8);
     /// Text fields and other sunken areas.
-    SUNKEN: rgb(20, 21, 27), rgb(236, 237, 242);
+    SUNKEN: rgb(20, 21, 27), rgb(236, 237, 242), rgb(0, 0, 0), rgb(240, 240, 244);
 }
 
 /// A faint wash over the background (slider tracks, hover tints): white on dark, black on light.
 pub fn overlay(alpha: u8) -> Color32 {
+    // High contrast: twice as strong, so slider tracks and hover tints can be seen.
+    let alpha = if high_contrast() { alpha.saturating_mul(2) } else { alpha };
     if is_dark() {
         Color32::from_white_alpha(alpha)
     } else {
@@ -111,13 +125,25 @@ pub fn apply(ctx: &egui::Context) {
         }
     }
     ctx.set_fonts(fonts);
+    restyle(ctx);
+}
 
+/// Build both styles from the palettes now in use.
+fn restyle(ctx: &egui::Context) {
     let was = is_dark();
     for (theme, dark) in [(egui::Theme::Dark, true), (egui::Theme::Light, false)] {
         set_dark(dark);
         ctx.set_style_of(theme, style(dark));
     }
     set_dark(was);
+}
+
+/// Switch *High contrast* on or off (the styles are rebuilt only when it changes).
+pub fn set_contrast(ctx: &egui::Context, on: bool) {
+    if high_contrast() != on {
+        CONTRAST.store(on, Ordering::Relaxed);
+        restyle(ctx);
+    }
 }
 
 /// Light, dark or follow the computer.
@@ -180,6 +206,12 @@ fn style(dark: bool) -> egui::Style {
     v.widgets.active.weak_bg_fill = ACCENT();
     v.widgets.active.fg_stroke = Stroke::new(1.0_f32, Color32::BLACK);
     v.widgets.open.weak_bg_fill = SURFACE_HOVER();
+    if high_contrast() {
+        // Outline every control, so it doesn't rely on a faint fill to be seen.
+        for w in [&mut v.widgets.inactive, &mut v.widgets.hovered, &mut v.widgets.active, &mut v.widgets.open] {
+            w.bg_stroke = Stroke::new(1.0_f32, LINE());
+        }
+    }
     style
 }
 
@@ -202,6 +234,63 @@ mod tests {
         set_dark(false);
         assert_ne!(d, BG());
         set_dark(was);
+    }
+
+    /// WCAG contrast ratio between two colours (1 to 21).
+    fn ratio(a: Color32, b: Color32) -> f32 {
+        let lin = |c: u8| {
+            let c = c as f32 / 255.0;
+            if c <= 0.03928 {
+                c / 12.92
+            } else {
+                ((c + 0.055) / 1.055).powf(2.4)
+            }
+        };
+        let l = |c: Color32| 0.2126 * lin(c.r()) + 0.7152 * lin(c.g()) + 0.0722 * lin(c.b());
+        let (hi, lo) = (l(a).max(l(b)), l(a).min(l(b)));
+        (hi + 0.05) / (lo + 0.05)
+    }
+
+    /// Run `check` once for each of the four palettes, with the flags set to match.
+    fn each_palette(mut check: impl FnMut(&str, bool)) {
+        let (was_dark, was_hc) = (is_dark(), high_contrast());
+        for (name, dark, hc) in [("dark", true, false), ("light", false, false), ("high-contrast dark", true, true), ("high-contrast light", false, true)] {
+            set_dark(dark);
+            CONTRAST.store(hc, Ordering::Relaxed);
+            check(name, hc);
+        }
+        set_dark(was_dark);
+        CONTRAST.store(was_hc, Ordering::Relaxed);
+    }
+
+    #[test]
+    fn text_is_readable_in_every_palette_and_strongly_so_in_high_contrast() {
+        each_palette(|name, hc| {
+            for (bg_name, bg) in [("BG", BG()), ("SURFACE", SURFACE()), ("SIDEBAR", SIDEBAR())] {
+                // Ordinary palettes: WCAG AA (4.5) for the main and dim text. High contrast: AAA (7).
+                let need = if hc { 7.0 } else { 4.5 };
+                for (fg_name, fg) in [("TEXT", TEXT()), ("TEXT_DIM", TEXT_DIM())] {
+                    let r = ratio(fg, bg);
+                    assert!(r >= need, "{fg_name} on {bg_name} in {name}: {r:.2}, needs {need}");
+                }
+            }
+        });
+    }
+
+    #[test]
+    fn accents_and_the_faint_text_are_readable_in_high_contrast() {
+        each_palette(|name, hc| {
+            if !hc {
+                return;
+            }
+            for (bg_name, bg) in [("BG", BG()), ("SURFACE", SURFACE()), ("SURFACE_HI", SURFACE_HI())] {
+                for (fg_name, fg) in [("TEXT_FAINT", TEXT_FAINT()), ("ACCENT", ACCENT()), ("GOOD", GOOD()), ("BAD", BAD()), ("S1_TINT", S1_TINT())] {
+                    let r = ratio(fg, bg);
+                    assert!(r >= 4.5, "{fg_name} on {bg_name} in {name}: {r:.2}, needs 4.5");
+                }
+            }
+            assert!(ratio(LINE(), BG()) >= 3.0, "outlines must be visible in {name}");
+        });
     }
 
     #[test]
