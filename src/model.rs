@@ -526,7 +526,7 @@ pub struct AppState {
     pub errors: Vec<(u64, String)>,
     /// Is the assistant link (MCP) listening right now, and where.
     pub mcp_status: String,
-    /// Is the now-playing display listening: "ok:<port>", "err:<why>" or empty when it's off.
+    /// Is the now-playing display listening: `ok:PORT`, `err:WHY` or empty when it's off.
     pub frame_status: String,
     /// A backup file the person chose to restore, shown for them to look over.
     pub backup_preview: Option<(std::path::PathBuf, crate::backup::Summary)>,

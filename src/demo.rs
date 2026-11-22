@@ -520,6 +520,7 @@ pub fn apply(s: &mut AppState, cmd: &Cmd) {
         | Cmd::SetLanguage(_)
         | Cmd::SetMcp(_)
         | Cmd::SetFrame(_)
+        | Cmd::PlayFiles(..)
         | Cmd::SetEvents(_)
         | Cmd::CheckS2(_)
         | Cmd::Diagnose

@@ -399,6 +399,10 @@ Open here	Hier öffnen
 New address	Neue Adresse
 Screens using the old address will stop working until you give them the new one	Bildschirme mit der alten Adresse funktionieren nicht mehr, bis du ihnen die neue gibst
 Add ?text=0 to hide the song's name, or ?fit=cover to fill the screen. The same address ends in art.jpg for just the cover and now.json for a description.	Hänge ?text=0 an, um den Songnamen auszublenden, oder ?fit=cover, um den Bildschirm zu füllen. Dieselbe Adresse mit art.jpg am Ende liefert nur das Cover, mit now.json eine Beschreibung.
+Drop songs to play them in {room}	Songs hier ablegen, um sie in {room} abzuspielen
+Joining {room} to {other}	{room} wird mit {other} verbunden
+Pick a room first, then drop the songs on the window	Wähle zuerst einen Raum und lege die Songs dann im Fenster ab
+There were no songs to play in what you dropped	In dem, was du abgelegt hast, waren keine Songs zum Abspielen
 Volume keys move the volume by	Die Lautstärketasten ändern die Lautstärke um
 Ctrl (Cmd on a Mac) with the up and down arrow keys. A smaller step is gentler for quiet listening.	Strg (auf dem Mac Cmd) mit den Pfeiltasten nach oben und unten. Ein kleinerer Schritt ist angenehmer bei leiser Wiedergabe.
 Match all rooms to this volume	Alle Räume auf diese Lautstärke setzen
