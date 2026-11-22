@@ -386,6 +386,24 @@ Unknown room	Unbekannter Raum
 Unsubscribe	Abo beenden
 Up next	Als Nächstes
 Volume	Lautstärke
+A tuning measured in the Sonos app (Trueplay). Roomtone can only switch it on or off	Eine in der Sonos-App gemessene Abstimmung (Trueplay). Roomtone kann sie nur ein- oder ausschalten
+Blinks its status light a few times, then puts it back	Lässt die Statusleuchte einige Male blinken und stellt sie dann wieder zurück
+Find this speaker	Diesen Lautsprecher finden
+Flip the sub's polarity if it sounds thin or boomy next to the other speakers	Die Polarität des Subs umkehren, wenn er neben den anderen Lautsprechern dünn oder dröhnend klingt
+Height speakers level	Pegel der Höhenlautsprecher
+Home theatre	Heimkino
+Invert the sub's phase	Phase des Subs umkehren
+Lip-sync delay	Lippensynchronität (Verzögerung)
+Room tuning	Raumabstimmung
+Sub	Sub
+Sub level	Sub-Pegel
+Surround level (TV)	Surround-Pegel (TV)
+Surround level (music)	Surround-Pegel (Musik)
+Surround speakers	Surround-Lautsprecher
+These settings are new and have not been tried on a real home-theatre set yet. They are shown only for a room that has a sub, surround speakers or a soundbar.	Diese Einstellungen sind neu und wurden noch nicht an einem echten Heimkino-Set ausprobiert. Sie erscheinen nur für einen Raum mit Sub, Surround-Lautsprechern oder einer Soundbar.
+Use the rear speakers	Die hinteren Lautsprecher verwenden
+Use the sub	Den Sub verwenden
+{n} on a scale from {low} to {high}	{n} auf einer Skala von {low} bis {high}
 Volume limits: a highest volume for each room, and quiet hours	Lautstärkelimits: eine Höchstlautstärke für jeden Raum und Ruhezeiten
 Alarms can be copied or made in several rooms at once, and a timer rings a chime	Wecker lassen sich kopieren oder in mehreren Räumen gleichzeitig anlegen, und ein Timer läutet einen Signalton
 Drag rooms to group them, drag songs in the queue, or drop songs on the window to play them	Räume zum Gruppieren ziehen, Songs in der Warteschlange ziehen oder Songs auf das Fenster ziehen, um sie abzuspielen

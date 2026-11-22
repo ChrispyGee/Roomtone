@@ -26,6 +26,158 @@ pub struct RoomSettings {
     pub night: Option<bool>,
     pub speech: Option<bool>,
     pub status_light: bool,
+    // Home-theatre settings. Each is `None` unless the room has what it needs: a sub or surrounds
+    // bonded to it, a soundbar model, a measured room tuning (see `SoundKind`).
+    pub sub_enabled: Option<bool>,
+    pub sub_level: Option<i32>,
+    pub sub_inverted: Option<bool>,
+    pub surround_enabled: Option<bool>,
+    pub surround_tv: Option<i32>,
+    pub surround_music: Option<i32>,
+    pub height: Option<i32>,
+    pub delay: Option<i32>,
+    pub trueplay: Option<bool>,
+}
+
+/// The home-theatre settings a room may have, besides bass, treble and the on/off ones.
+/// On/off ones carry 0 or 1.
+#[derive(Clone, Copy, Debug, PartialEq, Eq, Hash)]
+pub enum SoundKind {
+    SubEnabled,
+    SubLevel,
+    SubInverted,
+    SurroundEnabled,
+    SurroundTv,
+    SurroundMusic,
+    Height,
+    Delay,
+    /// A measured room tuning (Trueplay) on or off. Roomtone can't make one.
+    Trueplay,
+}
+
+impl SoundKind {
+    pub const ALL: [SoundKind; 9] = [
+        SoundKind::SubEnabled,
+        SoundKind::SubLevel,
+        SoundKind::SubInverted,
+        SoundKind::SurroundEnabled,
+        SoundKind::SurroundTv,
+        SoundKind::SurroundMusic,
+        SoundKind::Height,
+        SoundKind::Delay,
+        SoundKind::Trueplay,
+    ];
+
+    /// The `EQType` the speaker's `GetEQ` and `SetEQ` know it by (not for the room tuning, which has its own action).
+    pub fn eq_type(self) -> Option<&'static str> {
+        Some(match self {
+            SoundKind::SubEnabled => "SubEnabled",
+            SoundKind::SubLevel => "SubGain",
+            SoundKind::SubInverted => "SubPolarity",
+            SoundKind::SurroundEnabled => "SurroundEnabled",
+            SoundKind::SurroundTv => "SurroundLevel",
+            SoundKind::SurroundMusic => "MusicSurroundLevel",
+            SoundKind::Height => "HeightChannelLevel",
+            SoundKind::Delay => "AudioDelay",
+            SoundKind::Trueplay => return None,
+        })
+    }
+
+    /// On/off (0 or 1), as opposed to a level.
+    pub fn is_toggle(self) -> bool {
+        matches!(self, SoundKind::SubEnabled | SoundKind::SubInverted | SoundKind::SurroundEnabled | SoundKind::Trueplay)
+    }
+
+    /// The lowest and highest value Roomtone sends. These are the ranges the maker's own app is
+    /// known to use; the speakers don't publish them, so a value outside them is refused by the speaker.
+    pub fn range(self) -> (i32, i32) {
+        match self {
+            SoundKind::SubLevel | SoundKind::SurroundTv | SoundKind::SurroundMusic => (-15, 15),
+            SoundKind::Height => (-10, 10),
+            SoundKind::Delay => (0, 5),
+            _ => (0, 1),
+        }
+    }
+
+    /// The name assistants use for it.
+    pub fn key(self) -> &'static str {
+        match self {
+            SoundKind::SubEnabled => "sub_enabled",
+            SoundKind::SubLevel => "sub_level",
+            SoundKind::SubInverted => "sub_inverted",
+            SoundKind::SurroundEnabled => "surround_enabled",
+            SoundKind::SurroundTv => "surround_tv_level",
+            SoundKind::SurroundMusic => "surround_music_level",
+            SoundKind::Height => "height_level",
+            SoundKind::Delay => "audio_delay",
+            SoundKind::Trueplay => "trueplay",
+        }
+    }
+
+    /// What a room needs to have this setting, in words (for an assistant that asks for one it lacks).
+    pub fn needs(self) -> &'static str {
+        match self {
+            SoundKind::SubEnabled | SoundKind::SubLevel | SoundKind::SubInverted => "sub bonded to it",
+            SoundKind::SurroundEnabled | SoundKind::SurroundTv | SoundKind::SurroundMusic => "pair of surround speakers bonded to it",
+            SoundKind::Height => "height channel (an Arc)",
+            SoundKind::Delay => "soundbar",
+            SoundKind::Trueplay => "tuning measured in the Sonos app",
+        }
+    }
+
+    pub fn clamp(self, v: i32) -> i32 {
+        let (lo, hi) = self.range();
+        v.clamp(lo, hi)
+    }
+}
+
+impl RoomSettings {
+    /// The value of a home-theatre setting, or `None` if this room doesn't have it.
+    pub fn get(&self, kind: SoundKind) -> Option<i32> {
+        let b = |v: Option<bool>| v.map(i32::from);
+        match kind {
+            SoundKind::SubEnabled => b(self.sub_enabled),
+            SoundKind::SubLevel => self.sub_level,
+            SoundKind::SubInverted => b(self.sub_inverted),
+            SoundKind::SurroundEnabled => b(self.surround_enabled),
+            SoundKind::SurroundTv => self.surround_tv,
+            SoundKind::SurroundMusic => self.surround_music,
+            SoundKind::Height => self.height,
+            SoundKind::Delay => self.delay,
+            SoundKind::Trueplay => b(self.trueplay),
+        }
+    }
+
+    pub fn set(&mut self, kind: SoundKind, v: i32) {
+        let v = kind.clamp(v);
+        match kind {
+            SoundKind::SubEnabled => self.sub_enabled = Some(v != 0),
+            SoundKind::SubLevel => self.sub_level = Some(v),
+            SoundKind::SubInverted => self.sub_inverted = Some(v != 0),
+            SoundKind::SurroundEnabled => self.surround_enabled = Some(v != 0),
+            SoundKind::SurroundTv => self.surround_tv = Some(v),
+            SoundKind::SurroundMusic => self.surround_music = Some(v),
+            SoundKind::Height => self.height = Some(v),
+            SoundKind::Delay => self.delay = Some(v),
+            SoundKind::Trueplay => self.trueplay = Some(v != 0),
+        }
+    }
+
+    /// Does the room have any home-theatre setting?
+    pub fn has_home_theatre(&self) -> bool {
+        SoundKind::ALL.iter().any(|k| self.get(*k).is_some())
+    }
+}
+
+/// A soundbar (or amp) model name: the ones with TV audio, which have night sound and a lip-sync delay.
+pub fn model_is_soundbar(model: &str) -> bool {
+    let m = model.to_lowercase();
+    ["beam", "arc", "ray", "playbar", "playbase", "amp", "soundbar"].iter().any(|k| m.contains(k))
+}
+
+/// The models that have a height channel (Dolby Atmos speakers on top).
+pub fn model_has_height(model: &str) -> bool {
+    model.to_lowercase().contains("arc")
 }
 
 #[derive(Clone, Debug)]
@@ -934,5 +1086,38 @@ mod unit {
         }
         assert_eq!(s.toasts.len(), 4);
         assert_eq!(s.toasts.last().map(|t| t.text.as_str()), Some("note 5"));
+    }
+}
+
+#[cfg(test)]
+mod sound_tests {
+    use super::*;
+
+    #[test]
+    fn every_home_theatre_setting_has_a_name_a_range_and_survives_set_and_get() {
+        let mut keys = std::collections::HashSet::new();
+        for k in SoundKind::ALL {
+            assert!(keys.insert(k.key()), "names are unique: {}", k.key());
+            let (lo, hi) = k.range();
+            assert!(lo < hi);
+            assert_eq!(k.eq_type().is_none(), k == SoundKind::Trueplay, "only the room tuning has its own action");
+            assert_eq!(k.is_toggle(), (lo, hi) == (0, 1));
+            assert!(!k.needs().is_empty());
+            let mut s = RoomSettings::default();
+            assert_eq!(s.get(k), None, "nothing until the room says it has it");
+            s.set(k, hi + 100);
+            assert_eq!(s.get(k), Some(hi), "{k:?} is kept inside its range");
+            s.set(k, lo - 100);
+            assert_eq!(s.get(k), Some(lo));
+            assert!(s.has_home_theatre());
+        }
+        assert!(!RoomSettings::default().has_home_theatre());
+    }
+
+    #[test]
+    fn models_with_tv_audio_and_a_height_channel() {
+        assert!(model_is_soundbar("Beam") && model_is_soundbar("Arc") && model_is_soundbar("Playbar") && model_is_soundbar("Playbase"));
+        assert!(!model_is_soundbar("Play:3") && !model_is_soundbar("One SL"));
+        assert!(model_has_height("Arc") && model_has_height("Arc Ultra") && !model_has_height("Beam"));
     }
 }

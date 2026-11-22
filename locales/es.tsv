@@ -386,6 +386,24 @@ Unknown room	Sala desconocida
 Unsubscribe	Cancelar suscripción
 Up next	A continuación
 Volume	Volumen
+A tuning measured in the Sonos app (Trueplay). Roomtone can only switch it on or off	Un ajuste medido en la app de Sonos (Trueplay). Roomtone solo puede activarlo o desactivarlo
+Blinks its status light a few times, then puts it back	Hace parpadear la luz de estado unas veces y la deja como estaba
+Find this speaker	Encontrar este altavoz
+Flip the sub's polarity if it sounds thin or boomy next to the other speakers	Invertir la polaridad del sub si suena delgado o retumbante junto a los demás altavoces
+Height speakers level	Nivel de los altavoces de altura
+Home theatre	Cine en casa
+Invert the sub's phase	Invertir la fase del sub
+Lip-sync delay	Retardo de audio (sincronía labial)
+Room tuning	Ajuste de la sala
+Sub	Sub
+Sub level	Nivel del sub
+Surround level (TV)	Nivel envolvente (TV)
+Surround level (music)	Nivel envolvente (música)
+Surround speakers	Altavoces envolventes
+These settings are new and have not been tried on a real home-theatre set yet. They are shown only for a room that has a sub, surround speakers or a soundbar.	Estos ajustes son nuevos y aún no se han probado en un equipo de cine en casa real. Solo aparecen en una sala con sub, altavoces envolventes o una barra de sonido.
+Use the rear speakers	Usar los altavoces traseros
+Use the sub	Usar el sub
+{n} on a scale from {low} to {high}	{n} en una escala de {low} a {high}
 Volume limits: a highest volume for each room, and quiet hours	Límites de volumen: un volumen máximo para cada habitación y horas de silencio
 Alarms can be copied or made in several rooms at once, and a timer rings a chime	Las alarmas se pueden copiar o crear en varias habitaciones a la vez, y un temporizador hace sonar un aviso
 Drag rooms to group them, drag songs in the queue, or drop songs on the window to play them	Arrastra habitaciones para agruparlas, canciones en la cola, o suelta canciones en la ventana para reproducirlas

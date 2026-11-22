@@ -4,7 +4,7 @@ use std::time::Instant;
 
 use super::soap::{call, ALARM_CLOCK, AV_TRANSPORT, CONTENT_DIRECTORY, DEVICE_PROPS, GROUP_RENDERING, RENDERING};
 use super::{didl, soap};
-use crate::model::{parse_play_mode, Alarm, Item, NowPlaying, Repeat, RoomSettings, System, Transport};
+use crate::model::{model_has_height, model_is_soundbar, parse_play_mode, Alarm, Item, NowPlaying, Repeat, RoomSettings, SoundKind, System, Transport};
 
 type R<T> = Result<T, String>;
 
@@ -502,11 +502,74 @@ pub fn sleep_timer(ip: &str, minutes: Option<u32>) -> R<()> {
     avt(ip, "ConfigureSleepTimer", &[("NewSleepTimerDuration", &value)]).map(|_| ())
 }
 
-pub fn room_settings(ip: &str) -> R<RoomSettings> {
+/// What is bonded to a room: a sub, rear surrounds.
+#[derive(Clone, Copy, Debug, Default, PartialEq, Eq)]
+pub struct Bonded {
+    pub sub: bool,
+    pub surrounds: bool,
+}
+
+/// What the room `uuid` has bonded to it, read from its entry in a `GetZoneGroupState` reply. A
+/// home-theatre room lists its satellites in `HTSatChanMapSet`, like
+/// `RINCON_A:LF,RF;RINCON_B:SW;RINCON_C:LR;RINCON_D:RR` (a sub is `SW`, the rear speakers `LR` and `RR`).
+pub fn parse_bonded(state: &str, uuid: &str) -> Bonded {
+    let Ok(doc) = roxmltree::Document::parse(state) else { return Bonded::default() };
+    let Some(member) = doc.descendants().find(|n| n.tag_name().name() == "ZoneGroupMember" && n.attribute("UUID") == Some(uuid)) else { return Bonded::default() };
+    let map = member.attribute("HTSatChanMapSet").unwrap_or_default();
+    let channels: Vec<&str> = map.split(';').filter_map(|part| part.split_once(':').map(|(_, c)| c)).flat_map(|c| c.split(',')).collect();
+    Bonded { sub: channels.contains(&"SW"), surrounds: channels.contains(&"LR") && channels.contains(&"RR") }
+}
+
+fn bonded(ip: &str, uuid: &str) -> Bonded {
+    call(ip, soap::ZONE_TOPOLOGY, "GetZoneGroupState", &[]).ok().and_then(|r| r.get("ZoneGroupState").cloned()).map(|state| parse_bonded(&state, uuid)).unwrap_or_default()
+}
+
+/// A level from `GetEQ` (the speaker answers `402` for settings it doesn't have).
+fn eq_number(ip: &str, kind: &str) -> Option<i32> {
+    call(ip, RENDERING, "GetEQ", &[("InstanceID", "0"), ("EQType", kind)]).ok().and_then(|m| m.get("CurrentValue").and_then(|x| x.parse().ok()))
+}
+
+/// The measured room tuning (Trueplay): `Some(on)` if the room has one, `None` if it doesn't.
+fn room_calibration(ip: &str) -> Option<bool> {
+    let m = call(ip, RENDERING, "GetRoomCalibrationStatus", &[("InstanceID", "0")]).ok()?;
+    (m.get("RoomCalibrationAvailable").map(String::as_str) == Some("1")).then(|| m.get("RoomCalibrationEnabled").map(String::as_str) == Some("1"))
+}
+
+/// Set one of the home-theatre settings. The value is kept inside the range the maker's app uses.
+pub fn set_sound(ip: &str, kind: SoundKind, value: i32) -> R<()> {
+    let v = kind.clamp(value);
+    match kind.eq_type() {
+        None => call(ip, RENDERING, "SetRoomCalibrationStatus", &[("InstanceID", "0"), ("RoomCalibrationEnabled", if v != 0 { "1" } else { "0" })]).map(|_| ()),
+        Some(eq) => call(ip, RENDERING, "SetEQ", &[("InstanceID", "0"), ("EQType", eq), ("DesiredValue", &v.to_string())]).map(|_| ()),
+    }
+}
+
+/// Make the speaker findable: blink its status light a few times, then put it back as it was.
+pub fn identify(ip: &str) -> R<()> {
+    let was = call(ip, DEVICE_PROPS, "GetLEDState", &[])?.get("CurrentLEDState").map(|x| x == "On").unwrap_or(true);
+    let result = (|| {
+        for i in 0..6 {
+            set_led(ip, (i % 2 == 0) != was)?;
+            std::thread::sleep(std::time::Duration::from_millis(350));
+        }
+        Ok(())
+    })();
+    // Whatever happened, leave the light as it was found.
+    let _ = set_led(ip, was);
+    result
+}
+
+pub fn room_settings(ip: &str, uuid: &str, model: &str) -> R<RoomSettings> {
     let num = |action: &str, key: &str| -> i32 { call(ip, RENDERING, action, &[("InstanceID", "0")]).ok().and_then(|m| m.get(key).and_then(|x| x.parse().ok())).unwrap_or(0) };
     let eq = |kind: &str| -> Option<bool> { call(ip, RENDERING, "GetEQ", &[("InstanceID", "0"), ("EQType", kind)]).ok().and_then(|m| m.get("CurrentValue").map(|x| x == "1")) };
     let loudness = call(ip, RENDERING, "GetLoudness", &[("InstanceID", "0"), ("Channel", "Master")]).ok().and_then(|m| m.get("CurrentLoudness").map(|x| x == "1")).unwrap_or(false);
     let led = call(ip, DEVICE_PROPS, "GetLEDState", &[]).ok().and_then(|m| m.get("CurrentLEDState").map(|x| x == "On")).unwrap_or(true);
+    // The speakers answer many of these questions with "0" even when they have nothing to tune, so
+    // each one is only offered where the room has what it needs.
+    let bonded = bonded(ip, uuid);
+    let flag = |kind: &str| eq(kind);
+    let (sub, surrounds) = (bonded.sub, bonded.surrounds);
+    let soundbar = model_is_soundbar(model);
     Ok(RoomSettings {
         bass: num("GetBass", "CurrentBass"),
         treble: num("GetTreble", "CurrentTreble"),
@@ -514,6 +577,15 @@ pub fn room_settings(ip: &str) -> R<RoomSettings> {
         night: eq("NightMode"),
         speech: eq("DialogLevel"),
         status_light: led,
+        sub_enabled: if sub { flag("SubEnabled") } else { None },
+        sub_level: if sub { eq_number(ip, "SubGain") } else { None },
+        sub_inverted: if sub { flag("SubPolarity") } else { None },
+        surround_enabled: if surrounds { flag("SurroundEnabled") } else { None },
+        surround_tv: if surrounds { eq_number(ip, "SurroundLevel") } else { None },
+        surround_music: if surrounds { eq_number(ip, "MusicSurroundLevel") } else { None },
+        height: if model_has_height(model) { eq_number(ip, "HeightChannelLevel") } else { None },
+        delay: if soundbar { eq_number(ip, "AudioDelay") } else { None },
+        trueplay: room_calibration(ip),
     })
 }
 
@@ -768,6 +840,27 @@ pub fn begin_update(ip: &str, url: &str) -> R<()> {
 
 #[cfg(test)]
 mod unit {
+    #[test]
+    fn a_room_lists_its_bonded_sub_and_surrounds() {
+        let state = r#"<ZoneGroupState><ZoneGroups><ZoneGroup Coordinator="RINCON_BAR" ID="RINCON_BAR:1">
+<ZoneGroupMember UUID="RINCON_BAR" ZoneName="Living Room" HTSatChanMapSet="RINCON_BAR:LF,RF;RINCON_SUB:SW;RINCON_L:LR;RINCON_R:RR"/>
+<ZoneGroupMember UUID="RINCON_SUB" ZoneName="Living Room" Invisible="1"/>
+</ZoneGroup><ZoneGroup Coordinator="RINCON_BEAM" ID="RINCON_BEAM:2">
+<ZoneGroupMember UUID="RINCON_BEAM" ZoneName="Bedroom" HTSatChanMapSet="RINCON_BEAM:LF,RF;RINCON_SUB2:SW"/>
+</ZoneGroup><ZoneGroup Coordinator="RINCON_ONE" ID="RINCON_ONE:3">
+<ZoneGroupMember UUID="RINCON_ONE" ZoneName="Kitchen"/>
+</ZoneGroup><ZoneGroup Coordinator="RINCON_REAR" ID="RINCON_REAR:4">
+<ZoneGroupMember UUID="RINCON_REAR" ZoneName="Den" HTSatChanMapSet="RINCON_REAR:LF,RF;RINCON_L2:LR"/>
+</ZoneGroup></ZoneGroups></ZoneGroupState>"#;
+        use super::{parse_bonded, Bonded};
+        assert_eq!(parse_bonded(state, "RINCON_BAR"), Bonded { sub: true, surrounds: true });
+        assert_eq!(parse_bonded(state, "RINCON_BEAM"), Bonded { sub: true, surrounds: false });
+        assert_eq!(parse_bonded(state, "RINCON_ONE"), Bonded::default(), "a speaker with nothing bonded");
+        assert_eq!(parse_bonded(state, "RINCON_REAR"), Bonded { sub: false, surrounds: false }, "one rear speaker is not a pair");
+        assert_eq!(parse_bonded(state, "RINCON_NOBODY"), Bonded::default());
+        assert_eq!(parse_bonded("not xml", "RINCON_BAR"), Bonded::default());
+    }
+
     #[test]
     fn the_speakers_clock_is_read_from_its_local_time() {
         assert_eq!(super::parse_local_time("2026-11-22 12:18:52"), Some((12, 18, 52)));

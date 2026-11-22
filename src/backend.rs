@@ -72,6 +72,10 @@ pub enum Cmd {
     SetNight(String, bool),
     SetSpeech(String, bool),
     SetStatusLight(String, bool),
+    /// A home-theatre setting of a room (see `SoundKind`); on/off ones carry 0 or 1.
+    SetSound(String, crate::model::SoundKind, i32),
+    /// Blink a speaker's status light so it can be found.
+    Identify(String),
     Rename(String, String),
     LoadAlarms,
     SaveAlarm(Alarm),
@@ -758,6 +762,7 @@ fn optimistic(s: &mut AppState, cmd: &Cmd) {
         Cmd::SetNight(r, v) => edit_settings(s, r, |st| st.night = Some(*v)),
         Cmd::SetSpeech(r, v) => edit_settings(s, r, |st| st.speech = Some(*v)),
         Cmd::SetStatusLight(r, v) => edit_settings(s, r, |st| st.status_light = *v),
+        Cmd::SetSound(r, kind, v) => edit_settings(s, r, |st| st.set(*kind, *v)),
         Cmd::SleepTimer(g, m) => {
             if let Some(gr) = s.group_mut(g) {
                 gr.sleep_left = m.map(|m| m * 60);
@@ -1234,7 +1239,8 @@ fn run_live(b: &Backend, ctx: &Waker, cmd: Cmd) -> Result<(), String> {
             refresh_group(b, &g)
         }
         Cmd::LoadRoomSettings(r) => {
-            let st = speaker::room_settings(&room_ip(&r)?)?;
+            let model = b.lock().find_room(&r).map(|(_, room)| room.model.clone()).unwrap_or_default();
+            let st = speaker::room_settings(&room_ip(&r)?, &r, &model)?;
             if let Some(room) = b.lock().room_mut(&r) {
                 room.settings = Some(st);
             }
@@ -1246,6 +1252,8 @@ fn run_live(b: &Backend, ctx: &Waker, cmd: Cmd) -> Result<(), String> {
         Cmd::SetNight(r, v) => speaker::set_eq(&room_ip(&r)?, "NightMode", v),
         Cmd::SetSpeech(r, v) => speaker::set_eq(&room_ip(&r)?, "DialogLevel", v),
         Cmd::SetStatusLight(r, v) => speaker::set_led(&room_ip(&r)?, v),
+        Cmd::SetSound(r, kind, v) => speaker::set_sound(&room_ip(&r)?, kind, v),
+        Cmd::Identify(r) => speaker::identify(&room_ip(&r)?),
         Cmd::Rename(r, name) => {
             speaker::rename(&room_ip(&r)?, &name)?;
             if let Some(room) = b.lock().room_mut(&r) {
