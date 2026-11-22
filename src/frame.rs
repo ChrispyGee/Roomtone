@@ -100,7 +100,7 @@ fn encode(img: &image::RgbImage) -> Vec<u8> {
 }
 
 /// The cover at `url`, scaled down to fit `size` and encoded as JPEG.
-fn fetch_cover(url: &str, size: u32) -> Option<Vec<u8>> {
+pub(crate) fn fetch_cover(url: &str, size: u32) -> Option<Vec<u8>> {
     let bytes = soap::get_bytes(url).ok()?;
     let img = image::load_from_memory(&bytes).ok()?;
     let img = if img.width() > size || img.height() > size { img.thumbnail(size, size) } else { img };
