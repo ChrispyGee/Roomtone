@@ -386,6 +386,17 @@ Unknown room	Unbekannter Raum
 Unsubscribe	Abo beenden
 Up next	Als Nächstes
 Volume	Lautstärke
+No speakers found yet	Keine Lautsprecher gefunden
+No rooms found yet	Keine Räume gefunden
+Volume {n}	Lautstärke {n}
+Louder	Lauter
+Quieter	Leiser
+Pause all rooms	Alle Räume pausieren
+Open Roomtone	Roomtone öffnen
+Show in the menu bar	In der Menüleiste anzeigen
+A speaker icon at the top of the screen with what's playing, play and pause, volume and your rooms.	Ein Lautsprechersymbol oben auf dem Bildschirm mit dem aktuellen Titel, Wiedergabe und Pause, Lautstärke und deinen Räumen.
+Keep running when the window is closed	Weiterlaufen, wenn das Fenster geschlossen wird
+Closing the window hides Roomtone instead of quitting. Open it again, or quit, from the menu bar.	Beim Schließen des Fensters wird Roomtone ausgeblendet statt beendet. Öffne es wieder oder beende es über die Menüleiste.
 Fade in	Einblenden
 Over {n} minutes	Über {n} Minuten
 Starts quietly and rises to the volume above. Roomtone does this, so it needs to be running. If it isn't, the alarm stays quiet.	Beginnt leise und steigt auf die oben eingestellte Lautstärke. Das übernimmt Roomtone, also muss es laufen. Sonst bleibt der Wecker leise.

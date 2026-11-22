@@ -109,6 +109,8 @@ pub enum Cmd {
     /// Switch the appearance: "auto", "light" or "dark".
     SetTheme(String),
     SetContrast(bool),
+    /// Show Roomtone in the menu bar (Mac), and whether closing the window keeps it running there.
+    SetMenuBar(bool, bool),
     /// Switch speaker events (instant updates instead of polling) on or off.
     SetEvents(bool),
     /// Ask each speaker of a system whether it could move to S2 (read-only).
@@ -1129,6 +1131,7 @@ fn run_live(b: &Backend, ctx: &Waker, cmd: Cmd) -> Result<(), String> {
         | Cmd::InstallUpdate(_)
         | Cmd::SetTheme(_)
         | Cmd::SetContrast(_)
+        | Cmd::SetMenuBar(..)
         | Cmd::SetEvents(_)
         | Cmd::CheckS2(_)
         | Cmd::Diagnose
@@ -1990,6 +1993,15 @@ fn run_common(b: &Backend, ctx: &Waker, cmd: Cmd) -> Result<Option<Cmd>, String>
         }
         Cmd::SetContrast(on) => {
             b.lock().config.high_contrast = on;
+            save(b);
+            Ok(None)
+        }
+        Cmd::SetMenuBar(on, keep) => {
+            {
+                let mut s = b.lock();
+                s.config.menu_bar = on;
+                s.config.menu_bar_keep = keep;
+            }
             save(b);
             Ok(None)
         }

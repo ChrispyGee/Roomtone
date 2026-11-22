@@ -49,6 +49,8 @@ mod lyrics;
 mod m3u;
 #[cfg(target_os = "macos")]
 mod macos_about;
+#[cfg(target_os = "macos")]
+mod macos_menubar;
 mod mcp;
 mod model;
 mod net;

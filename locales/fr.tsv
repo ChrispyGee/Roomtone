@@ -386,6 +386,17 @@ Unknown room	Pièce inconnue
 Unsubscribe	Se désabonner
 Up next	À suivre
 Volume	Volume
+No speakers found yet	Aucune enceinte trouvée pour l'instant
+No rooms found yet	Aucune pièce trouvée pour l'instant
+Volume {n}	Volume {n}
+Louder	Plus fort
+Quieter	Moins fort
+Pause all rooms	Mettre toutes les pièces en pause
+Open Roomtone	Ouvrir Roomtone
+Show in the menu bar	Afficher dans la barre des menus
+A speaker icon at the top of the screen with what's playing, play and pause, volume and your rooms.	Une icône d'enceinte en haut de l'écran avec ce qui joue, lecture et pause, volume et vos pièces.
+Keep running when the window is closed	Rester actif quand la fenêtre est fermée
+Closing the window hides Roomtone instead of quitting. Open it again, or quit, from the menu bar.	Fermer la fenêtre masque Roomtone au lieu de le quitter. Rouvrez-le ou quittez depuis la barre des menus.
 Fade in	Montée progressive
 Over {n} minutes	Sur {n} minutes
 Starts quietly and rises to the volume above. Roomtone does this, so it needs to be running. If it isn't, the alarm stays quiet.	Démarre doucement et monte jusqu'au volume ci-dessus. C'est Roomtone qui s'en charge : il doit être ouvert. Sinon, l'alarme reste faible.

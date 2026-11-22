@@ -189,6 +189,10 @@ Safeguards against a room being made too loud, in *Settings › Playback › Vol
 - **Turn a room back down if it goes over** (off by default): every three seconds Roomtone looks for rooms louder than their limit and sets them to it, at most once per room every 15 seconds. **Only while Roomtone is running**, and only on a real system.
 - A lowered volume shows a short toast ("Kitchen is limited to 40"), at most one every four seconds.
 
+### 4.8c Menu bar (macOS, experimental)
+
+*Settings › Appearance › Show in the menu bar* (off by default; `menu_bar`) puts a speaker icon (the system symbol `hifispeaker.fill`) in the menu bar; there is no such control on other systems yet. Its menu, rebuilt each time it opens (`menuNeedsUpdate:`), lists: what's playing in the chosen room (title, artist, room; *Nothing playing* if nothing), *Play*/*Pause*, *Next*, *Previous*, *Volume N* with *Louder* and *Quieter* (by the *volume step* setting, through the normal volume path so limits apply) and *Mute*, the rooms (groups) of the active system when there is more than one (the ticked one is the window's selected room, and choosing one selects it there too), *Pause all rooms* (when any is playing), *Open Roomtone* (unhide, bring the window forward) and *Quit Roomtone* (⌘Q). *Keep running when the window is closed* (`menu_bar_keep`, on by default, shown while the menu bar is on) turns the window's close button into *Hide* (the close is cancelled and the app hidden), so alarms, volume fades and the assistant link keep running; ⌘Q, the Dock's *Quit* and *Quit Roomtone* quit as before. The icon is never added in picture-taking runs. The menu wording is translated like the rest of the app.
+
 ### 4.9 Languages
 - English, German, French, Spanish, Italian and Dutch.
 - Every phrase is looked up by its English text; anything missing falls back to English, and a test fails the build if a phrase is untranslated.
