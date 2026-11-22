@@ -256,12 +256,62 @@ fn read_track(p: &Path) -> Track {
     t
 }
 
+/// Songs the person dropped on the window, kept across a rescan until Roomtone quits. They are
+/// served to the speakers like any song in the music folders, and nothing else is.
+fn dropped() -> &'static std::sync::Mutex<Vec<PathBuf>> {
+    static D: OnceLock<std::sync::Mutex<Vec<PathBuf>>> = OnceLock::new();
+    D.get_or_init(Default::default)
+}
+
+/// At most this many songs from one drop.
+const MAX_DROPPED: usize = 500;
+
+/// The audio files in `paths` (folders are searched), made playable. Anything that isn't audio is
+/// ignored. Returns the songs in the order given.
+pub fn add_dropped(paths: &[PathBuf]) -> Vec<Item> {
+    let mut files = vec![];
+    for p in paths {
+        if p.is_dir() {
+            scan_dir(p, 0, &mut files);
+        } else if p.extension().is_some_and(|x| AUDIO.contains(&x.to_string_lossy().to_lowercase().as_str())) && p.is_file() {
+            files.push(p.clone());
+        }
+        if files.len() >= MAX_DROPPED {
+            files.truncate(MAX_DROPPED);
+            break;
+        }
+    }
+    let mut items = vec![];
+    for f in files {
+        let t = read_track(&f);
+        if let Ok(mut d) = dropped().lock() {
+            if !d.contains(&f) {
+                d.push(f.clone());
+            }
+        }
+        if let Ok(mut l) = lib().write() {
+            if !l.by_id.contains_key(&t.id) {
+                let at = l.tracks.len();
+                l.by_id.insert(t.id.clone(), at);
+                l.tracks.push(t.clone());
+            }
+        }
+        items.push(track_item(&t));
+    }
+    items
+}
+
 /// Re-read every folder. Runs on a background thread; `progress` gets status lines.
 pub fn rescan(folders: &[String], progress: impl Fn(String)) {
     let roots: Vec<PathBuf> = folders.iter().map(PathBuf::from).collect();
     let mut files = vec![];
     for r in &roots {
         scan_dir(r, 0, &mut files);
+    }
+    // Songs dropped on the window stay playable, whether or not they are in a folder.
+    if let Ok(d) = dropped().lock() {
+        let extra: Vec<PathBuf> = d.iter().filter(|f| f.is_file() && !files.contains(f)).cloned().collect();
+        files.extend(extra);
     }
     let total = files.len();
     let mut tracks = Vec::with_capacity(total);
@@ -671,6 +721,26 @@ mod tests {
         assert_eq!(body.len(), 100);
         assert_eq!(&body[..4], b"RIFF");
         assert!(super::search("test").iter().any(|i| i.title == "Test Song"));
+
+        // A song dropped on the window from outside the music folders: playable, and kept across a rescan.
+        let away = std::path::Path::new(env!("CARGO_MANIFEST_DIR")).join("target/test-dropped");
+        std::fs::create_dir_all(away.join("album")).unwrap();
+        std::fs::write(away.join("Dropped Song.wav"), &wav).unwrap();
+        std::fs::write(away.join("album/Inside.wav"), &wav).unwrap();
+        std::fs::write(away.join("notes.txt"), b"not music").unwrap();
+        let none = super::add_dropped(&[away.join("notes.txt"), away.join("missing.wav")]);
+        assert!(none.is_empty(), "only audio files are taken");
+        let items = super::add_dropped(&[away.join("Dropped Song.wav"), away.join("album")]);
+        assert_eq!(items.iter().map(|i| i.title.as_str()).collect::<Vec<_>>(), ["Dropped Song", "Inside"], "a file, then the songs in a folder");
+        let fetch = |uri: &str| {
+            let local = uri.replace(&base, &format!("http://127.0.0.1:{}", base.rsplit(':').next().unwrap()));
+            ureq::get(&local).set("Range", "bytes=0-3").call().map(|r| r.status()).map_err(|e| e.to_string())
+        };
+        assert_eq!(fetch(&items[0].uri).unwrap(), 206, "a speaker can fetch it");
+        assert_eq!(super::add_dropped(&[away.join("Dropped Song.wav")])[0].uri, items[0].uri, "the same song gets the same address");
+        super::rescan(&[dir.parent().unwrap().to_string_lossy().to_string()], |_| {});
+        assert_eq!(fetch(&items[0].uri).unwrap(), 206, "still playable after the folders are read again");
+        assert!(super::path_of_address(&items[1].uri).is_some());
     }
 }
 

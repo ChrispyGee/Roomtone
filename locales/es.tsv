@@ -392,6 +392,10 @@ Volume	Volumen
 Controlling {room}	Controlando {room}
 High contrast	Alto contraste
 Stronger text, outlines and colours, for when the usual ones are hard to see.	Texto, contornos y colores más marcados, para cuando los habituales cuesten de ver.
+Drop songs to play them in {room}	Suelta canciones para reproducirlas en {room}
+Joining {room} to {other}	Uniendo {room} a {other}
+Pick a room first, then drop the songs on the window	Elige primero una habitación y luego suelta las canciones en la ventana
+There were no songs to play in what you dropped	No había canciones que reproducir en lo que soltaste
 Volume keys move the volume by	Las teclas de volumen cambian el volumen en
 Ctrl (Cmd on a Mac) with the up and down arrow keys. A smaller step is gentler for quiet listening.	Ctrl (Cmd en un Mac) con las flechas arriba y abajo. Un paso menor es más suave para escuchar a poco volumen.
 Match all rooms to this volume	Igualar todas las habitaciones a este volumen

@@ -1252,6 +1252,9 @@ mod unit {
     #[test]
     fn tool_list_and_look_only_mode() {
         let m = link();
+        // The unit tests share one settings folder, so another test may have switched these on.
+        m.b.lock().config.mcp.allow_updates = false;
+        m.b.lock().config.mcp.allow_files = false;
         let all = rpc(&m, 1, "tools/list", json!({}))["result"]["tools"].as_array().unwrap().len();
         assert_eq!(tools().len(), 57);
         assert_eq!(all, 54, "installing updates and saving files are off until switched on");

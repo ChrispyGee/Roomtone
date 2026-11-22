@@ -90,6 +90,13 @@ pub struct App {
     finder_open: bool,
     /// What screen readers were last told is playing.
     announced: String,
+    /// A room card the mouse went down on (its group, where), which becomes a drag once it moves.
+    press_card: Option<(String, egui::Pos2)>,
+    /// The room card being dragged (its group), and the card it is over.
+    drag_room: Option<String>,
+    drop_over: Option<String>,
+    /// A queue row being dragged: (where it was, where it would go).
+    queue_drag: Option<(usize, usize)>,
     /// The scene being made or changed: (its name before, the scene).
     scene_editor: Option<(Option<String>, crate::config::Scene)>,
     /// Whether the connection type of every room was asked for since *Your speakers* was opened.
@@ -213,6 +220,10 @@ impl App {
             speakers_open: open_speakers,
             finder_open: open_finder,
             announced: String::new(),
+            press_card: None,
+            drag_room: None,
+            drop_over: None,
+            queue_drag: None,
             scene_editor: None,
             connections_asked: false,
             merged_source: 0,
@@ -549,6 +560,7 @@ impl App {
         self.update_modal(ctx);
         self.forget_modal(ctx);
         self.toasts(ctx, s);
+        self.drop_hint(ctx, s);
         self.announce_playing(ctx, s);
     }
 
@@ -665,6 +677,7 @@ impl App {
                     self.room_card(ui, h, g, selected, arrange);
                     ui.add_space(8.0);
                 }
+                self.rooms_drag(ui, h, &shown);
                 ui.add_space(4.0);
                 ui.horizontal_wrapped(|ui| {
                     if h.groups.len() > 1
@@ -813,6 +826,57 @@ impl App {
             if ui.input(|i| i.pointer.primary_clicked()) {
                 self.select = Some(g.id.clone());
             }
+            // A press that then moves becomes a drag (see `rooms_drag`); not while arranging.
+            if arrange.is_none() && ui.input(|i| i.pointer.primary_pressed()) {
+                self.press_card = ui.input(|i| i.pointer.press_origin()).map(|p| (g.id.clone(), p));
+            }
+        }
+        // Dragging another room over this one: it is where that room would join.
+        if self.drag_room.as_deref().is_some_and(|d| d != g.id) && ui.input(|i| i.pointer.latest_pos()).is_some_and(|p| rect.contains(p)) {
+            self.drop_over = Some(g.id.clone());
+            ui.painter().rect_stroke(rect, 16.0, Stroke::new(2.5_f32, ACCENT()), egui::StrokeKind::Inside);
+        }
+    }
+
+    /// Dragging a room card onto another joins the two (the dragged room's group plays what the
+    /// other one plays). Mouse only; the *Group rooms* button does the same from the keyboard.
+    fn rooms_drag(&mut self, ui: &mut egui::Ui, h: &Household, shown: &[&Group]) {
+        let (down, released, pos) = ui.input(|i| (i.pointer.primary_down(), i.pointer.primary_released(), i.pointer.latest_pos()));
+        if self.drag_room.is_none() {
+            if let Some((gid, origin)) = self.press_card.clone() {
+                let moved = pos.is_some_and(|p| p.distance(origin) > 8.0);
+                if !down {
+                    self.press_card = None;
+                } else if moved && ui.ctx().dragged_id().is_none() && !self.arranging {
+                    self.drag_room = Some(gid);
+                    self.press_card = None;
+                }
+            }
+            return;
+        }
+        let Some(dragged) = self.drag_room.clone() else { return };
+        ui.ctx().set_cursor_icon(egui::CursorIcon::Grabbing);
+        let name = shown.iter().find(|g| g.id == dragged).map(|g| h.group_name(g)).unwrap_or_default();
+        if let Some(p) = pos {
+            egui::Area::new(egui::Id::unique("room_drag_ghost")).order(egui::Order::Tooltip).fixed_pos(p + vec2(14.0, 10.0)).interactable(false).show(ui.ctx(), |ui| {
+                egui::Frame::new().fill(SURFACE_HI()).corner_radius(10.0).inner_margin(8.0).stroke(Stroke::new(1.0_f32, ACCENT())).show(ui, |ui| {
+                    ui.label(RichText::new(name.clone()).color(TEXT()));
+                });
+            });
+        }
+        if released || !down {
+            let target = self.drop_over.take();
+            self.drag_room = None;
+            if let Some(target) = target {
+                if let Some(all) = joined_members(shown, &dragged, &target) {
+                    let other = shown.iter().find(|g| g.id == target).map(|g| h.group_name(g)).unwrap_or_default();
+                    self.notes.push(t!("Joining {room} to {other}", room = name, other = other));
+                    self.send(Cmd::SetGroupMembers(target, all));
+                }
+            }
+        } else {
+            // Forget last frame's target; the cards under the pointer say again this frame.
+            self.drop_over = None;
         }
     }
 
@@ -875,11 +939,30 @@ impl App {
                 }
                 let is_current = current == i + 1;
                 let w = ui.available_width();
-                let (rect, resp) = ui.allocate_exact_size(vec2(w, 50.0), Sense::click());
+                let (rect, resp) = ui.allocate_exact_size(vec2(w, 50.0), Sense::click_and_drag());
                 describe(&resp, egui::Role::Button, &format!("{} — {}", it.title, it.artist));
                 focus_ring(ui, &resp, rect, 10.0);
-                if resp.hovered() || is_current {
+                // Drag a row to move it (not while the list is filtered, which hides rows).
+                if resp.drag_started() && self.queue_filter.trim().is_empty() {
+                    self.queue_drag = Some((i, i));
+                }
+                if let Some((from, _)) = self.queue_drag {
+                    if ui.input(|inp| inp.pointer.latest_pos()).is_some_and(|p| rect.contains(p)) {
+                        self.queue_drag = Some((from, i));
+                    }
+                }
+                let dragging_this = self.queue_drag.is_some_and(|(from, _)| from == i);
+                if (resp.hovered() || is_current) && !dragging_this {
                     ui.painter().rect_filled(rect, 10.0, if is_current { ACCENT_SOFT() } else { SURFACE() });
+                }
+                if dragging_this {
+                    ui.painter().rect_filled(rect, 10.0, overlay(14));
+                }
+                if let Some((from, to)) = self.queue_drag {
+                    if to == i && from != i {
+                        let y = if i < from { rect.min.y } else { rect.max.y };
+                        ui.painter().line_segment([pos2(rect.min.x + 6.0, y), pos2(rect.max.x - 6.0, y)], Stroke::new(3.0_f32, ACCENT()));
+                    }
                 }
                 let art_r = Rect::from_min_size(rect.min + vec2(6.0, 7.0), vec2(36.0, 36.0));
                 let seed = if it.album.is_empty() { &it.title } else { &it.album };
@@ -934,6 +1017,16 @@ impl App {
                         ui.close();
                     }
                 });
+            }
+            // Let go: move the song to where the line was.
+            if let Some((from, to)) = self.queue_drag {
+                ui.ctx().set_cursor_icon(egui::CursorIcon::Grabbing);
+                if !ui.input(|i| i.pointer.primary_down()) {
+                    self.queue_drag = None;
+                    if from != to && to < queue.len() {
+                        self.send(Cmd::MoveInQueue(gid.clone(), from, to));
+                    }
+                }
             }
         });
     }
@@ -1779,6 +1872,29 @@ impl App {
 
     /// A one-pixel, invisible note that screen readers read out when the selected room's song
     /// changes (a "live region"): "Now playing: title by artist in room".
+    /// While files are held over the window: say what dropping them will do.
+    fn drop_hint(&mut self, ctx: &egui::Context, s: &AppState) {
+        // ROOMTONE_TEST_DROPHINT=1 shows it for picture checks.
+        if ctx.input(|i| i.raw.hovered_files.is_empty()) && std::env::var("ROOMTONE_TEST_DROPHINT").is_err() {
+            return;
+        }
+        let text = match s.selected_group.as_ref().and_then(|g| s.find_group(g)) {
+            Some((h, g)) => t!("Drop songs to play them in {room}", room = h.group_name(g)),
+            None => t!("Pick a room first, then drop the songs on the window").to_string(),
+        };
+        let screen = ctx.content_rect();
+        egui::Area::new(egui::Id::unique("drop_hint")).order(egui::Order::Foreground).fixed_pos(screen.min).interactable(false).show(ctx, |ui| {
+            ui.painter().rect_filled(screen, 0.0, Color32::from_black_alpha(150));
+            let inner = screen.shrink(24.0);
+            ui.painter().rect_stroke(inner, 18.0, Stroke::new(3.0_f32, ACCENT()), egui::StrokeKind::Inside);
+            // The words sit on a dark plate, so they read over any picture.
+            let galley = ui.painter().layout_no_wrap(text, egui::FontId::proportional(24.0), Color32::WHITE);
+            let at = Rect::from_center_size(screen.center(), galley.size());
+            ui.painter().rect_filled(at.expand2(vec2(22.0, 14.0)), 16.0, Color32::from_black_alpha(190));
+            ui.painter().galley(at.min, galley, Color32::WHITE);
+        });
+    }
+
     fn announce_playing(&mut self, ctx: &egui::Context, s: &AppState) {
         let text = match s.selected_group.as_ref().and_then(|g| s.find_group(g)) {
             Some((h, g)) if !g.now.is_empty() && g.now.transport == Transport::Playing => {
@@ -1964,6 +2080,18 @@ impl App {
     }
 }
 
+/// The rooms of group `target` plus those of group `dragged`, or nothing if either isn't shown.
+fn joined_members(shown: &[&Group], dragged: &str, target: &str) -> Option<Vec<String>> {
+    let members = |id: &str| shown.iter().find(|g| g.id == id).map(|g| g.members.clone());
+    let mut all = members(target)?;
+    for m in members(dragged)? {
+        if !all.contains(&m) {
+            all.push(m);
+        }
+    }
+    Some(all)
+}
+
 impl eframe::App for App {
     fn ui(&mut self, root: &mut egui::Ui, _frame: &mut eframe::Frame) {
         let ctx = &root.ctx().clone();
@@ -1989,6 +2117,14 @@ impl eframe::App for App {
                 if let Some((_, g)) = s.selected_group.as_ref().and_then(|g| s.find_group(g)) {
                     let cmd = if g.now.transport == Transport::Playing { Cmd::Pause(g.id.clone()) } else { Cmd::Play(g.id.clone()) };
                     self.out.push(cmd);
+                }
+            }
+            // Songs (or folders) dropped on the window play in the room being used.
+            let dropped: Vec<std::path::PathBuf> = ctx.input(|i| i.raw.dropped_files.iter().map(|f| f.path().to_path_buf()).filter(|p| !p.as_os_str().is_empty()).collect());
+            if !dropped.is_empty() {
+                match s.selected_group.clone() {
+                    Some(g) => self.out.push(Cmd::PlayFiles(g, dropped)),
+                    None => self.notes.push(t!("Pick a room first, then drop the songs on the window").to_string()),
                 }
             }
             // Ctrl (Cmd on a Mac) with the arrow keys: right and left for next and previous song,
@@ -2129,4 +2265,24 @@ fn chip_at(ui: &egui::Ui, center: egui::Pos2, text: &str) {
     let r = Rect::from_center_size(center, galley.size() + vec2(12.0, 4.0));
     ui.painter().rect_filled(r, 8.0, ACCENT());
     ui.painter().galley(r.min + vec2(6.0, 2.0), galley, Color32::BLACK);
+}
+
+#[cfg(test)]
+mod drag_tests {
+    use super::*;
+
+    fn group(id: &str, members: &[&str]) -> Group {
+        Group { id: id.into(), coordinator: members[0].into(), members: members.iter().map(|m| m.to_string()).collect(), ..Default::default() }
+    }
+
+    #[test]
+    fn dropping_a_room_on_another_joins_its_rooms_to_the_other_group() {
+        let (a, b, c) = (group("a", &["A"]), group("b", &["B1", "B2"]), group("c", &["C"]));
+        let shown = [&a, &b, &c];
+        assert_eq!(joined_members(&shown, "a", "b"), Some(vec!["B1".into(), "B2".into(), "A".into()]), "the target's rooms first, so it keeps leading");
+        assert_eq!(joined_members(&shown, "b", "c"), Some(vec!["C".into(), "B1".into(), "B2".into()]), "a whole group moves together");
+        assert_eq!(joined_members(&shown, "b", "b"), Some(vec!["B1".into(), "B2".into()]), "nothing is added twice");
+        assert_eq!(joined_members(&shown, "a", "gone"), None);
+        assert_eq!(joined_members(&shown, "gone", "a"), None);
+    }
 }
