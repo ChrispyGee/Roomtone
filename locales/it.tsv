@@ -386,6 +386,11 @@ Unknown room	Stanza sconosciuta
 Unsubscribe	Annulla iscrizione
 Up next	Prossimi
 Volume	Volume
+Dragging rooms to group them works again	Trascinare le stanze per raggrupparle funziona di nuovo
+Alarms can fade in over 1 to 30 minutes (experimental)	Le sveglie possono salire gradualmente in 1-30 minuti (sperimentale)
+Roomtone in the Mac menu bar, which can keep running when the window is closed	Roomtone nella barra dei menu del Mac, che può restare attivo quando la finestra è chiusa
+Sub and surround sound settings, and Find this speaker	Impostazioni audio per sub e surround, e Trova questo altoparlante
+Speaker setup: stereo pairs and a soundbar's sub and rear speakers (experimental)	Configurazione degli altoparlanti: coppie stereo e sub e altoparlanti posteriori di una soundbar (sperimentale)
 Speaker setup	Configurazione degli altoparlanti
 Allow changing speaker setup	Consenti di modificare la configurazione degli altoparlanti
 Make or split stereo pairs, and add a sub or rear speakers to a soundbar. Not tried on real speakers yet: it can clear a room's Trueplay tuning, and music in the rooms stops.	Crea o separa coppie stereo e aggiungi un sub o altoparlanti posteriori a una soundbar. Non ancora provato su altoparlanti reali: può cancellare la taratura Trueplay di una stanza e la musica nelle stanze si ferma.

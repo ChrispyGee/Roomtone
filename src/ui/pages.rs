@@ -2523,11 +2523,11 @@ impl App {
             ui.add_space(6.0);
             ui.label(RichText::new(t!("What's new in this version")).color(TEXT()).strong());
             for line in [
-                t!("Volume limits: a highest volume for each room, and quiet hours"),
-                t!("Alarms can be copied or made in several rooms at once, and a timer rings a chime"),
-                t!("Drag rooms to group them, drag songs in the queue, or drop songs on the window to play them"),
-                t!("Sliders are read out in words, and there is a High contrast setting"),
-                t!("A now-playing address for picture frames and tablets (experimental)"),
+                t!("Dragging rooms to group them works again"),
+                t!("Alarms can fade in over 1 to 30 minutes (experimental)"),
+                t!("Roomtone in the Mac menu bar, which can keep running when the window is closed"),
+                t!("Sub and surround sound settings, and Find this speaker"),
+                t!("Speaker setup: stereo pairs and a soundbar's sub and rear speakers (experimental)"),
             ] {
                 ui.horizontal_wrapped(|ui| {
                     ui.label(RichText::new("•").color(ACCENT()));

@@ -386,6 +386,11 @@ Unknown room	Pièce inconnue
 Unsubscribe	Se désabonner
 Up next	À suivre
 Volume	Volume
+Dragging rooms to group them works again	Glisser les pièces pour les grouper fonctionne de nouveau
+Alarms can fade in over 1 to 30 minutes (experimental)	Les alarmes peuvent monter progressivement sur 1 à 30 minutes (expérimental)
+Roomtone in the Mac menu bar, which can keep running when the window is closed	Roomtone dans la barre des menus du Mac, qui peut rester actif quand la fenêtre est fermée
+Sub and surround sound settings, and Find this speaker	Réglages du son pour caisson et surround, et Trouver cette enceinte
+Speaker setup: stereo pairs and a soundbar's sub and rear speakers (experimental)	Configuration des enceintes : paires stéréo, caisson et enceintes arrière d'une barre de son (expérimental)
 Speaker setup	Configuration des enceintes
 Allow changing speaker setup	Autoriser la modification de la configuration des enceintes
 Make or split stereo pairs, and add a sub or rear speakers to a soundbar. Not tried on real speakers yet: it can clear a room's Trueplay tuning, and music in the rooms stops.	Créer ou séparer des paires stéréo, et ajouter un caisson ou des enceintes arrière à une barre de son. Pas encore essayé sur de vraies enceintes : cela peut effacer le réglage Trueplay d'une pièce, et la musique s'arrête dans les pièces.
