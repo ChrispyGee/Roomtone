@@ -519,6 +519,7 @@ pub fn apply(s: &mut AppState, cmd: &Cmd) {
         | Cmd::SetAccountNumber(..)
         | Cmd::SetLanguage(_)
         | Cmd::SetMcp(_)
+        | Cmd::SetFrame(_)
         | Cmd::SetVolumeLimits(_)
         | Cmd::PlayFiles(..)
         | Cmd::SetEvents(_)

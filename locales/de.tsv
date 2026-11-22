@@ -386,6 +386,19 @@ Unknown room	Unbekannter Raum
 Unsubscribe	Abo beenden
 Up next	Als Nächstes
 Volume	Lautstärke
+Now-playing display	Anzeige „Läuft gerade“
+Show what's playing on a picture frame or tablet	Zeige auf einem Bilderrahmen oder Tablet, was läuft
+Gives other screens on your home network a web address that shows the cover and song that's playing. It can only look: nothing can be played or changed through it. Anyone on your network who has the address can see what you're playing, so keep it to yourself. This is experimental and may change.	Gibt anderen Bildschirmen in deinem Heimnetz eine Webadresse, die Cover und Titel des laufenden Songs zeigt. Sie kann nur zeigen: Darüber lässt sich nichts abspielen oder ändern. Jeder in deinem Netz, der die Adresse hat, sieht, was du hörst. Behalte sie also für dich. Das ist experimentell und kann sich ändern.
+Ready on port {port}	Bereit an Port {port}
+Room to show	Anzuzeigender Raum
+The room I'm using	Der Raum, den ich gerade nutze
+Open this address on the frame or tablet	Öffne diese Adresse auf dem Rahmen oder Tablet
+Copy address	Adresse kopieren
+Address copied	Adresse kopiert
+Open here	Hier öffnen
+New address	Neue Adresse
+Screens using the old address will stop working until you give them the new one	Bildschirme mit der alten Adresse funktionieren nicht mehr, bis du ihnen die neue gibst
+Add ?text=0 to hide the song's name, or ?fit=cover to fill the screen. The same address ends in art.jpg for just the cover and now.json for a description.	Hänge ?text=0 an, um den Songnamen auszublenden, oder ?fit=cover, um den Bildschirm zu füllen. Dieselbe Adresse mit art.jpg am Ende liefert nur das Cover, mit now.json eine Beschreibung.
 {n} of 100	{n} von 100
 {pos} of {total}	{pos} von {total}
 {n} on a scale from -10 to +10	{n} auf einer Skala von -10 bis +10

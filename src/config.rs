@@ -119,6 +119,33 @@ pub struct Account {
     pub sn: u32,
 }
 
+/// The now-playing display: a read-only web address that shows the playing cover and song, for a
+/// picture frame, tablet or script on the home network.
+#[derive(Clone, Debug, Serialize, Deserialize, PartialEq)]
+pub struct FrameConfig {
+    /// Off until the person switches it on.
+    #[serde(default)]
+    pub enabled: bool,
+    #[serde(default = "default_frame_port")]
+    pub port: u16,
+    /// The secret that starts every address (a frame can't send a password).
+    #[serde(default = "new_token")]
+    pub token: String,
+    /// The room to follow, by name; empty follows the room being used.
+    #[serde(default)]
+    pub room: String,
+}
+
+impl Default for FrameConfig {
+    fn default() -> Self {
+        FrameConfig { enabled: false, port: default_frame_port(), token: new_token(), room: String::new() }
+    }
+}
+
+fn default_frame_port() -> u16 {
+    8791
+}
+
 /// A one-off timer, made as a one-time alarm on the speaker, so it can be tidied away after it rings.
 #[derive(Clone, Debug, Default, Serialize, Deserialize, PartialEq)]
 pub struct AlarmTimer {
@@ -315,6 +342,9 @@ pub struct Config {
     pub language: String,
     #[serde(default)]
     pub mcp: McpConfig,
+    /// The now-playing display (off until switched on).
+    #[serde(default)]
+    pub frame: FrameConfig,
     /// Appearance: "auto" follows the computer, or "light" / "dark".
     #[serde(default = "default_theme")]
     pub theme: String,
@@ -387,6 +417,7 @@ impl Default for Config {
             scenes: vec![],
             language: default_language(),
             mcp: McpConfig::default(),
+            frame: FrameConfig::default(),
             theme: default_theme(),
             high_contrast: false,
             alarm_timers: vec![],

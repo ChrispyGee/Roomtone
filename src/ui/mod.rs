@@ -179,6 +179,7 @@ impl App {
         // Picture checks mustn't take the assistant link's port from a running copy.
         if shot.is_none() {
             crate::mcp::start_http(crate::mcp::Mcp::new(backend.clone()), Waker::window(cc.egui_ctx.clone()));
+            crate::frame::start(crate::frame::Frame::new(backend.clone()), Waker::window(cc.egui_ctx.clone()));
         }
         App {
             backend,

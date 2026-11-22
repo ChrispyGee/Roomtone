@@ -526,6 +526,8 @@ pub struct AppState {
     pub errors: Vec<(u64, String)>,
     /// Is the assistant link (MCP) listening right now, and where.
     pub mcp_status: String,
+    /// Is the now-playing display listening: `ok:PORT`, `err:WHY` or empty when it's off.
+    pub frame_status: String,
     /// The speakers' clock: the seconds since midnight (local time) it showed, and when we read it.
     pub clock: Option<(Instant, u32)>,
     /// When the last "limited to" note was shown, so dragging a slider doesn't repeat it.
@@ -630,6 +632,7 @@ impl Default for AppState {
             done_seq: 0,
             errors: vec![],
             mcp_status: String::new(),
+            frame_status: String::new(),
             clock: None,
             limit_note_at: None,
             backup_preview: None,

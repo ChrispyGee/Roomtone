@@ -386,6 +386,19 @@ Unknown room	Sala desconocida
 Unsubscribe	Cancelar suscripción
 Up next	A continuación
 Volume	Volumen
+Now-playing display	Pantalla de reproducción actual
+Show what's playing on a picture frame or tablet	Mostrar lo que suena en un marco de fotos o una tableta
+Gives other screens on your home network a web address that shows the cover and song that's playing. It can only look: nothing can be played or changed through it. Anyone on your network who has the address can see what you're playing, so keep it to yourself. This is experimental and may change.	Da a otras pantallas de tu red doméstica una dirección web que muestra la portada y la canción que suena. Solo puede mostrar: no se puede reproducir ni cambiar nada a través de ella. Cualquiera en tu red que tenga la dirección puede ver lo que escuchas, así que guárdala para ti. Es experimental y puede cambiar.
+Ready on port {port}	Listo en el puerto {port}
+Room to show	Habitación a mostrar
+The room I'm using	La habitación que estoy usando
+Open this address on the frame or tablet	Abre esta dirección en el marco o la tableta
+Copy address	Copiar dirección
+Address copied	Dirección copiada
+Open here	Abrir aquí
+New address	Nueva dirección
+Screens using the old address will stop working until you give them the new one	Las pantallas que usan la dirección anterior dejarán de funcionar hasta que les des la nueva
+Add ?text=0 to hide the song's name, or ?fit=cover to fill the screen. The same address ends in art.jpg for just the cover and now.json for a description.	Añade ?text=0 para ocultar el nombre de la canción, o ?fit=cover para llenar la pantalla. La misma dirección terminada en art.jpg da solo la portada y en now.json una descripción.
 {n} of 100	{n} de 100
 {pos} of {total}	{pos} de {total}
 {n} on a scale from -10 to +10	{n} en una escala de -10 a +10
