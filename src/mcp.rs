@@ -119,6 +119,12 @@ fn base_tools() -> Vec<(&'static str, &'static str, Value, bool)> {
         ("get_status", "Every system (S1 and S2), its rooms, how they're grouped and what each group is playing, with volumes.", json!({"type": "object", "properties": {}}), false),
         ("now_playing", "What a room is playing right now: title, artist, album, source, position and play mode.", json!({"type": "object", "properties": {"room": room}}), false),
         (
+            "get_cover_art",
+            "The cover picture of what a room is playing right now, as a small JPEG image (for a display or a button). Says so if there is none.",
+            json!({"type": "object", "properties": {"room": room, "size": {"type": "integer", "minimum": 32, "maximum": 1000, "default": 300, "description": "The longest side in pixels."}}}),
+            false,
+        ),
+        (
             "playback",
             "Play, pause, toggle, skip to the next or go back to the previous track in a room (and every room grouped with it).",
             json!({"type": "object", "properties": {"room": room, "action": {"type": "string", "enum": ["play", "pause", "toggle", "next", "previous"]}}, "required": ["action"]}),
@@ -310,6 +316,12 @@ impl Mcp {
                         let why = if self.settings().allow_control { Allowance::of(t.0).off_message() } else { Allowance::Playback.off_message() };
                         Ok(json!({"content": [{"type": "text", "text": why}], "isError": true}))
                     }
+                    Some(_) if name == "get_cover_art" => match self.cover_art(&args) {
+                        Ok((text, jpeg)) => {
+                            Ok(json!({"content": [{"type": "image", "data": base64(&jpeg), "mimeType": "image/jpeg"}, {"type": "text", "text": text}], "isError": false}))
+                        }
+                        Err(e) => Ok(json!({"content": [{"type": "text", "text": e}], "isError": true})),
+                    },
                     Some(_) => {
                         let out = self.call(name, &args);
                         let (text, err) = match out {
@@ -357,6 +369,21 @@ impl Mcp {
         };
         let gid = s.households.iter().flat_map(|h| h.groups.iter()).find(|g| g.members.contains(&uuid)).map(|g| g.id.clone()).unwrap_or_else(|| uuid.clone());
         Ok((uuid, gid))
+    }
+
+    /// The cover of what a room's group is playing: a sentence about it, and the picture (JPEG).
+    fn cover_art(&self, a: &Value) -> Result<(String, Vec<u8>), String> {
+        let (_, gid) = self.room(a)?;
+        let size = a.get("size").and_then(|v| v.as_u64()).unwrap_or(300).clamp(32, 1000) as u32;
+        let (url, title, room) = {
+            let s = self.b.lock();
+            let (h, g) = s.find_group(&gid).ok_or_else(|| "That room isn't available right now".to_string())?;
+            (g.now.art.clone().filter(|u| u.starts_with("http")), g.now.title.clone(), h.group_name(g))
+        };
+        let url = url.ok_or_else(|| format!("{room} has no cover picture right now."))?;
+        // The picture is fetched from the speaker (or wherever it says) with the lock released.
+        let jpeg = crate::frame::fetch_cover(&url, size).ok_or_else(|| format!("The cover for {room} couldn't be read."))?;
+        Ok((format!("Cover of {} in {room}", if title.is_empty() { "what's playing" } else { &title }), jpeg))
     }
 
     fn room_name(&self, uuid: &str) -> String {
@@ -1076,6 +1103,20 @@ fn respond(stream: &mut TcpStream, code: u16, reason: &str, body: &str, extra: &
     stream.flush()
 }
 
+/// Base64 (standard alphabet, with padding), for pictures in assistant replies.
+fn base64(bytes: &[u8]) -> String {
+    const ABC: &[u8; 64] = b"ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789+/";
+    let mut out = String::with_capacity(bytes.len().div_ceil(3) * 4);
+    for chunk in bytes.chunks(3) {
+        let n = (chunk[0] as u32) << 16 | (*chunk.get(1).unwrap_or(&0) as u32) << 8 | *chunk.get(2).unwrap_or(&0) as u32;
+        out.push(ABC[(n >> 18) as usize & 63] as char);
+        out.push(ABC[(n >> 12) as usize & 63] as char);
+        out.push(if chunk.len() > 1 { ABC[(n >> 6) as usize & 63] as char } else { '=' });
+        out.push(if chunk.len() > 2 { ABC[n as usize & 63] as char } else { '=' });
+    }
+    out
+}
+
 fn serve_http(mcp: &Mcp, mut stream: TcpStream) -> std::io::Result<()> {
     let _ = stream.set_nonblocking(false);
     stream.set_read_timeout(Some(Duration::from_secs(15)))?;
@@ -1269,8 +1310,8 @@ mod unit {
         m.b.lock().config.mcp.allow_updates = false;
         m.b.lock().config.mcp.allow_files = false;
         let all = rpc(&m, 1, "tools/list", json!({}))["result"]["tools"].as_array().unwrap().len();
-        assert_eq!(tools().len(), 57);
-        assert_eq!(all, 54, "installing updates and saving files are off until switched on");
+        assert_eq!(tools().len(), 58);
+        assert_eq!(all, 55, "installing updates and saving files are off until switched on");
         let mut names: Vec<&str> = tools().iter().map(|t| t.0).collect();
         names.sort();
         names.dedup();
@@ -1280,7 +1321,7 @@ mod unit {
         }
         m.b.lock().config.mcp.allow_control = false;
         let look = rpc(&m, 2, "tools/list", json!({}))["result"]["tools"].as_array().unwrap().clone();
-        assert_eq!(look.len(), 17);
+        assert_eq!(look.len(), 18);
         assert!(look.iter().all(|t| t["annotations"]["readOnlyHint"] == true));
         let (text, err) = tool(&m, "playback", json!({"action": "pause"}));
         assert!(err && text.contains("only lets assistants look"));
@@ -1300,6 +1341,77 @@ mod unit {
         assert!(ok(&m, "set_volume", json!({"room": "Kitchen", "change": -3})).contains("30"));
         assert!(tool(&m, "playback", json!({"room": "Kitchen", "action": "dance"})).1);
         assert!(tool(&m, "now_playing", json!({"room": "Nowhere"})).0.contains("No room called"));
+    }
+
+    #[test]
+    fn base64_matches_the_standard_examples() {
+        for (input, expected) in [("", ""), ("f", "Zg=="), ("fo", "Zm8="), ("foo", "Zm9v"), ("foob", "Zm9vYg=="), ("fooba", "Zm9vYmE="), ("foobar", "Zm9vYmFy")] {
+            assert_eq!(base64(input.as_bytes()), expected, "{input:?}");
+        }
+        assert_eq!(base64(&[0xff, 0xfe, 0xfd, 0x00]), "//79AA==");
+    }
+
+    /// A pretend speaker that serves one picture, so the cover can be fetched for real.
+    fn serve_a_picture() -> String {
+        use std::io::{BufRead, BufReader, Write};
+        let listener = std::net::TcpListener::bind("127.0.0.1:0").unwrap();
+        let port = listener.local_addr().unwrap().port();
+        let mut png = Vec::new();
+        image::RgbImage::from_pixel(1200, 900, image::Rgb([200, 80, 40])).write_to(&mut std::io::Cursor::new(&mut png), image::ImageFormat::Png).unwrap();
+        std::thread::spawn(move || {
+            for mut stream in listener.incoming().flatten() {
+                let mut reader = BufReader::new(stream.try_clone().unwrap());
+                let mut line = String::new();
+                while reader.read_line(&mut line).unwrap_or(0) > 2 {
+                    line.clear();
+                }
+                let _ = write!(stream, "HTTP/1.1 200 OK\r\nContent-Type: image/png\r\nContent-Length: {}\r\nConnection: close\r\n\r\n", png.len());
+                let _ = stream.write_all(&png);
+            }
+        });
+        format!("http://127.0.0.1:{port}/cover.png")
+    }
+
+    #[test]
+    fn cover_art_comes_back_as_a_small_jpeg_picture() {
+        let m = link();
+        let (text, err) = tool(&m, "get_cover_art", json!({"room": "Living Room"}));
+        assert!(err && text.contains("no cover picture"), "{text}");
+        let url = serve_a_picture();
+        {
+            let mut s = m.b.lock();
+            let uuid = find_room(&s, "Living Room").unwrap();
+            let gid = s.households.iter().flat_map(|h| h.groups.iter()).find(|g| g.members.contains(&uuid)).map(|g| g.id.clone()).unwrap();
+            s.group_mut(&gid).unwrap().now.art = Some(url);
+        }
+        let r = rpc(&m, 1, "tools/call", json!({"name": "get_cover_art", "arguments": {"room": "Living Room", "size": 200}}));
+        let content = r["result"]["content"].as_array().unwrap();
+        assert_eq!(r["result"]["isError"], false);
+        assert_eq!(content[0]["type"], "image");
+        assert_eq!(content[0]["mimeType"], "image/jpeg");
+        let data = content[0]["data"].as_str().unwrap();
+        assert!(data.starts_with("/9j/"), "a JPEG starts with FF D8 FF, which is /9j/ in base64");
+        assert_eq!(content[1]["type"], "text");
+        assert!(content[1]["text"].as_str().unwrap().starts_with("Cover of "));
+        // 1200x900 scaled to fit 200: 200x150.
+        let jpeg = {
+            const ABC: &str = "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789+/";
+            let mut out = vec![];
+            let (mut acc, mut bits) = (0u32, 0);
+            for c in data.bytes().filter(|c| *c != b'=') {
+                acc = acc << 6 | ABC.find(c as char).unwrap() as u32;
+                bits += 6;
+                if bits >= 8 {
+                    bits -= 8;
+                    out.push((acc >> bits) as u8);
+                    acc &= (1 << bits) - 1;
+                }
+            }
+            out
+        };
+        let picture = image::load_from_memory(&jpeg).expect("a real picture");
+        assert_eq!((picture.width(), picture.height()), (200, 150));
+        assert!(tools().iter().any(|t| t.0 == "get_cover_art" && !t.3), "it is a look-only tool");
     }
 
     #[test]
