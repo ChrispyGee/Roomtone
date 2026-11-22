@@ -271,6 +271,10 @@ pub struct Config {
     /// lrclib.net for them.
     #[serde(default)]
     pub show_lyrics: bool,
+    /// How much the volume keyboard shortcut (Ctrl or Cmd with the up and down arrows) changes the
+    /// volume: 1, 2, 5 or 10.
+    #[serde(default = "default_volume_step")]
+    pub volume_step: u8,
     /// Show the Alarms page. Off until switched on (`None`: never chosen, so off).
     #[serde(default)]
     pub show_alarms: Option<bool>,
@@ -287,6 +291,10 @@ pub struct Config {
     /// come after, in the speakers' own order.
     #[serde(default)]
     pub room_order: Vec<String>,
+}
+
+fn default_volume_step() -> u8 {
+    5
 }
 
 fn default_theme() -> String {
@@ -312,6 +320,7 @@ impl Default for Config {
             last_version_check: 0,
             media_keys: true,
             show_lyrics: false,
+            volume_step: 5,
             show_alarms: None,
             show_scenes: None,
             allow_update_install: false,

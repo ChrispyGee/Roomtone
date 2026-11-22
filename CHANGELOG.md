@@ -5,6 +5,7 @@ All notable changes to Roomtone. The format follows [Keep a Changelog](https://k
 ## [Unreleased]
 
 ### Added
+- **A volume step setting, and a button that matches every room's volume.** *Settings › Playback › Volume keys move the volume by* offers 1, 2, 5 (as before) or 10 for Ctrl (Cmd on a Mac) with the up and down arrows. On Now Playing, when the rooms in a group are at different volumes, *Match all rooms to this volume* under *All rooms* sets each room to the group volume shown. Both are checked by tests; neither has been tried on real speakers yet.
 - **A newer Roomtone can be downloaded from the New versions card.** When a newer version is found, *Download* fetches the installer for this computer (the .dmg on an Apple-silicon Mac, the setup program on 64-bit Windows, the .deb, .rpm or .tar.gz on 64-bit Linux) from this project's own release page into your Downloads folder, checks it against the release's `SHA256SUMS`, and then offers *Open* and *Show in folder*. A file that doesn't match is deleted. Nothing is downloaded until you press the button, and nothing is installed for you. Homebrew installs keep the `brew upgrade` line instead. A new library, `sha2`, does the checking. Checked against the real 0.9.2 release (2026-11-20): the Apple-silicon .dmg (7,699,879 bytes, the size the release lists) downloaded, matched its checksum and left no half-finished file. A file that doesn't match is covered by the code but wasn't tried on a real download.
 
 ### Changed

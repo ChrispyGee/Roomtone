@@ -87,6 +87,9 @@ File: `check_new_versions` (`true` / `false`), default `false`; `last_version_ch
 ### Lyrics (experimental)
 *Show lyrics for the song that's playing* (**off by default**, tagged *Experimental*): a *Lyrics* section on the Now Playing page. While the page is open, Roomtone sends the song's **title, artist, album and length** to [lrclib.net](https://lrclib.net), a free lyrics site run by volunteers (one or two plain requests per new song; no account, nothing else is sent). Lyrics with times highlight the current line and follow the song; others are shown as plain text. Nothing is saved: lyrics are kept in memory until you quit. Live radio isn't looked up. Lyrics are shared by the site's community, so some songs have none and some are wrong. This is a trial feature and may change or be removed.
 File: `show_lyrics` (`true` / `false`), default `false`.
+### Volume
+*Volume keys move the volume by* (**5 by default**; choose 1, 2, 5 or 10): how far Ctrl (Cmd on a Mac) with the up and down arrow keys moves the volume of the selected room or group. A smaller step suits quiet listening. A slider that has the keyboard focus still moves by 1 with the arrow keys and by 10 with Shift.
+File: `volume_step` (`1`, `2`, `5` or `10`), default `5`; any other number is read as `5`.
 ### Listening history
 *Remember what I've played* (**on by default**): songs and stations that have played for about 20 seconds are kept on this computer in `history.json` (the newest 500, each with how often and when last), and **never sent anywhere**. They feed *Recently played* on Home (which now survives a restart and includes what was played from other apps) and the **History** page (Home › *History*, or *See history* here), where you can play any of them again. Skipping through songs counts none of them; demo-system songs are never kept. Switching it off stops adding to the history but keeps what's there; *Clear history* forgets everything (the file is emptied).
 File: `remember_history` (`true` / `false`), default `true`.
@@ -179,6 +182,7 @@ Complete `config.json`, with every field at its default (the access key is made 
   "last_version_check": 0,
   "remember_history": true,
   "show_lyrics": false,
+  "volume_step": 5,
   "allow_update_install": false
 }
 ```
@@ -200,6 +204,7 @@ Complete `config.json`, with every field at its default (the access key is made 
 | `check_new_versions` | true/false | `false` | Look for a newer Roomtone at start-up and about once a day. |
 | `last_version_check` | number | `0` | When the last good look was (seconds since 1970). Kept by the app. |
 | `media_keys` | true/false | `true` | **Not used any more.** The keyboard media keys feature was removed after 0.8.3; the field is still read and kept so older settings files load. |
+| `volume_step` | 1, 2, 5, 10 | `5` | How far the volume keyboard shortcut (Ctrl or Cmd with the up and down arrows) moves the volume. |
 | `remember_history` | true/false | `true` | Keep a listening history on this computer. |
 | `show_lyrics` | true/false | `false` | Experimental: show lyrics on Now Playing, fetched from lrclib.net. |
 | `show_alarms` | true/false | not set (off) | Show the Alarms page in the sidebar. |

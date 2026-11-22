@@ -386,6 +386,10 @@ Unknown room	Sala desconocida
 Unsubscribe	Cancelar suscripción
 Up next	A continuación
 Volume	Volumen
+Volume keys move the volume by	Las teclas de volumen cambian el volumen en
+Ctrl (Cmd on a Mac) with the up and down arrow keys. A smaller step is gentler for quiet listening.	Ctrl (Cmd en un Mac) con las flechas arriba y abajo. Un paso menor es más suave para escuchar a poco volumen.
+Match all rooms to this volume	Igualar todas las habitaciones a este volumen
+Sets every room in this group to the volume shown for All rooms.	Ajusta cada habitación de este grupo al volumen mostrado en «Todas las habitaciones».
 Waiting for you to approve on the service's page…	Esperando tu aprobación en la página del servicio…
 Wake up to music in any room	Despierta con música en cualquier sala
 Web address	Dirección web
