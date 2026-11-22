@@ -528,6 +528,10 @@ pub struct AppState {
     pub mcp_status: String,
     /// Is the now-playing display listening: `ok:PORT`, `err:WHY` or empty when it's off.
     pub frame_status: String,
+    /// The speakers' clock: the seconds since midnight (local time) it showed, and when we read it.
+    pub clock: Option<(Instant, u32)>,
+    /// When the last "limited to" note was shown, so dragging a slider doesn't repeat it.
+    pub limit_note_at: Option<Instant>,
     /// A backup file the person chose to restore, shown for them to look over.
     pub backup_preview: Option<(std::path::PathBuf, crate::backup::Summary)>,
     /// What the last save or restore did.
@@ -629,6 +633,8 @@ impl Default for AppState {
             errors: vec![],
             mcp_status: String::new(),
             frame_status: String::new(),
+            clock: None,
+            limit_note_at: None,
             backup_preview: None,
             backup_result: None,
             config_problem: None,
@@ -694,6 +700,17 @@ impl AppState {
     pub fn any_ip(&self) -> Option<String> {
         self.household().and_then(|h| h.rooms.first()).map(|r| r.ip.clone())
     }
+    /// The minute of the day (0 to 1439) by the speakers' clock, which is the home's local time;
+    /// the demo system uses this computer's clock (UTC). `None` until the clock has been read.
+    pub fn local_minute(&self) -> Option<u32> {
+        if self.phase == Phase::Demo {
+            let secs = std::time::SystemTime::now().duration_since(std::time::UNIX_EPOCH).map(|d| d.as_secs()).unwrap_or(0);
+            return Some((secs % 86_400 / 60) as u32);
+        }
+        let (at, secs) = self.clock?;
+        Some(((secs as u64 + at.elapsed().as_secs()) % 86_400 / 60) as u32)
+    }
+
     pub fn toast(&mut self, text: impl Into<String>, error: bool) {
         self.toasts.push(Toast { text: text.into(), at: Instant::now(), error });
         if self.toasts.len() > 4 {

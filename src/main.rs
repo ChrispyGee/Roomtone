@@ -44,6 +44,7 @@ mod frame;
 mod help;
 mod history;
 mod known;
+mod limits;
 mod lyrics;
 mod m3u;
 #[cfg(target_os = "macos")]

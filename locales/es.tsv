@@ -399,6 +399,19 @@ Open here	Abrir aquí
 New address	Nueva dirección
 Screens using the old address will stop working until you give them the new one	Las pantallas que usan la dirección anterior dejarán de funcionar hasta que les des la nueva
 Add ?text=0 to hide the song's name, or ?fit=cover to fill the screen. The same address ends in art.jpg for just the cover and now.json for a description.	Añade ?text=0 para ocultar el nombre de la canción, o ?fit=cover para llenar la pantalla. La misma dirección terminada en art.jpg da solo la portada y en now.json una descripción.
+At these times every room is held to a lower volume. Uses the speakers' clock.	En estos horarios cada habitación queda limitada a un volumen más bajo. Usa el reloj de los altavoces.
+Drag or type to set a limit	Arrastra o escribe para fijar un límite
+From	Desde
+If another app or a speaker's buttons turn a room above its limit, Roomtone turns it back down. Only while Roomtone is open.	Si otra app o los botones de un altavoz suben una habitación por encima de su límite, Roomtone la vuelve a bajar. Solo mientras Roomtone esté abierto.
+Loudest each room may be	Volumen máximo de cada habitación
+No limit	Sin límite
+Quiet hours	Horas de silencio
+Roomtone keeps what it sends under these limits: this window, the keyboard, the command line, assistants, scenes, timers and new alarms. The speakers can't hold a limit themselves, so another app, or the buttons on a speaker, can still go higher.	Roomtone mantiene lo que envía por debajo de estos límites: esta ventana, el teclado, la línea de comandos, los asistentes, las escenas, los temporizadores y las alarmas nuevas. Los altavoces no pueden guardar un límite por sí mismos, así que otra app o los botones de un altavoz pueden subir más.
+Turn a room back down if it goes over	Volver a bajar una habitación si se pasa
+Volume limits	Límites de volumen
+no louder than	no más alto que
+to	hasta
+{room} is limited to {n}	{room} está limitada a {n}
 A chime in a room after a few minutes. It rings on the speaker, so it still works if Roomtone is closed, but only to the nearest minute.	Un aviso sonoro en una habitación pasados unos minutos. Suena en el altavoz, así que funciona aunque Roomtone esté cerrado, pero solo con precisión de minuto.
 Cancel timer	Cancelar temporizador
 Couldn't read the time from the speakers	No se pudo leer la hora de los altavoces

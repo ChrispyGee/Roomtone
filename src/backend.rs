@@ -150,6 +150,7 @@ pub enum Cmd {
     /// Change the assistant link (MCP) settings.
     SetMcp(crate::config::McpConfig),
     SetFrame(crate::config::FrameConfig),
+    SetVolumeLimits(crate::config::VolumeLimits),
 }
 
 impl Cmd {
@@ -223,6 +224,14 @@ impl Backend {
             let b = backend.clone();
             thread::spawn(move || version_checker(b, ctx));
         }
+        {
+            let b = backend.clone();
+            thread::spawn(move || clock_keeper(b));
+        }
+        {
+            let b = backend.clone();
+            thread::spawn(move || volume_guard(b));
+        }
         crate::sources::local::start_server();
         backend.send(Cmd::Rescan);
         backend.send(if demo_only { Cmd::UseDemo } else { Cmd::QuickStart });
@@ -231,6 +240,18 @@ impl Backend {
 
     /// Hand a command to the background worker; returns its ticket number.
     pub fn send(&self, cmd: Cmd) -> u64 {
+        // Volume safeguards come first, so a slider shows the volume it really got.
+        let cmd = {
+            let mut s = self.lock();
+            let (cmd, note) = crate::limits::limit(&s, cmd);
+            if let Some(note) = note {
+                if s.limit_note_at.is_none_or(|t| t.elapsed() > Duration::from_secs(4)) {
+                    s.limit_note_at = Some(Instant::now());
+                    s.toast(note, false);
+                }
+            }
+            cmd
+        };
         // Optimistic updates so sliders and buttons react at once.
         {
             let mut s = self.lock();
@@ -1089,6 +1110,7 @@ fn run_live(b: &Backend, ctx: &Waker, cmd: Cmd) -> Result<(), String> {
         | Cmd::SetLanguage(_)
         | Cmd::SetMcp(_)
         | Cmd::SetFrame(_)
+        | Cmd::SetVolumeLimits(_)
         | Cmd::PlayFiles(..)
         | Cmd::CheckService(_)
         | Cmd::LinkGroups(..)
@@ -1915,6 +1937,17 @@ fn run_common(b: &Backend, ctx: &Waker, cmd: Cmd) -> Result<Option<Cmd>, String>
             }
             f.port = f.port.clamp(1024, 65535);
             b.lock().config.frame = f;
+            save(b);
+            Ok(None)
+        }
+        Cmd::SetVolumeLimits(mut l) => {
+            // Tidy what was asked for: no limits of 100 (that's none), none twice, quiet hours inside a day.
+            let mut seen = std::collections::HashSet::new();
+            l.rooms.retain(|r| r.max < 100 && !r.room.is_empty() && seen.insert(r.room.clone()));
+            l.quiet.from %= 1440;
+            l.quiet.to %= 1440;
+            l.quiet.max = l.quiet.max.min(100);
+            b.lock().config.volume_limits = l;
             save(b);
             Ok(None)
         }
@@ -3027,6 +3060,49 @@ fn demo_details(model: &str) -> crate::s2::Details {
 
 /// Looks for a newer Roomtone: a few seconds after start-up and then once a day while the
 /// setting is on, and whenever *Check now* is pressed. Only ever reads the project's release page.
+/// Keep a note of the speakers' clock (the home's local time), which quiet hours go by.
+fn clock_keeper(b: Backend) {
+    loop {
+        let ip = {
+            let s = b.lock();
+            if s.phase == Phase::Demo {
+                None
+            } else {
+                s.any_ip()
+            }
+        };
+        let wait = match ip.and_then(|ip| speaker::local_time_now(&ip)) {
+            Some((h, m, sec)) => {
+                b.lock().clock = Some((Instant::now(), h * 3600 + m * 60 + sec));
+                Duration::from_secs(600)
+            }
+            None => Duration::from_secs(10),
+        };
+        thread::sleep(wait);
+    }
+}
+
+/// With *keep_down* on, turn a room back down when something else has turned it over its limit.
+fn volume_guard(b: Backend) {
+    let mut last: HashMap<String, Instant> = HashMap::new();
+    loop {
+        thread::sleep(Duration::from_secs(3));
+        let over = {
+            let s = b.lock();
+            if !s.config.volume_limits.keep_down || s.phase != Phase::Live {
+                continue;
+            }
+            crate::limits::rooms_over(&s)
+        };
+        for (room, cap) in over {
+            if last.get(&room).is_none_or(|t| t.elapsed() > Duration::from_secs(15)) {
+                last.insert(room.clone(), Instant::now());
+                b.send(Cmd::RoomVolume(room, cap));
+            }
+        }
+    }
+}
+
 fn version_checker(b: Backend, ctx: Waker) {
     thread::sleep(Duration::from_secs(5));
     ask_at_startup(&b);
@@ -4405,6 +4481,43 @@ mod unit {
         let s = b.lock();
         assert_eq!(s.alarms.as_ref().unwrap().len(), before);
         assert!(!s.config.alarm_timers.iter().any(|t| t.id == id));
+    }
+
+    #[test]
+    fn volume_limits_hold_what_the_app_sends_and_are_tidied_when_saved() {
+        use crate::config::{QuietHours, RoomLimit, VolumeLimits};
+        let b = demo_backend();
+        let (room, name) = {
+            let s = b.lock();
+            let r = &s.household().unwrap().rooms[0];
+            (r.uuid.clone(), r.name.clone())
+        };
+        b.send_and_wait(Cmd::RoomVolume(room.clone(), 20), Duration::from_secs(5)).unwrap();
+        // 100 is no limit, a repeated room counts once, and a bogus time is brought inside a day.
+        let asked = VolumeLimits {
+            rooms: vec![
+                RoomLimit { room: room.clone(), max: 35 },
+                RoomLimit { room: room.clone(), max: 10 },
+                RoomLimit { room: "other".into(), max: 100 },
+                RoomLimit { room: String::new(), max: 5 },
+            ],
+            quiet: QuietHours { enabled: false, from: 1500, to: 99, max: 200 },
+            keep_down: false,
+        };
+        b.send_and_wait(Cmd::SetVolumeLimits(asked), Duration::from_secs(5)).unwrap();
+        let saved = b.lock().config.volume_limits.clone();
+        assert_eq!(saved.rooms, vec![RoomLimit { room: room.clone(), max: 35 }]);
+        assert_eq!((saved.quiet.from, saved.quiet.to, saved.quiet.max), (60, 99, 100));
+        // A slider (or the keyboard, the command line, an assistant) can't take it past 35.
+        b.send_and_wait(Cmd::RoomVolume(room.clone(), 80), Duration::from_secs(5)).unwrap();
+        assert_eq!(b.lock().find_room(&room).map(|(_, r)| r.volume), Some(35));
+        let note = b.lock().toasts.iter().map(|t| t.text.clone()).find(|t| t.contains("limited"));
+        assert_eq!(note, Some(format!("{name} is limited to 35")));
+        b.send_and_wait(Cmd::RoomVolume(room.clone(), 30), Duration::from_secs(5)).unwrap();
+        assert_eq!(b.lock().find_room(&room).map(|(_, r)| r.volume), Some(30), "under the limit goes through");
+        b.send_and_wait(Cmd::SetVolumeLimits(VolumeLimits::default()), Duration::from_secs(5)).unwrap();
+        b.send_and_wait(Cmd::RoomVolume(room.clone(), 80), Duration::from_secs(5)).unwrap();
+        assert_eq!(b.lock().find_room(&room).map(|(_, r)| r.volume), Some(80), "no limit, no clamp");
     }
 
     #[test]

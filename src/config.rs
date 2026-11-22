@@ -157,6 +157,59 @@ pub struct AlarmTimer {
     pub due: u64,
 }
 
+/// A highest volume for one room.
+#[derive(Clone, Debug, Default, Serialize, Deserialize, PartialEq)]
+pub struct RoomLimit {
+    /// The room (its id, which survives renaming).
+    pub room: String,
+    /// The loudest it may be made, 0 to 99 (a room with no limit isn't listed).
+    pub max: u8,
+}
+
+/// A time of day when every room is held to a lower volume.
+#[derive(Clone, Debug, Serialize, Deserialize, PartialEq)]
+pub struct QuietHours {
+    #[serde(default)]
+    pub enabled: bool,
+    /// When it starts, in minutes after midnight (22:00 is 1320).
+    #[serde(default = "quiet_from")]
+    pub from: u16,
+    /// When it ends. Earlier than `from` means it runs past midnight.
+    #[serde(default = "quiet_to")]
+    pub to: u16,
+    /// The loudest any room may be then.
+    #[serde(default = "quiet_max")]
+    pub max: u8,
+}
+
+fn quiet_from() -> u16 {
+    22 * 60
+}
+fn quiet_to() -> u16 {
+    7 * 60
+}
+fn quiet_max() -> u8 {
+    20
+}
+
+impl Default for QuietHours {
+    fn default() -> Self {
+        QuietHours { enabled: false, from: quiet_from(), to: quiet_to(), max: quiet_max() }
+    }
+}
+
+/// Volume safeguards (see `limits.rs`). None until the person sets some.
+#[derive(Clone, Debug, Default, Serialize, Deserialize, PartialEq)]
+pub struct VolumeLimits {
+    #[serde(default)]
+    pub rooms: Vec<RoomLimit>,
+    #[serde(default)]
+    pub quiet: QuietHours,
+    /// Turn a room back down if something else turns it above its limit (only while Roomtone runs).
+    #[serde(default)]
+    pub keep_down: bool,
+}
+
 /// The assistant link (MCP): lets AI assistants see and control the speakers.
 #[derive(Clone, Debug, Serialize, Deserialize, PartialEq)]
 pub struct McpConfig {
@@ -298,6 +351,9 @@ pub struct Config {
     /// One-off timers made by Roomtone (see `AlarmTimer`).
     #[serde(default)]
     pub alarm_timers: Vec<AlarmTimer>,
+    /// Volume safeguards: a highest volume per room, and quiet hours.
+    #[serde(default)]
+    pub volume_limits: VolumeLimits,
     /// Let the speakers say when something changes (UPnP events) instead of asking over and
     /// over. Off until the person switches it on: it needs an incoming connection.
     #[serde(default)]
@@ -361,6 +417,7 @@ impl Default for Config {
             frame: FrameConfig::default(),
             theme: default_theme(),
             alarm_timers: vec![],
+            volume_limits: VolumeLimits::default(),
             speaker_events: false,
             check_new_versions: false,
             last_version_check: 0,
