@@ -1,0 +1,4 @@
+node_modules/
+io.github.chrispygee.roomtone.sdPlugin/bin/
+io.github.chrispygee.roomtone.sdPlugin/logs/
+*.streamDeckPlugin

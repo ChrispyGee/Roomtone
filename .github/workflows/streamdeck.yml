@@ -1,0 +1,32 @@
+name: Stream Deck plugin
+
+# Builds and tests the experimental Stream Deck plugin (streamdeck/) when it changes.
+on:
+  push:
+    branches: [main]
+    paths: ["streamdeck/**", ".github/workflows/streamdeck.yml"]
+  pull_request:
+    paths: ["streamdeck/**", ".github/workflows/streamdeck.yml"]
+
+permissions:
+  contents: read
+
+jobs:
+  plugin:
+    name: Build and test the plugin
+    runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: streamdeck
+    steps:
+      - uses: actions/checkout@v7
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 24
+          cache: npm
+          cache-dependency-path: streamdeck/package-lock.json
+      - run: npm ci
+      - run: npm run typecheck
+      - run: npm test
+      - run: npm run build
+      - run: npm run validate
