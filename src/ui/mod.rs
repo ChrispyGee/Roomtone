@@ -2005,7 +2005,8 @@ impl eframe::App for App {
                         self.out.push(Cmd::Previous(g.id.clone()));
                     }
                     if up || down {
-                        let v = (g.volume as i32 + if up { 5 } else { -5 }).clamp(0, 100) as u8;
+                        let step = s.config.volume_step.clamp(1, 10) as i32;
+                        let v = (g.volume as i32 + if up { step } else { -step }).clamp(0, 100) as u8;
                         self.out.push(Cmd::GroupVolume(g.id.clone(), v));
                     }
                 }

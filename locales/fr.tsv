@@ -386,6 +386,10 @@ Unknown room	Pièce inconnue
 Unsubscribe	Se désabonner
 Up next	À suivre
 Volume	Volume
+Volume keys move the volume by	Les touches de volume changent le volume de
+Ctrl (Cmd on a Mac) with the up and down arrow keys. A smaller step is gentler for quiet listening.	Ctrl (Cmd sur un Mac) avec les flèches haut et bas. Un pas plus petit est plus doux pour une écoute à faible volume.
+Match all rooms to this volume	Régler toutes les pièces sur ce volume
+Sets every room in this group to the volume shown for All rooms.	Règle chaque pièce de ce groupe sur le volume affiché pour « Toutes les pièces ».
 Waiting for you to approve on the service's page…	En attente de votre validation sur la page du service…
 Wake up to music in any room	Réveillez-vous en musique dans n'importe quelle pièce
 Web address	Adresse web

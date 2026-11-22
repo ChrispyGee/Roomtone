@@ -108,6 +108,7 @@ pub enum Cmd {
     CheckConnections,
     /// Switch lyrics (experimental) on or off.
     SetLyrics(bool),
+    SetVolumeStep(u8),
     /// Show or hide a page or feature (alarms, scenes, the update-install buttons).
     SetFeature(crate::config::Feature, bool),
     /// Forget a system that isn't answering (by household id).
@@ -1092,6 +1093,7 @@ fn run_live(b: &Backend, ctx: &Waker, cmd: Cmd) -> Result<(), String> {
         | Cmd::CheckConnections
         | Cmd::SetVersionCheck(_)
         | Cmd::SetLyrics(_)
+        | Cmd::SetVolumeStep(_)
         | Cmd::SetFeature(..)
         | Cmd::ForgetSystem(_)
         | Cmd::LoadLyrics(..)
@@ -1895,6 +1897,11 @@ fn run_common(b: &Backend, ctx: &Waker, cmd: Cmd) -> Result<Option<Cmd>, String>
                     Feature::UpdateInstall => s.config.allow_update_install = on,
                 }
             }
+            save(b);
+            Ok(None)
+        }
+        Cmd::SetVolumeStep(n) => {
+            b.lock().config.volume_step = if [1, 2, 5, 10].contains(&n) { n } else { 5 };
             save(b);
             Ok(None)
         }
@@ -4202,5 +4209,17 @@ mod unit {
         assert_eq!(b.lock().config.theme, "light");
         b.send_and_wait(Cmd::SetTheme("purple".into()), Duration::from_secs(5)).unwrap();
         assert_eq!(b.lock().config.theme, "auto");
+    }
+
+    #[test]
+    fn the_volume_step_is_one_of_the_offered_sizes() {
+        assert_eq!(crate::config::Config::default().volume_step, 5, "the shortcut keeps moving by 5 until changed");
+        let b = demo_backend();
+        for (ask, kept) in [(1, 1), (2, 2), (10, 10), (7, 5), (0, 5), (5, 5)] {
+            b.send_and_wait(Cmd::SetVolumeStep(ask), Duration::from_secs(5)).unwrap();
+            assert_eq!(b.lock().config.volume_step, kept, "asked for {ask}");
+        }
+        let old: crate::config::Config = serde_json::from_str("{}").unwrap();
+        assert_eq!(old.volume_step, 5, "a settings file from before this setting reads as 5");
     }
 }

@@ -1769,6 +1769,20 @@ impl App {
             if g.members.len() > 1 {
                 let (a, b) = (gid.clone(), gid.clone());
                 self.volume_line(ui, t!("All rooms"), &format!("g:{gid}"), g.volume, g.muted, true, move |v| Cmd::GroupVolume(a.clone(), v), move |m| Cmd::GroupMute(b.clone(), m));
+                let rooms: Vec<(String, u8)> = g.members.iter().filter_map(|m| h.room(m)).map(|r| (r.uuid.clone(), r.volume)).collect();
+                if rooms.iter().any(|(_, v)| *v != g.volume) {
+                    ui.horizontal(|ui| {
+                        ui.add_space(130.0);
+                        if pill(ui, None, t!("Match all rooms to this volume"), false)
+                            .on_hover_text(t!("Sets every room in this group to the volume shown for All rooms."))
+                            .clicked()
+                        {
+                            for (uuid, _) in rooms {
+                                self.send(Cmd::RoomVolume(uuid, g.volume));
+                            }
+                        }
+                    });
+                }
                 ui.separator();
             }
             for m in &g.members {
@@ -2132,6 +2146,8 @@ impl App {
                 self.new_version_card(ui, s);
             }
             1 => {
+                self.volume_step_card(ui, s);
+                ui.add_space(14.0);
                 self.history_card(ui, s);
                 ui.add_space(14.0);
                 self.lyrics_card(ui, s);
@@ -2856,6 +2872,28 @@ impl App {
         if scenes != s0 {
             self.send(Cmd::SetFeature(Feature::Scenes, scenes));
         }
+    }
+
+    /// How far the volume keyboard shortcut moves the volume.
+    fn volume_step_card(&mut self, ui: &mut Ui, s: &AppState) {
+        section_title(ui, t!("Volume"));
+        card_frame().show(ui, |ui| {
+            ui.set_width(ui.available_width());
+            ui.horizontal(|ui| {
+                ui.vertical(|ui| {
+                    ui.set_max_width((ui.available_width() - 220.0).max(120.0));
+                    ui.label(RichText::new(t!("Volume keys move the volume by")).color(TEXT()));
+                    ui.label(RichText::new(t!("Ctrl (Cmd on a Mac) with the up and down arrow keys. A smaller step is gentler for quiet listening.")).size(12.0).color(TEXT_DIM()));
+                });
+                ui.with_layout(Layout::right_to_left(Align::Center), |ui| {
+                    let steps = [1u8, 2, 5, 10];
+                    let current = steps.iter().position(|n| *n == s.config.volume_step).unwrap_or(2);
+                    if let Some(i) = segmented(ui, &["1", "2", "5", "10"], current, 200.0) {
+                        self.send(Cmd::SetVolumeStep(steps[i]));
+                    }
+                });
+            });
+        });
     }
 
     fn lyrics_card(&mut self, ui: &mut Ui, s: &AppState) {

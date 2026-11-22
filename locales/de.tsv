@@ -386,6 +386,10 @@ Unknown room	Unbekannter Raum
 Unsubscribe	Abo beenden
 Up next	Als Nächstes
 Volume	Lautstärke
+Volume keys move the volume by	Die Lautstärketasten ändern die Lautstärke um
+Ctrl (Cmd on a Mac) with the up and down arrow keys. A smaller step is gentler for quiet listening.	Strg (auf dem Mac Cmd) mit den Pfeiltasten nach oben und unten. Ein kleinerer Schritt ist angenehmer bei leiser Wiedergabe.
+Match all rooms to this volume	Alle Räume auf diese Lautstärke setzen
+Sets every room in this group to the volume shown for All rooms.	Stellt jeden Raum dieser Gruppe auf die bei „Alle Räume“ gezeigte Lautstärke.
 Waiting for you to approve on the service's page…	Warte auf deine Bestätigung auf der Seite des Dienstes…
 Wake up to music in any room	Mit Musik aufwachen, in jedem Raum
 Web address	Webadresse
