@@ -39,6 +39,10 @@ pub enum Cmd {
     PlayQueueIndex(String, usize),
     /// Silence the ringing alarm in this group and have it ring again after this many minutes.
     SnoozeAlarm(String, u32),
+    /// A one-off timer in a room: (room, minutes, volume). Made as a one-time chime alarm.
+    StartTimer(String, u32, u8),
+    /// Cancel a timer made by `StartTimer` (its alarm's id).
+    CancelTimer(String),
     RemoveFromQueue(String, usize),
     /// Take this many songs out of the queue in one go, starting at this place (from 0).
     RemoveRangeFromQueue(String, usize, usize),
@@ -1232,6 +1236,28 @@ fn run_live(b: &Backend, ctx: &Waker, cmd: Cmd) -> Result<(), String> {
             speaker::save_alarm(&ip, &a)?;
             load_alarms(b, &ip)
         }
+        Cmd::StartTimer(room, minutes, volume) => {
+            let ip = need(b.lock().any_ip(), n_!("Alarms"))?;
+            // Alarms ring by the speaker's own clock, so count from that, not from this computer's.
+            let now = speaker::local_time_now(&ip).ok_or_else(|| crate::t!("Couldn't read the time from the speakers"))?;
+            let alarm = timer_alarm(now, minutes, &room, volume);
+            let id = speaker::save_alarm(&ip, &alarm)?;
+            if !id.is_empty() {
+                let mut s = b.lock();
+                let household = s.household().map(|h| h.id.clone()).unwrap_or_default();
+                s.config.alarm_timers.push(crate::config::AlarmTimer { household, id, due: unix_now() + minutes as u64 * 60 });
+                let cfg = s.config.clone();
+                drop(s);
+                let _ = cfg.save();
+            }
+            load_alarms(b, &ip)
+        }
+        Cmd::CancelTimer(id) => {
+            let ip = need(b.lock().any_ip(), n_!("Alarms"))?;
+            speaker::delete_alarm(&ip, &id)?;
+            forget_timer(b, &id);
+            load_alarms(b, &ip)
+        }
         Cmd::DeleteAlarm(id) => {
             let ip = need(b.lock().any_ip(), n_!("Alarms"))?;
             speaker::delete_alarm(&ip, &id)?;
@@ -1240,9 +1266,100 @@ fn run_live(b: &Backend, ctx: &Waker, cmd: Cmd) -> Result<(), String> {
     }
 }
 
+/// Seconds since 1970 by this computer's clock.
+fn unix_now() -> u64 {
+    std::time::SystemTime::now().duration_since(std::time::UNIX_EPOCH).map(|d| d.as_secs()).unwrap_or(0)
+}
+
+/// How long after a timer was due it is left on the speaker before Roomtone removes it.
+const TIMER_GRACE_SECS: u64 = 300;
+
+/// The one-time chime alarm for a timer of `minutes` in `room`, given the speaker's clock `now`
+/// (hour, minute, second). Alarms ring on a whole minute, so it rings at the nearest minute to
+/// `minutes` away, and never less than 20 seconds from now.
+pub fn timer_alarm(now: (u32, u32, u32), minutes: u32, room: &str, volume: u8) -> Alarm {
+    let now_secs = now.0 * 3600 + now.1 * 60 + now.2;
+    let mut target = (now_secs + minutes.max(1) * 60 + 30) / 60;
+    if target * 60 < now_secs + 20 {
+        target += 1;
+    }
+    let target = target % (24 * 60);
+    Alarm {
+        hour: target / 60,
+        minute: target % 60,
+        duration_min: 1,
+        recurrence: "ONCE".into(),
+        enabled: true,
+        room_uuid: room.to_string(),
+        program_uri: "x-rincon-buzzer:0".into(),
+        program_name: n_!("Chime").into(),
+        play_mode: "NORMAL".into(),
+        volume,
+        ..Default::default()
+    }
+}
+
+/// Forget a timer (it was cancelled or is gone).
+fn forget_timer(b: &Backend, id: &str) {
+    let mut s = b.lock();
+    let household = s.household().map(|h| h.id.clone()).unwrap_or_default();
+    let before = s.config.alarm_timers.len();
+    s.config.alarm_timers.retain(|t| !(t.household == household && t.id == id));
+    if s.config.alarm_timers.len() != before {
+        let cfg = s.config.clone();
+        drop(s);
+        let _ = cfg.save();
+    }
+}
+
+/// What to do about a timer: forget it (its alarm is gone, or was turned into a normal one), or
+/// delete its alarm from the speaker and then forget it (it was due a while ago).
+#[derive(Debug, PartialEq)]
+enum TimerStep {
+    Forget(String),
+    Delete(String),
+}
+
+/// Decide, for the timers of one system, which to tidy away given the alarms it has now.
+fn timer_steps(timers: &[crate::config::AlarmTimer], alarms: &[Alarm], now: u64) -> Vec<TimerStep> {
+    let mut steps = vec![];
+    for t in timers {
+        match alarms.iter().find(|a| a.id == t.id) {
+            None => steps.push(TimerStep::Forget(t.id.clone())),
+            Some(a) if now > t.due + TIMER_GRACE_SECS => {
+                // Only a one-time alarm is ever deleted; one that was changed into a normal alarm is left alone.
+                steps.push(if a.recurrence == "ONCE" { TimerStep::Delete(t.id.clone()) } else { TimerStep::Forget(t.id.clone()) });
+            }
+            Some(_) => {}
+        }
+    }
+    steps
+}
+
+/// Timers whose alarm has gone, or that were due a while ago, are tidied away.
+fn tidy_timers(b: &Backend, ip: &str, list: &mut Vec<Alarm>) {
+    let mine: Vec<crate::config::AlarmTimer> = {
+        let s = b.lock();
+        let h = s.household().map(|h| h.id.clone()).unwrap_or_default();
+        s.config.alarm_timers.iter().filter(|t| t.household == h).cloned().collect()
+    };
+    for step in timer_steps(&mine, list, unix_now()) {
+        match step {
+            TimerStep::Forget(id) => forget_timer(b, &id),
+            TimerStep::Delete(id) => {
+                if speaker::delete_alarm(ip, &id).is_ok() {
+                    list.retain(|a| a.id != id);
+                    forget_timer(b, &id);
+                }
+            }
+        }
+    }
+}
+
 /// Read the system's alarms, and whether it has a time zone (without one they never ring).
 fn load_alarms(b: &Backend, ip: &str) -> Result<(), String> {
-    let list = speaker::alarms(ip)?;
+    let mut list = speaker::alarms(ip)?;
+    tidy_timers(b, ip, &mut list);
     let unset = speaker::time_zone_is_set(ip) == Some(false);
     let mut s = b.lock();
     s.alarms = Some(list);
@@ -3201,7 +3318,7 @@ impl crate::backup::SystemAccess for ActiveSystem {
     }
     fn save_alarm(&self, alarm: &Alarm) -> Result<(), String> {
         match &self.ip {
-            Some(ip) => speaker::save_alarm(ip, alarm),
+            Some(ip) => speaker::save_alarm(ip, alarm).map(|_| ()),
             None => {
                 demo::apply(&mut self.b.lock(), &Cmd::SaveAlarm(alarm.clone()));
                 Ok(())
@@ -4223,6 +4340,60 @@ mod unit {
         assert_eq!(b.lock().config.theme, "light");
         b.send_and_wait(Cmd::SetTheme("purple".into()), Duration::from_secs(5)).unwrap();
         assert_eq!(b.lock().config.theme, "auto");
+    }
+
+    #[test]
+    fn a_timer_rings_on_the_nearest_whole_minute_and_never_in_the_past() {
+        let ring = |now: (u32, u32, u32), min: u32| {
+            let a = timer_alarm(now, min, "R", 30);
+            (a.hour, a.minute)
+        };
+        assert_eq!(ring((12, 0, 0), 10), (12, 10));
+        assert_eq!(ring((12, 0, 40), 10), (12, 11), "10 minutes from 12:00:40 is 12:10:40, nearest minute 12:11");
+        assert_eq!(ring((12, 0, 10), 1), (12, 1));
+        assert_eq!(ring((12, 0, 50), 1), (12, 2), "a minute from 12:00:50 can't ring at 12:01 (10 seconds away)");
+        assert_eq!(ring((23, 55, 0), 10), (0, 5), "it can pass midnight");
+        assert_eq!(ring((12, 0, 0), 0), (12, 1), "at least a minute");
+        let a = timer_alarm((9, 30, 0), 15, "ROOM", 40);
+        assert_eq!((a.recurrence.as_str(), a.room_uuid.as_str(), a.volume, a.duration_min, a.enabled, a.id.as_str()), ("ONCE", "ROOM", 40, 1, true, ""));
+        assert_eq!(a.program_uri, "x-rincon-buzzer:0", "a chime");
+    }
+
+    #[test]
+    fn old_timers_are_tidied_away_but_only_one_time_alarms_are_deleted() {
+        use crate::config::AlarmTimer;
+        let timer = |id: &str, due: u64| AlarmTimer { household: "h".into(), id: id.into(), due };
+        let alarm = |id: &str, rec: &str| Alarm { id: id.into(), recurrence: rec.into(), ..Default::default() };
+        let timers = [timer("1", 1000), timer("2", 1000), timer("3", 1000), timer("4", 5000)];
+        let alarms = [alarm("1", "ONCE"), alarm("3", "DAILY"), alarm("4", "ONCE")];
+        let steps = timer_steps(&timers, &alarms, 1000 + TIMER_GRACE_SECS + 1);
+        assert_eq!(
+            steps,
+            [TimerStep::Delete("1".into()), TimerStep::Forget("2".into()), TimerStep::Forget("3".into())],
+            "1 is old and one-time, 2 is gone, 3 became a daily alarm, 4 isn't due yet"
+        );
+        assert!(timer_steps(&timers, &alarms, 900).iter().all(|s| matches!(s, TimerStep::Forget(id) if id == "2")), "before they are due only the missing one is dropped");
+    }
+
+    #[test]
+    fn a_timer_on_the_demo_system_is_made_and_cancelled() {
+        let b = demo_backend();
+        let room = b.lock().household().unwrap().rooms[0].uuid.clone();
+        b.send_and_wait(Cmd::LoadAlarms, Duration::from_secs(5)).unwrap();
+        let before = b.lock().alarms.as_ref().map(|l| l.len()).unwrap_or(0);
+        b.send_and_wait(Cmd::StartTimer(room.clone(), 12, 35), Duration::from_secs(5)).unwrap();
+        let (id, alarm) = {
+            let s = b.lock();
+            let t = s.config.alarm_timers.last().cloned().expect("the timer is remembered");
+            assert!(t.household.starts_with("demo-"));
+            (t.id.clone(), s.alarms.as_ref().unwrap().iter().find(|a| a.id == t.id).cloned().expect("and it is an alarm"))
+        };
+        assert_eq!((alarm.recurrence.as_str(), alarm.room_uuid.as_str(), alarm.volume), ("ONCE", room.as_str(), 35));
+        assert_eq!(b.lock().alarms.as_ref().unwrap().len(), before + 1);
+        b.send_and_wait(Cmd::CancelTimer(id.clone()), Duration::from_secs(5)).unwrap();
+        let s = b.lock();
+        assert_eq!(s.alarms.as_ref().unwrap().len(), before);
+        assert!(!s.config.alarm_timers.iter().any(|t| t.id == id));
     }
 
     #[test]

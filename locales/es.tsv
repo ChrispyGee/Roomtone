@@ -386,6 +386,16 @@ Unknown room	Sala desconocida
 Unsubscribe	Cancelar suscripción
 Up next	A continuación
 Volume	Volumen
+A chime in a room after a few minutes. It rings on the speaker, so it still works if Roomtone is closed, but only to the nearest minute.	Un aviso sonoro en una habitación pasados unos minutos. Suena en el altavoz, así que funciona aunque Roomtone esté cerrado, pero solo con precisión de minuto.
+Cancel timer	Cancelar temporizador
+Couldn't read the time from the speakers	No se pudo leer la hora de los altavoces
+Duplicate	Duplicar
+Make a copy of this alarm to change and save as a new one	Hacer una copia de esta alarma para cambiarla y guardarla como nueva
+Start timer	Iniciar temporizador
+Timer	Temporizador
+min	min
+{n} min	{n} min
+{room}: rings at {time}	{room}: suena a las {time}
 Drop songs to play them in {room}	Suelta canciones para reproducirlas en {room}
 Joining {room} to {other}	Uniendo {room} a {other}
 Pick a room first, then drop the songs on the window	Elige primero una habitación y luego suelta las canciones en la ventana

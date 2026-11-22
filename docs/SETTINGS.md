@@ -206,6 +206,7 @@ Complete `config.json`, with every field at its default (the access key is made 
 | `media_keys` | true/false | `true` | **Not used any more.** The keyboard media keys feature was removed after 0.8.3; the field is still read and kept so older settings files load. |
 | `volume_step` | 1, 2, 5, 10 | `5` | How far the volume keyboard shortcut (Ctrl or Cmd with the up and down arrows) moves the volume. |
 | `remember_history` | true/false | `true` | Keep a listening history on this computer. |
+| `alarm_timers` | list | `[]` | The one-off timers Roomtone made (each: `household`, `id`, `due`), so it can tidy their alarms away after they ring. Kept by the app; leave it alone. |
 | `show_lyrics` | true/false | `false` | Experimental: show lyrics on Now Playing, fetched from lrclib.net. |
 | `show_alarms` | true/false | not set (off) | Show the Alarms page in the sidebar. |
 | `show_scenes` | true/false | not set (on only if you already have scenes) | Show the Scenes page and its Home shortcuts. |
