@@ -72,6 +72,10 @@ pub struct App {
     pick_household: Option<usize>,
     shot: Option<PathBuf>,
     frame: u64,
+    /// Picture checks only (ROOMTONE_TEST_DRAG): where each room card is, to drag between them.
+    test_cards: Vec<(String, egui::Pos2)>,
+    /// The same for the queue's rows (ROOMTONE_TEST_DRAG=queue).
+    test_rows: Vec<egui::Pos2>,
     list_filter: String,
     list_sort: usize,
     /// A letter was clicked in the A–Z strip: scroll to this row of the list being drawn.
@@ -211,6 +215,8 @@ impl App {
             pick_household: None,
             shot,
             frame: 0,
+            test_cards: vec![],
+            test_rows: vec![],
             list_filter: String::new(),
             list_sort: 0,
             jump_to: None,
@@ -863,10 +869,16 @@ impl App {
             if ui.input(|i| i.pointer.primary_clicked()) {
                 self.select = Some(g.id.clone());
             }
-            // A press that then moves becomes a drag (see `rooms_drag`); not while arranging.
-            if arrange.is_none() && ui.input(|i| i.pointer.primary_pressed()) {
-                self.press_card = ui.input(|i| i.pointer.press_origin()).map(|p| (g.id.clone(), p));
-            }
+        }
+        // A press that then moves becomes a drag (see `rooms_drag`); not while arranging. (Not
+        // `card.hovered()`: egui says a card isn't hovered while the button is held down, but the
+        // pointer is still over it.)
+        if !inner_hot && arrange.is_none() && card.contains_pointer() && ui.input(|i| i.pointer.primary_pressed()) {
+            self.press_card = ui.input(|i| i.pointer.press_origin()).map(|p| (g.id.clone(), p));
+        }
+        if std::env::var_os("ROOMTONE_TEST_DRAG").is_some() {
+            self.test_cards.retain(|(id, _)| id != &g.id);
+            self.test_cards.push((g.id.clone(), rect.center()));
         }
         // Dragging another room over this one: it is where that room would join.
         if self.drag_room.as_deref().is_some_and(|d| d != g.id) && ui.input(|i| i.pointer.latest_pos()).is_some_and(|p| rect.contains(p)) {
@@ -987,6 +999,12 @@ impl App {
                     if ui.input(|inp| inp.pointer.latest_pos()).is_some_and(|p| rect.contains(p)) {
                         self.queue_drag = Some((from, i));
                     }
+                }
+                if std::env::var("ROOMTONE_TEST_DRAG").is_ok_and(|v| v == "queue") {
+                    if self.test_rows.len() <= i {
+                        self.test_rows.resize(i + 1, egui::Pos2::ZERO);
+                    }
+                    self.test_rows[i] = rect.center();
                 }
                 let dragging_this = self.queue_drag.is_some_and(|(from, _)| from == i);
                 if (resp.hovered() || is_current) && !dragging_this {
@@ -2130,6 +2148,71 @@ fn joined_members(shown: &[&Group], dragged: &str, target: &str) -> Option<Vec<S
 }
 
 impl eframe::App for App {
+    /// Picture checks only: ROOMTONE_TEST_DRAG makes the mouse drag the second room card onto the first,
+    /// as a person would, and says on stderr what happened (so the drag can be tried without a hand).
+    fn raw_input_hook(&mut self, _ctx: &egui::Context, raw: &mut egui::RawInput) {
+        let Ok(mode) = std::env::var("ROOMTONE_TEST_DRAG") else { return };
+        if let Some(path) = mode.strip_prefix("files:") {
+            // A song file dropped on the window, as the file manager would do it.
+            #[derive(Debug)]
+            struct Dropped(std::path::PathBuf);
+            impl egui::DroppedFile for Dropped {
+                fn path(&self) -> &std::path::Path {
+                    &self.0
+                }
+                fn bytes(&self) -> Result<Vec<u8>, String> {
+                    std::fs::read(&self.0).map_err(|e| e.to_string())
+                }
+            }
+            if self.frame == 40 {
+                raw.dropped_files.push(std::sync::Arc::new(Dropped(std::path::PathBuf::from(path))));
+            }
+            if self.frame == 90 {
+                let s = self.backend.lock();
+                let titles: Vec<String> = s
+                    .selected_group
+                    .as_ref()
+                    .and_then(|g| s.find_group(g))
+                    .and_then(|(_, g)| g.queue.as_ref().map(|q| q.iter().take(3).map(|i| i.title.clone()).collect()))
+                    .unwrap_or_default();
+                eprintln!("DRAG-TEST frame 90: queue starts {titles:?}");
+            }
+            return;
+        }
+        let queue = mode == "queue";
+        if (queue && self.test_rows.len() < 3) || (!queue && self.test_cards.len() < 2) {
+            return;
+        }
+        let (from, to) = if queue { (self.test_rows[0], self.test_rows[2]) } else { (self.test_cards[1].1, self.test_cards[0].1) };
+        let at = |f: u64| from + (to - from) * ((f.saturating_sub(44)) as f32 / 10.0).clamp(0.0, 1.0);
+        let button = |pos: egui::Pos2, pressed: bool| egui::Event::PointerButton { pos, button: egui::PointerButton::Primary, pressed, modifiers: egui::Modifiers::NONE };
+        match self.frame {
+            40 => raw.events.push(egui::Event::PointerMoved(from)),
+            42 => raw.events.push(button(from, true)),
+            44..=54 => raw.events.push(egui::Event::PointerMoved(at(self.frame))),
+            56 => raw.events.push(button(to, false)),
+            _ => {}
+        }
+        if queue && matches!(self.frame, 46 | 70) {
+            let s = self.backend.lock();
+            let titles: Vec<String> = s
+                .selected_group
+                .as_ref()
+                .and_then(|g| s.find_group(g))
+                .and_then(|(_, g)| g.queue.as_ref().map(|q| q.iter().take(4).map(|i| i.title.clone()).collect()))
+                .unwrap_or_default();
+            eprintln!("DRAG-TEST frame {}: queue_drag={:?} first four={titles:?}", self.frame, self.queue_drag);
+        } else if matches!(self.frame, 46 | 70) {
+            let s = self.backend.lock();
+            let together = s
+                .households
+                .iter()
+                .flat_map(|h| h.groups.iter())
+                .any(|g| g.members.len() >= 2 && g.members.contains(&self.test_cards[0].0) && g.members.contains(&self.test_cards[1].0));
+            eprintln!("DRAG-TEST frame {}: dragging={:?} joined={together}", self.frame, self.drag_room);
+        }
+    }
+
     fn ui(&mut self, root: &mut egui::Ui, _frame: &mut eframe::Frame) {
         let ctx = &root.ctx().clone();
         // Appearance: the person's setting, or a one-off --theme; Automatic follows the computer.

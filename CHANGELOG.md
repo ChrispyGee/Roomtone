@@ -4,6 +4,9 @@ All notable changes to Roomtone. The format follows [Keep a Changelog](https://k
 
 ## [Unreleased]
 
+### Fixed
+- **Dragging a room card onto another to group them did nothing.** The drag never started: the card said it wasn't being pointed at while the mouse button was held down, so the press was never noticed. It now starts a drag as designed (found by simulating the mouse in the real window). Dragging a queue row and dropping song files, which were also untried, work in the same test. A new script, `scripts/check-drag.sh`, repeats all three in the demo system and says whether each worked.
+
 ## [0.9.3] — 2026-11-22
 
 Volume limits and quiet hours, gentler alarms (copies, several rooms, one-off timers), drag and drop, spoken slider values and a High contrast setting, a now-playing display for picture frames and tablets, a new `get_cover_art` assistant tool, an experimental Stream Deck plugin (in `streamdeck/`, not part of the download), Roomtone looking for a new version when it starts, and a volume step setting. The newest of these (the alarm additions, the now-playing display, drag and drop, volume limits and the accessibility changes) have only been tried on the demo system and with tests, not on real speakers; see each entry.
