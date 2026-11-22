@@ -386,6 +386,12 @@ Unknown room	Unbekannter Raum
 Unsubscribe	Abo beenden
 Up next	Als Nächstes
 Volume	Lautstärke
+{n} of 100	{n} von 100
+{pos} of {total}	{pos} von {total}
+{n} on a scale from -10 to +10	{n} auf einer Skala von -10 bis +10
+Controlling {room}	Steuert {room}
+High contrast	Hoher Kontrast
+Stronger text, outlines and colours, for when the usual ones are hard to see.	Kräftigerer Text, Umrisse und Farben, wenn die üblichen schwer zu erkennen sind.
 Volume keys move the volume by	Die Lautstärketasten ändern die Lautstärke um
 Ctrl (Cmd on a Mac) with the up and down arrow keys. A smaller step is gentler for quiet listening.	Strg (auf dem Mac Cmd) mit den Pfeiltasten nach oben und unten. Ein kleinerer Schritt ist angenehmer bei leiser Wiedergabe.
 Match all rooms to this volume	Alle Räume auf diese Lautstärke setzen

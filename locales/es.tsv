@@ -386,6 +386,12 @@ Unknown room	Sala desconocida
 Unsubscribe	Cancelar suscripción
 Up next	A continuación
 Volume	Volumen
+{n} of 100	{n} de 100
+{pos} of {total}	{pos} de {total}
+{n} on a scale from -10 to +10	{n} en una escala de -10 a +10
+Controlling {room}	Controlando {room}
+High contrast	Alto contraste
+Stronger text, outlines and colours, for when the usual ones are hard to see.	Texto, contornos y colores más marcados, para cuando los habituales cuesten de ver.
 Volume keys move the volume by	Las teclas de volumen cambian el volumen en
 Ctrl (Cmd on a Mac) with the up and down arrow keys. A smaller step is gentler for quiet listening.	Ctrl (Cmd en un Mac) con las flechas arriba y abajo. Un paso menor es más suave para escuchar a poco volumen.
 Match all rooms to this volume	Igualar todas las habitaciones a este volumen

@@ -386,6 +386,12 @@ Unknown room	Stanza sconosciuta
 Unsubscribe	Annulla iscrizione
 Up next	Prossimi
 Volume	Volume
+{n} of 100	{n} su 100
+{pos} of {total}	{pos} su {total}
+{n} on a scale from -10 to +10	{n} su una scala da -10 a +10
+Controlling {room}	Controllo di {room}
+High contrast	Contrasto elevato
+Stronger text, outlines and colours, for when the usual ones are hard to see.	Testo, contorni e colori più marcati, per quando quelli abituali sono difficili da vedere.
 Volume keys move the volume by	I tasti del volume cambiano il volume di
 Ctrl (Cmd on a Mac) with the up and down arrow keys. A smaller step is gentler for quiet listening.	Ctrl (Cmd su un Mac) con le frecce su e giù. Un passo più piccolo è più delicato per l'ascolto a basso volume.
 Match all rooms to this volume	Imposta tutte le stanze su questo volume

@@ -386,6 +386,12 @@ Unknown room	Pièce inconnue
 Unsubscribe	Se désabonner
 Up next	À suivre
 Volume	Volume
+{n} of 100	{n} sur 100
+{pos} of {total}	{pos} sur {total}
+{n} on a scale from -10 to +10	{n} sur une échelle de -10 à +10
+Controlling {room}	Commande {room}
+High contrast	Contraste élevé
+Stronger text, outlines and colours, for when the usual ones are hard to see.	Texte, contours et couleurs plus marqués, quand les habituels sont difficiles à voir.
 Volume keys move the volume by	Les touches de volume changent le volume de
 Ctrl (Cmd on a Mac) with the up and down arrow keys. A smaller step is gentler for quiet listening.	Ctrl (Cmd sur un Mac) avec les flèches haut et bas. Un pas plus petit est plus doux pour une écoute à faible volume.
 Match all rooms to this volume	Régler toutes les pièces sur ce volume

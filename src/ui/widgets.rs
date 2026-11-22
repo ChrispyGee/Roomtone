@@ -460,7 +460,9 @@ pub fn tab_pills(ui: &mut Ui, names: &[&str], selected: usize) -> Option<usize> 
 
 /// A slim slider with a knob that appears on hover. `value` is 0..=1.
 /// Arrow keys move it by a hundredth (a tenth with Shift) while it has the keyboard focus.
-pub fn slider(ui: &mut Ui, id: impl std::hash::Hash, name: &str, value: &mut f32, width: f32, color: Color32) -> (Response, bool) {
+/// `said` is the value in words for a screen reader, as well as the number ("40 of 100", "1:15 of
+/// 3:18", "+2 on a scale from -10 to +10").
+pub fn slider(ui: &mut Ui, id: impl std::hash::Hash, name: &str, value: &mut f32, width: f32, color: Color32, said: &str) -> (Response, bool) {
     let (rect, resp) = ui.allocate_exact_size(vec2(width, 20.0), Sense::click_and_drag());
     let _ = id;
     let mut changed = false;
@@ -490,9 +492,10 @@ pub fn slider(ui: &mut Ui, id: impl std::hash::Hash, name: &str, value: &mut f32
             changed = true;
         }
     }
-    let current = *value as f64;
+    let current = (*value as f64 * 100.0).round();
     let label = name.to_string();
-    resp.widget_info(move || WidgetInfo::slider(true, current, label.clone()));
+    let said = said.to_string();
+    resp.widget_info(move || WidgetInfo { current_text_value: Some(said.clone()), ..WidgetInfo::slider(true, current, label.clone()) });
     focus_ring(ui, &resp, rect, 8.0);
     let hot = resp.hovered() || resp.dragged();
     let h = if hot { 6.0 } else { 4.0 };
@@ -716,7 +719,7 @@ mod unit {
             let mut on = true;
             toggle(ui, &mut on, "Crossfade");
             let mut v = 0.4;
-            slider(ui, "v", "Volume", &mut v, 120.0, ACCENT());
+            slider(ui, "v", "Volume", &mut v, 120.0, ACCENT(), "0 of 100");
             filter_chip(ui, "Jazz", true);
             segmented(ui, &["Rooms", "Queue"], 0, 160.0);
         });
@@ -732,6 +735,21 @@ mod unit {
         ] {
             assert!(seen.iter().any(|(r, n)| *r == role && n == name), "{role:?} {name:?} missing in {seen:?}");
         }
+    }
+
+    #[test]
+    fn a_slider_says_its_value_in_words() {
+        let ctx = egui::Context::default();
+        ctx.enable_accesskit();
+        let mut out = ctx.run_ui(egui::RawInput::default(), |ui| {
+            let mut v = 0.4;
+            slider(ui, "a", "Volume", &mut v, 120.0, ACCENT(), "40 of 100");
+        });
+        out.textures_delta.clear();
+        let update = out.platform_output.accesskit_update.expect("accessibility is on");
+        let find = |label: &str| update.nodes.iter().map(|(_, n)| n).find(|n| n.label() == Some(label)).unwrap_or_else(|| panic!("no {label}"));
+        let volume = find("Volume");
+        assert_eq!((volume.value(), volume.numeric_value()), (Some("40 of 100"), Some(40.0)));
     }
 
     #[test]

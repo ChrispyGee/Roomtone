@@ -254,6 +254,9 @@ pub struct Config {
     /// Appearance: "auto" follows the computer, or "light" / "dark".
     #[serde(default = "default_theme")]
     pub theme: String,
+    /// Stronger text, lines and colours for people who find the usual ones hard to see.
+    #[serde(default)]
+    pub high_contrast: bool,
     /// Let the speakers say when something changes (UPnP events) instead of asking over and
     /// over. Off until the person switches it on: it needs an incoming connection.
     #[serde(default)]
@@ -315,6 +318,7 @@ impl Default for Config {
             language: default_language(),
             mcp: McpConfig::default(),
             theme: default_theme(),
+            high_contrast: false,
             speaker_events: false,
             check_new_versions: false,
             last_version_check: 0,

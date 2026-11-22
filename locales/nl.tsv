@@ -386,6 +386,12 @@ Unknown room	Onbekende ruimte
 Unsubscribe	Abonnement opzeggen
 Up next	Hierna
 Volume	Volume
+{n} of 100	{n} van 100
+{pos} of {total}	{pos} van {total}
+{n} on a scale from -10 to +10	{n} op een schaal van -10 tot +10
+Controlling {room}	Bedient {room}
+High contrast	Hoog contrast
+Stronger text, outlines and colours, for when the usual ones are hard to see.	Sterkere tekst, omlijningen en kleuren, voor als de gewone moeilijk te zien zijn.
 Volume keys move the volume by	De volumetoetsen veranderen het volume met
 Ctrl (Cmd on a Mac) with the up and down arrow keys. A smaller step is gentler for quiet listening.	Ctrl (Cmd op een Mac) met de pijltjes omhoog en omlaag. Een kleinere stap is rustiger bij zacht luisteren.
 Match all rooms to this volume	Zet alle kamers op dit volume
