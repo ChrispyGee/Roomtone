@@ -111,7 +111,7 @@ export class VolumeDial extends RoomtoneAction<StepSettings> {
   }
 
   protected override async problem(a: Action<StepSettings>, problem: Parameters<RoomtoneAction["problem"]>[1]): Promise<void> {
-    if (a.isDial()) await a.setFeedback({ title: "Roomtone", value: problem.kind === "key" ? "Key?" : "Off", indicator: 0 });
+    if (a.isDial()) await a.setFeedback({ title: "Roomtone", value: problem.kind === "key" || problem.kind === "nokey" ? "Key?" : "Off", indicator: 0 });
   }
 
   override async onDialRotate(ev: DialRotateEvent<StepSettings>): Promise<void> {

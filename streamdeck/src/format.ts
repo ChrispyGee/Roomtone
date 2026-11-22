@@ -32,12 +32,14 @@ export function wrapTitle(text: string, width = 8, lines = 3): string {
 }
 
 /** A short word for what went wrong, to show on a key. */
-export function problemLabel(kind: "unreachable" | "off" | "key" | "refused" | "failed"): string {
+export function problemLabel(kind: "unreachable" | "off" | "nokey" | "key" | "refused" | "failed"): string {
   switch (kind) {
     case "unreachable":
       return "Roomtone\nnot\nrunning";
     case "off":
       return "Link\nis off";
+    case "nokey":
+      return "Add the\naccess\nkey";
     case "key":
       return "Wrong\nkey";
     case "refused":

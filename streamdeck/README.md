@@ -33,7 +33,7 @@ Every button acts on the room you pick from a list in its settings (the list com
    then double-click `io.github.chrispygee.roomtone.streamDeckPlugin`. Stream Deck 7.1 or later, on macOS 13+ or Windows 10+. (The file isn't signed or from the Marketplace, so Stream Deck may ask you to confirm.)
 3. **Add a button** from the *Roomtone (experimental)* group, and in its settings paste the **access key** (the host and port can stay as they are when Roomtone runs on the same computer). *Check the connection* says whether it can reach Roomtone, and fills the room list. The connection settings are shared by all buttons.
 
-Roomtone must be running (with its window, or `roomtone --headless`) for the buttons to work. If it isn't, or the key is wrong, a button says so on its face (*Roomtone not running*, *Wrong key*, *Link is off*) and shows the alert mark when pressed.
+Roomtone must be running (with its window, or `roomtone --headless`) for the buttons to work. If it isn't, or the key is wrong, a button says so on its face (*Roomtone not running*, *Add the access key*, *Wrong key*, *Link is off*) and shows the alert mark when pressed.
 
 ## How it works, and what it can see
 

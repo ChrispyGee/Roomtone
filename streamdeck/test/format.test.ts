@@ -26,5 +26,5 @@ test("labels", () => {
   assert.equal(volumeLabel(42.4, false), "42");
   assert.equal(volumeLabel(42, true), "Muted");
   assert.equal(volumeLabel(120, false), "100");
-  assert.ok(problemLabel("key").length > 0 && problemLabel("unreachable").includes("Roomtone"));
+  assert.ok(problemLabel("nokey").includes("key") && problemLabel("key").length > 0 && problemLabel("unreachable").includes("Roomtone"));
 });

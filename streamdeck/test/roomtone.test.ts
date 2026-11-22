@@ -67,6 +67,13 @@ test("what went wrong is said in words a person can act on", async () => {
   }
 });
 
+test("a blank access key is said so without asking Roomtone", async () => {
+  let asked = 0;
+  const fetchFn = (async () => (asked++, new Response("{}"))) as unknown as typeof fetch;
+  await assert.rejects(new RoomtoneClient(() => ({ host: "127.0.0.1", port: 8790, key: "  " }), fetchFn).playback("play"), (e: unknown) => e instanceof RoomtoneError && e.kind === "nokey");
+  assert.equal(asked, 0);
+});
+
 test("a tool that fails says why", async () => {
   const fetchFn = (async (_u: string, init: RequestInit) => {
     const body = JSON.parse(String(init.body));

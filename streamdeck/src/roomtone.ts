@@ -21,7 +21,7 @@ export interface NowPlaying {
 }
 
 /** Something a person can read and act on: "Roomtone isn't running", "Wrong access key". */
-export type ProblemKind = "unreachable" | "off" | "key" | "refused" | "failed";
+export type ProblemKind = "unreachable" | "off" | "nokey" | "key" | "refused" | "failed";
 
 export class RoomtoneError extends Error {
   readonly kind: ProblemKind;
@@ -51,6 +51,8 @@ export class RoomtoneClient {
 
   private async post(body: unknown, withSession: boolean): Promise<Response> {
     const c = this.connection();
+    // Roomtone would only say "no" to a blank key, so say what to do without asking.
+    if (!c.key.trim()) throw new RoomtoneError("Paste Roomtone's access key into this button's settings.", "nokey");
     const headers: Record<string, string> = {
       "Content-Type": "application/json",
       Accept: "application/json, text/event-stream",
@@ -72,7 +74,7 @@ export class RoomtoneClient {
 
   private async initialize(): Promise<void> {
     const response = await this.post(
-      { jsonrpc: "2.0", id: this.nextId++, method: "initialize", params: { protocolVersion: "2025-11-25", capabilities: {}, clientInfo: { name: "roomtone-streamdeck", version: "0.1.1" } } },
+      { jsonrpc: "2.0", id: this.nextId++, method: "initialize", params: { protocolVersion: "2025-11-25", capabilities: {}, clientInfo: { name: "roomtone-streamdeck", version: "0.1.2" } } },
       false,
     );
     this.session = response.headers.get("Mcp-Session-Id") ?? undefined;
