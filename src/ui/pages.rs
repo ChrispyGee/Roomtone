@@ -2499,10 +2499,11 @@ impl App {
             ui.add_space(6.0);
             ui.label(RichText::new(t!("What's new in this version")).color(TEXT()).strong());
             for line in [
-                t!("A ringing alarm can be snoozed or stopped from a bar at the top of the window"),
-                t!("Play along keeps both systems on the same song, whichever room you use"),
-                t!("Alarms say when a system has no time zone, and are marked Experimental"),
-                t!("A clearer message when a streaming service isn't set up on the system you play on"),
+                t!("Volume limits: a highest volume for each room, and quiet hours"),
+                t!("Alarms can be copied or made in several rooms at once, and a timer rings a chime"),
+                t!("Drag rooms to group them, drag songs in the queue, or drop songs on the window to play them"),
+                t!("Sliders are read out in words, and there is a High contrast setting"),
+                t!("A now-playing address for picture frames and tablets (experimental)"),
             ] {
                 ui.horizontal_wrapped(|ui| {
                     ui.label(RichText::new("•").color(ACCENT()));

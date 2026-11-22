@@ -386,6 +386,11 @@ Unknown room	Pièce inconnue
 Unsubscribe	Se désabonner
 Up next	À suivre
 Volume	Volume
+Volume limits: a highest volume for each room, and quiet hours	Limites de volume : un volume maximal pour chaque pièce, et des heures calmes
+Alarms can be copied or made in several rooms at once, and a timer rings a chime	Les alarmes peuvent être copiées ou créées dans plusieurs pièces à la fois, et un minuteur fait sonner une alerte
+Drag rooms to group them, drag songs in the queue, or drop songs on the window to play them	Faites glisser des pièces pour les grouper, des morceaux dans la file, ou déposez des morceaux sur la fenêtre pour les lire
+Sliders are read out in words, and there is a High contrast setting	Les curseurs sont lus à voix haute avec des mots, et il y a un réglage de contraste élevé
+A now-playing address for picture frames and tablets (experimental)	Une adresse « en cours de lecture » pour cadres photo et tablettes (expérimental)
 Now-playing display	Affichage « en cours de lecture »
 Show what's playing on a picture frame or tablet	Afficher ce qui joue sur un cadre photo ou une tablette
 Gives other screens on your home network a web address that shows the cover and song that's playing. It can only look: nothing can be played or changed through it. Anyone on your network who has the address can see what you're playing, so keep it to yourself. This is experimental and may change.	Donne aux autres écrans de votre réseau domestique une adresse web qui montre la pochette et le titre en cours. Elle ne peut que montrer : rien ne peut être lu ou modifié par ce biais. Toute personne de votre réseau qui a l'adresse peut voir ce que vous écoutez, gardez-la donc pour vous. C'est expérimental et peut changer.
@@ -868,7 +873,3 @@ Stop the alarm	Arrêter le réveil
 {a} and {b} have different queues, so they can't be kept in step. Link them again to copy one onto the other.	{a} et {b} ont des files d'attente différentes et ne peuvent donc pas rester synchronisés. Liez-les à nouveau pour copier l'une sur l'autre.
 Shuffle is off while {room} plays along, because two systems can't shuffle the same way.	La lecture aléatoire est désactivée tant que {room} joue en parallèle, car deux systèmes ne peuvent pas mélanger de la même façon.
 This system's time zone isn't set, so its alarms won't ring. Set the time zone in the Sonos app, then check again.	Ce système n'a pas de fuseau horaire défini, donc ses alarmes ne sonneront pas. Réglez le fuseau horaire dans l'app Sonos, puis vérifiez à nouveau.
-A ringing alarm can be snoozed or stopped from a bar at the top of the window	Une alarme qui sonne peut être repoussée ou arrêtée depuis une barre en haut de la fenêtre
-Play along keeps both systems on the same song, whichever room you use	Play along garde les deux systèmes sur le même morceau, quelle que soit la pièce que vous utilisez
-Alarms say when a system has no time zone, and are marked Experimental	Les alarmes signalent qu'un système n'a pas de fuseau horaire et sont marquées comme expérimentales
-A clearer message when a streaming service isn't set up on the system you play on	Un message plus clair quand un service de streaming n'est pas configuré sur le système de lecture
