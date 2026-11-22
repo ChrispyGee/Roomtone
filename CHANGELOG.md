@@ -4,6 +4,9 @@ All notable changes to Roomtone. The format follows [Keep a Changelog](https://k
 
 ## [Unreleased]
 
+### Changed
+- **The roadmap now lists speaker layout setup, layouts in scenes, more room sound settings and a per-speaker EQ as ideas** (stereo pairs, home-theatre sets, front speakers on a soundbar, custom left/right layouts, sub and surround levels, lip-sync, identify a speaker, a graphic EQ), after looking at what a similar independent speaker-setup app offers. Nothing has been built; each needs research and spare speakers first.
+
 ## [0.9.3] — 2026-11-22
 
 Volume limits and quiet hours, gentler alarms (copies, several rooms, one-off timers), drag and drop, spoken slider values and a High contrast setting, a now-playing display for picture frames and tablets, a new `get_cover_art` assistant tool, an experimental Stream Deck plugin (in `streamdeck/`, not part of the download), Roomtone looking for a new version when it starts, and a volume step setting. The newest of these (the alarm additions, the now-playing display, drag and drop, volume limits and the accessibility changes) have only been tried on the demo system and with tests, not on real speakers; see each entry.
