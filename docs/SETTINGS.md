@@ -90,6 +90,11 @@ File: `show_lyrics` (`true` / `false`), default `false`.
 ### Volume
 *Volume keys move the volume by* (**5 by default**; choose 1, 2, 5 or 10): how far Ctrl (Cmd on a Mac) with the up and down arrow keys moves the volume of the selected room or group. A smaller step suits quiet listening. A slider that has the keyboard focus still moves by 1 with the arrow keys and by 10 with Shift.
 File: `volume_step` (`1`, `2`, `5` or `10`), default `5`; any other number is read as `5`.
+### Volume limits
+*Settings › Playback › Volume limits*: a highest volume for each room, and quiet hours. **Roomtone applies them to what it sends** (this window and the keyboard, the command line, assistants, scenes, timers and new or saved alarms). The speakers can't hold a limit themselves, so **another app, or the buttons on a speaker, can still go higher**; the *Turn a room back down if it goes over* switch (off by default) makes Roomtone lower such a room every few seconds, but only while Roomtone is open.
+- *Loudest each room may be*: drag or type 0 to 99 for a room, or leave it at *No limit* (100). A group stops where its loudest room reaches its limit. A room already over its limit isn't raised further, but can be lowered.
+- *Quiet hours*: from, to, and *no louder than*. Every room is held to the lower of its own limit and this. It uses the speakers' clock (the home's local time). Alarms and timers are held to the room's limit, not to quiet hours.
+File: `volume_limits` with `rooms` (a list of `{ "room": <room id>, "max": 0-99 }`), `quiet` (`enabled`, `from` and `to` in minutes after midnight, `max`) and `keep_down` (true/false). Room ids are the speakers' own (see `speakers.json`); the window is the easy way to set them.
 ### Listening history
 *Remember what I've played* (**on by default**): songs and stations that have played for about 20 seconds are kept on this computer in `history.json` (the newest 500, each with how often and when last), and **never sent anywhere**. They feed *Recently played* on Home (which now survives a restart and includes what was played from other apps) and the **History** page (Home › *History*, or *See history* here), where you can play any of them again. Skipping through songs counts none of them; demo-system songs are never kept. Switching it off stops adding to the history but keeps what's there; *Clear history* forgets everything (the file is emptied).
 File: `remember_history` (`true` / `false`), default `true`.
@@ -206,6 +211,7 @@ Complete `config.json`, with every field at its default (the access key is made 
 | `media_keys` | true/false | `true` | **Not used any more.** The keyboard media keys feature was removed after 0.8.3; the field is still read and kept so older settings files load. |
 | `volume_step` | 1, 2, 5, 10 | `5` | How far the volume keyboard shortcut (Ctrl or Cmd with the up and down arrows) moves the volume. |
 | `remember_history` | true/false | `true` | Keep a listening history on this computer. |
+| `volume_limits` | object | none | Volume safeguards: `rooms` (room id and `max`), `quiet` (`enabled`, `from`, `to`, `max`) and `keep_down`. |
 | `alarm_timers` | list | `[]` | The one-off timers Roomtone made (each: `household`, `id`, `due`), so it can tidy their alarms away after they ring. Kept by the app; leave it alone. |
 | `show_lyrics` | true/false | `false` | Experimental: show lyrics on Now Playing, fetched from lrclib.net. |
 | `show_alarms` | true/false | not set (off) | Show the Alarms page in the sidebar. |
