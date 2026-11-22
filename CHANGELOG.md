@@ -9,6 +9,7 @@ All notable changes to Roomtone. The format follows [Keep a Changelog](https://k
 
 ### Changed
 - **The roadmap now lists now-playing art for picture frames, tablets and LED panels as an idea** (a fixed image address first, then a full-screen page), to be designed with the web remote.
+- **The roadmap now lists an Elgato Stream Deck plugin as an idea** (ready-made actions, live state and a room picker, instead of hand-made command-line keys).
 - **The README now presents the plain .tar.gz and .zip downloads as an advanced option.** The installers are the main choice; the archives (the bare program, handy for the command line, a computer with no screen or a portable copy, and Linux systems without .deb or .rpm) are still attached to every release.
 - **The README now shows the one-line Terminal command for opening the unsigned Mac app** (`xattr -dr com.apple.quarantine /Applications/Roomtone.app`), with a link to the full steps. The roadmap also notes creating and splitting stereo pairs as an idea.
 - **Roomtone looks for a new version when it starts, not only once a day.** With *Tell me when a new version of Roomtone is out* on, each start looks once a few seconds in (a failed look still backs off), then the daily look carries on. Before, a restart waited out the rest of the day and showed nothing about a newer version it already knew of.
