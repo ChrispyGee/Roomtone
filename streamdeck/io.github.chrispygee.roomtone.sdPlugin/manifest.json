@@ -1,0 +1,198 @@
+{
+  "$schema": "https://schemas.elgato.com/streamdeck/plugins/manifest.json",
+  "Name": "Roomtone (experimental)",
+  "Version": "0.2.0.0",
+  "Author": "Roomtone contributors",
+  "Description": "Experimental. Control your Sonos speakers from a Stream Deck through the Roomtone app: play, pause, skip, volume, mute and scenes. Needs Roomtone running with its assistant link switched on. Not made or endorsed by Sonos or Elgato.",
+  "UUID": "io.github.chrispygee.roomtone",
+  "Icon": "imgs/plugin/icon",
+  "Category": "Roomtone (experimental)",
+  "CategoryIcon": "imgs/plugin/category-icon",
+  "CodePath": "bin/plugin.js",
+  "PropertyInspectorPath": "ui/settings.html",
+  "SDKVersion": 2,
+  "Software": {
+    "MinimumVersion": "7.1"
+  },
+  "Nodejs": {
+    "Version": "24"
+  },
+  "OS": [
+    {
+      "Platform": "mac",
+      "MinimumVersion": "13"
+    },
+    {
+      "Platform": "windows",
+      "MinimumVersion": "10"
+    }
+  ],
+  "Actions": [
+    {
+      "Name": "Play / Pause",
+      "UUID": "io.github.chrispygee.roomtone.playpause",
+      "Icon": "imgs/actions/play",
+      "Tooltip": "Play or pause the music",
+      "Controllers": [
+        "Keypad"
+      ],
+      "States": [
+        {
+          "Image": "imgs/actions/play"
+        },
+        {
+          "Image": "imgs/actions/pause"
+        }
+      ],
+      "UserTitleEnabled": true
+    },
+    {
+      "Name": "Next song",
+      "UUID": "io.github.chrispygee.roomtone.next",
+      "Icon": "imgs/actions/next",
+      "Tooltip": "Skip to the next song",
+      "Controllers": [
+        "Keypad"
+      ],
+      "States": [
+        {
+          "Image": "imgs/actions/next"
+        }
+      ],
+      "UserTitleEnabled": true
+    },
+    {
+      "Name": "Previous song",
+      "UUID": "io.github.chrispygee.roomtone.previous",
+      "Icon": "imgs/actions/previous",
+      "Tooltip": "Go back to the previous song",
+      "Controllers": [
+        "Keypad"
+      ],
+      "States": [
+        {
+          "Image": "imgs/actions/previous"
+        }
+      ],
+      "UserTitleEnabled": true
+    },
+    {
+      "Name": "Now Playing",
+      "UUID": "io.github.chrispygee.roomtone.nowplaying",
+      "Icon": "imgs/actions/note",
+      "Tooltip": "Shows the cover (or the title) of what's playing; press to play or pause",
+      "Controllers": [
+        "Keypad"
+      ],
+      "States": [
+        {
+          "Image": "imgs/actions/notefaint"
+        },
+        {
+          "Image": "imgs/actions/notefaint"
+        }
+      ],
+      "UserTitleEnabled": true
+    },
+    {
+      "Name": "Volume Up",
+      "UUID": "io.github.chrispygee.roomtone.volumeup",
+      "Icon": "imgs/actions/volumeup",
+      "Tooltip": "Raise the volume (hold to keep going)",
+      "Controllers": [
+        "Keypad"
+      ],
+      "States": [
+        {
+          "Image": "imgs/actions/volumeup"
+        }
+      ],
+      "UserTitleEnabled": true
+    },
+    {
+      "Name": "Volume Down",
+      "UUID": "io.github.chrispygee.roomtone.volumedown",
+      "Icon": "imgs/actions/volumedown",
+      "Tooltip": "Lower the volume (hold to keep going)",
+      "Controllers": [
+        "Keypad"
+      ],
+      "States": [
+        {
+          "Image": "imgs/actions/volumedown"
+        }
+      ],
+      "UserTitleEnabled": true
+    },
+    {
+      "Name": "Mute",
+      "UUID": "io.github.chrispygee.roomtone.mute",
+      "Icon": "imgs/actions/unmuted",
+      "Tooltip": "Mute or unmute",
+      "Controllers": [
+        "Keypad"
+      ],
+      "States": [
+        {
+          "Image": "imgs/actions/unmuted"
+        },
+        {
+          "Image": "imgs/actions/muted"
+        }
+      ],
+      "UserTitleEnabled": true
+    },
+    {
+      "Name": "Scene",
+      "UUID": "io.github.chrispygee.roomtone.scene",
+      "Icon": "imgs/actions/scene",
+      "Tooltip": "Apply one of Roomtone's scenes",
+      "Controllers": [
+        "Keypad"
+      ],
+      "States": [
+        {
+          "Image": "imgs/actions/scene"
+        }
+      ],
+      "UserTitleEnabled": true
+    },
+    {
+      "Name": "Pause All",
+      "UUID": "io.github.chrispygee.roomtone.pauseall",
+      "Icon": "imgs/actions/pauseall",
+      "Tooltip": "Pause every room",
+      "Controllers": [
+        "Keypad"
+      ],
+      "States": [
+        {
+          "Image": "imgs/actions/pauseall"
+        }
+      ],
+      "UserTitleEnabled": true
+    },
+    {
+      "Name": "Volume Dial",
+      "UUID": "io.github.chrispygee.roomtone.volumedial",
+      "Icon": "imgs/actions/dial",
+      "Tooltip": "Turn for volume, press to mute, tap the screen to play or pause",
+      "Controllers": [
+        "Encoder"
+      ],
+      "States": [
+        {
+          "Image": "imgs/actions/dial"
+        }
+      ],
+      "Encoder": {
+        "layout": "$B1",
+        "TriggerDescription": {
+          "Rotate": "Volume",
+          "Push": "Mute",
+          "Touch": "Play / Pause"
+        }
+      }
+    }
+  ]
+}

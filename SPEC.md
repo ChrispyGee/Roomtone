@@ -237,6 +237,7 @@ Rooms are given by name (exact, or a unique part of a name) or id. Leaving the r
 | --- | --- |
 | `get_status` *(read)* | Every system, room (model, software version and, when known, wired or wireless), group, what's playing (with the sound details the speaker reports: format, sample rate, bit depth, bitrate, lossless), volumes, play mode, play-along links and saved groups (JSON) |
 | `now_playing` *(read)* | One room's group: track, position, state, volume, play mode, sleep timer |
+| `get_cover_art` *(read)* | The cover of what a room's group is playing, as a small JPEG image (an MCP `image` content block, base64) plus a line naming it; `size` (32 to 1000, default 300) is the longest side. Fetched from the speaker (or wherever the cover's address says) when asked, never kept. Says so, as an error, if there is no cover. Used by the Stream Deck plugin's Now Playing key |
 | `playback` | `scene <name>`, `scenes`, `backup <file.json>`, `play`, `pause`, `toggle`, `next`, `previous` |
 | `set_volume` | Absolute `volume` 0–100 or relative `change`; `whole_group` for the group |
 | `set_mute` | Mute or unmute a room or its group |
@@ -290,6 +291,9 @@ Rooms are given by name (exact, or a unique part of a name) or id. Leaving the r
 Prompts (ready-made instructions an assistant can offer the person): `play_for_mood` (mood, room), `bedtime` (room, minutes), `whole_home` (what), `morning_alarm` (room, time). `completion/complete` suggests room names, saved-group names, alarm days and moods while an argument is typed.
 
 Each changing tool waits until the speakers have answered (up to 20 s). It then returns a one-line summary, or the speakers' error with `isError: true`. Refs last until the next list of the same kind.
+
+### 6.5 Stream Deck plugin (experimental)
+`streamdeck/` holds an **experimental** Elgato Stream Deck plugin (TypeScript, the official `@elgato/streamdeck` SDK, Node.js 24, Stream Deck 7.1 or later), separate from the Roomtone program and built with `npm` (see `streamdeck/README.md`). It is a client of the assistant link (§6), not a new interface: it sends only the tool calls `now_playing` (every 2 seconds while a button that shows something is on screen, once per room), `get_cover_art` (once per new song, by the Now Playing key), `playback`, `set_volume` (whole group), `set_mute`, `apply_scene`, `pause_all`, `list_scenes` and `get_status`, to `http://<host>:<port>/mcp` (default `127.0.0.1:8790`) with the access key as a bearer token, and needs *Let AI assistants use Roomtone* and *Assistants can change things* on. Roomtone's volume limits (§4.8b) apply to what it sends. It has ten actions (play/pause, next, previous, now playing (the cover of the song, from `get_cover_art`, asked for once per song, or the title when there is none), volume up and down with hold-to-repeat, mute, scene, pause all, and a volume dial for Stream Deck +), a settings page for the connection, a room (picked from the list of Roomtone's rooms, or *follow the room selected in Roomtone*), the volume step and the scene; a title typed by the person replaces the one the plugin shows, and says on a button's face when Roomtone isn't running, the key is wrong or the link is off. Nothing in Roomtone changed for it, and it adds no network destination to §9. Checked with unit tests (a pretend Roomtone), Elgato's manifest validator, a build, and a test against a real demo Roomtone; tried by the maintainer on a real Stream Deck with real speakers for the keys and the settings page only (**the Stream Deck + dial and touch strip are untried**).
 
 ## 7. Command-line options
 
@@ -388,7 +392,7 @@ Quick checks that a change hasn't broken behaviour. Each needs no real speakers 
 
 1. `cargo test` passes: 103 unit tests, including that every phrase is translated and placeholders are kept.
 2. `roomtone --screenshot shots/x.png` saves a non-blank picture of the demo system within a few seconds.
-3. `roomtone --mcp --demo` with an `initialize` line, then `tools/list`, lists 54 tools when control is allowed (with speaker updates and saving files left off, as they are by default; 57 with every switch on) and 17 when look-only.
+3. `roomtone --mcp --demo` with an `initialize` line, then `tools/list`, lists 55 tools when control is allowed (with speaker updates and saving files left off, as they are by default; 58 with every switch on) and 18 when look-only.
 4. With the link off, `tools/call` answers error −32001.
 5. Over HTTP, a request without the key gets 401, one with `Origin: https://example.com` gets 403, and `--mcp-off` closes the port within ~2 s.
 6. In the demo: `play_along` from "Living Room" to "Office", then `playback next` on Living Room, changes Office's track too.
