@@ -37,8 +37,8 @@
 </div>
 <div id="room-row">
   <label for="room">Room</label>
-  <input id="room" type="text" placeholder="The room selected in Roomtone">
-  <div class="hint">Leave blank to follow the room selected in Roomtone, or type a room's name such as Kitchen.</div>
+  <select id="room"><option value="">Follow the room selected in Roomtone</option></select>
+  <div class="hint">Follow whichever room you have selected in Roomtone, or always use one room. The list comes from Roomtone, so set the connection below first.</div>
 </div>
 
 <h2>Connection (all buttons)</h2>
@@ -67,7 +67,7 @@
       send({ event: registerEvent, uuid });
       send({ event: "getGlobalSettings", context: uuid });
       showSettings();
-      if (actionName.endsWith(".scene")) send({ event: "sendToPlugin", action: actionName, context: uuid, payload: { request: "scenes" } });
+      askForLists();
     };
     ws.onmessage = (e) => {
       const m = JSON.parse(e.data);
@@ -78,10 +78,33 @@
   }
   window.connectElgatoStreamDeckSocket = connectElgatoStreamDeckSocket;
 
+  function askForLists() {
+    // Give Stream Deck a moment to hand the connection settings to the plugin first.
+    setTimeout(() => {
+      send({ event: "sendToPlugin", action: actionName, context: uuid, payload: { request: "rooms" } });
+      if (actionName.endsWith(".scene")) send({ event: "sendToPlugin", action: actionName, context: uuid, payload: { request: "scenes" } });
+    }, 400);
+  }
+
+  /** Fill the room list: the follow choice, every room Roomtone has, and the saved room if it isn't among them. */
+  let knownRooms = [];
+  function showRooms(rooms) {
+    knownRooms = rooms;
+    const chosen = settings.room ?? "";
+    const names = [...rooms];
+    if (chosen && !names.includes(chosen)) names.unshift(chosen);
+    const options = [Object.assign(document.createElement("option"), { value: "", textContent: "Follow the room selected in Roomtone" })];
+    for (const name of names) options.push(Object.assign(document.createElement("option"), { value: name, textContent: rooms.includes(name) ? name : name + " (not found)" }));
+    $("room").replaceChildren(...options);
+    $("room").value = chosen;
+  }
+
   function reply(p) {
     if (p.reply === "check") {
       $("status").className = p.ok ? "ok" : "bad";
       $("status").textContent = p.message || "";
+    } else if (p.reply === "rooms" && p.ok) {
+      showRooms(p.rooms || []);
     } else if (p.reply === "scenes" && p.ok) {
       $("scene-list").replaceChildren(...(p.scenes || []).map((name) => Object.assign(document.createElement("option"), { value: name })));
     }
@@ -95,7 +118,7 @@
     $("room-row").hidden = scene;
     $("step").value = settings.step ?? "";
     $("scene").value = settings.scene ?? "";
-    $("room").value = settings.room ?? "";
+    showRooms(knownRooms);
   }
 
   function showGlobals() {
@@ -105,7 +128,7 @@
   }
 
   function saveSettings() {
-    settings = { ...settings, room: $("room").value.trim(), step: $("step").value === "" ? undefined : Number($("step").value), scene: $("scene").value.trim() };
+    settings = { ...settings, room: $("room").value, step: $("step").value === "" ? undefined : Number($("step").value), scene: $("scene").value.trim() };
     send({ event: "setSettings", context: uuid, payload: settings });
   }
 
@@ -121,7 +144,10 @@
     $("status").className = "";
     $("status").textContent = "Checking…";
     // Give Stream Deck a moment to hand the new settings to the plugin, then ask it to try.
-    setTimeout(() => send({ event: "sendToPlugin", action: actionName, context: uuid, payload: { request: "check" } }), 400);
+    setTimeout(() => {
+      send({ event: "sendToPlugin", action: actionName, context: uuid, payload: { request: "check" } });
+      askForLists();
+    }, 400);
   });
 </script>
 </body>

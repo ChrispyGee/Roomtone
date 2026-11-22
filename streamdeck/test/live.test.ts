@@ -26,5 +26,6 @@ test("the buttons' calls work against a real (demo) Roomtone", { skip: !key }, a
   await client.setMute(false, "Living Room");
   await client.check();
   assert.ok(Array.isArray(await client.listScenes()));
+  assert.ok((await client.listRooms()).includes("Living Room"), "the rooms are listed");
   await assert.rejects(new RoomtoneClient(() => ({ host: "127.0.0.1", port, key: "wrong" })).check(), (e: unknown) => e instanceof RoomtoneError && e.kind === "key");
 });

@@ -132,6 +132,11 @@ export class RoomtoneClient {
     return parseSceneNames(await this.call("list_scenes"));
   }
 
+  /** The names of the rooms Roomtone knows, in alphabetical order. */
+  async listRooms(): Promise<string[]> {
+    return parseRoomNames(await this.call("get_status"));
+  }
+
   /** Is Roomtone there, with the right key and the link on? Throws a `RoomtoneError` that says what's wrong. */
   async check(): Promise<void> {
     await this.call("get_status");
@@ -171,4 +176,21 @@ export function parseSceneNames(text: string): string[] {
     .split("\n")
     .map((line) => line.split(":")[0].trim())
     .filter((name) => name.length > 0);
+}
+
+/** The room names in `get_status`'s answer (every room is in some group), without repeats, sorted. */
+export function parseRoomNames(text: string): string[] {
+  let data: { systems?: { groups?: { rooms?: unknown[] }[] }[] };
+  try {
+    data = JSON.parse(text);
+  } catch {
+    return [];
+  }
+  const names = new Set<string>();
+  for (const system of data.systems ?? []) {
+    for (const group of system.groups ?? []) {
+      for (const room of group.rooms ?? []) if (typeof room === "string" && room.trim()) names.add(room.trim());
+    }
+  }
+  return [...names].sort((a, b) => a.localeCompare(b));
 }

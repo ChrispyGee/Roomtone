@@ -1,7 +1,7 @@
 import assert from "node:assert/strict";
 import { test } from "node:test";
 
-import { parseNowPlaying, parseSceneNames, RoomtoneClient, RoomtoneError } from "../src/roomtone.ts";
+import { parseNowPlaying, parseRoomNames, parseSceneNames, RoomtoneClient, RoomtoneError } from "../src/roomtone.ts";
 
 const nowPlayingText = JSON.stringify({ state: "playing", title: "Slow Motion Summer", artist: "The Paper Lanterns", album: "Golden Hour Drive", group_volume: 30, muted: false, lead_room: "Living Room" });
 
@@ -97,4 +97,16 @@ test("scene names are the start of each line", () => {
   assert.deepEqual(parseSceneNames("Movie night: Living Room at 20; plays Jazz\nGood night: Bedroom"), ["Movie night", "Good night"]);
   assert.deepEqual(parseSceneNames("No scenes saved yet. Make one in the app's Scenes page."), []);
   assert.deepEqual(parseSceneNames(""), []);
+});
+
+test("room names are every room of every system, once, in order", async () => {
+  const status = JSON.stringify({ status: "ok", systems: [
+    { groups: [{ rooms: ["Living Room", "Kitchen"] }, { rooms: ["Den"] }] },
+    { groups: [{ rooms: ["Office", "Kitchen"] }, { rooms: ["  "] }, {}] },
+    {},
+  ] });
+  assert.deepEqual(parseRoomNames(status), ["Den", "Kitchen", "Living Room", "Office"]);
+  assert.deepEqual(parseRoomNames("not json"), []);
+  assert.deepEqual(parseRoomNames("{}"), []);
+  assert.deepEqual(await new RoomtoneClient(connection, fakeRoomtone(() => status).fetchFn).listRooms(), ["Den", "Kitchen", "Living Room", "Office"]);
 });

@@ -92,7 +92,7 @@
           "Image": "imgs/actions/notefaint"
         }
       ],
-      "UserTitleEnabled": false
+      "UserTitleEnabled": true
     },
     {
       "Name": "Volume Up",
@@ -107,7 +107,7 @@
           "Image": "imgs/actions/volumeup"
         }
       ],
-      "UserTitleEnabled": false
+      "UserTitleEnabled": true
     },
     {
       "Name": "Volume Down",
@@ -122,7 +122,7 @@
           "Image": "imgs/actions/volumedown"
         }
       ],
-      "UserTitleEnabled": false
+      "UserTitleEnabled": true
     },
     {
       "Name": "Mute",
@@ -155,7 +155,7 @@
           "Image": "imgs/actions/scene"
         }
       ],
-      "UserTitleEnabled": false
+      "UserTitleEnabled": true
     },
     {
       "Name": "Pause All",

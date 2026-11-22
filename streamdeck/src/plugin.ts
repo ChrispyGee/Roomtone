@@ -11,13 +11,15 @@ for (const a of [new PlayPause(), new Next(), new Previous(), new PauseAll(), ne
   streamDeck.actions.registerAction(a);
 }
 
-// The settings page asks the plugin to try the connection, and for the names of the scenes.
+// The settings page asks the plugin to try the connection, and for the names of the rooms and scenes.
 streamDeck.ui.onSendToPlugin(async (ev) => {
   const request = (ev.payload as { request?: string } | undefined)?.request;
   try {
     if (request === "check") {
       await client.check();
       await streamDeck.ui.sendToPropertyInspector({ reply: "check", ok: true, message: "Connected to Roomtone." });
+    } else if (request === "rooms") {
+      await streamDeck.ui.sendToPropertyInspector({ reply: "rooms", ok: true, rooms: await client.listRooms() });
     } else if (request === "scenes") {
       await streamDeck.ui.sendToPropertyInspector({ reply: "scenes", ok: true, scenes: await client.listScenes() });
     }
