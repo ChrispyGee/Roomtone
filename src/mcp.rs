@@ -946,7 +946,7 @@ impl Mcp {
                         .iter()
                         .map(|al| {
                             format!(
-                                "[{}] {:02}:{:02} · {} · {} · {} · volume {} · {}",
+                                "[{}] {:02}:{:02} · {} · {} · {} · volume {}{} · {}",
                                 al.id,
                                 al.hour,
                                 al.minute,
@@ -954,6 +954,7 @@ impl Mcp {
                                 self_name(&s, &al.room_uuid),
                                 if al.program_name.is_empty() { "chime".to_string() } else { al.program_name.clone() },
                                 al.volume,
+                                if al.fade_min > 0 { format!(" (fades in over {} min)", al.fade_min) } else { String::new() },
                                 if al.enabled { "on" } else { "off" }
                             )
                         })

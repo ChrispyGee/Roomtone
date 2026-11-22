@@ -237,6 +237,10 @@ impl Backend {
             let b = backend.clone();
             thread::spawn(move || volume_guard(b));
         }
+        {
+            let b = backend.clone();
+            thread::spawn(move || alarm_fader(b));
+        }
         crate::sources::local::start_server();
         backend.send(Cmd::Rescan);
         backend.send(if demo_only { Cmd::UseDemo } else { Cmd::QuickStart });
@@ -1267,7 +1271,14 @@ fn run_live(b: &Backend, ctx: &Waker, cmd: Cmd) -> Result<(), String> {
         }
         Cmd::SaveAlarm(a) => {
             let ip = need(b.lock().any_ip(), n_!("Alarms"))?;
-            speaker::save_alarm(&ip, &a)?;
+            // A fading alarm is kept on the speaker at its quiet starting volume; Roomtone
+            // remembers the volume it should reach and raises it when it rings.
+            let mut on_speaker = a.clone();
+            if crate::model::fades(&a) {
+                on_speaker.volume = crate::model::fade_start(a.volume);
+            }
+            let id = speaker::save_alarm(&ip, &on_speaker)?;
+            remember_fade(b, &id, &a);
             load_alarms(b, &ip)
         }
         Cmd::StartTimer(room, minutes, volume) => {
@@ -1295,8 +1306,59 @@ fn run_live(b: &Backend, ctx: &Waker, cmd: Cmd) -> Result<(), String> {
         Cmd::DeleteAlarm(id) => {
             let ip = need(b.lock().any_ip(), n_!("Alarms"))?;
             speaker::delete_alarm(&ip, &id)?;
+            forget_fade(b, &id);
             load_alarms(b, &ip)
         }
+    }
+}
+
+/// Note that alarm `id` (just saved as `alarm`) fades in, or that it no longer does.
+fn remember_fade(b: &Backend, id: &str, alarm: &Alarm) {
+    if id.is_empty() {
+        return;
+    }
+    let mut s = b.lock();
+    let household = s.household().map(|h| h.id.clone()).unwrap_or_default();
+    s.config.alarm_fades.retain(|f| !(f.household == household && f.id == id));
+    if crate::model::fades(alarm) {
+        s.config.alarm_fades.push(crate::config::AlarmFade { household, id: id.to_string(), minutes: alarm.fade_min, volume: alarm.volume });
+    }
+    let cfg = s.config.clone();
+    drop(s);
+    let _ = cfg.save();
+}
+
+/// Forget that alarm `id` fades in (it is gone).
+fn forget_fade(b: &Backend, id: &str) {
+    let mut s = b.lock();
+    let household = s.household().map(|h| h.id.clone()).unwrap_or_default();
+    let before = s.config.alarm_fades.len();
+    s.config.alarm_fades.retain(|f| !(f.household == household && f.id == id));
+    if s.config.alarm_fades.len() != before {
+        let cfg = s.config.clone();
+        drop(s);
+        let _ = cfg.save();
+    }
+}
+
+/// Put what Roomtone remembers about fading back onto the alarms read from the speakers: the
+/// volume they rise to, and how long it takes. An alarm whose volume was changed somewhere else
+/// since (so it no longer sits at the quiet start) is taken at its word and stops fading.
+fn apply_fades(b: &Backend, list: &mut [Alarm]) {
+    let mut s = b.lock();
+    let household = s.household().map(|h| h.id.clone()).unwrap_or_default();
+    let before = s.config.alarm_fades.len();
+    s.config.alarm_fades.retain(|f| f.household != household || list.iter().any(|a| a.id == f.id && a.volume == crate::model::fade_start(f.volume)));
+    for a in list.iter_mut() {
+        if let Some(f) = s.config.alarm_fades.iter().find(|f| f.household == household && f.id == a.id) {
+            a.fade_min = f.minutes;
+            a.volume = f.volume;
+        }
+    }
+    if s.config.alarm_fades.len() != before {
+        let cfg = s.config.clone();
+        drop(s);
+        let _ = cfg.save();
     }
 }
 
@@ -1394,6 +1456,7 @@ fn tidy_timers(b: &Backend, ip: &str, list: &mut Vec<Alarm>) {
 fn load_alarms(b: &Backend, ip: &str) -> Result<(), String> {
     let mut list = speaker::alarms(ip)?;
     tidy_timers(b, ip, &mut list);
+    apply_fades(b, &mut list);
     let unset = speaker::time_zone_is_set(ip) == Some(false);
     let mut s = b.lock();
     s.alarms = Some(list);
@@ -3097,6 +3160,94 @@ fn clock_keeper(b: Backend) {
     }
 }
 
+/// One alarm being raised: which room group, and from where to where, over how long.
+struct Rise {
+    started: Instant,
+    from: u8,
+    to: u8,
+    total_secs: u64,
+    /// The last volume sent, to tell if someone else has taken the volume over since.
+    sent: u8,
+}
+
+/// The alarm that fades in and is ringing in a group of rooms: one set to fade, in one of the
+/// group's rooms, that started within the last `duration_min` minutes by the clock `now` (a
+/// minute of the day).
+pub fn fading_alarm<'a>(alarms: &'a [Alarm], members: &[String], now: u32) -> Option<&'a Alarm> {
+    alarms
+        .iter()
+        .filter(|a| a.enabled && crate::model::fades(a) && members.contains(&a.room_uuid))
+        .filter(|a| {
+            let since = (now + 1440 - (a.hour * 60 + a.minute) % 1440) % 1440;
+            since <= a.duration_min.max(1)
+        })
+        .min_by_key(|a| (now + 1440 - (a.hour * 60 + a.minute) % 1440) % 1440)
+}
+
+/// Raise the volume of a ringing alarm that fades in, a step at a time from its quiet start.
+/// It stops when the alarm does (stopped or snoozed), and gives way at once if anyone else
+/// changes the volume (or a volume limit holds it down).
+fn alarm_fader(b: Backend) {
+    let mut rising: HashMap<String, Rise> = HashMap::new();
+    let mut done: std::collections::HashSet<String> = std::collections::HashSet::new();
+    let mut asked = Instant::now() - Duration::from_secs(3600);
+    loop {
+        thread::sleep(Duration::from_secs(2));
+        let mut sends: Vec<Cmd> = vec![];
+        {
+            let s = b.lock();
+            if !matches!(s.phase, Phase::Live | Phase::Demo) {
+                continue;
+            }
+            // Fading alarms are kept in the list so a ringing one is known at once.
+            let any = !s.config.alarm_fades.is_empty() || s.alarms.as_ref().is_some_and(|l| l.iter().any(crate::model::fades));
+            if any && s.alarms.is_none() && asked.elapsed() > Duration::from_secs(300) {
+                asked = Instant::now();
+                sends.push(Cmd::LoadAlarms);
+            }
+            let alarms = s.alarms.clone().unwrap_or_default();
+            let now = s.local_minute();
+            let groups: Vec<&Group> = s.households.iter().flat_map(|h| h.groups.iter()).collect();
+            // A group is finished with once its alarm stops, the rise is complete, or someone
+            // else has taken the volume over; it isn't started again until the alarm has stopped.
+            done.retain(|gid| groups.iter().any(|g| &g.id == gid && g.alarm_ringing));
+            rising.retain(|gid, r| {
+                let g = groups.iter().find(|g| &g.id == gid);
+                let keep = g.is_some_and(|g| g.alarm_ringing && g.volume.abs_diff(r.sent) <= 3) && r.sent != r.to;
+                if !keep && g.is_some_and(|g| g.alarm_ringing) {
+                    done.insert(gid.clone());
+                }
+                keep
+            });
+            for g in groups.iter().filter(|g| g.alarm_ringing) {
+                if let Some(r) = rising.get_mut(&g.id) {
+                    let v = crate::model::fade_volume(r.from, r.to, r.started.elapsed().as_secs(), r.total_secs);
+                    if v != r.sent {
+                        r.sent = v;
+                        sends.push(Cmd::GroupVolume(g.id.clone(), v));
+                    }
+                    continue;
+                }
+                if done.contains(&g.id) {
+                    continue;
+                }
+                let Some(now) = now else { continue };
+                if let Some(a) = fading_alarm(&alarms, &g.members, now) {
+                    let from = crate::model::fade_start(a.volume);
+                    rising.insert(g.id.clone(), Rise { started: Instant::now(), from, to: a.volume, total_secs: a.fade_min as u64 * 60, sent: from });
+                    // Make sure it really does start quietly.
+                    if g.volume != from {
+                        sends.push(Cmd::GroupVolume(g.id.clone(), from));
+                    }
+                }
+            }
+        }
+        for c in sends {
+            b.send(c);
+        }
+    }
+}
+
 /// With *keep_down* on, turn a room back down when something else has turned it over its limit.
 fn volume_guard(b: Backend) {
     let mut last: HashMap<String, Instant> = HashMap::new();
@@ -3396,7 +3547,11 @@ impl crate::backup::SystemAccess for ActiveSystem {
     }
     fn alarms(&self) -> Result<Vec<Alarm>, String> {
         match &self.ip {
-            Some(ip) => speaker::alarms(ip),
+            Some(ip) => {
+                let mut list = speaker::alarms(ip)?;
+                apply_fades(&self.b, &mut list);
+                Ok(list)
+            }
             None => Ok(self.b.lock().alarms.clone().unwrap_or_default()),
         }
     }
@@ -3420,7 +3575,15 @@ impl crate::backup::SystemAccess for ActiveSystem {
     }
     fn save_alarm(&self, alarm: &Alarm) -> Result<(), String> {
         match &self.ip {
-            Some(ip) => speaker::save_alarm(ip, alarm).map(|_| ()),
+            Some(ip) => {
+                let mut on_speaker = alarm.clone();
+                if crate::model::fades(alarm) {
+                    on_speaker.volume = crate::model::fade_start(alarm.volume);
+                }
+                let id = speaker::save_alarm(ip, &on_speaker)?;
+                remember_fade(&self.b, &id, alarm);
+                Ok(())
+            }
             None => {
                 demo::apply(&mut self.b.lock(), &Cmd::SaveAlarm(alarm.clone()));
                 Ok(())
@@ -4557,5 +4720,106 @@ mod unit {
         }
         let old: crate::config::Config = serde_json::from_str("{}").unwrap();
         assert_eq!(old.volume_step, 5, "a settings file from before this setting reads as 5");
+    }
+
+    #[test]
+    fn a_fade_rises_in_a_straight_line_and_never_overshoots() {
+        use crate::model::fade_volume;
+        assert_eq!(fade_volume(5, 45, 0, 600), 5);
+        assert_eq!(fade_volume(5, 45, 300, 600), 25);
+        assert_eq!(fade_volume(5, 45, 600, 600), 45);
+        assert_eq!(fade_volume(5, 45, 9999, 600), 45);
+        assert_eq!(fade_volume(5, 45, 10, 0), 45, "no time to rise in means the full volume");
+        assert_eq!(fade_volume(30, 20, 10, 600), 20, "never falls");
+    }
+
+    #[test]
+    fn only_an_alarm_set_to_fade_that_has_just_started_in_the_ringing_room_is_raised() {
+        let alarm = |id: &str, room: &str, h: u32, m: u32, fade: u32| Alarm {
+            id: id.into(),
+            room_uuid: room.into(),
+            hour: h,
+            minute: m,
+            duration_min: 60,
+            enabled: true,
+            volume: 40,
+            fade_min: fade,
+            ..Default::default()
+        };
+        let list = vec![alarm("1", "A", 7, 0, 10), alarm("2", "B", 7, 0, 10), alarm("3", "A", 7, 0, 0), alarm("4", "A", 6, 59, 5)];
+        let members = vec!["A".to_string()];
+        assert_eq!(fading_alarm(&list, &members, 7 * 60 + 1).map(|a| a.id.as_str()), Some("1"), "the latest to have started wins");
+        assert!(fading_alarm(&list, &["C".to_string()], 7 * 60 + 1).is_none(), "another room's alarm isn't this one");
+        assert!(fading_alarm(&list, &members, 9 * 60).is_none(), "an alarm that finished isn't ringing");
+        assert!(fading_alarm(&[alarm("5", "A", 23, 59, 5)], &members, 0).is_some(), "it can pass midnight");
+        let mut off = alarm("6", "A", 7, 0, 10);
+        off.enabled = false;
+        assert!(fading_alarm(&[off], &members, 7 * 60).is_none());
+        let mut quiet = alarm("7", "A", 7, 0, 10);
+        quiet.volume = 4;
+        assert!(fading_alarm(&[quiet], &members, 7 * 60).is_none(), "nothing to fade when it starts that quiet");
+    }
+
+    #[test]
+    fn a_fade_is_remembered_put_back_and_forgotten_when_the_alarm_is_changed_elsewhere() {
+        use crate::model::fade_start;
+        let b = demo_backend();
+        let a = Alarm { volume: 40, fade_min: 10, ..Default::default() };
+        remember_fade(&b, "9", &a);
+        let hh = b.lock().household().map(|h| h.id.clone()).unwrap();
+        assert_eq!(b.lock().config.alarm_fades.len(), 1);
+        // The speaker holds it quiet: reading it back shows the target volume and the fade.
+        let mut list = vec![Alarm { id: "9".into(), volume: fade_start(40), ..Default::default() }];
+        apply_fades(&b, &mut list);
+        assert_eq!((list[0].volume, list[0].fade_min), (40, 10));
+        // Saving it again without a fade forgets it.
+        remember_fade(&b, "9", &Alarm { volume: 40, fade_min: 0, ..Default::default() });
+        assert!(b.lock().config.alarm_fades.iter().all(|f| f.household != hh));
+        // Changed on the speaker by something else: taken at its word.
+        remember_fade(&b, "9", &a);
+        let mut list = vec![Alarm { id: "9".into(), volume: 25, ..Default::default() }];
+        apply_fades(&b, &mut list);
+        assert_eq!((list[0].volume, list[0].fade_min), (25, 0));
+        assert!(b.lock().config.alarm_fades.is_empty());
+        // One whose alarm no longer exists is tidied away.
+        remember_fade(&b, "9", &a);
+        apply_fades(&b, &mut []);
+        assert!(b.lock().config.alarm_fades.is_empty());
+    }
+
+    #[test]
+    fn a_ringing_fade_alarm_starts_quiet_then_rises_and_gives_way_to_a_hand_on_the_volume() {
+        let b = demo_backend();
+        let (gid, room) = {
+            let s = b.lock();
+            let g = s.households[0].groups[0].clone();
+            (g.id.clone(), g.members[0].clone())
+        };
+        let secs = std::time::SystemTime::now().duration_since(std::time::UNIX_EPOCH).unwrap().as_secs() % 86_400;
+        let alarm = Alarm {
+            room_uuid: room,
+            hour: (secs / 3600) as u32,
+            minute: (secs % 3600 / 60) as u32,
+            duration_min: 60,
+            recurrence: "DAILY".into(),
+            enabled: true,
+            volume: 60,
+            fade_min: 1,
+            ..Default::default()
+        };
+        b.send_and_wait(Cmd::SaveAlarm(alarm), Duration::from_secs(5)).unwrap();
+        {
+            let mut s = b.lock();
+            let g = s.group_mut(&gid).unwrap();
+            g.volume = 60;
+            g.alarm_ringing = true;
+        }
+        let vol = || b.lock().find_group(&gid).map(|(_, g)| g.volume).unwrap();
+        assert!(crate::test_support::wait_for(8, || vol() == crate::model::FADE_START), "it starts quietly, at {}", vol());
+        assert!(crate::test_support::wait_for(12, || vol() > crate::model::FADE_START), "then rises, at {}", vol());
+        // Someone turns it up by hand: the fade leaves it alone from then on.
+        b.send_and_wait(Cmd::GroupVolume(gid.clone(), 30), Duration::from_secs(5)).unwrap();
+        std::thread::sleep(Duration::from_secs(5));
+        assert_eq!(vol(), 30, "the fade gave way");
     }
 }

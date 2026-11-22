@@ -66,6 +66,8 @@ pub struct AlarmBackup {
     pub play_mode: String,
     pub volume: u8,
     pub include_linked: bool,
+    /// Minutes the alarm takes to fade in (0 is off).
+    pub fade_min: u32,
 }
 
 #[derive(Clone, Debug, Default, Serialize, Deserialize, PartialEq)]
@@ -198,6 +200,7 @@ impl Backup {
                                         play_mode: a.play_mode,
                                         volume: a.volume,
                                         include_linked: a.include_linked,
+                                        fade_min: a.fade_min,
                                     }),
                                     None => notes.push(format!("Skipped an alarm at {:02}:{:02} for a room that wasn't found.", a.hour, a.minute)),
                                 }
@@ -372,6 +375,7 @@ impl Backup {
                 play_mode: a.play_mode.clone(),
                 volume: a.volume,
                 include_linked: a.include_linked,
+                fade_min: a.fade_min,
             };
             match sys.save_alarm(&alarm) {
                 Ok(()) => r.added.alarms += 1,

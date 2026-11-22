@@ -157,6 +157,20 @@ pub struct AlarmTimer {
     pub due: u64,
 }
 
+/// An alarm that fades in. The speaker holds it at a quiet volume; this remembers how loud it
+/// should end up and how long the rise takes, which the speakers can't hold themselves.
+#[derive(Clone, Debug, Default, Serialize, Deserialize, PartialEq)]
+pub struct AlarmFade {
+    /// The system it was made on.
+    pub household: String,
+    /// The alarm's id on that system.
+    pub id: String,
+    /// Minutes to rise from quiet to `volume`.
+    pub minutes: u32,
+    /// The volume it should reach.
+    pub volume: u8,
+}
+
 /// A highest volume for one room.
 #[derive(Clone, Debug, Default, Serialize, Deserialize, PartialEq)]
 pub struct RoomLimit {
@@ -354,6 +368,9 @@ pub struct Config {
     /// One-off timers made by Roomtone (see `AlarmTimer`).
     #[serde(default)]
     pub alarm_timers: Vec<AlarmTimer>,
+    /// Alarms that fade in (see `AlarmFade`).
+    #[serde(default)]
+    pub alarm_fades: Vec<AlarmFade>,
     /// Volume safeguards: a highest volume per room, and quiet hours.
     #[serde(default)]
     pub volume_limits: VolumeLimits,
@@ -421,6 +438,7 @@ impl Default for Config {
             theme: default_theme(),
             high_contrast: false,
             alarm_timers: vec![],
+            alarm_fades: vec![],
             volume_limits: VolumeLimits::default(),
             speaker_events: false,
             check_new_versions: false,
@@ -543,6 +561,7 @@ impl Config {
         // Timers made on the demo system are never kept.
         let mut kept = self.clone();
         kept.alarm_timers.retain(|t| !t.household.starts_with("demo-"));
+        kept.alarm_fades.retain(|f| !f.household.starts_with("demo-"));
         let text = serde_json::to_string_pretty(&kept).map_err(|e| e.to_string())?;
         std::fs::write(&p, text).map_err(|e| e.to_string())?;
         // Sign-ins are kept here, so only this user may read the file.
