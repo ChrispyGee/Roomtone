@@ -2278,6 +2278,8 @@ impl App {
             1 => {
                 self.volume_step_card(ui, s);
                 ui.add_space(14.0);
+                self.volume_limits_card(ui, s);
+                ui.add_space(14.0);
                 self.history_card(ui, s);
                 ui.add_space(14.0);
                 self.lyrics_card(ui, s);
@@ -3001,6 +3003,95 @@ impl App {
         }
         if scenes != s0 {
             self.send(Cmd::SetFeature(Feature::Scenes, scenes));
+        }
+    }
+
+    /// Volume safeguards: a highest volume per room, and quiet hours.
+    fn volume_limits_card(&mut self, ui: &mut Ui, s: &AppState) {
+        section_title(ui, t!("Volume limits"));
+        let mut l = s.config.volume_limits.clone();
+        let before = l.clone();
+        card_frame().show(ui, |ui| {
+            ui.set_width(ui.available_width());
+            ui.label(RichText::new(t!("Roomtone keeps what it sends under these limits: this window, the keyboard, the command line, assistants, scenes, timers and new alarms. The speakers can't hold a limit themselves, so another app, or the buttons on a speaker, can still go higher.")).size(12.0).color(TEXT_DIM()));
+            ui.add_space(8.0);
+            ui.label(RichText::new(t!("Loudest each room may be")).color(TEXT()));
+            ui.label(RichText::new(t!("Drag or type to set a limit")).size(12.0).color(TEXT_FAINT()));
+            for h in &s.households {
+                for r in &h.rooms {
+                    let mut max = l.rooms.iter().find(|x| x.room == r.uuid).map(|x| x.max).unwrap_or(100);
+                    ui.horizontal(|ui| {
+                        ui.set_min_height(30.0);
+                        let name_id = ui
+                            .allocate_ui_with_layout(vec2(170.0, 20.0), Layout::left_to_right(Align::Center), |ui| {
+                                ui.set_width(170.0);
+                                ui.add(egui::Label::new(RichText::new(&r.name).color(TEXT_DIM())).truncate()).id
+                            })
+                            .inner;
+                        let mut value = max as u32;
+                        // The room's name names the box for a screen reader.
+                        ui.add(egui::DragValue::new(&mut value).range(0..=100).speed(0.5).custom_formatter(|v, _| if v >= 100.0 { t!("No limit").to_string() } else { format!("{}", v as u32) })).labelled_by(name_id);
+                        max = value.min(100) as u8;
+                    });
+                    l.rooms.retain(|x| x.room != r.uuid);
+                    if max < 100 {
+                        l.rooms.push(crate::config::RoomLimit { room: r.uuid.clone(), max });
+                    }
+                }
+            }
+            ui.add_space(8.0);
+            ui.separator();
+            let mut quiet = l.quiet.enabled;
+            ui.horizontal(|ui| {
+                ui.set_min_height(40.0);
+                ui.vertical(|ui| {
+                    ui.set_max_width((ui.available_width() - 64.0).max(120.0));
+                    ui.label(RichText::new(t!("Quiet hours")).color(TEXT()));
+                    ui.label(RichText::new(t!("At these times every room is held to a lower volume. Uses the speakers' clock.")).size(12.0).color(TEXT_DIM()));
+                });
+                ui.with_layout(Layout::right_to_left(Align::Center), |ui| {
+                    toggle(ui, &mut quiet, t!("Quiet hours"));
+                });
+            });
+            l.quiet.enabled = quiet;
+            if quiet {
+                ui.horizontal_wrapped(|ui| {
+                    let time = |ui: &mut Ui, minutes: &mut u16| {
+                        let (mut h, mut m) = (*minutes as u32 / 60, *minutes as u32 % 60);
+                        ui.spacing_mut().item_spacing.x = 3.0;
+                        ui.add(egui::DragValue::new(&mut h).range(0..=23).custom_formatter(|v, _| format!("{:02}", v as u32)).speed(0.1));
+                        ui.label(":");
+                        ui.add(egui::DragValue::new(&mut m).range(0..=59).custom_formatter(|v, _| format!("{:02}", v as u32)).speed(0.2));
+                        *minutes = (h * 60 + m) as u16;
+                    };
+                    ui.label(RichText::new(t!("From")).color(TEXT_DIM()));
+                    time(ui, &mut l.quiet.from);
+                    ui.label(RichText::new(t!("to")).color(TEXT_DIM()));
+                    time(ui, &mut l.quiet.to);
+                    ui.label(RichText::new(t!("no louder than")).color(TEXT_DIM()));
+                    let mut max = l.quiet.max as u32;
+                    ui.add(egui::DragValue::new(&mut max).range(0..=100).speed(0.5));
+                    l.quiet.max = max as u8;
+                });
+            }
+            ui.add_space(8.0);
+            ui.separator();
+            let mut keep = l.keep_down;
+            ui.horizontal(|ui| {
+                ui.set_min_height(40.0);
+                ui.vertical(|ui| {
+                    ui.set_max_width((ui.available_width() - 64.0).max(120.0));
+                    ui.label(RichText::new(t!("Turn a room back down if it goes over")).color(TEXT()));
+                    ui.label(RichText::new(t!("If another app or a speaker's buttons turn a room above its limit, Roomtone turns it back down. Only while Roomtone is open.")).size(12.0).color(TEXT_DIM()));
+                });
+                ui.with_layout(Layout::right_to_left(Align::Center), |ui| {
+                    toggle(ui, &mut keep, t!("Turn a room back down if it goes over"));
+                });
+            });
+            l.keep_down = keep;
+        });
+        if l != before {
+            self.send(Cmd::SetVolumeLimits(l));
         }
     }
 

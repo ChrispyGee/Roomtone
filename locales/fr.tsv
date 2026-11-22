@@ -392,6 +392,19 @@ Volume	Volume
 Controlling {room}	Commande {room}
 High contrast	Contraste élevé
 Stronger text, outlines and colours, for when the usual ones are hard to see.	Texte, contours et couleurs plus marqués, quand les habituels sont difficiles à voir.
+At these times every room is held to a lower volume. Uses the speakers' clock.	À ces heures, chaque pièce est limitée à un volume plus bas. Selon l'horloge des enceintes.
+Drag or type to set a limit	Faites glisser ou saisissez pour fixer une limite
+From	De
+If another app or a speaker's buttons turn a room above its limit, Roomtone turns it back down. Only while Roomtone is open.	Si une autre appli ou les boutons d'une enceinte montent une pièce au-delà de sa limite, Roomtone la rebaisse. Seulement tant que Roomtone est ouvert.
+Loudest each room may be	Volume maximal de chaque pièce
+No limit	Aucune limite
+Quiet hours	Heures calmes
+Roomtone keeps what it sends under these limits: this window, the keyboard, the command line, assistants, scenes, timers and new alarms. The speakers can't hold a limit themselves, so another app, or the buttons on a speaker, can still go higher.	Roomtone garde ce qu'il envoie sous ces limites : cette fenêtre, le clavier, la ligne de commande, les assistants, les scènes, les minuteurs et les nouvelles alarmes. Les enceintes ne peuvent pas tenir de limite elles-mêmes : une autre appli ou les boutons d'une enceinte peuvent donc monter plus haut.
+Turn a room back down if it goes over	Rebaisser une pièce si elle dépasse
+Volume limits	Limites de volume
+no louder than	pas plus fort que
+to	à
+{room} is limited to {n}	{room} est limitée à {n}
 A chime in a room after a few minutes. It rings on the speaker, so it still works if Roomtone is closed, but only to the nearest minute.	Une sonnerie dans une pièce après quelques minutes. Elle sonne sur l'enceinte, donc elle fonctionne même si Roomtone est fermé, mais seulement à la minute près.
 Cancel timer	Annuler le minuteur
 Couldn't read the time from the speakers	Impossible de lire l'heure depuis les enceintes
