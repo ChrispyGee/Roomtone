@@ -524,6 +524,32 @@ fn bonded(ip: &str, uuid: &str) -> Bonded {
     call(ip, soap::ZONE_TOPOLOGY, "GetZoneGroupState", &[]).ok().and_then(|r| r.get("ZoneGroupState").cloned()).map(|state| parse_bonded(&state, uuid)).unwrap_or_default()
 }
 
+/// How the speakers are bonded now (stereo pairs and home-theatre sets), read from any one of them.
+pub fn read_layout(ip: &str) -> R<crate::layout::Layout> {
+    let state = call(ip, soap::ZONE_TOPOLOGY, "GetZoneGroupState", &[])?.get("ZoneGroupState").cloned().ok_or("The speaker gave no layout")?;
+    Ok(crate::layout::parse(&state))
+}
+
+/// Make two identical speakers a stereo pair. Asked of the left one.
+pub fn create_pair(left_ip: &str, left: &str, right: &str) -> R<()> {
+    call(left_ip, DEVICE_PROPS, "CreateStereoPair", &[("ChannelMapSet", &crate::layout::pair_map(left, right))]).map(|_| ())
+}
+
+/// Split a stereo pair back into two rooms. Asked of the left one, with the pair's own channel map.
+pub fn split_pair(left_ip: &str, map: &str) -> R<()> {
+    call(left_ip, DEVICE_PROPS, "SeparateStereoPair", &[("ChannelMapSet", map)]).map(|_| ())
+}
+
+/// Bond speakers to a soundbar. `map` is the whole set's channel map (see `layout::set_map`).
+pub fn add_satellites(bar_ip: &str, map: &str) -> R<()> {
+    call(bar_ip, DEVICE_PROPS, "AddHTSatellite", &[("HTSatChanMapSet", map)]).map(|_| ())
+}
+
+/// Take one satellite off a soundbar.
+pub fn remove_satellite(bar_ip: &str, satellite: &str) -> R<()> {
+    call(bar_ip, DEVICE_PROPS, "RemoveHTSatellite", &[("SatRoomUUID", satellite)]).map(|_| ())
+}
+
 /// A level from `GetEQ` (the speaker answers `402` for settings it doesn't have).
 fn eq_number(ip: &str, kind: &str) -> Option<i32> {
     call(ip, RENDERING, "GetEQ", &[("InstanceID", "0"), ("EQType", kind)]).ok().and_then(|m| m.get("CurrentValue").and_then(|x| x.parse().ok()))

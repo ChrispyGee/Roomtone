@@ -44,6 +44,7 @@ mod frame;
 mod help;
 mod history;
 mod known;
+mod layout;
 mod limits;
 mod lyrics;
 mod m3u;

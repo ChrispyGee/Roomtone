@@ -193,6 +193,15 @@ Safeguards against a room being made too loud, in *Settings › Playback › Vol
 
 *Settings › Appearance › Show in the menu bar* (off by default; `menu_bar`) puts a speaker icon (the system symbol `hifispeaker.fill`) in the menu bar; there is no such control on other systems yet. Its menu, rebuilt each time it opens (`menuNeedsUpdate:`), lists: what's playing in the chosen room (title, artist, room; *Nothing playing* if nothing), *Play*/*Pause*, *Next*, *Previous*, *Volume N* with *Louder* and *Quieter* (by the *volume step* setting, through the normal volume path so limits apply) and *Mute*, the rooms (groups) of the active system when there is more than one (the ticked one is the window's selected room, and choosing one selects it there too), *Pause all rooms* (when any is playing), *Open Roomtone* (unhide, bring the window forward) and *Quit Roomtone* (⌘Q). *Keep running when the window is closed* (`menu_bar_keep`, on by default, shown while the menu bar is on) turns the window's close button into *Hide* (the close is cancelled and the app hidden), so alarms, volume fades and the assistant link keep running; ⌘Q, the Dock's *Quit* and *Quit Roomtone* quit as before. The icon is never added in picture-taking runs. The menu wording is translated like the rest of the app.
 
+### 4.8d Speaker setup (experimental)
+
+*Settings › Speakers › Speaker setup* (a card marked *Experimental*), shown when the active system is set up. Its switch *Allow changing speaker setup* (`allow_layout`, **off by default**) must be on before any button appears; the card then reads how the speakers are bonded (`GetZoneGroupState`: `ChannelMapSet` for a stereo pair, `HTSatChanMapSet` and its satellites for a soundbar set) and offers:
+
+- **Stereo pairs**: the pairs now (*Split*), and *Make a pair* from two free rooms of the **same model** (the second list only offers rooms that match the left one; the speakers refuse anything else). Done with `DeviceProperties` `CreateStereoPair` and `SeparateStereoPair`, asked of the left speaker with the channel map `LEFT:LF,LF;RIGHT:RF,RF`. The pair becomes one room named after the left speaker.
+- **Soundbar speakers**: for each soundbar set, its sub and rear speakers each with *Remove* (`RemoveHTSatellite`); and, for a chosen soundbar, *Add the sub* (a free room whose model name contains "sub") and *Add rear speakers* (a left and a right free room), done with `AddHTSatellite` and the whole set's channel map (`BAR:LF,RF;SUB:SW;LEFT:LR;RIGHT:RR`, the bar's own entry first, existing satellites kept).
+
+Every change asks first in a window that says what will happen, that **it can clear a room's measured Trueplay tuning and music in these rooms stops**, that it **can be undone from the card**, and that it has **not been tried on real speakers**. Afterwards the rooms and the layout are read again. The four actions exist on a real speaker (checked read-only on 2026-11-22: their descriptions list `ChannelMapSet` for both pair actions, `HTSatChanMapSet` for adding and `SatRoomUUID` for removing); what they do to a real system has not been tried. Assistants can only look (`get_speaker_layout`). Not yet built: discrete front speakers on a soundbar, one amplifier driving two passive speakers, custom channel layouts and zones, and layouts inside scenes. The demo system supports all of it (it has no sub, and the rooms set aside come back when split).
+
 ### 4.9 Languages
 - English, German, French, Spanish, Italian and Dutch.
 - Every phrase is looked up by its English text; anything missing falls back to English, and a test fails the build if a phrase is untranslated.
@@ -262,6 +271,7 @@ Rooms are given by name (exact, or a unique part of a name) or id. Leaving the r
 | `play_along`, `stop_play_along` | Play along across systems (§4.1) |
 | `switch_input` | Line-in or TV input, optionally from another room |
 | `get_sound` *(read)*, `set_sound` | Bass, treble, loudness, night sound, speech enhancement, status light, and (only for a room that has them, listed under `home_theatre`) `sub_enabled`, `sub_level`, `sub_inverted`, `surround_enabled`, `surround_tv_level`, `surround_music_level`, `height_level`, `audio_delay`, `trueplay`; asking for one the room lacks is an error that says what it needs |
+| `get_speaker_layout` | Looking only: stereo pairs (the room's name, left and right speaker) and soundbars with their sub and rear speakers. Changing a layout is not offered to assistants, because it needs a person to confirm it in the window. |
 | `identify_speaker` | Blinks a speaker's status light a few times and puts it back (in the *Room names and sound* group) |
 | `list_alarms` *(read)*, `set_alarm_enabled` | Alarms |
 | `check_for_updates` *(read)* | Whether each system has newer software (same generation only) |
@@ -406,7 +416,7 @@ Quick checks that a change hasn't broken behaviour. Each needs no real speakers 
 
 1. `cargo test` passes: 103 unit tests, including that every phrase is translated and placeholders are kept.
 2. `roomtone --screenshot shots/x.png` saves a non-blank picture of the demo system within a few seconds.
-3. `roomtone --mcp --demo` with an `initialize` line, then `tools/list`, lists 56 tools when control is allowed (with speaker updates and saving files left off, as they are by default; 59 with every switch on) and 18 when look-only.
+3. `roomtone --mcp --demo` with an `initialize` line, then `tools/list`, lists 57 tools when control is allowed (with speaker updates and saving files left off, as they are by default; 60 with every switch on) and 19 when look-only.
 4. With the link off, `tools/call` answers error −32001.
 5. Over HTTP, a request without the key gets 401, one with `Origin: https://example.com` gets 403, and `--mcp-off` closes the port within ~2 s.
 6. In the demo: `play_along` from "Living Room" to "Office", then `playback next` on Living Room, changes Office's track too.

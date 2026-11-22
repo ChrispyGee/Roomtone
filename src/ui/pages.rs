@@ -2315,6 +2315,8 @@ impl App {
                 ui.add_space(14.0);
                 self.updates_card(ui, s);
                 ui.add_space(14.0);
+                self.layout_card(ui, s);
+                ui.add_space(14.0);
                 self.events_card(ui, s);
             }
             4 => {
@@ -3838,7 +3840,7 @@ fn show_folder(path: &str) {
 }
 
 /// A section title with an *Experimental* tag beside it.
-fn experimental_title(ui: &mut Ui, text: &str) {
+pub(super) fn experimental_title(ui: &mut Ui, text: &str) {
     let size = if title_mode() == TitleMode::Compact { 14.5 } else { 19.0 };
     ui.add_space(6.0);
     ui.horizontal(|ui| {

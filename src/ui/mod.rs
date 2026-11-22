@@ -1,6 +1,7 @@
 //! The window: sidebar, page area, rooms/queue panel and the now-playing bar.
 
 mod art;
+mod layout;
 mod lists;
 mod pages;
 mod scenes;
@@ -130,6 +131,10 @@ pub struct App {
     update_confirm: Option<(String, System, String)>,
     /// Forgetting a system that isn't answering, waiting for the person to confirm: (household id, system).
     forget_confirm: Option<(String, System)>,
+    /// A change to how speakers are bonded, waiting for the person to confirm: (title, what it does, the command).
+    pub(super) layout_confirm: Option<(String, String, Cmd)>,
+    /// The choices made so far in the speaker setup card.
+    pub(super) layout_form: layout::Form,
     /// Which parts of a backup file to restore (ticked in Settings).
     backup_sections: crate::backup::Sections,
 }
@@ -253,6 +258,8 @@ impl App {
             applied_theme: String::new(),
             update_confirm: None,
             forget_confirm: None,
+            layout_confirm: None,
+            layout_form: Default::default(),
             backup_sections: Default::default(),
             group_preset: open_new_group
                 .then(|| (None, crate::config::SavedGroup { name: "Downstairs".into(), household: "demo-s2".into(), rooms: vec!["D-LIVING".into(), "D-KITCHEN".into()] })),
@@ -500,6 +507,21 @@ impl App {
                 self.group_editor = Some((g.id.clone(), g.members.clone()));
             }
         }
+        // Test hook for pictures: ROOMTONE_TEST_LAYOUT=pair makes a stereo pair on the demo system and picks the
+        // soundbar; =confirm also opens the confirmation window.
+        if self.frame == 12 {
+            if let Ok(how) = std::env::var("ROOMTONE_TEST_LAYOUT") {
+                self.backend.send(Cmd::CreatePair("D-KITCHEN".into(), "D-STUDY".into()));
+                self.layout_form.set_bar("D-LIVING");
+                if how == "confirm" {
+                    self.layout_confirm = Some((
+                        t!("Add {left} and {right} as the rear speakers of {bar}?", left = "Bedroom", right = "Patio", bar = "Living Room"),
+                        t!("They play the surround sounds of {bar} and stop being rooms of their own. Use two identical speakers.", bar = "Living Room").to_string(),
+                        Cmd::LoadLayout,
+                    ));
+                }
+            }
+        }
         // Test hook: open the macOS About box and save a picture of it beside the screenshot.
         #[cfg(target_os = "macos")]
         if std::env::var_os("ROOMTONE_TEST_ABOUT").is_some() && (self.frame == 40 || self.frame == 100) {
@@ -603,6 +625,7 @@ impl App {
         self.group_preset_modal(ctx, s);
         self.update_modal(ctx);
         self.forget_modal(ctx);
+        self.layout_modal(ctx);
         self.toasts(ctx, s);
         self.drop_hint(ctx, s);
         self.announce_playing(ctx, s);

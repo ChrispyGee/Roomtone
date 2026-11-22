@@ -386,6 +386,40 @@ Unknown room	Unbekannter Raum
 Unsubscribe	Abo beenden
 Up next	Als Nächstes
 Volume	Lautstärke
+Speaker setup	Lautsprecher einrichten
+Allow changing speaker setup	Änderungen an der Lautsprechereinrichtung erlauben
+Make or split stereo pairs, and add a sub or rear speakers to a soundbar. Not tried on real speakers yet: it can clear a room's Trueplay tuning, and music in the rooms stops.	Stereopaare bilden oder trennen und einer Soundbar einen Subwoofer oder hintere Lautsprecher hinzufügen. Noch nicht an echten Lautsprechern getestet: Es kann die Trueplay-Abstimmung eines Raums löschen, und die Musik in den Räumen stoppt.
+Stereo pairs	Stereopaare
+No stereo pairs yet.	Noch keine Stereopaare.
+{room}: a left and a right speaker	{room}: ein linker und ein rechter Lautsprecher
+Split	Trennen
+Split {room} into two rooms?	{room} in zwei Räume trennen?
+The pair becomes two separate rooms again.	Das Paar wird wieder zu zwei getrennten Räumen.
+Left	Links
+Right	Rechts
+Make a pair	Paar bilden
+Make {left} and {right} a stereo pair?	{left} und {right} zu einem Stereopaar machen?
+They become one room, named after the left speaker. Only two identical speakers can be paired.	Sie werden zu einem Raum, benannt nach dem linken Lautsprecher. Nur zwei gleiche Lautsprecher lassen sich koppeln.
+No other room is the same model, so there is nothing to pair it with.	Kein anderer Raum hat dasselbe Modell, also gibt es nichts zum Koppeln.
+Soundbar speakers	Soundbar-Lautsprecher
+Rear left	Hinten links
+Rear right	Hinten rechts
+{role}: {room}	{role}: {room}
+Remove	Entfernen
+Take the {role} off {bar}?	{role} von {bar} entfernen?
+It becomes a room of its own again.	Es wird wieder zu einem eigenen Raum.
+No soundbar found in this system.	Keine Soundbar in diesem System gefunden.
+Soundbar	Soundbar
+Add the sub	Subwoofer hinzufügen
+Add {room} as the sub of {bar}?	{room} als Subwoofer von {bar} hinzufügen?
+It plays the low sounds of {bar} and stops being a room of its own.	Er spielt die tiefen Töne von {bar} und ist kein eigener Raum mehr.
+No sub is free to add.	Kein Subwoofer zum Hinzufügen frei.
+Add rear speakers	Hintere Lautsprecher hinzufügen
+Add {left} and {right} as the rear speakers of {bar}?	{left} und {right} als hintere Lautsprecher von {bar} hinzufügen?
+They play the surround sounds of {bar} and stop being rooms of their own. Use two identical speakers.	Sie spielen den Raumklang von {bar} und sind keine eigenen Räume mehr. Nimm zwei gleiche Lautsprecher.
+This can clear a room's measured Trueplay tuning, and music in these rooms stops. You can undo it from this card.	Das kann die gemessene Trueplay-Abstimmung eines Raums löschen, und die Musik in diesen Räumen stoppt. Du kannst es auf dieser Karte rückgängig machen.
+Not tried on real speakers yet.	Noch nicht an echten Lautsprechern getestet.
+That stereo pair	Dieses Stereopaar
 No speakers found yet	Keine Lautsprecher gefunden
 No rooms found yet	Keine Räume gefunden
 Volume {n}	Lautstärke {n}

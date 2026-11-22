@@ -386,6 +386,40 @@ Unknown room	Pièce inconnue
 Unsubscribe	Se désabonner
 Up next	À suivre
 Volume	Volume
+Speaker setup	Configuration des enceintes
+Allow changing speaker setup	Autoriser la modification de la configuration des enceintes
+Make or split stereo pairs, and add a sub or rear speakers to a soundbar. Not tried on real speakers yet: it can clear a room's Trueplay tuning, and music in the rooms stops.	Créer ou séparer des paires stéréo, et ajouter un caisson ou des enceintes arrière à une barre de son. Pas encore essayé sur de vraies enceintes : cela peut effacer le réglage Trueplay d'une pièce, et la musique s'arrête dans les pièces.
+Stereo pairs	Paires stéréo
+No stereo pairs yet.	Pas encore de paires stéréo.
+{room}: a left and a right speaker	{room} : une enceinte gauche et une droite
+Split	Séparer
+Split {room} into two rooms?	Séparer {room} en deux pièces ?
+The pair becomes two separate rooms again.	La paire redevient deux pièces séparées.
+Left	Gauche
+Right	Droite
+Make a pair	Créer une paire
+Make {left} and {right} a stereo pair?	Faire de {left} et {right} une paire stéréo ?
+They become one room, named after the left speaker. Only two identical speakers can be paired.	Elles deviennent une seule pièce, nommée d'après l'enceinte gauche. Seules deux enceintes identiques peuvent être appariées.
+No other room is the same model, so there is nothing to pair it with.	Aucune autre pièce n'est du même modèle, rien à apparier.
+Soundbar speakers	Enceintes de la barre de son
+Rear left	Arrière gauche
+Rear right	Arrière droite
+{role}: {room}	{role} : {room}
+Remove	Retirer
+Take the {role} off {bar}?	Retirer {role} de {bar} ?
+It becomes a room of its own again.	Elle redevient une pièce à part entière.
+No soundbar found in this system.	Aucune barre de son trouvée dans ce système.
+Soundbar	Barre de son
+Add the sub	Ajouter le caisson
+Add {room} as the sub of {bar}?	Ajouter {room} comme caisson de {bar} ?
+It plays the low sounds of {bar} and stops being a room of its own.	Il joue les basses de {bar} et n'est plus une pièce à part.
+No sub is free to add.	Aucun caisson n'est libre à ajouter.
+Add rear speakers	Ajouter les enceintes arrière
+Add {left} and {right} as the rear speakers of {bar}?	Ajouter {left} et {right} comme enceintes arrière de {bar} ?
+They play the surround sounds of {bar} and stop being rooms of their own. Use two identical speakers.	Elles jouent le son surround de {bar} et ne sont plus des pièces à part. Utilisez deux enceintes identiques.
+This can clear a room's measured Trueplay tuning, and music in these rooms stops. You can undo it from this card.	Cela peut effacer le réglage Trueplay mesuré d'une pièce, et la musique s'arrête dans ces pièces. Vous pouvez l'annuler depuis cette carte.
+Not tried on real speakers yet.	Pas encore essayé sur de vraies enceintes.
+That stereo pair	Cette paire stéréo
 No speakers found yet	Aucune enceinte trouvée pour l'instant
 No rooms found yet	Aucune pièce trouvée pour l'instant
 Volume {n}	Volume {n}
