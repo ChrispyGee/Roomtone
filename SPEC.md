@@ -1,4 +1,4 @@
-# Roomtone — specification (v0.9.3)
+# Roomtone — specification (v0.9.4)
 
 Project home: <https://github.com/ChrispyGee/Roomtone>
 
@@ -371,6 +371,9 @@ All in the app's data folder: `~/Library/Application Support/Roomtone/` (macOS),
 | Now-playing display (§4.8a) | A pretend speaker serving a cover and the demo system in tests (secret, read-only, scaling, HEAD, changing the secret); the page in a real browser on the demo system. **Not yet on a real picture frame or tablet, nor with a real speaker's cover** |
 | Volume limits (§4.8b) | Unit tests and the demo system (caps, quiet-hours arithmetic, group and already-over rooms, alarms and timers, saved limits tidied); the speakers' clock format read from a real S1 room and a real S2 speaker (read-only). **Not tried with real speakers moving**, nor with the keep-down guard |
 | Alarm copies, several rooms and timers (§4.7) | Unit tests and the demo system; the clock read from real speakers. **Nothing was made or rung on a real speaker**; whether a one-time alarm is left behind after it rings is unknown (Roomtone deletes it 5 minutes after it was due) |
+| Alarm fade-in (§4.7) | Unit tests (the straight-line maths, which alarm counts as ringing, remembering and forgetting a fade, an alarm changed elsewhere) and an end-to-end run on the demo system (starts quiet, rises, gives way to a hand on the volume). **Nothing was made or rung on a real speaker.** |
+| Menu bar (§4.8c) | Unit tests of the menu contents and of its actions on the demo system; a start-up run that adds the icon with a populated menu; **the maintainer tried it on a Mac and said the menu works (2026-11-22)**. Not tried: Keep running when the window is closed on other systems, VoiceOver on the menu |
+| Speaker setup (§4.8d) | Unit tests (reading pairs and soundbar sets, the channel maps) and the whole create, split, add and remove round trip on the demo system. **The four actions exist on a real speaker (read-only look, 2026-11-22); nothing was changed on any real speaker.** |
 | Drag and drop (§4.1, §4.2) | Unit tests for the file part (a dropped song fetched back like a speaker would, kept across a rescan) and for which rooms a drop joins; and, after 0.9.3, **`scripts/check-drag.sh`**, which drags a room card onto another, drags a queue row and drops a song file in the real window of the demo system with a **simulated mouse** (events injected into the app, not a real hand), and checks the result. **Not yet tried by a person with a real mouse or file manager, nor on real speakers** |
 | Spoken slider values, Ctrl/Cmd+1 to 9 and High contrast (§4.2a, §4.8) | Unit tests (the accessibility tree, WCAG contrast ratios of all four palettes) and pictures. **Not tried with a screen reader** since these changes |
 | `get_cover_art` tool (§6.3) | Unit test with a pretend speaker serving a picture. **Not yet with a real speaker's cover** |

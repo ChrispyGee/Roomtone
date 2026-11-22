@@ -69,12 +69,15 @@ This is the map of the code. What the app should do is in [SPEC.md](../SPEC.md);
 | `sources/memory.rs` | `songs.json`: details of songs the speakers only know by address |
 | `ui/mod.rs` | The window frame: sidebar, rooms/queue panel, bottom bar, dialogs, toasts, the screenshot option |
 | `ui/pages.rs` | Every page: home, search, library, radio, services, inputs, now playing, alarms, settings, room settings |
+| `ui/layout.rs` | The Speaker setup card (Settings › Speakers) and its confirmation window |
 | `ui/scenes.rs`, `ui/lists.rs` | The Scenes page, its editor window and the Home row; sorting, filtering and the A–Z strip for long lists |
 | `ui/widgets.rs`, `theme.rs`, `art.rs` | Drawn icons and controls (each one must name itself for screen readers with `describe`, and show `focus_ring`), the dark and light palettes (`TEXT()`, `SURFACE()`… switch with the appearance), album art |
 | `mcp/notify.rs` | Change notifications: subscriptions per session and the watcher that compares what's known once a second |
 | `mcp/extra.rs` | More assistant tools (browse, favorites, queue editing, rooms, alarms, saved groups, scenes, S2 check, network check, playlist export, services, stations, podcasts), resources, prompts and completions |
 | `test_support.rs` | Test helpers: a scratch settings folder, English wording, a running demo backend |
 | `brand.rs` | The app icon, drawn in code (RGBA and PNG) |
+| `layout.rs` | Speaker layouts: reads stereo pairs and soundbar sets from the topology (`parse`), builds the channel maps the speakers want (`pair_map`, `set_map`) |
+| `macos_menubar.rs` | macOS only: the menu-bar icon and its menu, built each time it opens from the app's state (`entries`, pure and tested), plus hide and show for *Keep running when the window is closed* |
 | `macos_about.rs` | macOS only: the filled-in About box, the Dock icon and translated application-menu titles |
 
 ## Life of a command
@@ -115,7 +118,7 @@ Slow work (discovery, browsing, search, service sign-in) runs on its own short-l
 - **Colours**: always use the palette functions in `ui/theme.rs` (`TEXT()`, `SURFACE()`, `overlay(a)` for faint washes), never fixed colours, so light and dark both work. Check new screens with `--theme light` and `--theme dark`.
 - **Tests**: add a unit test for every parser and rule; drive behaviour through the demo backend (`test_support::demo_backend()`), never real speakers.
 - **Style**: `cargo fmt` (see `rustfmt.toml`: lines up to 180 characters) and `cargo clippy --all-targets` with no warnings. Comments explain *why*; every file starts with a `//!` summary.
-- **Platform code** uses `cfg!(target_os = ...)` where all branches compile everywhere, and `#[cfg]` only for platform crates (`macos_about.rs`, `objc2`).
+- **Platform code** uses `cfg!(target_os = ...)` where all branches compile everywhere, and `#[cfg]` only for platform crates (`macos_about.rs`, `macos_menubar.rs`, `objc2`).
 
 ## Translations
 

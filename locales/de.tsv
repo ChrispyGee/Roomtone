@@ -386,6 +386,11 @@ Unknown room	Unbekannter Raum
 Unsubscribe	Abo beenden
 Up next	Als Nächstes
 Volume	Lautstärke
+Dragging rooms to group them works again	Räume lassen sich wieder per Ziehen gruppieren
+Alarms can fade in over 1 to 30 minutes (experimental)	Wecker können über 1 bis 30 Minuten einblenden (experimentell)
+Roomtone in the Mac menu bar, which can keep running when the window is closed	Roomtone in der Mac-Menüleiste, das weiterlaufen kann, wenn das Fenster geschlossen wird
+Sub and surround sound settings, and Find this speaker	Sub- und Surround-Klangeinstellungen und Lautsprecher finden
+Speaker setup: stereo pairs and a soundbar's sub and rear speakers (experimental)	Lautsprecher einrichten: Stereopaare und Sub und hintere Lautsprecher einer Soundbar (experimentell)
 Speaker setup	Lautsprecher einrichten
 Allow changing speaker setup	Änderungen an der Lautsprechereinrichtung erlauben
 Make or split stereo pairs, and add a sub or rear speakers to a soundbar. Not tried on real speakers yet: it can clear a room's Trueplay tuning, and music in the rooms stops.	Stereopaare bilden oder trennen und einer Soundbar einen Subwoofer oder hintere Lautsprecher hinzufügen. Noch nicht an echten Lautsprechern getestet: Es kann die Trueplay-Abstimmung eines Raums löschen, und die Musik in den Räumen stoppt.
