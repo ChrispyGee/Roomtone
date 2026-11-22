@@ -19,6 +19,7 @@ There are no ads, no call-homes and you can run it completely offline.
 ## What it does
 
 - **Both generations in one app**: S1 and S2 systems are found automatically and shown side by side. *Play along* makes rooms in an S1 and an S2 system play the same music together.
+- **Volume limits**: a highest volume per room and quiet hours, applied to everything Roomtone sends (the speakers can't hold a limit themselves).
 - **Rooms and groups**: group and room volume, saved groups ("Downstairs"), group all, pause all; drag one room onto another to group them.
 - **Playback**: queue editing (drag songs to reorder; drop songs or folders from your computer on the window to play them), shuffle, repeat, crossfade, sleep timer, line-in and TV inputs, alarms (experimental), room sound settings.
 - **Music from everywhere**: the system's library, folders on this computer, favorites and playlists, internet radio, podcasts, the Internet Archive, and streaming services (sign in to Spotify, Amazon Music, Deezer, TIDAL or Qobuz; favorites from Apple Music, YouTube Music and SoundCloud). One search box covers them all.
