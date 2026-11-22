@@ -672,6 +672,7 @@ pub fn alarms(ip: &str) -> R<Vec<Alarm>> {
             play_mode: attr("PlayMode"),
             volume: attr("Volume").parse().unwrap_or(20),
             include_linked: attr("IncludeLinkedZones") == "1",
+            fade_min: 0,
         });
     }
     out.sort_by_key(|a| a.hour * 60 + a.minute);

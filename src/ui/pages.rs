@@ -2073,6 +2073,9 @@ impl App {
                             .size(12.5)
                             .color(TEXT_DIM()),
                         );
+                        if a.fade_min > 0 {
+                            ui.label(RichText::new(t!("Fades in over {n} minutes", n = a.fade_min)).size(12.5).color(TEXT_DIM()));
+                        }
                     });
                     ui.with_layout(Layout::right_to_left(Align::Center), |ui| {
                         let mut on = a.enabled;
@@ -2178,6 +2181,25 @@ impl App {
                     a.volume = (v * 100.0).round() as u8;
                 }
                 ui.label(RichText::new(a.volume.to_string()).color(TEXT_DIM()));
+            });
+            ui.end_row();
+
+            ui.label(RichText::new(t!("Fade in")).color(TEXT_DIM()));
+            ui.vertical(|ui| {
+                let shown = if a.fade_min == 0 { t!("Off").to_string() } else { t!("Over {n} minutes", n = a.fade_min) };
+                egui::ComboBox::from_id_salt("alarm_fade").width(220.0).selected_text(shown).show_ui(ui, |ui| {
+                    for m in crate::model::FADE_CHOICES {
+                        let label = if m == 0 { t!("Off").to_string() } else { t!("Over {n} minutes", n = m) };
+                        ui.selectable_value(&mut a.fade_min, m, label);
+                    }
+                });
+                if a.fade_min > 0 {
+                    ui.label(
+                        RichText::new(t!("Starts quietly and rises to the volume above. Roomtone does this, so it needs to be running. If it isn't, the alarm stays quiet."))
+                            .size(12.0)
+                            .color(TEXT_DIM()),
+                    );
+                }
             });
             ui.end_row();
 

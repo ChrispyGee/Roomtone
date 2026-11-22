@@ -598,6 +598,33 @@ pub struct Alarm {
     pub play_mode: String,
     pub volume: u8,
     pub include_linked: bool,
+    /// Minutes to take to rise from quiet to `volume` once it rings; 0 is off. The speakers have
+    /// no such setting, so Roomtone keeps it and does the raising (see `alarm_fader`).
+    pub fade_min: u32,
+}
+
+/// How long a fade-in can take, in minutes (the first, 0, is off).
+pub const FADE_CHOICES: [u32; 7] = [0, 1, 2, 5, 10, 15, 30];
+
+/// The volume a fading alarm starts at (or its own volume, if that's lower).
+pub const FADE_START: u8 = 5;
+
+/// The volume a fading alarm is saved on the speaker with, so it starts quietly.
+pub fn fade_start(target: u8) -> u8 {
+    target.min(FADE_START)
+}
+
+/// Does this alarm fade in? (One that is no louder than where it starts has nothing to fade.)
+pub fn fades(a: &Alarm) -> bool {
+    a.fade_min > 0 && a.volume > FADE_START
+}
+
+/// The volume `elapsed` seconds into a fade from `from` up to `to` over `total` seconds.
+pub fn fade_volume(from: u8, to: u8, elapsed: u64, total: u64) -> u8 {
+    if total == 0 || elapsed >= total || to <= from {
+        return to;
+    }
+    (from as u64 + (to - from) as u64 * elapsed / total) as u8
 }
 
 pub fn recurrence_label(r: &str) -> String {

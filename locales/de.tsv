@@ -386,6 +386,10 @@ Unknown room	Unbekannter Raum
 Unsubscribe	Abo beenden
 Up next	Als Nächstes
 Volume	Lautstärke
+Fade in	Einblenden
+Over {n} minutes	Über {n} Minuten
+Starts quietly and rises to the volume above. Roomtone does this, so it needs to be running. If it isn't, the alarm stays quiet.	Beginnt leise und steigt auf die oben eingestellte Lautstärke. Das übernimmt Roomtone, also muss es laufen. Sonst bleibt der Wecker leise.
+Fades in over {n} minutes	Wird über {n} Minuten eingeblendet
 A tuning measured in the Sonos app (Trueplay). Roomtone can only switch it on or off	Eine in der Sonos-App gemessene Abstimmung (Trueplay). Roomtone kann sie nur ein- oder ausschalten
 Blinks its status light a few times, then puts it back	Lässt die Statusleuchte einige Male blinken und stellt sie dann wieder zurück
 Find this speaker	Diesen Lautsprecher finden

@@ -228,6 +228,7 @@ Complete `config.json`, with every field at its default (the access key is made 
 | `frame` | object | off | Experimental: the now-playing display: `enabled` (false), `port` (8791), `token` (the secret in the address; made for you) and `room` (a room's name; empty follows the room being used). |
 | `volume_limits` | object | none | Volume safeguards: `rooms` (room id and `max`), `quiet` (`enabled`, `from`, `to`, `max`) and `keep_down`. |
 | `alarm_timers` | list | `[]` | The one-off timers Roomtone made (each: `household`, `id`, `due`), so it can tidy their alarms away after they ring. Kept by the app; leave it alone. |
+| `alarm_fades` | list | `[]` | The alarms that fade in (each: `household`, `id`, `minutes`, `volume`): the speaker holds such an alarm at a quiet volume, and Roomtone raises it to `volume` over `minutes` when it rings. Kept by the app; leave it alone. |
 | `show_lyrics` | true/false | `false` | Experimental: show lyrics on Now Playing, fetched from lrclib.net. |
 | `show_alarms` | true/false | not set (off) | Show the Alarms page in the sidebar. |
 | `show_scenes` | true/false | not set (on only if you already have scenes) | Show the Scenes page and its Home shortcuts. |

@@ -407,6 +407,7 @@ impl App {
                     enabled: true,
                     room_uuid: room,
                     volume: 20,
+                    fade_min: std::env::var("ROOMTONE_TEST_FADE").ok().and_then(|v| v.parse().ok()).unwrap_or(0),
                     program_name: n_!("Chime").into(),
                     ..Default::default()
                 }));

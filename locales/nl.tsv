@@ -386,6 +386,10 @@ Unknown room	Onbekende ruimte
 Unsubscribe	Abonnement opzeggen
 Up next	Hierna
 Volume	Volume
+Fade in	Zacht opbouwen
+Over {n} minutes	Over {n} minuten
+Starts quietly and rises to the volume above. Roomtone does this, so it needs to be running. If it isn't, the alarm stays quiet.	Begint zacht en loopt op tot het volume hierboven. Roomtone doet dat, dus het moet draaien. Anders blijft de wekker zacht.
+Fades in over {n} minutes	Bouwt op over {n} minuten
 A tuning measured in the Sonos app (Trueplay). Roomtone can only switch it on or off	Een in de Sonos-app gemeten afstemming (Trueplay). Roomtone kan haar alleen aan- of uitzetten
 Blinks its status light a few times, then puts it back	Laat het statuslampje een paar keer knipperen en zet het dan terug
 Find this speaker	Deze speaker vinden

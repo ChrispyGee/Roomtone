@@ -386,6 +386,10 @@ Unknown room	Stanza sconosciuta
 Unsubscribe	Annulla iscrizione
 Up next	Prossimi
 Volume	Volume
+Fade in	Aumento graduale
+Over {n} minutes	In {n} minuti
+Starts quietly and rises to the volume above. Roomtone does this, so it needs to be running. If it isn't, the alarm stays quiet.	Parte piano e sale fino al volume indicato sopra. Lo fa Roomtone, quindi deve essere aperto. Altrimenti la sveglia resta bassa.
+Fades in over {n} minutes	Sale gradualmente in {n} minuti
 A tuning measured in the Sonos app (Trueplay). Roomtone can only switch it on or off	Una taratura misurata nell'app Sonos (Trueplay). Roomtone può solo attivarla o disattivarla
 Blinks its status light a few times, then puts it back	Fa lampeggiare la spia di stato alcune volte, poi la rimette come prima
 Find this speaker	Trova questo speaker
