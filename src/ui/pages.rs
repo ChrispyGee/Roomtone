@@ -1919,13 +1919,98 @@ impl App {
 
     // ---------- Alarms ----------
 
+    /// Open the alarm editor. A new alarm starts with its one room ticked; more can be ticked.
+    pub(super) fn open_alarm(&mut self, a: Alarm) {
+        self.alarm_rooms = if a.id.is_empty() && !a.room_uuid.is_empty() { vec![a.room_uuid.clone()] } else { vec![] };
+        self.alarm_editor = Some(a);
+    }
+
+    /// A quick timer: a chime in a room after some minutes, made as a one-time alarm.
+    fn timer_card(&mut self, ui: &mut Ui, s: &AppState) {
+        section_title(ui, t!("Timer"));
+        let household = s.household().map(|h| h.id.clone()).unwrap_or_default();
+        card_frame().show(ui, |ui| {
+            ui.set_width(ui.available_width());
+            ui.label(
+                RichText::new(t!("A chime in a room after a few minutes. It rings on the speaker, so it still works if Roomtone is closed, but only to the nearest minute."))
+                    .size(12.5)
+                    .color(TEXT_DIM()),
+            );
+            ui.add_space(8.0);
+            if self.timer_room.is_empty() || s.find_room(&self.timer_room).is_none() {
+                self.timer_room = s
+                    .selected_group
+                    .clone()
+                    .filter(|g| s.find_room(g).is_some())
+                    .or_else(|| s.household().and_then(|h| h.rooms.first()).map(|r| r.uuid.clone()))
+                    .unwrap_or_default();
+            }
+            ui.horizontal_wrapped(|ui| {
+                let name = s.find_room(&self.timer_room).map(|(_, r)| r.name.clone()).unwrap_or_default();
+                egui::ComboBox::from_id_salt("timer_room").width(180.0).selected_text(name).show_ui(ui, |ui| {
+                    if let Some(h) = s.household() {
+                        for r in &h.rooms {
+                            ui.selectable_value(&mut self.timer_room, r.uuid.clone(), &r.name);
+                        }
+                    }
+                });
+                for m in [5u32, 10, 15, 30, 60] {
+                    if filter_chip(ui, &t!("{n} min", n = m), self.timer_minutes == m).clicked() {
+                        self.timer_minutes = m;
+                    }
+                }
+                ui.add(egui::DragValue::new(&mut self.timer_minutes).range(1..=720).suffix(format!(" {}", t!("min"))).speed(0.2));
+            });
+            ui.add_space(6.0);
+            ui.horizontal(|ui| {
+                ui.label(RichText::new(t!("Volume")).color(TEXT_DIM()));
+                let mut v = self.timer_volume as f32 / 100.0;
+                let said = t!("{n} of 100", n = self.timer_volume);
+                if slider(ui, "timer_vol", t!("Volume"), &mut v, 140.0, ACCENT(), &said).1 {
+                    self.timer_volume = (v * 100.0).round() as u8;
+                }
+                ui.label(RichText::new(self.timer_volume.to_string()).color(TEXT_DIM()));
+                ui.with_layout(Layout::right_to_left(Align::Center), |ui| {
+                    if pill(ui, Some(Icon::Alarm), t!("Start timer"), true).clicked() && !self.timer_room.is_empty() {
+                        self.send(Cmd::StartTimer(self.timer_room.clone(), self.timer_minutes, self.timer_volume));
+                    }
+                });
+            });
+            // The timers that are running.
+            let running: Vec<(String, String)> = s
+                .config
+                .alarm_timers
+                .iter()
+                .filter(|t| t.household == household)
+                .filter_map(|t| {
+                    let a = s.alarms.as_ref()?.iter().find(|a| a.id == t.id)?;
+                    let room = s.find_room(&a.room_uuid).map(|(_, r)| r.name.clone()).unwrap_or_default();
+                    Some((t.id.clone(), t!("{room}: rings at {time}", room = room, time = format!("{:02}:{:02}", a.hour, a.minute)).to_string()))
+                })
+                .collect();
+            for (id, text) in running {
+                ui.add_space(6.0);
+                ui.separator();
+                ui.horizontal(|ui| {
+                    ui.label(RichText::new(text).color(TEXT()));
+                    ui.with_layout(Layout::right_to_left(Align::Center), |ui| {
+                        if pill(ui, Some(Icon::Close), t!("Cancel timer"), false).clicked() {
+                            self.send(Cmd::CancelTimer(id.clone()));
+                        }
+                    });
+                });
+            }
+        });
+        ui.add_space(14.0);
+    }
+
     fn alarms_page(&mut self, ui: &mut Ui, s: &AppState) {
         ui.horizontal(|ui| {
             ui.vertical(|ui| self.header(ui, t!("Alarms"), t!("Wake up to music in any room")));
             ui.with_layout(Layout::right_to_left(Align::Min), |ui| {
                 if pill(ui, Some(Icon::Plus), t!("New alarm"), true).clicked() {
                     let room = s.selected_group.clone().unwrap_or_default();
-                    self.alarm_editor = Some(Alarm {
+                    self.open_alarm(Alarm {
                         hour: 7,
                         minute: 0,
                         duration_min: 60,
@@ -1956,6 +2041,13 @@ impl App {
             spinner_dots(ui, TEXT_DIM());
             return;
         };
+        self.timer_card(ui, s);
+        // Timers have their own card above; the list is the alarms.
+        let timer_ids: Vec<&String> = {
+            let household = s.household().map(|h| h.id.clone()).unwrap_or_default();
+            s.config.alarm_timers.iter().filter(|t| t.household == household).map(|t| &t.id).collect()
+        };
+        let list: Vec<&Alarm> = list.iter().filter(|a| !timer_ids.contains(&&a.id)).collect();
         if list.is_empty() {
             ui.label(RichText::new(t!("No alarms yet.")).color(TEXT_DIM()));
             return;
@@ -1990,7 +2082,7 @@ impl App {
                             self.send(Cmd::SaveAlarm(a2));
                         }
                         if icon_button(ui, Icon::Sliders, 16.0, TEXT_DIM()).on_hover_text(t!("Edit")).clicked() {
-                            self.alarm_editor = Some(a.clone());
+                            self.open_alarm(a.clone());
                         }
                     });
                 });
@@ -2022,16 +2114,37 @@ impl App {
             });
             ui.end_row();
 
-            ui.label(RichText::new(t!("Room")).color(TEXT_DIM()));
-            let room_name = s.find_room(&a.room_uuid).map(|(_, r)| r.name.clone()).unwrap_or_else(|| t!("Choose a room").into());
-            egui::ComboBox::from_id_salt("alarm_room").width(220.0).selected_text(room_name).show_ui(ui, |ui| {
-                if let Some(h) = s.household() {
-                    for r in &h.rooms {
-                        ui.selectable_value(&mut a.room_uuid, r.uuid.clone(), &r.name);
+            if a.id.is_empty() {
+                // A new alarm can be made in several rooms at once: one alarm for each room ticked.
+                ui.label(RichText::new(t!("Rooms")).color(TEXT_DIM()));
+                ui.vertical(|ui| {
+                    ui.spacing_mut().item_spacing.y = 4.0;
+                    if let Some(h) = s.household() {
+                        for r in &h.rooms {
+                            let mut on = self.alarm_rooms.contains(&r.uuid);
+                            if ui.checkbox(&mut on, &r.name).changed() {
+                                if on {
+                                    self.alarm_rooms.push(r.uuid.clone());
+                                } else {
+                                    self.alarm_rooms.retain(|u| u != &r.uuid);
+                                }
+                            }
+                        }
                     }
-                }
-            });
-            ui.end_row();
+                });
+                ui.end_row();
+            } else {
+                ui.label(RichText::new(t!("Room")).color(TEXT_DIM()));
+                let room_name = s.find_room(&a.room_uuid).map(|(_, r)| r.name.clone()).unwrap_or_else(|| t!("Choose a room").into());
+                egui::ComboBox::from_id_salt("alarm_room").width(220.0).selected_text(room_name).show_ui(ui, |ui| {
+                    if let Some(h) = s.household() {
+                        for r in &h.rooms {
+                            ui.selectable_value(&mut a.room_uuid, r.uuid.clone(), &r.name);
+                        }
+                    }
+                });
+                ui.end_row();
+            }
 
             ui.label(RichText::new(t!("Music")).color(TEXT_DIM()));
             let favs: Vec<Item> = match s.browse.get("FV:2") {
@@ -2086,14 +2199,28 @@ impl App {
                 self.out.push(Cmd::DeleteAlarm(a.id.clone()));
                 keep = false;
             }
+            if !a.id.is_empty() && pill(ui, None, t!("Duplicate"), false).on_hover_text(t!("Make a copy of this alarm to change and save as a new one")).clicked() {
+                // The same form becomes a new alarm, in this alarm's room.
+                a.id.clear();
+                self.alarm_rooms = vec![a.room_uuid.clone()];
+            }
             ui.with_layout(Layout::right_to_left(Align::Center), |ui| {
                 if pill(ui, None, t!("Save"), true).clicked() {
-                    if a.room_uuid.is_empty() {
-                        if let Some(r) = s.household().and_then(|h| h.rooms.first()) {
-                            a.room_uuid = r.uuid.clone();
+                    if a.id.is_empty() {
+                        // One alarm in each room ticked (in the order the rooms are listed).
+                        let mut rooms: Vec<String> =
+                            s.household().map(|h| h.rooms.iter().map(|r| r.uuid.clone()).filter(|u| self.alarm_rooms.contains(u)).collect()).unwrap_or_default();
+                        if rooms.is_empty() {
+                            rooms = s.household().and_then(|h| h.rooms.first()).map(|r| vec![r.uuid.clone()]).unwrap_or_default();
                         }
+                        for room in rooms {
+                            let mut one = a.clone();
+                            one.room_uuid = room;
+                            self.out.push(Cmd::SaveAlarm(one));
+                        }
+                    } else {
+                        self.out.push(Cmd::SaveAlarm(a.clone()));
                     }
-                    self.out.push(Cmd::SaveAlarm(a.clone()));
                     keep = false;
                 }
                 if pill(ui, None, t!("Cancel"), false).clicked() {

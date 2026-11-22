@@ -53,6 +53,12 @@ pub struct App {
     window_watcher: crate::window::Watcher,
     group_editor: Option<(String, Vec<String>)>,
     alarm_editor: Option<Alarm>,
+    /// The rooms a new alarm is made in (one alarm each).
+    alarm_rooms: Vec<String>,
+    /// The quick timer's room, minutes and volume.
+    timer_room: String,
+    timer_minutes: u32,
+    timer_volume: u8,
     rename: Option<(String, String)>,
     save_queue: Option<(String, String)>,
     manual_ip: String,
@@ -188,6 +194,10 @@ impl App {
             window_watcher: crate::window::Watcher::new(if shot.is_some() { None } else { crate::window::load() }),
             group_editor: None,
             alarm_editor: None,
+            alarm_rooms: vec![],
+            timer_room: String::new(),
+            timer_minutes: 10,
+            timer_volume: 40,
             rename: None,
             save_queue: None,
             manual_ip: String::new(),
@@ -379,6 +389,32 @@ impl App {
                         g.alarm_ringing = true;
                     }
                 }
+            }
+        }
+        // Test hook for pictures: open the alarm editor on a new alarm ("new") or the first alarm ("edit").
+        if self.alarm_editor.is_none() && matches!(self.frame, 2 | 6) {
+            let how = std::env::var("ROOMTONE_TEST_ALARM_EDITOR").unwrap_or_default();
+            if (how == "new" && self.frame == 2) || (how == "edit" && self.frame == 6) {
+                let st = self.backend.lock();
+                let existing = if how == "edit" { st.alarms.as_ref().and_then(|l| l.first().cloned()) } else { None };
+                let room = st.selected_group.clone().unwrap_or_default();
+                drop(st);
+                self.open_alarm(existing.unwrap_or(Alarm {
+                    hour: 7,
+                    duration_min: 60,
+                    recurrence: "DAILY".into(),
+                    enabled: true,
+                    room_uuid: room,
+                    volume: 20,
+                    program_name: n_!("Chime").into(),
+                    ..Default::default()
+                }));
+            }
+        }
+        // Test hook for pictures: a timer already running in the room being used.
+        if self.frame == 4 && std::env::var_os("ROOMTONE_TEST_TIMER").is_some() {
+            if let Some(room) = self.backend.lock().selected_group.clone() {
+                self.out.push(Cmd::StartTimer(room, 12, 40));
             }
         }
         // Test hook: picture a system with no time zone set (its alarms can't ring).
