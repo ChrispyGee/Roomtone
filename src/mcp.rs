@@ -69,7 +69,7 @@ impl Allowance {
             | "save_group"
             | "delete_saved_group" => Allowance::Saved,
             "create_alarm" | "delete_alarm" | "set_alarm_enabled" => Allowance::Alarms,
-            "rename_room" | "set_sound" => Allowance::Names,
+            "rename_room" | "set_sound" | "identify_speaker" => Allowance::Names,
             "install_update" => Allowance::Updates,
             "save_backup" | "export_playlist" => Allowance::Files,
             _ => Allowance::Playback,
@@ -189,8 +189,14 @@ fn base_tools() -> Vec<(&'static str, &'static str, Value, bool)> {
         ("get_sound", "A room's sound settings: bass, treble, loudness, night sound, speech enhancement and status light.", json!({"type": "object", "properties": {"room": room}, "required": ["room"]}), false),
         (
             "set_sound",
-            "Change a room's sound settings. Bass and treble go from -10 to 10.",
-            json!({"type": "object", "properties": {"room": room, "bass": {"type": "integer", "minimum": -10, "maximum": 10}, "treble": {"type": "integer", "minimum": -10, "maximum": 10}, "loudness": {"type": "boolean"}, "night_sound": {"type": "boolean"}, "speech_enhancement": {"type": "boolean"}, "status_light": {"type": "boolean"}}, "required": ["room"]}),
+            "Change a room's sound settings. Bass and treble go from -10 to 10. A room with a sub, surround speakers, a soundbar or a measured room tuning also has sub_enabled, sub_level, sub_inverted, surround_enabled, surround_tv_level, surround_music_level, height_level, audio_delay (lip-sync) and trueplay (switch the measured tuning on or off); get_sound says which this room has. These home-theatre settings are new and untried on real hardware.",
+            json!({"type": "object", "properties": {"room": room, "bass": {"type": "integer", "minimum": -10, "maximum": 10}, "treble": {"type": "integer", "minimum": -10, "maximum": 10}, "loudness": {"type": "boolean"}, "night_sound": {"type": "boolean"}, "speech_enhancement": {"type": "boolean"}, "status_light": {"type": "boolean"}, "sub_enabled": {"type": "boolean"}, "sub_level": {"type": "integer", "minimum": -15, "maximum": 15}, "sub_inverted": {"type": "boolean"}, "surround_enabled": {"type": "boolean"}, "surround_tv_level": {"type": "integer", "minimum": -15, "maximum": 15}, "surround_music_level": {"type": "integer", "minimum": -15, "maximum": 15}, "height_level": {"type": "integer", "minimum": -10, "maximum": 10}, "audio_delay": {"type": "integer", "minimum": 0, "maximum": 5}, "trueplay": {"type": "boolean"}}, "required": ["room"]}),
+            true,
+        ),
+        (
+            "identify_speaker",
+            "Blink a speaker's status light a few times, then put it back as it was, so the person can tell which speaker it is.",
+            json!({"type": "object", "properties": {"room": room}}),
             true,
         ),
         ("check_for_updates", "Whether newer speaker software is available for each system (S1 systems are only offered S1 updates).", json!({"type": "object", "properties": {}}), false),
@@ -827,7 +833,7 @@ impl Mcp {
                 self.wait(Cmd::LoadRoomSettings(uuid.clone()))?;
                 let s = self.b.lock();
                 let st = s.find_room(&uuid).and_then(|(_, r)| r.settings.clone()).ok_or("That speaker didn't say")?;
-                Ok(serde_json::to_string_pretty(&json!({"room": self_name(&s, &uuid), "bass": st.bass, "treble": st.treble, "loudness": st.loudness, "night_sound": st.night, "speech_enhancement": st.speech, "status_light": st.status_light})).unwrap_or_default())
+                Ok(serde_json::to_string_pretty(&json!({"room": self_name(&s, &uuid), "bass": st.bass, "treble": st.treble, "loudness": st.loudness, "night_sound": st.night, "speech_enhancement": st.speech, "status_light": st.status_light, "home_theatre": home_theatre_json(&st)})).unwrap_or_default())
             }
             "set_sound" => {
                 let (uuid, _) = self.room(a)?;
@@ -852,10 +858,34 @@ impl Mcp {
                         changed.push(format!("{label} {}", if on { "on" } else { "off" }));
                     }
                 }
+                // The home-theatre settings: only the ones this room has.
+                let wanted: Vec<(SoundKind, i32)> = SoundKind::ALL
+                    .iter()
+                    .filter_map(|k| {
+                        let v = if k.is_toggle() { bool_arg(k.key()).map(i32::from) } else { int_arg(k.key()).map(|v| k.clamp(v.clamp(-1000, 1000) as i32)) };
+                        v.map(|v| (*k, v))
+                    })
+                    .collect();
+                if !wanted.is_empty() {
+                    self.wait(Cmd::LoadRoomSettings(uuid.clone()))?;
+                    let have = self.b.lock().find_room(&uuid).and_then(|(_, r)| r.settings.clone()).ok_or("That speaker didn't say")?;
+                    for (kind, v) in wanted {
+                        if have.get(kind).is_none() {
+                            return Err(format!("{} doesn't have {} (it needs a {}).", self.room_name(&uuid), kind.key(), kind.needs()));
+                        }
+                        self.wait(Cmd::SetSound(uuid.clone(), kind, v))?;
+                        changed.push(if kind.is_toggle() { format!("{} {}", kind.key(), if v != 0 { "on" } else { "off" }) } else { format!("{} {v}", kind.key()) });
+                    }
+                }
                 if changed.is_empty() {
-                    return Err("Nothing to change: give bass, treble, loudness, night_sound, speech_enhancement or status_light.".into());
+                    return Err("Nothing to change: give bass, treble, loudness, night_sound, speech_enhancement, status_light or one of the home-theatre settings.".into());
                 }
                 Ok(format!("{}: {}", self.room_name(&uuid), changed.join(", ")))
+            }
+            "identify_speaker" => {
+                let (uuid, _) = self.room(a)?;
+                self.wait(Cmd::Identify(uuid.clone()))?;
+                Ok(format!("Blinked the status light on {}.", self.room_name(&uuid)))
             }
             "check_for_updates" => {
                 let homes: Vec<(String, String)> = self.b.lock().households.iter().map(|h| (h.id.clone(), format!("{} system", h.system.label()))).collect();
@@ -1103,6 +1133,17 @@ fn respond(stream: &mut TcpStream, code: u16, reason: &str, body: &str, extra: &
     stream.flush()
 }
 
+/// The home-theatre settings a room has (and only those), by the names assistants use.
+fn home_theatre_json(st: &crate::model::RoomSettings) -> Value {
+    let mut out = serde_json::Map::new();
+    for k in SoundKind::ALL {
+        if let Some(v) = st.get(k) {
+            out.insert(k.key().to_string(), if k.is_toggle() { json!(v != 0) } else { json!(v) });
+        }
+    }
+    Value::Object(out)
+}
+
 /// Base64 (standard alphabet, with padding), for pictures in assistant replies.
 fn base64(bytes: &[u8]) -> String {
     const ABC: &[u8; 64] = b"ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789+/";
@@ -1310,8 +1351,8 @@ mod unit {
         m.b.lock().config.mcp.allow_updates = false;
         m.b.lock().config.mcp.allow_files = false;
         let all = rpc(&m, 1, "tools/list", json!({}))["result"]["tools"].as_array().unwrap().len();
-        assert_eq!(tools().len(), 58);
-        assert_eq!(all, 55, "installing updates and saving files are off until switched on");
+        assert_eq!(tools().len(), 59);
+        assert_eq!(all, 56, "installing updates and saving files are off until switched on");
         let mut names: Vec<&str> = tools().iter().map(|t| t.0).collect();
         names.sort();
         names.dedup();
@@ -1412,6 +1453,30 @@ mod unit {
         let picture = image::load_from_memory(&jpeg).expect("a real picture");
         assert_eq!((picture.width(), picture.height()), (200, 150));
         assert!(tools().iter().any(|t| t.0 == "get_cover_art" && !t.3), "it is a look-only tool");
+    }
+
+    #[test]
+    fn home_theatre_settings_are_offered_only_where_the_room_has_them() {
+        let m = link();
+        // The demo's soundbar has a sub, surrounds, a delay and a room tuning; a plain speaker has none.
+        let status: Value = serde_json::from_str(&ok(&m, "get_sound", json!({"room": "Living Room"}))).unwrap();
+        let ht = status["home_theatre"].as_object().unwrap();
+        for key in ["sub_enabled", "sub_level", "sub_inverted", "surround_enabled", "surround_tv_level", "surround_music_level", "height_level", "audio_delay", "trueplay"] {
+            assert!(ht.contains_key(key), "{key} is listed for the soundbar");
+        }
+        let plain: Value = serde_json::from_str(&ok(&m, "get_sound", json!({"room": "Kitchen"}))).unwrap();
+        assert!(plain["home_theatre"].as_object().unwrap().is_empty(), "a plain speaker lists none");
+
+        let said = ok(&m, "set_sound", json!({"room": "Living Room", "sub_level": 4, "surround_enabled": false, "audio_delay": 3, "height_level": 99}));
+        assert!(said.contains("sub_level 4") && said.contains("surround_enabled off") && said.contains("audio_delay 3") && said.contains("height_level 10"), "{said}");
+        let after: Value = serde_json::from_str(&ok(&m, "get_sound", json!({"room": "Living Room"}))).unwrap();
+        assert_eq!(after["home_theatre"]["sub_level"], 4);
+        assert_eq!(after["home_theatre"]["surround_enabled"], false);
+        assert_eq!(after["home_theatre"]["height_level"], 10, "kept inside the range");
+
+        let (text, err) = tool(&m, "set_sound", json!({"room": "Kitchen", "sub_level": 4}));
+        assert!(err && text.contains("doesn't have sub_level") && text.contains("sub bonded"), "{text}");
+        assert!(ok(&m, "identify_speaker", json!({"room": "Kitchen"})).contains("Blinked"));
     }
 
     #[test]
