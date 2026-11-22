@@ -157,6 +157,7 @@ mod tests {
         include_str!("ui/scenes.rs"),
         include_str!("ui/widgets.rs"),
         include_str!("macos_about.rs"),
+        include_str!("limits.rs"),
     ];
 
     /// Read one Rust string literal starting at the opening quote; returns its text and the rest.

@@ -552,7 +552,20 @@ impl Mcp {
                 .clamp(0, 100) as u8;
                 self.wait(if whole { Cmd::GroupVolume(gid.clone(), target) } else { Cmd::RoomVolume(uuid.clone(), target) })?;
                 let who = if whole { self.b.lock().find_group(&gid).map(|(h, g)| h.group_name(g)).unwrap_or_default() } else { self.room_name(&uuid) };
-                Ok(format!("{who}: volume {target}"))
+                // The person's volume limits may have lowered it: say what it really is.
+                let actual = {
+                    let s = self.b.lock();
+                    if whole {
+                        s.find_group(&gid).map(|(_, g)| g.volume).unwrap_or(target)
+                    } else {
+                        s.find_room(&uuid).map(|(_, r)| r.volume).unwrap_or(target)
+                    }
+                };
+                if actual < target {
+                    Ok(format!("{who}: volume {actual} (you asked for {target}, but the person's volume limits don't allow more)"))
+                } else {
+                    Ok(format!("{who}: volume {target}"))
+                }
             }
             "set_mute" => {
                 let (uuid, gid) = self.room(a)?;

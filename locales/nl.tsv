@@ -386,6 +386,19 @@ Unknown room	Onbekende ruimte
 Unsubscribe	Abonnement opzeggen
 Up next	Hierna
 Volume	Volume
+At these times every room is held to a lower volume. Uses the speakers' clock.	Op deze tijden geldt voor elke kamer een lager volume. Gaat op de klok van de speakers.
+Drag or type to set a limit	Sleep of typ om een limiet in te stellen
+From	Van
+If another app or a speaker's buttons turn a room above its limit, Roomtone turns it back down. Only while Roomtone is open.	Als een andere app of de knoppen van een speaker een kamer boven de limiet zetten, zet Roomtone hem weer zachter. Alleen zolang Roomtone open is.
+Loudest each room may be	Hoogste volume van elke kamer
+No limit	Geen limiet
+Quiet hours	Stille uren
+Roomtone keeps what it sends under these limits: this window, the keyboard, the command line, assistants, scenes, timers and new alarms. The speakers can't hold a limit themselves, so another app, or the buttons on a speaker, can still go higher.	Roomtone houdt alles wat het verstuurt onder deze limieten: dit venster, het toetsenbord, de opdrachtregel, assistenten, scènes, timers en nieuwe wekkers. De speakers kunnen zelf geen limiet vasthouden, dus een andere app of de knoppen op een speaker kunnen nog harder.
+Turn a room back down if it goes over	Zet een kamer weer zachter als hij te hard gaat
+Volume limits	Volumelimieten
+no louder than	niet harder dan
+to	tot
+{room} is limited to {n}	{room} is beperkt tot {n}
 A chime in a room after a few minutes. It rings on the speaker, so it still works if Roomtone is closed, but only to the nearest minute.	Een belsignaal in een kamer na een paar minuten. Het gaat af op de speaker, dus het werkt ook als Roomtone gesloten is, maar alleen op de minuut nauwkeurig.
 Cancel timer	Timer annuleren
 Couldn't read the time from the speakers	Kon de tijd niet van de speakers lezen
