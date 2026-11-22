@@ -4,6 +4,12 @@ All notable changes to Roomtone. The format follows [Keep a Changelog](https://k
 
 ## [Unreleased]
 
+### Fixed
+- **Dragging a room card onto another to group them did nothing.** The drag never started: the card said it wasn't being pointed at while the mouse button was held down, so the press was never noticed. It now starts a drag as designed (found by simulating the mouse in the real window). Dragging a queue row and dropping song files, which were also untried, work in the same test. A new script, `scripts/check-drag.sh`, repeats all three in the demo system and says whether each worked.
+
+### Added
+- **A Home theatre card in a room's settings, and *Find this speaker*.** For a room that has a sub bonded to it: sub on/off, sub level (−15 to +15) and *invert the sub's phase*. With a pair of surround speakers bonded: surround on/off and the TV and music levels. For an Arc: height speakers level. For a soundbar: lip-sync delay. For a room with a measured Trueplay tuning: switch it on or off (Roomtone can't measure one). The assistant link's `get_sound` and `set_sound` have the same settings (only the ones a room has), and a new tool, `identify_speaker` (59 tools now), and the room page's *Find this speaker* button blink the speaker's status light a few times and put it back. What a room has bonded is read from the speaker's zone group state, because the speakers answer many of these questions with \"0\" even when there is nothing to tune. **New and untried on real home-theatre hardware** (read-only on a real Connect:Amp and Play:3: no controls appear for them, as intended); the ranges are the maker's app's, which the speakers don't publish.
+
 ### Changed
 - **The roadmap now lists speaker layout setup, layouts in scenes, more room sound settings and a per-speaker EQ as ideas** (stereo pairs, home-theatre sets, front speakers on a soundbar, custom left/right layouts, sub and surround levels, lip-sync, identify a speaker, a graphic EQ), after looking at what a similar independent speaker-setup app offers. Nothing has been built; each needs research and spare speakers first.
 

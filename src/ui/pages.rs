@@ -3571,6 +3571,69 @@ impl App {
         );
     }
 
+    /// Sub, surround, height, lip-sync and room-tuning controls: only the ones this room has.
+    fn home_theatre_card(&mut self, ui: &mut Ui, uuid: &str, st: &crate::model::RoomSettings) {
+        use crate::model::SoundKind as K;
+        experimental_title(ui, t!("Home theatre"));
+        card_frame().show(ui, |ui| {
+            ui.set_width(ui.available_width());
+            ui.label(
+                RichText::new(t!("These settings are new and have not been tried on a real home-theatre set yet. They are shown only for a room that has a sub, surround speakers or a soundbar."))
+                    .size(12.0)
+                    .color(TEXT_DIM()),
+            );
+            ui.add_space(6.0);
+            let w = ui.available_width();
+            for (kind, label, sub) in [
+                (K::SubEnabled, t!("Sub"), t!("Use the sub")),
+                (K::SubInverted, t!("Invert the sub's phase"), t!("Flip the sub's polarity if it sounds thin or boomy next to the other speakers")),
+                (K::SurroundEnabled, t!("Surround speakers"), t!("Use the rear speakers")),
+                (K::Trueplay, t!("Room tuning"), t!("A tuning measured in the Sonos app (Trueplay). Roomtone can only switch it on or off")),
+            ] {
+                let Some(v) = st.get(kind) else { continue };
+                let mut on = v != 0;
+                ui.horizontal(|ui| {
+                    ui.set_height(44.0);
+                    ui.vertical(|ui| {
+                        ui.label(RichText::new(label).color(TEXT()));
+                        ui.label(RichText::new(sub).size(12.0).color(TEXT_DIM()));
+                    });
+                    ui.with_layout(Layout::right_to_left(Align::Center), |ui| {
+                        if toggle(ui, &mut on, label).changed() {
+                            self.send(Cmd::SetSound(uuid.to_string(), kind, i32::from(on)));
+                        }
+                    });
+                });
+            }
+            for (kind, label) in [
+                (K::SubLevel, t!("Sub level")),
+                (K::SurroundTv, t!("Surround level (TV)")),
+                (K::SurroundMusic, t!("Surround level (music)")),
+                (K::Height, t!("Height speakers level")),
+                (K::Delay, t!("Lip-sync delay")),
+            ] {
+                let Some(value) = st.get(kind) else { continue };
+                let (lo, hi) = kind.range();
+                ui.horizontal(|ui| {
+                    ui.set_height(34.0);
+                    ui.allocate_ui_with_layout(vec2(150.0, 20.0), Layout::left_to_right(Align::Center), |ui| {
+                        ui.set_width(150.0);
+                        ui.add(egui::Label::new(RichText::new(label).color(TEXT())).truncate());
+                    });
+                    let mut v = (value - lo) as f32 / (hi - lo) as f32;
+                    let shown = |n: i32| if lo < 0 { format!("{n:+}") } else { n.to_string() };
+                    let said = t!("{n} on a scale from {low} to {high}", n = shown(value), low = shown(lo), high = shown(hi));
+                    let (_, changed) = slider(ui, label, label, &mut v, w - 250.0, ACCENT(), &said);
+                    let nv = lo + (v * (hi - lo) as f32).round() as i32;
+                    ui.label(RichText::new(shown(nv)).size(12.5).color(TEXT_DIM()));
+                    if changed && nv != value {
+                        self.send(Cmd::SetSound(uuid.to_string(), kind, nv));
+                    }
+                });
+            }
+        });
+    }
+
     fn room_page(&mut self, ui: &mut Ui, s: &AppState, uuid: &str) {
         let Some((h, r)) = s.find_room(uuid) else {
             self.go(View::Settings);
@@ -3591,6 +3654,9 @@ impl App {
             ui.add_space(6.0);
             if pill(ui, None, t!("Rename"), false).clicked() {
                 self.rename = Some((uuid.to_string(), r.name.clone()));
+            }
+            if pill(ui, None, t!("Find this speaker"), false).on_hover_text(t!("Blinks its status light a few times, then puts it back")).clicked() {
+                self.send(Cmd::Identify(uuid.to_string()));
             }
         });
         ui.horizontal(|ui| {
@@ -3666,6 +3732,10 @@ impl App {
                 });
             }
         });
+        if st.has_home_theatre() {
+            ui.add_space(14.0);
+            self.home_theatre_card(ui, uuid, &st);
+        }
         ui.add_space(14.0);
         section_title(ui, t!("About this speaker"));
         card_frame().show(ui, |ui| {

@@ -311,7 +311,24 @@ fn room(uuid: &str, name: &str, model: &str, version: &str, volume: u8, tv: bool
         online: Some(true),
         last_seen: None,
         problem: String::new(),
-        settings: Some(RoomSettings { bass: 0, treble: 0, loudness: true, night: tv.then_some(false), speech: tv.then_some(false), status_light: true }),
+        settings: Some(RoomSettings {
+            bass: 0,
+            treble: 0,
+            loudness: true,
+            night: tv.then_some(false),
+            speech: tv.then_some(false),
+            status_light: true,
+            // The demo's soundbar has a sub, surrounds, a lip-sync delay and a measured room tuning, so every control can be pictured.
+            sub_enabled: (tv && model == "Soundbar").then_some(true),
+            sub_level: (tv && model == "Soundbar").then_some(2),
+            sub_inverted: (tv && model == "Soundbar").then_some(false),
+            surround_enabled: (tv && model == "Soundbar").then_some(true),
+            surround_tv: (tv && model == "Soundbar").then_some(0),
+            surround_music: (tv && model == "Soundbar").then_some(-3),
+            height: (tv && model == "Soundbar").then_some(0),
+            delay: (tv && model == "Soundbar").then_some(1),
+            trueplay: (tv && model == "Soundbar").then_some(true),
+        }),
     }
 }
 
@@ -674,7 +691,8 @@ pub fn apply(s: &mut AppState, cmd: &Cmd) {
             None => s.toast(t!("Sleep timer off"), false),
         },
         Cmd::LoadRoomSettings(_) => {}
-        Cmd::SetBass(..) | Cmd::SetTreble(..) | Cmd::SetLoudness(..) | Cmd::SetNight(..) | Cmd::SetSpeech(..) | Cmd::SetStatusLight(..) => {}
+        Cmd::SetBass(..) | Cmd::SetTreble(..) | Cmd::SetLoudness(..) | Cmd::SetNight(..) | Cmd::SetSpeech(..) | Cmd::SetStatusLight(..) | Cmd::SetSound(..) | Cmd::Identify(..) => {
+        }
         Cmd::Rename(r, name) => {
             if let Some(r) = s.room_mut(r) {
                 r.name = name.clone();

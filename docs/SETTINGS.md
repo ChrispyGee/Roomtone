@@ -114,7 +114,7 @@ Lets AI assistants that support MCP see and control your speakers. **Off until y
 | *Assistants can change things* | `allow_control` | on | On: they can play, pause, change volume, edit queues and group rooms. Off: look only. |
 | *Saved items* | `allow_saved` | on | Within *change things*: favorites, stations, podcasts, saved groups, scenes, saving the queue as a playlist. |
 | *Alarms* | `allow_alarms` | on | Make, delete, turn on and off alarms. |
-| *Room names and sound* | `allow_names` | on | Rename rooms; change bass, treble and other sound settings. |
+| *Room names and sound* | `allow_names` | on | Rename rooms; change bass, treble and other sound settings (including a room's sub, surround and lip-sync settings); blink a speaker's light to find it. |
 | *Speaker updates* | `allow_updates` | **off** | Install new speaker software (they restart). Always possible in the app. |
 | *Save files* and *Choose folder* | `allow_files`, `files_folder` | **off**, none | Assistants may save backups and playlist exports, only into the folder you choose. A folder is needed before this does anything. |
 | *Allow other computers* | `allow_network` | off | Off: only this computer can connect (`127.0.0.1`). On: assistants elsewhere in your home can connect, with the access key. |

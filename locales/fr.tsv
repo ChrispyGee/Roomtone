@@ -386,6 +386,24 @@ Unknown room	Pièce inconnue
 Unsubscribe	Se désabonner
 Up next	À suivre
 Volume	Volume
+A tuning measured in the Sonos app (Trueplay). Roomtone can only switch it on or off	Un réglage mesuré dans l'application Sonos (Trueplay). Roomtone ne peut que l'activer ou le désactiver
+Blinks its status light a few times, then puts it back	Fait clignoter le voyant quelques fois, puis le remet comme avant
+Find this speaker	Repérer cette enceinte
+Flip the sub's polarity if it sounds thin or boomy next to the other speakers	Inverser la polarité du caisson s'il sonne mince ou bourdonnant à côté des autres enceintes
+Height speakers level	Niveau des enceintes de hauteur
+Home theatre	Home cinéma
+Invert the sub's phase	Inverser la phase du caisson
+Lip-sync delay	Décalage audio (synchro labiale)
+Room tuning	Réglage de la pièce
+Sub	Caisson
+Sub level	Niveau du caisson
+Surround level (TV)	Niveau surround (TV)
+Surround level (music)	Niveau surround (musique)
+Surround speakers	Enceintes surround
+These settings are new and have not been tried on a real home-theatre set yet. They are shown only for a room that has a sub, surround speakers or a soundbar.	Ces réglages sont nouveaux et n'ont pas encore été essayés sur un vrai ensemble home cinéma. Ils ne s'affichent que pour une pièce ayant un caisson, des enceintes surround ou une barre de son.
+Use the rear speakers	Utiliser les enceintes arrière
+Use the sub	Utiliser le caisson
+{n} on a scale from {low} to {high}	{n} sur une échelle de {low} à {high}
 Volume limits: a highest volume for each room, and quiet hours	Limites de volume : un volume maximal pour chaque pièce, et des heures calmes
 Alarms can be copied or made in several rooms at once, and a timer rings a chime	Les alarmes peuvent être copiées ou créées dans plusieurs pièces à la fois, et un minuteur fait sonner une alerte
 Drag rooms to group them, drag songs in the queue, or drop songs on the window to play them	Faites glisser des pièces pour les grouper, des morceaux dans la file, ou déposez des morceaux sur la fenêtre pour les lire
