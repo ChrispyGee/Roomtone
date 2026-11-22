@@ -76,6 +76,16 @@ pub enum Cmd {
     SetSound(String, crate::model::SoundKind, i32),
     /// Blink a speaker's status light so it can be found.
     Identify(String),
+    /// Read how the speakers are bonded (stereo pairs, home-theatre sets).
+    LoadLayout,
+    /// Make a stereo pair of two identical rooms: (left, right).
+    CreatePair(String, String),
+    /// Split the stereo pair whose left speaker is this room.
+    SplitPair(String),
+    /// Bond rooms to a soundbar: (the bar, the rooms and what each is).
+    AddSatellites(String, Vec<(String, crate::layout::Role)>),
+    /// Take rooms off a soundbar: (the bar, the rooms).
+    RemoveSatellites(String, Vec<String>),
     Rename(String, String),
     LoadAlarms,
     SaveAlarm(Alarm),
@@ -1262,6 +1272,36 @@ fn run_live(b: &Backend, ctx: &Waker, cmd: Cmd) -> Result<(), String> {
         Cmd::SetStatusLight(r, v) => speaker::set_led(&room_ip(&r)?, v),
         Cmd::SetSound(r, kind, v) => speaker::set_sound(&room_ip(&r)?, kind, v),
         Cmd::Identify(r) => speaker::identify(&room_ip(&r)?),
+        Cmd::LoadLayout => {
+            let ip = need(b.lock().household().and_then(|h| h.rooms.first().map(|r| r.ip.clone())), n_!("Speaker setup"))?;
+            let layout = speaker::read_layout(&ip)?;
+            b.lock().layout = Some(layout);
+            Ok(())
+        }
+        Cmd::CreatePair(left, right) => {
+            let ip = room_ip(&left)?;
+            speaker::create_pair(&ip, &left, &right)?;
+            after_layout_change(b)
+        }
+        Cmd::SplitPair(left) => {
+            let ip = room_ip(&left)?;
+            let map = need(b.lock().layout.as_ref().and_then(|l| l.pairs.iter().find(|p| p.left == left).map(|p| p.map.clone())), n_!("That stereo pair"))?;
+            speaker::split_pair(&ip, &map)?;
+            after_layout_change(b)
+        }
+        Cmd::AddSatellites(bar, add) => {
+            let ip = room_ip(&bar)?;
+            let current = b.lock().layout.as_ref().and_then(|l| l.set_for(&bar).map(|h| h.map.clone())).unwrap_or_default();
+            speaker::add_satellites(&ip, &crate::layout::set_map(&bar, &current, &add))?;
+            after_layout_change(b)
+        }
+        Cmd::RemoveSatellites(bar, rooms) => {
+            let ip = room_ip(&bar)?;
+            for r in &rooms {
+                speaker::remove_satellite(&ip, r)?;
+            }
+            after_layout_change(b)
+        }
         Cmd::Rename(r, name) => {
             speaker::rename(&room_ip(&r)?, &name)?;
             if let Some(room) = b.lock().room_mut(&r) {
@@ -1364,6 +1404,18 @@ fn apply_fades(b: &Backend, list: &mut [Alarm]) {
         drop(s);
         let _ = cfg.save();
     }
+}
+
+/// After the speakers have been bonded or split: look at the rooms and the layout again.
+fn after_layout_change(b: &Backend) -> Result<(), String> {
+    thread::sleep(Duration::from_millis(1500));
+    refresh_topology(b)?;
+    let ip = b.lock().household().and_then(|h| h.rooms.first().map(|r| r.ip.clone()));
+    if let Some(ip) = ip {
+        let layout = speaker::read_layout(&ip)?;
+        b.lock().layout = Some(layout);
+    }
+    Ok(())
 }
 
 /// Seconds since 1970 by this computer's clock.
@@ -2161,6 +2213,7 @@ fn run_common(b: &Backend, ctx: &Waker, cmd: Cmd) -> Result<Option<Cmd>, String>
                     Feature::Alarms => s.config.show_alarms = Some(on),
                     Feature::Scenes => s.config.show_scenes = Some(on),
                     Feature::UpdateInstall => s.config.allow_update_install = on,
+                    Feature::Layout => s.config.allow_layout = on,
                 }
             }
             save(b);
@@ -4834,5 +4887,48 @@ mod unit {
         b.send_and_wait(Cmd::GroupVolume(gid.clone(), 30), Duration::from_secs(5)).unwrap();
         std::thread::sleep(Duration::from_secs(5));
         assert_eq!(vol(), 30, "the fade gave way");
+    }
+
+    #[test]
+    fn stereo_pairs_and_soundbar_speakers_can_be_made_and_undone_on_the_demo_system() {
+        use crate::layout::Role;
+        let b = demo_backend();
+        let rooms = |b: &Backend| b.lock().household().map(|h| h.rooms.iter().map(|r| r.uuid.clone()).collect::<Vec<_>>()).unwrap_or_default();
+        let before = rooms(&b);
+        assert!(before.contains(&"D-STUDY".to_string()));
+        let wait = Duration::from_secs(5);
+        b.send_and_wait(Cmd::LoadLayout, wait).unwrap();
+        assert!(b.lock().layout.as_ref().unwrap().pairs.is_empty());
+
+        b.send_and_wait(Cmd::CreatePair("D-KITCHEN".into(), "D-STUDY".into()), wait).unwrap();
+        assert!(!rooms(&b).contains(&"D-STUDY".to_string()), "the right speaker is part of the pair now");
+        assert_eq!(b.lock().layout.as_ref().unwrap().pairs.len(), 1);
+        assert!(b.lock().household().unwrap().groups.iter().all(|g| !g.members.contains(&"D-STUDY".to_string())));
+        b.send_and_wait(Cmd::SplitPair("D-KITCHEN".into()), wait).unwrap();
+        assert!(rooms(&b).contains(&"D-STUDY".to_string()), "splitting brings it back as a room");
+        assert!(b.lock().layout.as_ref().unwrap().pairs.is_empty());
+
+        b.send_and_wait(Cmd::AddSatellites("D-LIVING".into(), vec![("D-BEDROOM".into(), Role::RearLeft), ("D-STUDY".into(), Role::RearRight)]), wait).unwrap();
+        {
+            let s = b.lock();
+            let set = s.layout.as_ref().unwrap().set_for("D-LIVING").expect("the soundbar has a set").clone();
+            assert_eq!(set.satellites.len(), 2);
+            assert_eq!(set.map, "D-LIVING:LF,RF;D-BEDROOM:LR;D-STUDY:RR");
+        }
+        assert!(!rooms(&b).contains(&"D-BEDROOM".to_string()));
+        b.send_and_wait(Cmd::RemoveSatellites("D-LIVING".into(), vec!["D-BEDROOM".into(), "D-STUDY".into()]), wait).unwrap();
+        assert!(b.lock().layout.as_ref().unwrap().sets.is_empty());
+        let mut after = rooms(&b);
+        let mut was = before;
+        after.sort();
+        was.sort();
+        assert_eq!(after, was, "every room is back");
+    }
+
+    #[test]
+    fn the_layout_buttons_are_off_until_switched_on() {
+        assert!(!crate::config::Config::default().allow_layout);
+        let old: crate::config::Config = serde_json::from_str("{}").unwrap();
+        assert!(!old.allow_layout, "a settings file from before this reads as off");
     }
 }

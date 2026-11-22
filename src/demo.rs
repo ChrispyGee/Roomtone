@@ -398,7 +398,7 @@ pub fn load(s: &mut AppState) {
             room("D-KITCHEN", "Kitchen", "Smart Speaker", "16.4", 28, false),
             room("D-BEDROOM", "Bedroom", "Smart Speaker Mini", "16.4", 18, false),
             room("D-PATIO", "Patio", "Outdoor Amp", "16.4", 40, true),
-            room("D-STUDY", "Study", "Bookshelf Speaker", "16.4", 22, false),
+            room("D-STUDY", "Study", "Smart Speaker", "16.4", 22, false),
         ],
         groups: vec![
             queue_group("D-LIVING", &["D-LIVING", "D-KITCHEN"], browse("A:ALBUM/0"), 1, Transport::Playing, 74.0, 30),
@@ -692,6 +692,49 @@ pub fn apply(s: &mut AppState, cmd: &Cmd) {
             None => s.toast(t!("Sleep timer off"), false),
         },
         Cmd::LoadRoomSettings(_) => {}
+        Cmd::LoadLayout => {
+            if s.layout.is_none() {
+                s.layout = Some(crate::layout::Layout::default());
+            }
+        }
+        Cmd::CreatePair(left, right) => {
+            park(s, right);
+            let name = s.find_room(left).map(|(_, r)| r.name.clone()).unwrap_or_default();
+            let map = crate::layout::pair_map(left, right);
+            s.layout.get_or_insert_with(Default::default).pairs.push(crate::layout::Pair { left: left.clone(), right: right.clone(), name, map });
+        }
+        Cmd::SplitPair(left) => {
+            let pair = s.layout.as_mut().and_then(|l| l.pairs.iter().position(|p| &p.left == left).map(|i| l.pairs.remove(i)));
+            if let Some(p) = pair {
+                unpark(s, &p.right);
+            }
+        }
+        Cmd::AddSatellites(bar, add) => {
+            let name = s.find_room(bar).map(|(_, r)| r.name.clone()).unwrap_or_default();
+            for (uuid, role) in add {
+                park(s, uuid);
+                let sat_name = s.parked_rooms.iter().find(|r| &r.uuid == uuid).map(|r| r.name.clone()).unwrap_or_default();
+                let layout = s.layout.get_or_insert_with(Default::default);
+                if !layout.sets.iter().any(|h| &h.bar == bar) {
+                    layout.sets.push(crate::layout::HomeTheatre { bar: bar.clone(), name: name.clone(), satellites: vec![], map: String::new() });
+                }
+                if let Some(set) = layout.sets.iter_mut().find(|h| &h.bar == bar) {
+                    set.satellites.push(crate::layout::Satellite { uuid: uuid.clone(), name: sat_name, role: *role });
+                    set.map = crate::layout::set_map(bar, &set.map, &[(uuid.clone(), *role)]);
+                }
+            }
+        }
+        Cmd::RemoveSatellites(bar, rooms) => {
+            for r in rooms {
+                if let Some(layout) = s.layout.as_mut() {
+                    if let Some(set) = layout.sets.iter_mut().find(|h| &h.bar == bar) {
+                        set.satellites.retain(|x| &x.uuid != r);
+                    }
+                    layout.sets.retain(|h| !h.satellites.is_empty());
+                }
+                unpark(s, r);
+            }
+        }
         Cmd::SetBass(..) | Cmd::SetTreble(..) | Cmd::SetLoudness(..) | Cmd::SetNight(..) | Cmd::SetSpeech(..) | Cmd::SetStatusLight(..) | Cmd::SetSound(..) | Cmd::Identify(..) => {
         }
         Cmd::Rename(r, name) => {
@@ -741,6 +784,29 @@ pub fn apply(s: &mut AppState, cmd: &Cmd) {
             s.config.alarm_timers.retain(|t| &t.id != id);
         }
     }
+}
+
+/// Demo system: a room that has been bonded into another disappears from the list.
+fn park(s: &mut AppState, uuid: &str) {
+    let Some(h) = s.households.get_mut(s.active) else { return };
+    if let Some(i) = h.rooms.iter().position(|r| r.uuid == uuid) {
+        let room = h.rooms.remove(i);
+        s.parked_rooms.push(room);
+    }
+    h.groups.retain(|g| !(g.members.len() == 1 && g.members[0] == uuid));
+    for g in h.groups.iter_mut() {
+        g.members.retain(|m| m != uuid);
+    }
+    s.ensure_selection();
+}
+
+/// Demo system: a room that was bonded comes back as a room of its own.
+fn unpark(s: &mut AppState, uuid: &str) {
+    let Some(i) = s.parked_rooms.iter().position(|r| r.uuid == uuid) else { return };
+    let room = s.parked_rooms.remove(i);
+    let Some(h) = s.households.get_mut(s.active) else { return };
+    h.groups.push(Group { id: room.uuid.clone(), coordinator: room.uuid.clone(), members: vec![room.uuid.clone()], volume: room.volume, ..Default::default() });
+    h.rooms.push(room);
 }
 
 #[cfg(test)]

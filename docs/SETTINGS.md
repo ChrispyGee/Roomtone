@@ -206,7 +206,8 @@ Complete `config.json`, with every field at its default (the access key is made 
   "remember_history": true,
   "show_lyrics": false,
   "volume_step": 5,
-  "allow_update_install": false
+  "allow_update_install": false,
+  "allow_layout": false
 }
 ```
 
@@ -239,6 +240,7 @@ Complete `config.json`, with every field at its default (the access key is made 
 | `show_lyrics` | true/false | `false` | Experimental: show lyrics on Now Playing, fetched from lrclib.net. |
 | `show_alarms` | true/false | not set (off) | Show the Alarms page in the sidebar. |
 | `show_scenes` | true/false | not set (on only if you already have scenes) | Show the Scenes page and its Home shortcuts. |
+| `allow_layout` | true/false | `false` | Experimental: show the buttons that make or split stereo pairs and add or remove a soundbar's sub and rear speakers (*Settings › Speakers › Speaker setup*). Each change asks first. |
 | `allow_update_install` | true/false | `false` | Experimental: offer *Update all speakers*. |
 | `mcp.enabled` | true/false | `false` | Assistant link on. |
 | `mcp.allow_control` | true/false | `true` | Assistants may change things. |

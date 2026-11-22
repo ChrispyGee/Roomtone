@@ -688,6 +688,10 @@ pub struct AppState {
     pub alarms: Option<Vec<Alarm>>,
     /// The system's alarms can't ring because it has no time zone set (read when alarms load).
     pub alarms_zone_unset: bool,
+    /// How the speakers are bonded (read when the speaker setup is opened).
+    pub layout: Option<crate::layout::Layout>,
+    /// Demo system only: rooms that are bonded into another (hidden until split off again).
+    pub parked_rooms: Vec<Room>,
     pub toasts: Vec<Toast>,
     pub manual_ips: Vec<String>,
     pub recent: Vec<Item>,
@@ -799,6 +803,8 @@ impl Default for AppState {
             browse: HashMap::new(),
             alarms: None,
             alarms_zone_unset: false,
+            layout: None,
+            parked_rooms: vec![],
             toasts: vec![],
             manual_ips: vec![],
             recent: vec![],

@@ -293,6 +293,8 @@ pub enum Feature {
     Alarms,
     Scenes,
     UpdateInstall,
+    /// The buttons that change how speakers are bonded (stereo pairs, soundbar satellites).
+    Layout,
 }
 
 impl Config {
@@ -414,6 +416,9 @@ pub struct Config {
     /// Show the buttons that install speaker software updates (experimental; off until switched on).
     #[serde(default)]
     pub allow_update_install: bool,
+    /// Show the buttons that make or split stereo pairs and add or remove soundbar speakers (experimental; off until switched on).
+    #[serde(default)]
+    pub allow_layout: bool,
     /// Remember what was played (on this computer only) for Recently played and History.
     #[serde(default = "yes")]
     pub remember_history: bool,
@@ -461,6 +466,7 @@ impl Default for Config {
             show_alarms: None,
             show_scenes: None,
             allow_update_install: false,
+            allow_layout: false,
             remember_history: true,
             room_order: vec![],
         }

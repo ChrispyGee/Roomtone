@@ -133,3 +133,7 @@ Mark guesses in code comments with "estimate", and list them here.
 - Address formats for service tracks (`smapi::to_item`) were checked against common services, not every one.
 - Software update behaviour (section 6).
 - Wired/wireless from packet counts (section 6d) is a heuristic: a speaker that just started, or one that's busy on both, is reported as unknown.
+
+## Speaker layouts (bonding)
+
+`DeviceProperties` (`/DeviceProperties/Control`) has `CreateStereoPair` and `SeparateStereoPair` (argument `ChannelMapSet`, such as `RINCON_L:LF,LF;RINCON_R:RF,RF`, asked of the left speaker), `AddHTSatellite` (argument `HTSatChanMapSet`, the whole set such as `RINCON_BAR:LF,RF;RINCON_SUB:SW;RINCON_C:LR;RINCON_D:RR`, asked of the soundbar) and `RemoveHTSatellite` (argument `SatRoomUUID`). Checked read-only on a real speaker on 2026-11-22: the actions and argument names are in its service description. **Not yet tried:** that they do what is expected (the argument forms are from public notes), what mismatched models do, and what happens to a measured Trueplay tuning. The current layout is read from `GetZoneGroupState`: `ChannelMapSet` on both members of a pair, `HTSatChanMapSet` and nested `Satellite` entries on a soundbar.

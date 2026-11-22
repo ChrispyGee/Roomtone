@@ -386,6 +386,40 @@ Unknown room	Stanza sconosciuta
 Unsubscribe	Annulla iscrizione
 Up next	Prossimi
 Volume	Volume
+Speaker setup	Configurazione degli altoparlanti
+Allow changing speaker setup	Consenti di modificare la configurazione degli altoparlanti
+Make or split stereo pairs, and add a sub or rear speakers to a soundbar. Not tried on real speakers yet: it can clear a room's Trueplay tuning, and music in the rooms stops.	Crea o separa coppie stereo e aggiungi un sub o altoparlanti posteriori a una soundbar. Non ancora provato su altoparlanti reali: può cancellare la taratura Trueplay di una stanza e la musica nelle stanze si ferma.
+Stereo pairs	Coppie stereo
+No stereo pairs yet.	Nessuna coppia stereo per ora.
+{room}: a left and a right speaker	{room}: un altoparlante sinistro e uno destro
+Split	Separa
+Split {room} into two rooms?	Separare {room} in due stanze?
+The pair becomes two separate rooms again.	La coppia torna a essere due stanze separate.
+Left	Sinistra
+Right	Destra
+Make a pair	Crea coppia
+Make {left} and {right} a stereo pair?	Rendere {left} e {right} una coppia stereo?
+They become one room, named after the left speaker. Only two identical speakers can be paired.	Diventano una sola stanza, con il nome dell'altoparlante sinistro. Si possono abbinare solo due altoparlanti identici.
+No other room is the same model, so there is nothing to pair it with.	Nessun'altra stanza è dello stesso modello, quindi non c'è nulla con cui abbinarlo.
+Soundbar speakers	Altoparlanti della soundbar
+Rear left	Posteriore sinistro
+Rear right	Posteriore destro
+{role}: {room}	{role}: {room}
+Remove	Rimuovi
+Take the {role} off {bar}?	Rimuovere {role} da {bar}?
+It becomes a room of its own again.	Torna a essere una stanza a sé.
+No soundbar found in this system.	Nessuna soundbar trovata in questo sistema.
+Soundbar	Soundbar
+Add the sub	Aggiungi il sub
+Add {room} as the sub of {bar}?	Aggiungere {room} come sub di {bar}?
+It plays the low sounds of {bar} and stops being a room of its own.	Riproduce i bassi di {bar} e smette di essere una stanza a sé.
+No sub is free to add.	Nessun sub libero da aggiungere.
+Add rear speakers	Aggiungi altoparlanti posteriori
+Add {left} and {right} as the rear speakers of {bar}?	Aggiungere {left} e {right} come altoparlanti posteriori di {bar}?
+They play the surround sounds of {bar} and stop being rooms of their own. Use two identical speakers.	Riproducono il suono surround di {bar} e smettono di essere stanze a sé. Usa due altoparlanti identici.
+This can clear a room's measured Trueplay tuning, and music in these rooms stops. You can undo it from this card.	Può cancellare la taratura Trueplay misurata di una stanza e la musica in queste stanze si ferma. Puoi annullare da questa scheda.
+Not tried on real speakers yet.	Non ancora provato su altoparlanti reali.
+That stereo pair	Quella coppia stereo
 No speakers found yet	Nessun altoparlante trovato per ora
 No rooms found yet	Nessuna stanza trovata per ora
 Volume {n}	Volume {n}

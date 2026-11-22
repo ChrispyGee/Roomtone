@@ -199,6 +199,12 @@ fn base_tools() -> Vec<(&'static str, &'static str, Value, bool)> {
             json!({"type": "object", "properties": {"room": room}}),
             true,
         ),
+        (
+            "get_speaker_layout",
+            "How the speakers are set up: stereo pairs (which room is left and right) and soundbars with a sub or rear speakers bonded to them. Looking only: changing a layout needs a person to confirm it in the Roomtone window.",
+            json!({"type": "object", "properties": {}}),
+            false,
+        ),
         ("check_for_updates", "Whether newer speaker software is available for each system (S1 systems are only offered S1 updates).", json!({"type": "object", "properties": {}}), false),
         (
             "install_update",
@@ -882,6 +888,17 @@ impl Mcp {
                 }
                 Ok(format!("{}: {}", self.room_name(&uuid), changed.join(", ")))
             }
+            "get_speaker_layout" => {
+                self.wait(Cmd::LoadLayout)?;
+                let layout = self.b.lock().layout.clone().unwrap_or_default();
+                let pairs: Vec<Value> = layout.pairs.iter().map(|p| json!({"room": p.name, "left": p.left, "right": p.right})).collect();
+                let sets: Vec<Value> = layout
+                    .sets
+                    .iter()
+                    .map(|h| json!({"soundbar": h.name, "speakers": h.satellites.iter().map(|x| json!({"room": x.name, "role": match x.role { crate::layout::Role::Sub => "sub", crate::layout::Role::RearLeft => "rear left", crate::layout::Role::RearRight => "rear right" }})).collect::<Vec<_>>()}))
+                    .collect();
+                Ok(serde_json::to_string_pretty(&json!({"stereo_pairs": pairs, "soundbar_sets": sets})).unwrap_or_default())
+            }
             "identify_speaker" => {
                 let (uuid, _) = self.room(a)?;
                 self.wait(Cmd::Identify(uuid.clone()))?;
@@ -1352,8 +1369,8 @@ mod unit {
         m.b.lock().config.mcp.allow_updates = false;
         m.b.lock().config.mcp.allow_files = false;
         let all = rpc(&m, 1, "tools/list", json!({}))["result"]["tools"].as_array().unwrap().len();
-        assert_eq!(tools().len(), 59);
-        assert_eq!(all, 56, "installing updates and saving files are off until switched on");
+        assert_eq!(tools().len(), 60);
+        assert_eq!(all, 57, "installing updates and saving files are off until switched on");
         let mut names: Vec<&str> = tools().iter().map(|t| t.0).collect();
         names.sort();
         names.dedup();
@@ -1363,7 +1380,7 @@ mod unit {
         }
         m.b.lock().config.mcp.allow_control = false;
         let look = rpc(&m, 2, "tools/list", json!({}))["result"]["tools"].as_array().unwrap().clone();
-        assert_eq!(look.len(), 18);
+        assert_eq!(look.len(), 19);
         assert!(look.iter().all(|t| t["annotations"]["readOnlyHint"] == true));
         let (text, err) = tool(&m, "playback", json!({"action": "pause"}));
         assert!(err && text.contains("only lets assistants look"));
@@ -1478,6 +1495,7 @@ mod unit {
         let (text, err) = tool(&m, "set_sound", json!({"room": "Kitchen", "sub_level": 4}));
         assert!(err && text.contains("doesn't have sub_level") && text.contains("sub bonded"), "{text}");
         assert!(ok(&m, "identify_speaker", json!({"room": "Kitchen"})).contains("Blinked"));
+        assert!(ok(&m, "get_speaker_layout", json!({})).contains("stereo_pairs"));
     }
 
     #[test]

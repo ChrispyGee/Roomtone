@@ -386,6 +386,40 @@ Unknown room	Onbekende ruimte
 Unsubscribe	Abonnement opzeggen
 Up next	Hierna
 Volume	Volume
+Speaker setup	Speakers instellen
+Allow changing speaker setup	Wijzigen van de speakerinstelling toestaan
+Make or split stereo pairs, and add a sub or rear speakers to a soundbar. Not tried on real speakers yet: it can clear a room's Trueplay tuning, and music in the rooms stops.	Maak of splits stereoparen en voeg een sub of achterspeakers toe aan een soundbar. Nog niet getest op echte speakers: het kan de Trueplay-afstelling van een kamer wissen, en de muziek in de kamers stopt.
+Stereo pairs	Stereoparen
+No stereo pairs yet.	Nog geen stereoparen.
+{room}: a left and a right speaker	{room}: een linker- en een rechterspeaker
+Split	Splitsen
+Split {room} into two rooms?	{room} splitsen in twee kamers?
+The pair becomes two separate rooms again.	Het paar wordt weer twee aparte kamers.
+Left	Links
+Right	Rechts
+Make a pair	Paar maken
+Make {left} and {right} a stereo pair?	{left} en {right} een stereopaar maken?
+They become one room, named after the left speaker. Only two identical speakers can be paired.	Ze worden één kamer, genoemd naar de linkerspeaker. Alleen twee identieke speakers kunnen worden gekoppeld.
+No other room is the same model, so there is nothing to pair it with.	Geen andere kamer heeft hetzelfde model, dus er is niets om mee te koppelen.
+Soundbar speakers	Soundbar-speakers
+Rear left	Achter links
+Rear right	Achter rechts
+{role}: {room}	{role}: {room}
+Remove	Verwijderen
+Take the {role} off {bar}?	{role} van {bar} halen?
+It becomes a room of its own again.	Het wordt weer een eigen kamer.
+No soundbar found in this system.	Geen soundbar gevonden in dit systeem.
+Soundbar	Soundbar
+Add the sub	Sub toevoegen
+Add {room} as the sub of {bar}?	{room} toevoegen als sub van {bar}?
+It plays the low sounds of {bar} and stops being a room of its own.	Het speelt de lage tonen van {bar} en is geen eigen kamer meer.
+No sub is free to add.	Er is geen sub vrij om toe te voegen.
+Add rear speakers	Achterspeakers toevoegen
+Add {left} and {right} as the rear speakers of {bar}?	{left} en {right} toevoegen als achterspeakers van {bar}?
+They play the surround sounds of {bar} and stop being rooms of their own. Use two identical speakers.	Ze spelen het surroundgeluid van {bar} en zijn geen eigen kamers meer. Gebruik twee identieke speakers.
+This can clear a room's measured Trueplay tuning, and music in these rooms stops. You can undo it from this card.	Dit kan de gemeten Trueplay-afstelling van een kamer wissen, en de muziek in deze kamers stopt. Je kunt het ongedaan maken vanaf deze kaart.
+Not tried on real speakers yet.	Nog niet getest op echte speakers.
+That stereo pair	Dat stereopaar
 No speakers found yet	Nog geen speakers gevonden
 No rooms found yet	Nog geen kamers gevonden
 Volume {n}	Volume {n}
