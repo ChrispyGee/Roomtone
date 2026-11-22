@@ -119,6 +119,17 @@ pub struct Account {
     pub sn: u32,
 }
 
+/// A one-off timer, made as a one-time alarm on the speaker, so it can be tidied away after it rings.
+#[derive(Clone, Debug, Default, Serialize, Deserialize, PartialEq)]
+pub struct AlarmTimer {
+    /// The system it was made on (alarm ids are only unique within one).
+    pub household: String,
+    /// The alarm's id on that system.
+    pub id: String,
+    /// About when it rings (seconds since 1970, by this computer's clock).
+    pub due: u64,
+}
+
 /// The assistant link (MCP): lets AI assistants see and control the speakers.
 #[derive(Clone, Debug, Serialize, Deserialize, PartialEq)]
 pub struct McpConfig {
@@ -254,6 +265,9 @@ pub struct Config {
     /// Appearance: "auto" follows the computer, or "light" / "dark".
     #[serde(default = "default_theme")]
     pub theme: String,
+    /// One-off timers made by Roomtone (see `AlarmTimer`).
+    #[serde(default)]
+    pub alarm_timers: Vec<AlarmTimer>,
     /// Let the speakers say when something changes (UPnP events) instead of asking over and
     /// over. Off until the person switches it on: it needs an incoming connection.
     #[serde(default)]
@@ -315,6 +329,7 @@ impl Default for Config {
             language: default_language(),
             mcp: McpConfig::default(),
             theme: default_theme(),
+            alarm_timers: vec![],
             speaker_events: false,
             check_new_versions: false,
             last_version_check: 0,
@@ -433,7 +448,10 @@ impl Config {
         if let Some(dir) = p.parent() {
             std::fs::create_dir_all(dir).map_err(|e| e.to_string())?;
         }
-        let text = serde_json::to_string_pretty(self).map_err(|e| e.to_string())?;
+        // Timers made on the demo system are never kept.
+        let mut kept = self.clone();
+        kept.alarm_timers.retain(|t| !t.household.starts_with("demo-"));
+        let text = serde_json::to_string_pretty(&kept).map_err(|e| e.to_string())?;
         std::fs::write(&p, text).map_err(|e| e.to_string())?;
         // Sign-ins are kept here, so only this user may read the file.
         #[cfg(unix)]
