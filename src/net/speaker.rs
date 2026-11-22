@@ -559,6 +559,20 @@ pub fn time_zone_is_set(ip: &str) -> Option<bool> {
     reply.get("CurrentTimeZone").map(|z| zone_is_set(z))
 }
 
+/// The speaker's own clock, as (hour, minute, second) in its local time. Alarms ring by this clock.
+pub fn local_time_now(ip: &str) -> Option<(u32, u32, u32)> {
+    let reply = call(ip, ALARM_CLOCK, "GetTimeNow", &[]).ok()?;
+    parse_local_time(reply.get("CurrentLocalTime")?)
+}
+
+/// `2026-11-22 12:18:52` to (12, 18, 52).
+fn parse_local_time(t: &str) -> Option<(u32, u32, u32)> {
+    let time = t.split_whitespace().nth(1)?;
+    let mut p = time.split(':').map(|x| x.parse::<u32>().ok());
+    let (h, m, s) = (p.next()??, p.next()??, p.next().flatten().unwrap_or(0));
+    (h < 24 && m < 60 && s < 60).then_some((h, m, s))
+}
+
 pub fn alarms(ip: &str) -> R<Vec<Alarm>> {
     let reply = call(ip, ALARM_CLOCK, "ListAlarms", &[])?;
     let list = reply.get("CurrentAlarmList").cloned().unwrap_or_default();
@@ -592,7 +606,8 @@ pub fn alarms(ip: &str) -> R<Vec<Alarm>> {
     Ok(out)
 }
 
-pub fn save_alarm(ip: &str, a: &Alarm) -> R<()> {
+/// Make or change an alarm; returns its id (for a new one, the id the speaker gave it).
+pub fn save_alarm(ip: &str, a: &Alarm) -> R<String> {
     let start = format!("{:02}:{:02}:00", a.hour, a.minute);
     let duration = didl::format_hms(a.duration_min.max(1) as f32 * 60.0);
     let duration = format!("{:0>8}", duration);
@@ -616,7 +631,8 @@ pub fn save_alarm(ip: &str, a: &Alarm) -> R<()> {
         ("IncludeLinkedZones", if a.include_linked { "1" } else { "0" }),
     ]);
     let action = if a.id.is_empty() { "CreateAlarm" } else { "UpdateAlarm" };
-    call(ip, ALARM_CLOCK, action, &args).map(|_| ())
+    let reply = call(ip, ALARM_CLOCK, action, &args)?;
+    Ok(if a.id.is_empty() { reply.get("AssignedID").cloned().unwrap_or_default() } else { a.id.clone() })
 }
 
 pub fn delete_alarm(ip: &str, id: &str) -> R<()> {
@@ -752,6 +768,16 @@ pub fn begin_update(ip: &str, url: &str) -> R<()> {
 
 #[cfg(test)]
 mod unit {
+    #[test]
+    fn the_speakers_clock_is_read_from_its_local_time() {
+        assert_eq!(super::parse_local_time("2026-11-22 12:18:52"), Some((12, 18, 52)));
+        assert_eq!(super::parse_local_time("2026-01-01 00:00:00"), Some((0, 0, 0)));
+        assert_eq!(super::parse_local_time("2026-11-22 12:18"), Some((12, 18, 0)));
+        assert_eq!(super::parse_local_time("2026-11-22 25:00:00"), None);
+        assert_eq!(super::parse_local_time("nonsense"), None);
+        assert_eq!(super::parse_local_time(""), None);
+    }
+
     #[test]
     fn an_alarm_is_only_looked_for_while_the_group_plays() {
         use crate::model::Transport::*;

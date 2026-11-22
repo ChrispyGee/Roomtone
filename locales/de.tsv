@@ -399,6 +399,16 @@ Open here	Hier öffnen
 New address	Neue Adresse
 Screens using the old address will stop working until you give them the new one	Bildschirme mit der alten Adresse funktionieren nicht mehr, bis du ihnen die neue gibst
 Add ?text=0 to hide the song's name, or ?fit=cover to fill the screen. The same address ends in art.jpg for just the cover and now.json for a description.	Hänge ?text=0 an, um den Songnamen auszublenden, oder ?fit=cover, um den Bildschirm zu füllen. Dieselbe Adresse mit art.jpg am Ende liefert nur das Cover, mit now.json eine Beschreibung.
+A chime in a room after a few minutes. It rings on the speaker, so it still works if Roomtone is closed, but only to the nearest minute.	Ein Signalton in einem Raum nach ein paar Minuten. Er klingelt am Lautsprecher und funktioniert daher auch, wenn Roomtone geschlossen ist, aber nur auf die Minute genau.
+Cancel timer	Timer abbrechen
+Couldn't read the time from the speakers	Die Uhrzeit konnte nicht von den Lautsprechern gelesen werden
+Duplicate	Duplizieren
+Make a copy of this alarm to change and save as a new one	Kopie dieses Alarms erstellen, ändern und als neuen speichern
+Start timer	Timer starten
+Timer	Timer
+min	Min.
+{n} min	{n} Min.
+{room}: rings at {time}	{room}: klingelt um {time}
 Drop songs to play them in {room}	Songs hier ablegen, um sie in {room} abzuspielen
 Joining {room} to {other}	{room} wird mit {other} verbunden
 Pick a room first, then drop the songs on the window	Wähle zuerst einen Raum und lege die Songs dann im Fenster ab

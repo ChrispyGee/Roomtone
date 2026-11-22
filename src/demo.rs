@@ -698,6 +698,27 @@ pub fn apply(s: &mut AppState, cmd: &Cmd) {
                 list.retain(|a| &a.id != id);
             }
         }
+        Cmd::StartTimer(room, minutes, volume) => {
+            // The demo has no speaker clock: use this computer's (UTC, which is near enough here).
+            let secs = std::time::SystemTime::now().duration_since(std::time::UNIX_EPOCH).map(|d| d.as_secs()).unwrap_or(0) % 86_400;
+            let alarm = crate::backend::timer_alarm(((secs / 3600) as u32, (secs % 3600 / 60) as u32, (secs % 60) as u32), *minutes, room, *volume);
+            apply(s, &Cmd::SaveAlarm(alarm));
+            let id = s
+                .alarms
+                .as_ref()
+                .and_then(|l| l.iter().filter(|a| a.recurrence == "ONCE").filter_map(|a| a.id.parse::<u32>().ok().map(|n| (n, a.id.clone()))).max().map(|(_, id)| id));
+            let household = s.household().map(|h| h.id.clone()).unwrap_or_default();
+            if let Some(id) = id {
+                let due = std::time::SystemTime::now().duration_since(std::time::UNIX_EPOCH).map(|d| d.as_secs()).unwrap_or(0) + *minutes as u64 * 60;
+                s.config.alarm_timers.push(crate::config::AlarmTimer { household, id, due });
+            }
+        }
+        Cmd::CancelTimer(id) => {
+            if let Some(list) = s.alarms.as_mut() {
+                list.retain(|a| &a.id != id);
+            }
+            s.config.alarm_timers.retain(|t| &t.id != id);
+        }
     }
 }
 

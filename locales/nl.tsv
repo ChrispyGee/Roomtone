@@ -399,6 +399,16 @@ Open here	Hier openen
 New address	Nieuw adres
 Screens using the old address will stop working until you give them the new one	Schermen met het oude adres werken niet meer totdat je ze het nieuwe geeft
 Add ?text=0 to hide the song's name, or ?fit=cover to fill the screen. The same address ends in art.jpg for just the cover and now.json for a description.	Voeg ?text=0 toe om de naam van het nummer te verbergen, of ?fit=cover om het scherm te vullen. Hetzelfde adres eindigend op art.jpg geeft alleen de hoes en op now.json een beschrijving.
+A chime in a room after a few minutes. It rings on the speaker, so it still works if Roomtone is closed, but only to the nearest minute.	Een belsignaal in een kamer na een paar minuten. Het gaat af op de speaker, dus het werkt ook als Roomtone gesloten is, maar alleen op de minuut nauwkeurig.
+Cancel timer	Timer annuleren
+Couldn't read the time from the speakers	Kon de tijd niet van de speakers lezen
+Duplicate	Dupliceren
+Make a copy of this alarm to change and save as a new one	Maak een kopie van dit alarm om te wijzigen en als nieuw op te slaan
+Start timer	Timer starten
+Timer	Timer
+min	min
+{n} min	{n} min
+{room}: rings at {time}	{room}: gaat af om {time}
 Drop songs to play them in {room}	Zet nummers hier neer om ze in {room} af te spelen
 Joining {room} to {other}	{room} wordt bij {other} gevoegd
 Pick a room first, then drop the songs on the window	Kies eerst een kamer en zet de nummers dan op het venster neer

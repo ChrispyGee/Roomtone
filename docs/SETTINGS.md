@@ -217,6 +217,7 @@ Complete `config.json`, with every field at its default (the access key is made 
 | `volume_step` | 1, 2, 5, 10 | `5` | How far the volume keyboard shortcut (Ctrl or Cmd with the up and down arrows) moves the volume. |
 | `remember_history` | true/false | `true` | Keep a listening history on this computer. |
 | `frame` | object | off | Experimental: the now-playing display: `enabled` (false), `port` (8791), `token` (the secret in the address; made for you) and `room` (a room's name; empty follows the room being used). |
+| `alarm_timers` | list | `[]` | The one-off timers Roomtone made (each: `household`, `id`, `due`), so it can tidy their alarms away after they ring. Kept by the app; leave it alone. |
 | `show_lyrics` | true/false | `false` | Experimental: show lyrics on Now Playing, fetched from lrclib.net. |
 | `show_alarms` | true/false | not set (off) | Show the Alarms page in the sidebar. |
 | `show_scenes` | true/false | not set (on only if you already have scenes) | Show the Scenes page and its Home shortcuts. |
