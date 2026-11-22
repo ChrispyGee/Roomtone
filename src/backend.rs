@@ -110,6 +110,7 @@ pub enum Cmd {
     SetTheme(String),
     SetContrast(bool),
     /// Show Roomtone in the menu bar (Mac), and whether closing the window keeps it running there.
+    #[cfg_attr(not(target_os = "macos"), allow(dead_code))]
     SetMenuBar(bool, bool),
     /// Switch speaker events (instant updates instead of polling) on or off.
     SetEvents(bool),
