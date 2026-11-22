@@ -1,6 +1,6 @@
 # Roomtone for Stream Deck (experimental)
 
-> **Experimental.** This plugin is new. It has been tested against a Roomtone demo system and with automated tests, but **not yet on a real Stream Deck or with real speakers**. It may change, and it may not work for you. Reports are welcome.
+> **Experimental.** This plugin is new. It has been tested with automated tests and against a Roomtone demo system, and the maintainer has tried the keys and the settings page on a real Stream Deck with real speakers (0.1.4), but **not the Stream Deck + dial and touch strip**, and little else. It may change, and it may not work for you. Reports are welcome.
 
 Buttons and a dial for [Roomtone](../README.md) on an Elgato Stream Deck: play and pause, next and previous, volume (hold to keep going), mute, scenes, pause everything, and a key that shows the song that's playing. On a Stream Deck + the dial turns the volume, pressing it mutes, and tapping the screen plays or pauses.
 
@@ -70,7 +70,7 @@ Layout: `src/roomtone.ts` (the link's client), `src/monitor.ts` (asks what's pla
 
 ## Not done yet
 
-- Not tried on real Stream Deck hardware, including the Stream Deck + dial and touch strip.
+- Only lightly tried on real hardware (the keys and the settings page, with real speakers); the Stream Deck + dial and touch strip are untried.
 - No cover art on keys (Roomtone's *Now-playing display* address could supply it).
 - Not on the Elgato Marketplace, and not attached to Roomtone's releases.
 - Only the listed actions; no room picker, no queue or favorites buttons.
