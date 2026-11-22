@@ -1,7 +1,7 @@
 {
   "$schema": "https://schemas.elgato.com/streamdeck/plugins/manifest.json",
   "Name": "Roomtone (experimental)",
-  "Version": "0.1.4.0",
+  "Version": "0.2.0.0",
   "Author": "Roomtone contributors",
   "Description": "Experimental. Control your Sonos speakers from a Stream Deck through the Roomtone app: play, pause, skip, volume, mute and scenes. Needs Roomtone running with its assistant link switched on. Not made or endorsed by Sonos or Elgato.",
   "UUID": "io.github.chrispygee.roomtone",
@@ -80,7 +80,7 @@
       "Name": "Now Playing",
       "UUID": "io.github.chrispygee.roomtone.nowplaying",
       "Icon": "imgs/actions/note",
-      "Tooltip": "Shows the song that's playing; press to play or pause",
+      "Tooltip": "Shows the cover (or the title) of what's playing; press to play or pause",
       "Controllers": [
         "Keypad"
       ],

@@ -12,7 +12,7 @@ Roomtone and this plugin are independent projects, not made or endorsed by Sonos
 | --- | --- |
 | **Play / Pause** | Toggles; shows a pause symbol while music plays |
 | **Next song**, **Previous song** | Skips |
-| **Now Playing** | Shows the song's title on the key; press to play or pause |
+| **Now Playing** | Shows the **cover** of the song that's playing (the title instead, when a song has no cover; a setting puts the title over the cover too); press to play or pause. The cover comes from Roomtone's `get_cover_art` tool, so it needs a Roomtone that has it (0.9.3 or later) |
 | **Volume Up**, **Volume Down** | Changes the volume by the *Volume step* (default 5); hold to keep going; shows the volume |
 | **Mute** | Mutes or unmutes; shows a crossed-out speaker while muted |
 | **Scene** | Applies one of Roomtone's scenes (pick the name in the button's settings) |
@@ -37,7 +37,7 @@ Roomtone must be running (with its window, or `roomtone --headless`) for the but
 
 ## How it works, and what it can see
 
-The plugin runs inside the Stream Deck app (as a Node.js program) and talks to Roomtone's assistant link over HTTP, by default at `http://127.0.0.1:8790/mcp`, with your access key. It calls only these Roomtone tools: `now_playing` (every two seconds while a button that shows something is on screen), `playback`, `set_volume`, `set_mute`, `apply_scene`, `pause_all`, `list_scenes` and `get_status`. It sends nothing anywhere else, and has no analytics.
+The plugin runs inside the Stream Deck app (as a Node.js program) and talks to Roomtone's assistant link over HTTP, by default at `http://127.0.0.1:8790/mcp`, with your access key. It calls only these Roomtone tools: `now_playing` (every two seconds while a button that shows something is on screen), `get_cover_art` (once for each new song, for the Now Playing key), `playback`, `set_volume`, `set_mute`, `apply_scene`, `pause_all`, `list_scenes` and `get_status`. It sends nothing anywhere else, and has no analytics.
 
 - **The access key is stored by Stream Deck in plain text** in the plugin's settings (Stream Deck says plugin settings are not secret). It lets anyone who can read it control your speakers through the assistant link, and it is the same key AI assistants use. *New key* in Roomtone's settings replaces it. Keep **Allow other computers** off in Roomtone unless the Stream Deck is on another computer.
 - Scene names are read from Roomtone's `list_scenes` reply, one per line before the first colon; a scene name that contains a colon won't be listed in the settings suggestions (type it by hand).
@@ -71,6 +71,6 @@ Layout: `src/roomtone.ts` (the link's client), `src/monitor.ts` (asks what's pla
 ## Not done yet
 
 - Only lightly tried on real hardware (the keys and the settings page, with real speakers); the Stream Deck + dial and touch strip are untried.
-- No cover art on keys (Roomtone's *Now-playing display* address could supply it).
+- Cover art on the Now Playing key is new and has only been tried with tests: not yet with a real playing song on a real key.
 - Not on the Elgato Marketplace, and not attached to Roomtone's releases.
 - Only the listed actions; no room picker, no queue or favorites buttons.

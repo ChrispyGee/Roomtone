@@ -21,6 +21,14 @@ export interface NowPlaying {
 }
 
 /** Something a person can read and act on: "Roomtone isn't running", "Wrong access key". */
+/** One piece of a tool's answer: text, or a picture (`data` is base64). */
+export interface Content {
+  type?: string;
+  text?: string;
+  data?: string;
+  mimeType?: string;
+}
+
 export type ProblemKind = "unreachable" | "off" | "nokey" | "key" | "refused" | "failed";
 
 export class RoomtoneError extends Error {
@@ -74,7 +82,7 @@ export class RoomtoneClient {
 
   private async initialize(): Promise<void> {
     const response = await this.post(
-      { jsonrpc: "2.0", id: this.nextId++, method: "initialize", params: { protocolVersion: "2025-11-25", capabilities: {}, clientInfo: { name: "roomtone-streamdeck", version: "0.1.4" } } },
+      { jsonrpc: "2.0", id: this.nextId++, method: "initialize", params: { protocolVersion: "2025-11-25", capabilities: {}, clientInfo: { name: "roomtone-streamdeck", version: "0.2.0" } } },
       false,
     );
     this.session = response.headers.get("Mcp-Session-Id") ?? undefined;
@@ -83,6 +91,12 @@ export class RoomtoneClient {
 
   /** Call a Roomtone tool and return the text it answered with. */
   async call(tool: string, args: Record<string, unknown> = {}): Promise<string> {
+    const content = await this.callContent(tool, args);
+    return content.map((c) => c.text ?? "").join("\n");
+  }
+
+  /** Call a Roomtone tool and return everything it answered with (text, and pictures). */
+  async callContent(tool: string, args: Record<string, unknown> = {}): Promise<Content[]> {
     if (this.session === undefined) await this.initialize();
     const request = { jsonrpc: "2.0", id: this.nextId++, method: "tools/call", params: { name: tool, arguments: args } };
     let response: Response;
@@ -98,11 +112,11 @@ export class RoomtoneClient {
         throw e;
       }
     }
-    const reply = (await response.json()) as { result?: { content?: { text?: string }[]; isError?: boolean }; error?: { message?: string } };
+    const reply = (await response.json()) as { result?: { content?: Content[]; isError?: boolean }; error?: { message?: string } };
     if (reply.error) throw new RoomtoneError(reply.error.message ?? "Roomtone couldn't do that.", "failed");
-    const text = (reply.result?.content ?? []).map((c) => c.text ?? "").join("\n");
-    if (reply.result?.isError) throw new RoomtoneError(text || "Roomtone couldn't do that.", "failed");
-    return text;
+    const content = reply.result?.content ?? [];
+    if (reply.result?.isError) throw new RoomtoneError(content.map((c) => c.text ?? "").join("\n") || "Roomtone couldn't do that.", "failed");
+    return content;
   }
 
   withRoom(args: Record<string, unknown>, room: string | undefined): Record<string, unknown> {
@@ -132,6 +146,22 @@ export class RoomtoneClient {
   /** The names of the scenes Roomtone has (empty if none, or if it answers in a way we don't know). */
   async listScenes(): Promise<string[]> {
     return parseSceneNames(await this.call("list_scenes"));
+  }
+
+  /**
+   * The cover of what a room is playing, as a data address a key can show, or `undefined` if there is
+   * none (nothing playing, no cover, or a Roomtone too old to have `get_cover_art`). Problems with the
+   * connection itself are still thrown.
+   */
+  async coverArt(room?: string, size = 200): Promise<string | undefined> {
+    try {
+      const content = await this.callContent("get_cover_art", this.withRoom({ size }, room));
+      const picture = content.find((c) => c.type === "image" && c.data);
+      return picture ? `data:${picture.mimeType ?? "image/jpeg"};base64,${picture.data}` : undefined;
+    } catch (e) {
+      if (e instanceof RoomtoneError && e.kind === "failed") return undefined;
+      throw e;
+    }
   }
 
   /** The names of the rooms Roomtone knows, in alphabetical order. */

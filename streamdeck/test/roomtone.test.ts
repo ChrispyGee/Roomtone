@@ -117,3 +117,36 @@ test("room names are every room of every system, once, in order", async () => {
   assert.deepEqual(parseRoomNames("{}"), []);
   assert.deepEqual(await new RoomtoneClient(connection, fakeRoomtone(() => status).fetchFn).listRooms(), ["Den", "Kitchen", "Living Room", "Office"]);
 });
+
+/** A Roomtone that answers `get_cover_art` with what it is given. */
+function coverRoomtone(answer: Record<string, unknown> | { error: { code: number; message: string } }) {
+  const asked: Record<string, unknown>[] = [];
+  const fetchFn = (async (_u: string, init: RequestInit) => {
+    const body = JSON.parse(String(init.body));
+    if (body.method === "initialize") return new Response(JSON.stringify({ result: {} }), { headers: { "Mcp-Session-Id": "s" } });
+    asked.push(body.params);
+    return new Response(JSON.stringify({ jsonrpc: "2.0", id: body.id, ...answer }));
+  }) as unknown as typeof fetch;
+  return { fetchFn, asked };
+}
+
+test("a cover comes back as an address a key can show", async () => {
+  const roomtone = coverRoomtone({ result: { content: [{ type: "image", data: "/9j/AAA=", mimeType: "image/jpeg" }, { type: "text", text: "Cover of Song in Kitchen" }], isError: false } });
+  const client = new RoomtoneClient(connection, roomtone.fetchFn);
+  assert.equal(await client.coverArt("Kitchen", 144), "data:image/jpeg;base64,/9j/AAA=");
+  assert.deepEqual(roomtone.asked[0], { name: "get_cover_art", arguments: { size: 144, room: "Kitchen" } });
+});
+
+test("no cover, or a Roomtone without the tool, is no cover, not an error", async () => {
+  const none = coverRoomtone({ result: { content: [{ type: "text", text: "Kitchen has no cover picture right now." }], isError: true } });
+  assert.equal(await new RoomtoneClient(connection, none.fetchFn).coverArt(), undefined);
+  const old = coverRoomtone({ error: { code: -32602, message: "Unknown tool: get_cover_art" } });
+  assert.equal(await new RoomtoneClient(connection, old.fetchFn).coverArt(), undefined);
+  const textOnly = coverRoomtone({ result: { content: [{ type: "text", text: "fine" }], isError: false } });
+  assert.equal(await new RoomtoneClient(connection, textOnly.fetchFn).coverArt(), undefined);
+});
+
+test("a wrong key is still a problem when asking for a cover", async () => {
+  const fetchFn = (async () => new Response("{}", { status: 401 })) as unknown as typeof fetch;
+  await assert.rejects(new RoomtoneClient(connection, fetchFn).coverArt(), (e: unknown) => e instanceof RoomtoneError && e.kind === "key");
+});
