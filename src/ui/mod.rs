@@ -1871,7 +1871,8 @@ impl App {
     /// changes (a "live region"): "Now playing: title by artist in room".
     /// While files are held over the window: say what dropping them will do.
     fn drop_hint(&mut self, ctx: &egui::Context, s: &AppState) {
-        if ctx.input(|i| i.raw.hovered_files.is_empty()) {
+        // ROOMTONE_TEST_DROPHINT=1 shows it for picture checks.
+        if ctx.input(|i| i.raw.hovered_files.is_empty()) && std::env::var("ROOMTONE_TEST_DROPHINT").is_err() {
             return;
         }
         let text = match s.selected_group.as_ref().and_then(|g| s.find_group(g)) {
@@ -1883,7 +1884,11 @@ impl App {
             ui.painter().rect_filled(screen, 0.0, Color32::from_black_alpha(150));
             let inner = screen.shrink(24.0);
             ui.painter().rect_stroke(inner, 18.0, Stroke::new(3.0_f32, ACCENT()), egui::StrokeKind::Inside);
-            ui.painter().text(screen.center(), egui::Align2::CENTER_CENTER, text, egui::FontId::proportional(24.0), Color32::WHITE);
+            // The words sit on a dark plate, so they read over any picture.
+            let galley = ui.painter().layout_no_wrap(text, egui::FontId::proportional(24.0), Color32::WHITE);
+            let at = Rect::from_center_size(screen.center(), galley.size());
+            ui.painter().rect_filled(at.expand2(vec2(22.0, 14.0)), 16.0, Color32::from_black_alpha(190));
+            ui.painter().galley(at.min, galley, Color32::WHITE);
         });
     }
 
