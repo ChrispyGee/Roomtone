@@ -5,6 +5,7 @@ All notable changes to Roomtone. The format follows [Keep a Changelog](https://k
 ## [Unreleased]
 
 ### Added
+- **The Mac menu-bar icon can show the room that's playing (experimental).** *Settings › Appearance › Show the room name next to the icon* (off by default, shown when the menu bar is on) puts the name of the playing room beside the icon and keeps it current, even with the window hidden; the icon is alone when nothing plays. Long names are cut short. Checked with a unit test and a real run on the demo system, not yet tried by hand.
 - **Preparation for signed Windows downloads and the Microsoft Store (nothing signed or submitted yet).** A privacy statement (`PRIVACY.md`) and a code signing policy (`CODE_SIGNING_POLICY.md`), the two pages a SignPath Foundation application asks for; a Microsoft Store package definition and build script (`packaging/windows/msix/`) that a workflow builds to check it is well formed; and two maintainer guides, `docs/SIGNING.md` and `docs/MICROSOFT_STORE.md`, with the steps that need an account in the maintainer's name. Neither route is part of the release yet.
 
 ### Fixed

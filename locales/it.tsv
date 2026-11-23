@@ -386,6 +386,8 @@ Unknown room	Stanza sconosciuta
 Unsubscribe	Annulla iscrizione
 Up next	Prossimi
 Volume	Volume
+Show the room name next to the icon	Mostra il nome della stanza accanto all'icona
+While something is playing, the room it is playing in is shown beside the icon.	Mentre qualcosa è in riproduzione, accanto all'icona compare il nome della stanza.
 Dragging rooms to group them works again	Trascinare le stanze per raggrupparle funziona di nuovo
 Alarms can fade in over 1 to 30 minutes (experimental)	Le sveglie possono salire gradualmente in 1-30 minuti (sperimentale)
 Roomtone in the Mac menu bar, which can keep running when the window is closed	Roomtone nella barra dei menu del Mac, che può restare attivo quando la finestra è chiusa
