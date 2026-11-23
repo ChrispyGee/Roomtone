@@ -273,7 +273,7 @@ For one run unless it says it saves. Full list: `roomtone --help`.
 | `scene <name>`, `scenes`, `backup <file.json>`, `play`, `pause`, `toggle`, `next`, `previous`, `play <name>`, `volume <n\|+n\|-n>`, `mute`, `unmute`, `sleep <min>`, `group <room> <room>…`, `ungroup`, `status`, `now`, `queue`, `favorites`, `alarms` (with `--room <name>`, `--group`) | Control the Roomtone that's already running, through its assistant link (switched on; control allowed for anything that changes things). Talks only to this computer. Exit code 0 done, 1 refused, 2 not understood, 3 can't reach Roomtone |
 | `--help`, `--help mcp` | Help, and how to connect an assistant on this computer. |
 
-Environment: `ROOMTONE_LANG` and `ROOMTONE_THEME` (what `--lang` and `--theme` set); when the language is `auto`, `LC_ALL`, `LC_MESSAGES` and `LANG` decide. The settings folder follows your home folder (`HOME` on macOS and Linux, `APPDATA` on Windows).
+Environment: `ROOMTONE_RENDERER` (`glow` or `wgpu`: how the window is drawn on Windows; normally unset, Roomtone tries OpenGL first and DirectX if that fails), `ROOMTONE_LANG` and `ROOMTONE_THEME` (what `--lang` and `--theme` set); when the language is `auto`, `LC_ALL`, `LC_MESSAGES` and `LANG` decide. The settings folder follows your home folder (`HOME` on macOS and Linux, `APPDATA` on Windows).
 
 ## The backup file
 
