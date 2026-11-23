@@ -63,6 +63,10 @@ After pushing, Dependabot closes its own pull requests when the same update is a
 
 The installers aren't signed or notarised; see the [roadmap](ROADMAP.md) for signing, an Intel Mac build and AppImage/Flatpak.
 
+## How many downloads
+
+`scripts/download-stats.sh` reads GitHub's download counts (read-only; needs the `gh` command, signed in, and `jq`) and prints them by file (each platform and kind of download), by system (macOS, Windows, Linux), by kind (installer or archive) and, for Linux, by family (`.deb`, `.rpm`, archive), for all releases added together and for the latest one. `scripts/download-stats.sh v0.9.4` shows one release; `--by-release` adds a line per release. The counts include the maintainer's own checks, package-manager installs (Homebrew downloads the `.dmg`) and anything automated, so they are an upper bound on people.
+
 ## Package managers (Homebrew, winget, Arch)
 
 Each release also attaches `SHA256SUMS` (a checksum for every file) and `roomtone-vX.Y.Z-package-manifests.tar.gz`, made by `packaging/package-managers/render.sh` from the templates in `packaging/package-managers/`:
