@@ -679,7 +679,7 @@ impl App {
             let playing = h.groups.iter().filter(|g| g.now.transport == Transport::Playing).count();
             let sub =
                 format!("{}{}", tn!(h.rooms.len(), "1 room", "{n} rooms"), if playing > 0 { format!(" · {}", tn!(playing, "1 playing", "{n} playing")) } else { String::new() });
-            if system_item(ui, &label, &sub, system_tint(h.system), i == s.active).clicked() {
+            if system_item(ui, &label, &sub, h.system, i == s.active).clicked() {
                 self.pick_household = Some(i);
                 self.stack.clear();
             }
@@ -2409,7 +2409,8 @@ fn nav_item(ui: &mut egui::Ui, icon: Icon, label: &str, active: bool) -> egui::R
     resp.on_hover_cursor(egui::CursorIcon::PointingHand)
 }
 
-fn system_item(ui: &mut egui::Ui, label: &str, sub: &str, tint: Color32, active: bool) -> egui::Response {
+fn system_item(ui: &mut egui::Ui, label: &str, sub: &str, system: System, active: bool) -> egui::Response {
+    let tint = system_tint(system);
     let (rect, resp) = ui.allocate_exact_size(vec2(ui.available_width(), 48.0), Sense::click());
     let name = format!("{label} {sub}");
     resp.widget_info(move || egui::WidgetInfo::selected(egui::Role::Button, true, active, name.clone()));
@@ -2421,7 +2422,8 @@ fn system_item(ui: &mut egui::Ui, label: &str, sub: &str, tint: Color32, active:
     }
     let badge = Rect::from_min_size(rect.min + vec2(10.0, 10.0), vec2(28.0, 28.0));
     ui.painter().rect_filled(badge, 8.0, tint.gamma_multiply(if active { 0.9 } else { 0.25 }));
-    let short = if label.starts_with("S1") { "S1" } else { "S2" };
+    // From the system itself, not the translated name (French says "Système S1", not "S1 system").
+    let short = system.label();
     ui.painter().text(badge.center(), egui::Align2::CENTER_CENTER, short, egui::FontId::proportional(11.5), if active { Color32::BLACK } else { tint });
     ui.painter().text(pos2(rect.min.x + 48.0, rect.min.y + 16.0), egui::Align2::LEFT_CENTER, label, egui::FontId::proportional(14.0), if active { TEXT() } else { TEXT_DIM() });
     ui.painter().text(pos2(rect.min.x + 48.0, rect.min.y + 33.0), egui::Align2::LEFT_CENTER, sub, egui::FontId::proportional(11.5), TEXT_FAINT());
