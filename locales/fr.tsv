@@ -386,6 +386,9 @@ Unknown room	Pièce inconnue
 Unsubscribe	Se désabonner
 Up next	À suivre
 Volume	Volume
+Show in the notification area	Afficher dans la zone de notification
+An icon next to the clock with what's playing, play and pause, volume and your rooms.	Une icône près de l'horloge avec ce qui joue, lecture et pause, volume et vos pièces.
+Closing the window hides Roomtone instead of quitting. Open it again, or quit, from the icon next to the clock.	Fermer la fenêtre masque Roomtone au lieu de le quitter. Rouvrez-le ou quittez depuis l'icône près de l'horloge.
 Dragging rooms to group them works again	Glisser les pièces pour les grouper fonctionne de nouveau
 Alarms can fade in over 1 to 30 minutes (experimental)	Les alarmes peuvent monter progressivement sur 1 à 30 minutes (expérimental)
 Roomtone in the Mac menu bar, which can keep running when the window is closed	Roomtone dans la barre des menus du Mac, qui peut rester actif quand la fenêtre est fermée

@@ -159,6 +159,8 @@ mod tests {
         include_str!("ui/widgets.rs"),
         include_str!("macos_about.rs"),
         include_str!("macos_menubar.rs"),
+        include_str!("traymenu.rs"),
+        include_str!("windows_tray.rs"),
         include_str!("limits.rs"),
     ];
 

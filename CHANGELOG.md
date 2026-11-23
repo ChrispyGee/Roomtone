@@ -4,6 +4,9 @@ All notable changes to Roomtone. The format follows [Keep a Changelog](https://k
 
 ## [Unreleased]
 
+### Added
+- **A notification-area icon on Windows (experimental).** *Settings › Appearance › Show in the notification area* puts a speaker icon next to the clock, with the same menu as the Mac menu bar: what's playing, play and pause, next, previous, volume, your rooms, *Pause all rooms*, *Open Roomtone* and *Quit Roomtone*. A left click opens the window. *Keep running when the window is closed* (on by default once the icon is on) makes the close button hide Roomtone instead of quitting. Off by default. **Built but not yet tried on a Windows PC**; Linux has no icon yet.
+
 ## [0.9.4] — 2026-11-22
 
 Dragging rooms to group them works again, alarms that fade in, the Mac menu bar, sub and surround sound settings, and an experimental speaker setup for stereo pairs and a soundbar's sub and rear speakers.

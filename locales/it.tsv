@@ -386,6 +386,9 @@ Unknown room	Stanza sconosciuta
 Unsubscribe	Annulla iscrizione
 Up next	Prossimi
 Volume	Volume
+Show in the notification area	Mostra nell'area di notifica
+An icon next to the clock with what's playing, play and pause, volume and your rooms.	Un'icona accanto all'orologio con cosa suona, riproduci e pausa, volume e le tue stanze.
+Closing the window hides Roomtone instead of quitting. Open it again, or quit, from the icon next to the clock.	Chiudendo la finestra Roomtone si nasconde invece di uscire. Riaprilo o esci dall'icona accanto all'orologio.
 Dragging rooms to group them works again	Trascinare le stanze per raggrupparle funziona di nuovo
 Alarms can fade in over 1 to 30 minutes (experimental)	Le sveglie possono salire gradualmente in 1-30 minuti (sperimentale)
 Roomtone in the Mac menu bar, which can keep running when the window is closed	Roomtone nella barra dei menu del Mac, che può restare attivo quando la finestra è chiusa

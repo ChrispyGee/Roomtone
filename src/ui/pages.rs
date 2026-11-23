@@ -3409,21 +3409,33 @@ impl App {
             if hc != s.config.high_contrast {
                 self.send(Cmd::SetContrast(hc));
             }
-            #[cfg(target_os = "macos")]
+            #[cfg(any(target_os = "macos", target_os = "windows"))]
             {
                 ui.separator();
                 let (mut bar, mut keep) = (s.config.menu_bar, s.config.menu_bar_keep);
+                // The same two settings, worded for where the icon goes on each system.
+                let (bar_title, bar_hint, keep_hint) = if cfg!(target_os = "macos") {
+                    (
+                        t!("Show in the menu bar"),
+                        t!("A speaker icon at the top of the screen with what's playing, play and pause, volume and your rooms."),
+                        t!("Closing the window hides Roomtone instead of quitting. Open it again, or quit, from the menu bar."),
+                    )
+                } else {
+                    (
+                        t!("Show in the notification area"),
+                        t!("An icon next to the clock with what's playing, play and pause, volume and your rooms."),
+                        t!("Closing the window hides Roomtone instead of quitting. Open it again, or quit, from the icon next to the clock."),
+                    )
+                };
                 ui.horizontal(|ui| {
                     ui.set_min_height(40.0);
                     ui.vertical(|ui| {
                         ui.set_max_width((ui.available_width() - 64.0).max(120.0));
-                        ui.label(RichText::new(t!("Show in the menu bar")).color(TEXT()));
-                        ui.label(
-                            RichText::new(t!("A speaker icon at the top of the screen with what's playing, play and pause, volume and your rooms.")).size(12.0).color(TEXT_DIM()),
-                        );
+                        ui.label(RichText::new(bar_title).color(TEXT()));
+                        ui.label(RichText::new(bar_hint).size(12.0).color(TEXT_DIM()));
                     });
                     ui.with_layout(Layout::right_to_left(Align::Center), |ui| {
-                        toggle(ui, &mut bar, t!("Show in the menu bar"));
+                        toggle(ui, &mut bar, bar_title);
                     });
                 });
                 if bar {
@@ -3432,9 +3444,7 @@ impl App {
                         ui.vertical(|ui| {
                             ui.set_max_width((ui.available_width() - 64.0).max(120.0));
                             ui.label(RichText::new(t!("Keep running when the window is closed")).color(TEXT()));
-                            ui.label(
-                                RichText::new(t!("Closing the window hides Roomtone instead of quitting. Open it again, or quit, from the menu bar.")).size(12.0).color(TEXT_DIM()),
-                            );
+                            ui.label(RichText::new(keep_hint).size(12.0).color(TEXT_DIM()));
                         });
                         ui.with_layout(Layout::right_to_left(Align::Center), |ui| {
                             toggle(ui, &mut keep, t!("Keep running when the window is closed"));

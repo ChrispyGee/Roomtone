@@ -30,6 +30,11 @@ objc2 = "0.6"
 objc2-foundation = { version = "0.3", features = ["NSString", "NSDictionary", "NSData", "NSAttributedString"] }
 objc2-app-kit = { version = "0.3", features = ["NSApplication", "NSResponder", "NSRunningApplication", "NSImage", "NSMenu", "NSMenuItem", "NSColor", "NSFont", "NSFontDescriptor", "NSAttributedString", "NSParagraphStyle", "NSText", "NSWindow", "NSGraphics", "NSView", "NSBitmapImageRep", "NSImageRep", "NSStatusBar", "NSStatusItem", "NSStatusBarButton", "NSButton", "NSControl", "NSCell", "NSMenuItem", "NSMenu"] }
 
+[target.'cfg(target_os = "windows")'.dependencies]
+tray-icon = { version = "0.26", default-features = false }
+windows-sys = { version = "0.61", features = ["Win32_Foundation", "Win32_UI_WindowsAndMessaging"] }
+raw-window-handle = "0.6"
+
 [profile.dev]
 opt-level = 1
 
