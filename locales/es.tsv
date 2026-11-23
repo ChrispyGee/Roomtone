@@ -400,6 +400,8 @@ Make {name} a stereo pair	Hacer de {name} una pareja estéreo
 Add {what} to {bar}	Añadir {what} a {bar}
 a speaker	un altavoz
 This can clear a room's measured Trueplay tuning, and music in these rooms stops. You can undo it in Settings › Speakers › Speaker setup.	Esto puede borrar el ajuste Trueplay medido de una habitación y la música de estas habitaciones se detiene. Puedes deshacerlo en Ajustes › Altavoces › Configuración de altavoces.
+Show the room name next to the icon	Mostrar el nombre de la habitación junto al icono
+While something is playing, the room it is playing in is shown beside the icon.	Mientras suena algo, el nombre de la habitación donde suena aparece junto al icono.
 Dragging rooms to group them works again	Arrastrar habitaciones para agruparlas vuelve a funcionar
 Alarms can fade in over 1 to 30 minutes (experimental)	Las alarmas pueden subir poco a poco durante 1 a 30 minutos (experimental)
 Roomtone in the Mac menu bar, which can keep running when the window is closed	Roomtone en la barra de menús del Mac, que puede seguir abierto al cerrar la ventana
