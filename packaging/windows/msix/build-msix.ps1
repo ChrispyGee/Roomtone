@@ -37,9 +37,11 @@ foreach ($f in "README.md", "LICENSE-MIT", "LICENSE-APACHE") { Copy-Item $f $sta
 
 # The logos, drawn by the program itself (the same icon as the installers).
 $logos = @{ "Square44x44Logo" = 44; "Square150x150Logo" = 150; "StoreLogo" = 50; "Square71x71Logo" = 71; "Square310x310Logo" = 310 }
+# (The program is a window program, so PowerShell would not wait for it: start it and wait.)
 foreach ($name in $logos.Keys) {
-  & $Exe --write-icon (Join-Path $stage "Assets/$name.png") $logos[$name]
-  if ($LASTEXITCODE -ne 0) { throw "Couldn't make $name.png" }
+  $png = Join-Path $stage "Assets/$name.png"
+  $p = Start-Process -FilePath (Resolve-Path $Exe) -ArgumentList @("--write-icon", "`"$png`"", "$($logos[$name])") -Wait -PassThru
+  if ($p.ExitCode -ne 0 -or -not (Test-Path $png)) { throw "Couldn't make $name.png" }
 }
 
 # The manifest, with the values filled in.
