@@ -46,7 +46,7 @@ Microsoft signs the package, so people who install from the Store get no "unknow
 >
 > Roomtone talks to your speakers directly on your home network. It is not affiliated with or endorsed by Sonos, Inc. Sonos is a trademark of Sonos, Inc.
 
-**Search terms:** sonos, speakers, controller, multiroom, music, remote
+**Search terms (US English; the Store takes up to 7, each up to 30 characters):** sonos controller, sonos speakers, speaker remote, multiroom audio, music controller, wireless speakers, sonos s1 s2. "Sonos" is a trademark: the description says Roomtone is not affiliated with it, but if certification objects to it in the search terms, replace the first, second and last with `smart speaker controller`, `home audio control` and `speaker groups`. The other languages' terms are in `packaging/windows/msix/listing/descriptions.md`.
 **Category:** Music (or Utilities & tools)
 **Privacy policy URL:** `https://github.com/ChrispyGee/Roomtone/blob/main/PRIVACY.md`
 **Support:** `https://github.com/ChrispyGee/Roomtone/issues`
