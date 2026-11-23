@@ -964,3 +964,8 @@ Stop the alarm	Parar la alarma
 Shuffle is off while {room} plays along, because two systems can't shuffle the same way.	El modo aleatorio está desactivado mientras {room} suena en paralelo, porque dos sistemas no pueden mezclar igual.
 This system's time zone isn't set, so its alarms won't ring. Set the time zone in the Sonos app, then check again.	Este sistema no tiene zona horaria, así que sus alarmas no sonarán. Configura la zona horaria en la app de Sonos y vuelve a comprobarlo.
 Roomtone couldn't open its window. This computer's graphics may not be supported. Installing the latest graphics driver, or switching on graphics acceleration in a virtual machine, usually fixes it.	Roomtone no pudo abrir su ventana. Puede que los gráficos de este ordenador no sean compatibles. Instalar el controlador gráfico más reciente, o activar la aceleración gráfica en una máquina virtual, suele solucionarlo.
+Roomtone in the Windows notification area (experimental)	Roomtone en el área de notificaciones de Windows (experimental)
+Opens on virtual machines and Remote Desktop, where the graphics are basic (Windows)	Se abre también en máquinas virtuales y con Escritorio remoto, donde los gráficos son básicos (Windows)
+The Mac menu bar can show the room that's playing (experimental)	La barra de menús del Mac puede mostrar la sala que está sonando (experimental)
+Scenes can set sound and speaker layouts (experimental)	Las escenas pueden fijar el sonido y la disposición de los altavoces (experimental)
+The S1 badge no longer says S2 in French, Spanish and Italian	La insignia S1 ya no dice S2 en francés, español e italiano

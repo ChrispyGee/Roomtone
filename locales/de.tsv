@@ -964,3 +964,8 @@ Stop the alarm	Wecker ausschalten
 Shuffle is off while {room} plays along, because two systems can't shuffle the same way.	Zufallswiedergabe ist aus, solange {room} mitspielt, weil zwei Systeme nicht gleich mischen können.
 This system's time zone isn't set, so its alarms won't ring. Set the time zone in the Sonos app, then check again.	Für dieses System ist keine Zeitzone eingestellt, daher klingeln seine Wecker nicht. Stelle die Zeitzone in der Sonos-App ein und prüfe dann erneut.
 Roomtone couldn't open its window. This computer's graphics may not be supported. Installing the latest graphics driver, or switching on graphics acceleration in a virtual machine, usually fixes it.	Roomtone konnte sein Fenster nicht öffnen. Die Grafik dieses Computers wird möglicherweise nicht unterstützt. Meist hilft der neueste Grafiktreiber oder, in einer virtuellen Maschine, das Einschalten der Grafikbeschleunigung.
+Roomtone in the Windows notification area (experimental)	Roomtone im Windows-Infobereich (experimentell)
+Opens on virtual machines and Remote Desktop, where the graphics are basic (Windows)	Öffnet sich auch in virtuellen Maschinen und über Remotedesktop mit einfacher Grafik (Windows)
+The Mac menu bar can show the room that's playing (experimental)	Die Mac-Menüleiste kann den Raum anzeigen, in dem etwas spielt (experimentell)
+Scenes can set sound and speaker layouts (experimental)	Szenen können Klang und Lautsprecher-Anordnung festlegen (experimentell)
+The S1 badge no longer says S2 in French, Spanish and Italian	Das S1-Zeichen zeigt in Französisch, Spanisch und Italienisch nicht mehr S2 an
