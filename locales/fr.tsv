@@ -386,6 +386,20 @@ Unknown room	Pièce inconnue
 Unsubscribe	Se désabonner
 Up next	À suivre
 Volume	Volume
+with a speaker layout	avec une configuration des enceintes
+Set up the speakers for “{name}”?	Configurer les enceintes pour « {name} » ?
+The speaker layout wasn't changed: {why}	La configuration des enceintes n'a pas été modifiée : {why}
+Speaker layout	Configuration des enceintes
+This scene has a speaker layout, which is only made when Speaker setup is switched on (Settings › Speakers).	Cette scène a une configuration des enceintes, appliquée seulement si la configuration des enceintes est activée (Réglages › Enceintes).
+To include how the speakers are set up, switch on Speaker setup in Settings › Speakers.	Pour inclure la configuration des enceintes, activez-la dans Réglages › Enceintes.
+Set the speakers up like this when the scene runs	Configurer les enceintes ainsi au lancement de la scène
+Stereo pairs: {pairs} · Soundbar sets: {sets}	Paires stéréo : {pairs} · Ensembles de barre de son : {sets}
+It only adds what is missing and asks before it changes anything. It never splits or removes a speaker.	Cela n'ajoute que ce qui manque et demande avant tout changement. Aucune enceinte n'est jamais séparée ou retirée.
+Use the layout as it is now	Utiliser la configuration actuelle
+Make {name} a stereo pair	Faire de {name} une paire stéréo
+Add {what} to {bar}	Ajouter {what} à {bar}
+a speaker	une enceinte
+This can clear a room's measured Trueplay tuning, and music in these rooms stops. You can undo it in Settings › Speakers › Speaker setup.	Cela peut effacer le réglage Trueplay mesuré d'une pièce, et la musique s'arrête dans ces pièces. Vous pouvez l'annuler dans Réglages › Enceintes › Configuration des enceintes.
 Show the room name next to the icon	Afficher le nom de la pièce à côté de l'icône
 While something is playing, the room it is playing in is shown beside the icon.	Pendant la lecture, le nom de la pièce qui joue s'affiche à côté de l'icône.
 Dragging rooms to group them works again	Glisser les pièces pour les grouper fonctionne de nouveau
@@ -424,7 +438,6 @@ No sub is free to add.	Aucun caisson n'est libre à ajouter.
 Add rear speakers	Ajouter les enceintes arrière
 Add {left} and {right} as the rear speakers of {bar}?	Ajouter {left} et {right} comme enceintes arrière de {bar} ?
 They play the surround sounds of {bar} and stop being rooms of their own. Use two identical speakers.	Elles jouent le son surround de {bar} et ne sont plus des pièces à part. Utilisez deux enceintes identiques.
-This can clear a room's measured Trueplay tuning, and music in these rooms stops. You can undo it from this card.	Cela peut effacer le réglage Trueplay mesuré d'une pièce, et la musique s'arrête dans ces pièces. Vous pouvez l'annuler depuis cette carte.
 Not tried on real speakers yet.	Pas encore essayé sur de vraies enceintes.
 That stereo pair	Cette paire stéréo
 No speakers found yet	Aucune enceinte trouvée pour l'instant

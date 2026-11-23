@@ -386,6 +386,20 @@ Unknown room	Onbekende ruimte
 Unsubscribe	Abonnement opzeggen
 Up next	Hierna
 Volume	Volume
+with a speaker layout	met een speakeropstelling
+Set up the speakers for “{name}”?	Speakers instellen voor ‘{name}’?
+The speaker layout wasn't changed: {why}	De speakeropstelling is niet gewijzigd: {why}
+Speaker layout	Speakeropstelling
+This scene has a speaker layout, which is only made when Speaker setup is switched on (Settings › Speakers).	Deze scène heeft een speakeropstelling, die alleen wordt gemaakt als Speakers instellen aanstaat (Instellingen › Speakers).
+To include how the speakers are set up, switch on Speaker setup in Settings › Speakers.	Om de speakeropstelling mee te nemen, zet Speakers instellen aan in Instellingen › Speakers.
+Set the speakers up like this when the scene runs	Speakers zo instellen als de scène start
+Stereo pairs: {pairs} · Soundbar sets: {sets}	Stereoparen: {pairs} · Soundbar-sets: {sets}
+It only adds what is missing and asks before it changes anything. It never splits or removes a speaker.	Het voegt alleen toe wat ontbreekt en vraagt eerst. Het splitst of verwijdert nooit een speaker.
+Use the layout as it is now	Huidige opstelling gebruiken
+Make {name} a stereo pair	{name} een stereopaar maken
+Add {what} to {bar}	{what} toevoegen aan {bar}
+a speaker	een speaker
+This can clear a room's measured Trueplay tuning, and music in these rooms stops. You can undo it in Settings › Speakers › Speaker setup.	Dit kan de gemeten Trueplay-afstelling van een kamer wissen, en de muziek in deze kamers stopt. Je kunt het ongedaan maken in Instellingen › Speakers › Speakers instellen.
 Show the room name next to the icon	Kamernaam naast het pictogram tonen
 While something is playing, the room it is playing in is shown beside the icon.	Zolang er iets speelt, staat de naam van de kamer naast het pictogram.
 Dragging rooms to group them works again	Kamers slepen om ze te groeperen werkt weer
@@ -424,7 +438,6 @@ No sub is free to add.	Er is geen sub vrij om toe te voegen.
 Add rear speakers	Achterspeakers toevoegen
 Add {left} and {right} as the rear speakers of {bar}?	{left} en {right} toevoegen als achterspeakers van {bar}?
 They play the surround sounds of {bar} and stop being rooms of their own. Use two identical speakers.	Ze spelen het surroundgeluid van {bar} en zijn geen eigen kamers meer. Gebruik twee identieke speakers.
-This can clear a room's measured Trueplay tuning, and music in these rooms stops. You can undo it from this card.	Dit kan de gemeten Trueplay-afstelling van een kamer wissen, en de muziek in deze kamers stopt. Je kunt het ongedaan maken vanaf deze kaart.
 Not tried on real speakers yet.	Nog niet getest op echte speakers.
 That stereo pair	Dat stereopaar
 No speakers found yet	Nog geen speakers gevonden
