@@ -389,6 +389,8 @@ Volume	Volumen
 Show in the notification area	Mostrar en el área de notificaciones
 An icon next to the clock with what's playing, play and pause, volume and your rooms.	Un icono junto al reloj con lo que suena, reproducir y pausar, volumen y tus habitaciones.
 Closing the window hides Roomtone instead of quitting. Open it again, or quit, from the icon next to the clock.	Al cerrar la ventana, Roomtone se oculta en lugar de salir. Ábrelo de nuevo o sal desde el icono junto al reloj.
+Show the room name next to the icon	Mostrar el nombre de la habitación junto al icono
+While something is playing, the room it is playing in is shown beside the icon.	Mientras suena algo, el nombre de la habitación donde suena aparece junto al icono.
 Dragging rooms to group them works again	Arrastrar habitaciones para agruparlas vuelve a funcionar
 Alarms can fade in over 1 to 30 minutes (experimental)	Las alarmas pueden subir poco a poco durante 1 a 30 minutos (experimental)
 Roomtone in the Mac menu bar, which can keep running when the window is closed	Roomtone en la barra de menús del Mac, que puede seguir abierto al cerrar la ventana

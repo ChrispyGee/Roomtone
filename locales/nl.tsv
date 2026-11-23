@@ -389,6 +389,8 @@ Volume	Volume
 Show in the notification area	Tonen in het systeemvak
 An icon next to the clock with what's playing, play and pause, volume and your rooms.	Een pictogram naast de klok met wat er speelt, afspelen en pauzeren, volume en je kamers.
 Closing the window hides Roomtone instead of quitting. Open it again, or quit, from the icon next to the clock.	Het venster sluiten verbergt Roomtone in plaats van het af te sluiten. Open het opnieuw of sluit af via het pictogram naast de klok.
+Show the room name next to the icon	Kamernaam naast het pictogram tonen
+While something is playing, the room it is playing in is shown beside the icon.	Zolang er iets speelt, staat de naam van de kamer naast het pictogram.
 Dragging rooms to group them works again	Kamers slepen om ze te groeperen werkt weer
 Alarms can fade in over 1 to 30 minutes (experimental)	Wekkers kunnen over 1 tot 30 minuten oplopen (experimenteel)
 Roomtone in the Mac menu bar, which can keep running when the window is closed	Roomtone in de Mac-menubalk, dat kan blijven draaien als het venster wordt gesloten

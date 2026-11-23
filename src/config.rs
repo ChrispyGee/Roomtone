@@ -293,6 +293,9 @@ pub enum Feature {
     Alarms,
     Scenes,
     UpdateInstall,
+    /// The room name shown beside the menu-bar icon while something plays (Mac).
+    #[cfg_attr(not(target_os = "macos"), allow(dead_code))]
+    MenuBarTitle,
     /// The buttons that change how speakers are bonded (stereo pairs, soundbar satellites).
     Layout,
 }
@@ -377,6 +380,9 @@ pub struct Config {
     /// With the menu bar on, closing the window leaves Roomtone running there instead of quitting.
     #[serde(default = "default_true")]
     pub menu_bar_keep: bool,
+    /// Mac: show the name of the room that's playing beside the menu-bar icon.
+    #[serde(default)]
+    pub menu_bar_title: bool,
     /// One-off timers made by Roomtone (see `AlarmTimer`).
     #[serde(default)]
     pub alarm_timers: Vec<AlarmTimer>,
@@ -454,6 +460,7 @@ impl Default for Config {
             high_contrast: false,
             menu_bar: false,
             menu_bar_keep: true,
+            menu_bar_title: false,
             alarm_timers: vec![],
             alarm_fades: vec![],
             volume_limits: VolumeLimits::default(),
