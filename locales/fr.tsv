@@ -386,6 +386,9 @@ Unknown room	Pièce inconnue
 Unsubscribe	Se désabonner
 Up next	À suivre
 Volume	Volume
+Show in the notification area	Afficher dans la zone de notification
+An icon next to the clock with what's playing, play and pause, volume and your rooms.	Une icône près de l'horloge avec ce qui joue, lecture et pause, volume et vos pièces.
+Closing the window hides Roomtone instead of quitting. Open it again, or quit, from the icon next to the clock.	Fermer la fenêtre masque Roomtone au lieu de le quitter. Rouvrez-le ou quittez depuis l'icône près de l'horloge.
 with a speaker layout	avec une configuration des enceintes
 Set up the speakers for “{name}”?	Configurer les enceintes pour « {name} » ?
 The speaker layout wasn't changed: {why}	La configuration des enceintes n'a pas été modifiée : {why}

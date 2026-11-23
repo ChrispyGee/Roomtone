@@ -70,7 +70,7 @@ File: `theme` (`"auto"`, `"light"`, `"dark"`). Default `auto`. For one run only:
 *High contrast* (**off by default**): stronger text, outlines on every control, brighter accent and status colours and stronger slider tracks, in both light and dark. Text and the dim text reach at least 7:1 against the background (WCAG AAA); the faint text and accent colours at least 4.5:1. The usual palettes keep text at 4.5:1 or better but use fainter wording for secondary notes (about 3:1) and a deeper orange that is about 3:1 on light backgrounds, which is why this switch exists. Changes at once.
 File: `high_contrast` (`true` / `false`), default `false`. For one run only: the environment variable `ROOMTONE_CONTRAST=1`.
 
-*Show in the menu bar* (**Mac only, off by default**): a speaker icon at the top of the screen. Its menu shows what's playing in the chosen room, *Play*/*Pause*, *Next*, *Previous*, *Volume* (*Louder* and *Quieter* by the volume step, *Mute*), the rooms to choose from (the ticked one is the room it controls, the same room as in the window), *Pause all rooms*, *Open Roomtone* and *Quit Roomtone*. The menu is built each time it opens. *Keep running when the window is closed* (on by default, shown when the menu bar is on): closing the window hides Roomtone instead of quitting, so the speakers, alarm fades and the assistant link keep working; *Open Roomtone* brings it back, and ⌘Q or *Quit Roomtone* quits.
+*Show in the menu bar* on a Mac, or *Show in the notification area* on Windows (**off by default**; not yet on Linux; the Windows icon was tried on a Windows 11 virtual machine and works, 2026-11-23): a speaker icon at the top of the screen. Its menu shows what's playing in the chosen room, *Play*/*Pause*, *Next*, *Previous*, *Volume* (*Louder* and *Quieter* by the volume step, *Mute*), the rooms to choose from (the ticked one is the room it controls, the same room as in the window), *Pause all rooms*, *Open Roomtone* and *Quit Roomtone*. The menu is built each time it opens. *Keep running when the window is closed* (on by default, shown when the menu bar is on): closing the window hides Roomtone instead of quitting, so the speakers, alarm fades and the assistant link keep working; *Open Roomtone* brings it back, and ⌘Q or *Quit Roomtone* quits.
 *Show the room name next to the icon* (Mac only, off by default, shown when the menu bar is on): the name of the playing room beside the icon, kept current every couple of seconds; the icon is alone when nothing plays.
 File: `menu_bar` (`true` / `false`), default `false`; `menu_bar_keep` (`true` / `false`), default `true`; `menu_bar_title` (`true` / `false`), default `false`.
 
@@ -225,7 +225,7 @@ Complete `config.json`, with every field at its default (the access key is made 
 | `language` | text | `"auto"` | `auto`, or `en`, `de`, `fr`, `es`, `it`, `nl`. |
 | `theme` | text | `"auto"` | `auto`, `light` or `dark`. |
 | `high_contrast` | true/false | `false` | Stronger text, outlines and colours. |
-| `menu_bar` | true/false | `false` | Mac only: show Roomtone in the menu bar. |
+| `menu_bar` | true/false | `false` | Mac and Windows: show Roomtone in the menu bar or notification area. |
 | `menu_bar_title` | true/false | `false` | Mac: show the playing room's name beside the menu-bar icon. |
 | `menu_bar_keep` | true/false | `true` | With the menu bar on, closing the window keeps Roomtone running instead of quitting. |
 | `speaker_events` | true/false | `false` | Instant updates from the speakers. |

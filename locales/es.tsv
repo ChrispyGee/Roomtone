@@ -386,6 +386,9 @@ Unknown room	Sala desconocida
 Unsubscribe	Cancelar suscripción
 Up next	A continuación
 Volume	Volumen
+Show in the notification area	Mostrar en el área de notificaciones
+An icon next to the clock with what's playing, play and pause, volume and your rooms.	Un icono junto al reloj con lo que suena, reproducir y pausar, volumen y tus habitaciones.
+Closing the window hides Roomtone instead of quitting. Open it again, or quit, from the icon next to the clock.	Al cerrar la ventana, Roomtone se oculta en lugar de salir. Ábrelo de nuevo o sal desde el icono junto al reloj.
 with a speaker layout	con configuración de altavoces
 Set up the speakers for “{name}”?	¿Configurar los altavoces para «{name}»?
 The speaker layout wasn't changed: {why}	No se cambió la configuración de altavoces: {why}

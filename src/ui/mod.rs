@@ -2265,7 +2265,9 @@ impl eframe::App for App {
         }
     }
 
-    fn ui(&mut self, root: &mut egui::Ui, _frame: &mut eframe::Frame) {
+    fn ui(&mut self, root: &mut egui::Ui, frame: &mut eframe::Frame) {
+        #[cfg(not(target_os = "windows"))]
+        let _ = &frame;
         let ctx = &root.ctx().clone();
         // Appearance: the person's setting, or a one-off --theme; Automatic follows the computer.
         let wanted = std::env::var("ROOMTONE_THEME").ok().unwrap_or_else(|| self.backend.lock().config.theme.clone());
@@ -2291,6 +2293,26 @@ impl eframe::App for App {
             if on && keep && ctx.input(|i| i.viewport().close_requested()) {
                 ctx.send_viewport_cmd(egui::ViewportCommand::CancelClose);
                 crate::macos_menubar::hide_app();
+            }
+        }
+        #[cfg(target_os = "windows")]
+        {
+            use raw_window_handle::{HasWindowHandle, RawWindowHandle};
+            if let Ok(h) = frame.window_handle() {
+                if let RawWindowHandle::Win32(w) = h.as_raw() {
+                    crate::windows_tray::set_window(w.hwnd.get());
+                }
+            }
+            // The notification-area icon (not in picture-taking runs). With it on, closing the
+            // window can leave Roomtone running there: hide the window rather than let it close.
+            let (on, keep) = {
+                let s = self.backend.lock();
+                (s.config.menu_bar && self.shot.is_none(), s.config.menu_bar_keep)
+            };
+            crate::windows_tray::install(&self.backend, on);
+            if on && keep && !crate::windows_tray::quitting() && ctx.input(|i| i.viewport().close_requested()) {
+                ctx.send_viewport_cmd(egui::ViewportCommand::CancelClose);
+                crate::windows_tray::hide_window();
             }
         }
         self.remember_the_window(ctx);
