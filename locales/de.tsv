@@ -386,6 +386,9 @@ Unknown room	Unbekannter Raum
 Unsubscribe	Abo beenden
 Up next	Als Nächstes
 Volume	Lautstärke
+Show in the notification area	In der Taskleiste anzeigen
+An icon next to the clock with what's playing, play and pause, volume and your rooms.	Ein Symbol neben der Uhr mit dem aktuellen Titel, Wiedergabe und Pause, Lautstärke und deinen Räumen.
+Closing the window hides Roomtone instead of quitting. Open it again, or quit, from the icon next to the clock.	Beim Schließen des Fensters wird Roomtone ausgeblendet statt beendet. Öffne es wieder oder beende es über das Symbol neben der Uhr.
 with a speaker layout	mit Lautsprecher-Einrichtung
 Set up the speakers for “{name}”?	Lautsprecher für „{name}“ einrichten?
 The speaker layout wasn't changed: {why}	Die Lautsprecher-Einrichtung wurde nicht geändert: {why}

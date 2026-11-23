@@ -63,10 +63,13 @@ mod sources;
 mod status;
 #[cfg(test)]
 mod test_support;
+mod traymenu;
 mod ui;
 mod update;
 mod version;
 mod window;
+#[cfg(target_os = "windows")]
+mod windows_tray;
 
 use std::path::PathBuf;
 use std::time::Duration;

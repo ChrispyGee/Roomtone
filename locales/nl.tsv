@@ -386,6 +386,9 @@ Unknown room	Onbekende ruimte
 Unsubscribe	Abonnement opzeggen
 Up next	Hierna
 Volume	Volume
+Show in the notification area	Tonen in het systeemvak
+An icon next to the clock with what's playing, play and pause, volume and your rooms.	Een pictogram naast de klok met wat er speelt, afspelen en pauzeren, volume en je kamers.
+Closing the window hides Roomtone instead of quitting. Open it again, or quit, from the icon next to the clock.	Het venster sluiten verbergt Roomtone in plaats van het af te sluiten. Open het opnieuw of sluit af via het pictogram naast de klok.
 with a speaker layout	met een speakeropstelling
 Set up the speakers for “{name}”?	Speakers instellen voor ‘{name}’?
 The speaker layout wasn't changed: {why}	De speakeropstelling is niet gewijzigd: {why}

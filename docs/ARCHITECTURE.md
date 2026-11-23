@@ -77,6 +77,8 @@ This is the map of the code. What the app should do is in [SPEC.md](../SPEC.md);
 | `test_support.rs` | Test helpers: a scratch settings folder, English wording, a running demo backend |
 | `brand.rs` | The app icon, drawn in code (RGBA and PNG) |
 | `layout.rs` | Speaker layouts: reads stereo pairs and soundbar sets from the topology (`parse`), builds the channel maps the speakers want (`pair_map`, `set_map`) |
+| `traymenu.rs` | The menu behind the menu-bar and notification-area icons: `entries` works out what it shows from the state, `run` does what an item says; shared and tested on every system |
+| `windows_tray.rs` | Windows only: the notification-area icon (`tray-icon`), the menu rebuilt on right-click, and hiding and showing the window with Win32 calls |
 | `macos_menubar.rs` | macOS only: the menu-bar icon and its menu, built each time it opens from the app's state (`entries`, pure and tested), plus hide and show for *Keep running when the window is closed* |
 | `macos_about.rs` | macOS only: the filled-in About box, the Dock icon and translated application-menu titles |
 
@@ -118,7 +120,7 @@ Slow work (discovery, browsing, search, service sign-in) runs on its own short-l
 - **Colours**: always use the palette functions in `ui/theme.rs` (`TEXT()`, `SURFACE()`, `overlay(a)` for faint washes), never fixed colours, so light and dark both work. Check new screens with `--theme light` and `--theme dark`.
 - **Tests**: add a unit test for every parser and rule; drive behaviour through the demo backend (`test_support::demo_backend()`), never real speakers.
 - **Style**: `cargo fmt` (see `rustfmt.toml`: lines up to 180 characters) and `cargo clippy --all-targets` with no warnings. Comments explain *why*; every file starts with a `//!` summary.
-- **Platform code** uses `cfg!(target_os = ...)` where all branches compile everywhere, and `#[cfg]` only for platform crates (`macos_about.rs`, `macos_menubar.rs`, `objc2`).
+- **Platform code** uses `cfg!(target_os = ...)` where all branches compile everywhere, and `#[cfg]` only for platform crates (`macos_about.rs`, `macos_menubar.rs`, `windows_tray.rs`, `objc2`, `tray-icon`).
 
 ## Translations
 

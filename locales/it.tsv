@@ -386,6 +386,9 @@ Unknown room	Stanza sconosciuta
 Unsubscribe	Annulla iscrizione
 Up next	Prossimi
 Volume	Volume
+Show in the notification area	Mostra nell'area di notifica
+An icon next to the clock with what's playing, play and pause, volume and your rooms.	Un'icona accanto all'orologio con cosa suona, riproduci e pausa, volume e le tue stanze.
+Closing the window hides Roomtone instead of quitting. Open it again, or quit, from the icon next to the clock.	Chiudendo la finestra Roomtone si nasconde invece di uscire. Riaprilo o esci dall'icona accanto all'orologio.
 with a speaker layout	con una configurazione degli altoparlanti
 Set up the speakers for “{name}”?	Configurare gli altoparlanti per «{name}»?
 The speaker layout wasn't changed: {why}	La configurazione degli altoparlanti non è stata modificata: {why}
