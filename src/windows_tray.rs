@@ -85,13 +85,13 @@ fn quit() {
     });
 }
 
-fn backend() -> Option<Backend> {
+fn current_backend() -> Option<Backend> {
     BACKEND.lock().ok().and_then(|b| b.clone())
 }
 
 /// Build the menu for the current state, remembering what each item does.
 fn build_menu() -> Option<Menu> {
-    let backend = backend()?;
+    let backend = current_backend()?;
     let list = entries(&backend.lock());
     let menu = Menu::new();
     let mut actions = vec![];
@@ -158,7 +158,7 @@ pub fn install(backend: &Backend, on: bool) {
         MenuEvent::set_event_handler(Some(|e: MenuEvent| {
             let Some(n) = e.id.0.strip_prefix("act:").and_then(|n| n.parse::<usize>().ok()) else { return };
             let action = ACTIONS.lock().ok().and_then(|a| a.get(n).cloned());
-            if let (Some(action), Some(b)) = (action, backend()) {
+            if let (Some(action), Some(b)) = (action, current_backend()) {
                 run(&b, action, &show_window, &quit);
             }
         }));
