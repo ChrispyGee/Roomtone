@@ -61,7 +61,7 @@ After pushing, Dependabot closes its own pull requests when the same update is a
 8. To try the installers without releasing, run the workflow by hand (Actions › Release › Run workflow) on a branch: the files are kept as workflow artifacts and no release is made.
 9. To build by hand instead: `cargo build --release`; the program is `target/release/roomtone` (`roomtone.exe` on Windows). On a Mac, `packaging/macos/build-dmg.sh <version> <out.dmg>` makes the `.dmg`.
 
-The installers aren't signed or notarised; see the [roadmap](ROADMAP.md) for signing, an Intel Mac build and AppImage/Flatpak.
+The installers aren't signed or notarised; see the [roadmap](ROADMAP.md) for signing, an Intel Mac build and AppImage/Flatpak. The preparation for Windows signing (SignPath Foundation) and the Microsoft Store is in [SIGNING.md](SIGNING.md) and [MICROSOFT_STORE.md](MICROSOFT_STORE.md); neither is part of the release yet.
 
 ## Package managers (Homebrew, winget, Arch)
 

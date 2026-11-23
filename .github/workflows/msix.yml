@@ -1,0 +1,44 @@
+name: Microsoft Store package
+
+# Builds the Store package (.msix) with Roomtone's Microsoft Store identity. It does not publish
+# anything: a Store submission is made by hand in Partner Center (docs/MICROSOFT_STORE.md), by
+# uploading the file this makes (the artifact). The Store signs the package itself. Runs by hand,
+# and when the packaging files change.
+on:
+  workflow_dispatch:
+  pull_request:
+    paths:
+      - "packaging/windows/msix/**"
+      - ".github/workflows/msix.yml"
+
+permissions:
+  contents: read
+
+# Roomtone's identity in the Store, from Partner Center (Product management > Product identity).
+# These are public (they are inside every package), so they are not secrets.
+env:
+  STORE_IDENTITY_NAME: ChrispyGee.Roomtone
+  STORE_PUBLISHER: CN=7B70B259-0799-4538-B08C-67D102EE553E
+  STORE_PUBLISHER_DISPLAY: ChrispyGee
+
+jobs:
+  msix:
+    name: Build the .msix
+    runs-on: windows-latest
+    steps:
+      - uses: actions/checkout@v7
+      - uses: dtolnay/rust-toolchain@stable
+      - uses: Swatinem/rust-cache@v2
+      - name: Build
+        run: cargo build --release --locked
+      - name: Package
+        shell: pwsh
+        run: |
+          $version = (cargo metadata --no-deps --format-version 1 | ConvertFrom-Json).packages[0].version
+          pwsh packaging/windows/msix/build-msix.ps1 -Version $version -OutFile "dist/roomtone-v$version.msix" `
+            -IdentityName $env:STORE_IDENTITY_NAME -Publisher $env:STORE_PUBLISHER -PublisherDisplay $env:STORE_PUBLISHER_DISPLAY
+      - uses: actions/upload-artifact@v7
+        with:
+          name: msix-check
+          path: dist/*.msix
+          if-no-files-found: error
