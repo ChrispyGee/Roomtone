@@ -246,6 +246,10 @@ fn main() {
         }
     }
     let mut options = eframe::NativeOptions { viewport, ..Default::default() };
+    #[cfg(any(windows, feature = "wgpu"))]
+    {
+        options.renderer = chosen_renderer();
+    }
     if quiet {
         options.event_loop_builder = Some(Box::new(|_builder| {
             #[cfg(target_os = "macos")]
@@ -255,10 +259,52 @@ fn main() {
             }
         }));
     }
-    let result = eframe::run_native("Roomtone", options, Box::new(move |cc| Ok(Box::new(ui::App::new(cc, shot, demo, view.as_deref())))));
+    // Test hook: pretend OpenGL is too old (`ROOMTONE_TEST_NO_OPENGL=1`), to see the other way to draw.
+    let pretend_no_opengl = std::env::var_os("ROOMTONE_TEST_NO_OPENGL").is_some() && std::env::var_os("ROOMTONE_RENDERER").is_none();
+    let result = if pretend_no_opengl {
+        Err(eframe::Error::AppCreation("egui_glow requires opengl 2.0+ (test)".into()))
+    } else {
+        eframe::run_native("Roomtone", options, Box::new(move |cc| Ok(Box::new(ui::App::new(cc, shot, demo, view.as_deref())))))
+    };
     if let Err(e) = result {
+        // Some computers (a virtual machine, Remote Desktop) can't draw with OpenGL. Try again
+        // drawing a different way before giving up.
+        if can_retry_drawing() {
+            std::process::exit(run_again_drawing_in_software());
+        }
+        let words = format!("{}\n\n{e}", t!("Roomtone couldn't open its window. This computer's graphics may not be supported. Installing the latest graphics driver, or switching on graphics acceleration in a virtual machine, usually fixes it."));
         eprintln!("Couldn't open the window: {e}");
+        #[cfg(windows)]
+        {
+            // The program has no console window on Windows, so say it where it will be seen.
+            let _ = rfd::MessageDialog::new().set_title("Roomtone").set_description(&words).set_level(rfd::MessageLevel::Error).show();
+        }
+        #[cfg(not(windows))]
+        let _ = words;
         std::process::exit(1);
+    }
+}
+
+/// How the window is drawn: OpenGL first. `ROOMTONE_RENDERER=wgpu` (or `glow`) picks one.
+#[cfg(any(windows, feature = "wgpu"))]
+fn chosen_renderer() -> eframe::Renderer {
+    match std::env::var("ROOMTONE_RENDERER").as_deref() {
+        Ok("wgpu") => eframe::Renderer::Wgpu,
+        _ => eframe::Renderer::Glow,
+    }
+}
+/// True when the window failed on OpenGL and there is another way to draw it that hasn't been tried.
+fn can_retry_drawing() -> bool {
+    cfg!(any(windows, feature = "wgpu")) && std::env::var_os("ROOMTONE_RENDERER").is_none()
+}
+
+/// Start Roomtone again, drawing with the other method (which works without a graphics card:
+/// on Windows it can use the computer's built-in software drawing). Returns its exit code.
+fn run_again_drawing_in_software() -> i32 {
+    let Ok(exe) = std::env::current_exe() else { return 1 };
+    match std::process::Command::new(exe).args(std::env::args_os().skip(1)).env("ROOMTONE_RENDERER", "wgpu").status() {
+        Ok(status) => status.code().unwrap_or(1),
+        Err(_) => 1,
     }
 }
 
