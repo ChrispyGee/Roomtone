@@ -3468,6 +3468,25 @@ impl App {
                     if name != s.config.menu_bar_title {
                         self.send(Cmd::SetFeature(crate::config::Feature::MenuBarTitle, name));
                     }
+                    let mut player = s.config.menu_bar_player;
+                    ui.horizontal(|ui| {
+                        ui.set_min_height(40.0);
+                        ui.vertical(|ui| {
+                            ui.set_max_width((ui.available_width() - 64.0).max(120.0));
+                            ui.label(RichText::new(t!("Open a small player when the icon is clicked")).color(TEXT()));
+                            ui.label(
+                                RichText::new(t!("The cover, a seek bar, the buttons and the volume. The full menu is under More, or a right click on the icon."))
+                                    .size(12.0)
+                                    .color(TEXT_DIM()),
+                            );
+                        });
+                        ui.with_layout(Layout::right_to_left(Align::Center), |ui| {
+                            toggle(ui, &mut player, t!("Open a small player when the icon is clicked"));
+                        });
+                    });
+                    if player != s.config.menu_bar_player {
+                        self.send(Cmd::SetFeature(crate::config::Feature::MenuBarPlayer, player));
+                    }
                 }
                 if bar != s.config.menu_bar || keep != s.config.menu_bar_keep {
                     self.send(Cmd::SetMenuBar(bar, keep));

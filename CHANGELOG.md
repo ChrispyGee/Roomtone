@@ -4,6 +4,9 @@ All notable changes to Roomtone. The format follows [Keep a Changelog](https://k
 
 ## [Unreleased]
 
+### Added
+- **A small player in the Mac menu bar (experimental).** *Settings › Appearance › Open a small player when the icon is clicked* (off by default, shown when the menu bar is on): clicking the icon opens a pop-over with the room to choose, the cover, the song, a seek bar, previous, play or pause and next, and the volume. *Open Roomtone* and *More…* sit at the bottom; *More…* and a right click (or Control-click) on the icon open the full menu as before.
+
 ## [0.9.5] — 2026-11-23
 
 A Windows notification-area icon, Roomtone opening on computers with basic graphics, the playing room's name beside the Mac menu-bar icon, and scenes that can set sound and speaker layouts.

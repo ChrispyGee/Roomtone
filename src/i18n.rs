@@ -148,6 +148,8 @@ mod tests {
 
     const SOURCES: &[&str] = &[
         include_str!("main.rs"),
+        #[cfg(target_os = "macos")]
+        include_str!("macos_player.rs"),
         include_str!("backend.rs"),
         include_str!("model.rs"),
         include_str!("demo.rs"),

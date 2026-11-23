@@ -2222,6 +2222,7 @@ fn run_common(b: &Backend, ctx: &Waker, cmd: Cmd) -> Result<Option<Cmd>, String>
                     Feature::UpdateInstall => s.config.allow_update_install = on,
                     Feature::Layout => s.config.allow_layout = on,
                     Feature::MenuBarTitle => s.config.menu_bar_title = on,
+                    Feature::MenuBarPlayer => s.config.menu_bar_player = on,
                 }
             }
             save(b);

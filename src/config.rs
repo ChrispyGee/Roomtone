@@ -360,6 +360,9 @@ pub enum Feature {
     /// The room name shown beside the menu-bar icon while something plays (Mac).
     #[cfg_attr(not(target_os = "macos"), allow(dead_code))]
     MenuBarTitle,
+    /// A small player instead of a menu when the menu-bar icon is clicked (Mac).
+    #[cfg_attr(not(target_os = "macos"), allow(dead_code))]
+    MenuBarPlayer,
     /// The buttons that change how speakers are bonded (stereo pairs, soundbar satellites).
     Layout,
 }
@@ -447,6 +450,9 @@ pub struct Config {
     /// Mac: show the name of the room that's playing beside the menu-bar icon.
     #[serde(default)]
     pub menu_bar_title: bool,
+    /// Mac: clicking the menu-bar icon opens a small player; the menu is on right-click or *More*.
+    #[serde(default)]
+    pub menu_bar_player: bool,
     /// One-off timers made by Roomtone (see `AlarmTimer`).
     #[serde(default)]
     pub alarm_timers: Vec<AlarmTimer>,
@@ -525,6 +531,7 @@ impl Default for Config {
             menu_bar: false,
             menu_bar_keep: true,
             menu_bar_title: false,
+            menu_bar_player: false,
             alarm_timers: vec![],
             alarm_fades: vec![],
             volume_limits: VolumeLimits::default(),

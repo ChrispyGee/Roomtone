@@ -1,6 +1,6 @@
 //! The window: sidebar, page area, rooms/queue panel and the now-playing bar.
 
-mod art;
+pub(crate) mod art;
 mod layout;
 mod lists;
 mod pages;

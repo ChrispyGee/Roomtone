@@ -72,7 +72,8 @@ File: `high_contrast` (`true` / `false`), default `false`. For one run only: the
 
 *Show in the menu bar* on a Mac, or *Show in the notification area* on Windows (**off by default**; not yet on Linux; the Windows icon was tried on a Windows 11 virtual machine and works, 2026-11-23): a speaker icon at the top of the screen. Its menu shows what's playing in the chosen room, *Play*/*Pause*, *Next*, *Previous*, *Volume* (*Louder* and *Quieter* by the volume step, *Mute*), the rooms to choose from (the ticked one is the room it controls, the same room as in the window), *Pause all rooms*, *Open Roomtone* and *Quit Roomtone*. The menu is built each time it opens. *Keep running when the window is closed* (on by default, shown when the menu bar is on): closing the window hides Roomtone instead of quitting, so the speakers, alarm fades and the assistant link keep working; *Open Roomtone* brings it back, and ⌘Q or *Quit Roomtone* quits.
 *Show the room name next to the icon* (Mac only, off by default, shown when the menu bar is on): the name of the playing room beside the icon, kept current every couple of seconds; the icon is alone when nothing plays.
-File: `menu_bar` (`true` / `false`), default `false`; `menu_bar_keep` (`true` / `false`), default `true`; `menu_bar_title` (`true` / `false`), default `false`.
+*Open a small player when the icon is clicked* (Mac only, off by default, shown when the menu bar is on): a pop-over with the room to choose, the cover, the song, a seek bar, the buttons and the volume instead of the menu; the menu is under *More…* or a right click on the icon.
+File: `menu_bar` (`true` / `false`), default `false`; `menu_bar_keep` (`true` / `false`), default `true`; `menu_bar_title` (`true` / `false`), default `false`; `menu_bar_player` (`true` / `false`), default `false`.
 
 ### Language
 *App language*: **Automatic** (follows your computer's language), or English, German, French, Spanish, Italian or Dutch. Changes at once; anything not yet translated shows in English.
@@ -227,6 +228,7 @@ Complete `config.json`, with every field at its default (the access key is made 
 | `high_contrast` | true/false | `false` | Stronger text, outlines and colours. |
 | `menu_bar` | true/false | `false` | Mac and Windows: show Roomtone in the menu bar or notification area. |
 | `menu_bar_title` | true/false | `false` | Mac: show the playing room's name beside the menu-bar icon. |
+| `menu_bar_player` | true/false | `false` | Mac: clicking the menu-bar icon opens a small player instead of the menu. |
 | `menu_bar_keep` | true/false | `true` | With the menu bar on, closing the window keeps Roomtone running instead of quitting. |
 | `speaker_events` | true/false | `false` | Instant updates from the speakers. |
 | `room_order` | list of text | `[]` | The order you arranged your rooms in (room ids, first to last). Rooms not listed come after, in the speakers' own order. Managed by *Arrange* in the Rooms panel. |
