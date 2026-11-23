@@ -4,6 +4,10 @@ All notable changes to Roomtone. The format follows [Keep a Changelog](https://k
 
 ## [Unreleased]
 
+## [0.9.5] — 2026-11-23
+
+A Windows notification-area icon, Roomtone opening on computers with basic graphics, the playing room's name beside the Mac menu-bar icon, and scenes that can set sound and speaker layouts.
+
 ### Added
 - **Roomtone opens on computers with old graphics, such as virtual machines and Remote Desktop (Windows).** Where OpenGL is too old to open the window, Roomtone now starts itself again drawing with DirectX, including Windows' built-in software drawing, and says so in plain words if neither works. Before, the window just never appeared.
 - **A notification-area icon on Windows (experimental).** *Settings › Appearance › Show in the notification area* puts a speaker icon next to the clock, with the same menu as the Mac menu bar: what's playing, play and pause, next, previous, volume, your rooms, *Pause all rooms*, *Open Roomtone* and *Quit Roomtone*. A left click opens the window. *Keep running when the window is closed* (on by default once the icon is on) makes the close button hide Roomtone instead of quitting. Off by default. **Built but not yet tried on a Windows PC**; Linux has no icon yet.

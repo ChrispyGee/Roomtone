@@ -2523,11 +2523,11 @@ impl App {
             ui.add_space(6.0);
             ui.label(RichText::new(t!("What's new in this version")).color(TEXT()).strong());
             for line in [
-                t!("Dragging rooms to group them works again"),
-                t!("Alarms can fade in over 1 to 30 minutes (experimental)"),
-                t!("Roomtone in the Mac menu bar, which can keep running when the window is closed"),
-                t!("Sub and surround sound settings, and Find this speaker"),
-                t!("Speaker setup: stereo pairs and a soundbar's sub and rear speakers (experimental)"),
+                t!("Roomtone in the Windows notification area (experimental)"),
+                t!("Opens on virtual machines and Remote Desktop, where the graphics are basic (Windows)"),
+                t!("The Mac menu bar can show the room that's playing (experimental)"),
+                t!("Scenes can set sound and speaker layouts (experimental)"),
+                t!("The S1 badge no longer says S2 in French, Spanish and Italian"),
             ] {
                 ui.horizontal_wrapped(|ui| {
                     ui.label(RichText::new("•").color(ACCENT()));

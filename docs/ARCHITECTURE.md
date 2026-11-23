@@ -32,7 +32,7 @@ This is the map of the code. What the app should do is in [SPEC.md](../SPEC.md);
 
 | File | Role |
 | --- | --- |
-| `main.rs` | Reads options; opens the window, or runs headless/MCP, or changes MCP settings from the command line. On Windows it is a window program (no console window) that attaches to the terminal it was started from |
+| `main.rs` | Reads options; opens the window (drawing with OpenGL, and again with DirectX on Windows if that fails), or runs headless/MCP, or changes MCP settings from the command line. On Windows it is a window program (no console window) that attaches to the terminal it was started from |
 | `help.rs` | `--help` and `--help mcp`, written for the platform being run on (paths, service managers, firewall notes) |
 | `backend.rs` | `Cmd`, `Backend` (`send`, `send_and_wait`), the worker and poller threads, discovery and reconnect, streaming playback with account retry, service checks, play-along (`mirror`, `sync_link`), software updates (`check_updates`, `install_update`) |
 | `model.rs` | Data the window shows: `Household`, `Room`, `Group`, `NowPlaying`, `Item`, `Alarm`, `AppState` |

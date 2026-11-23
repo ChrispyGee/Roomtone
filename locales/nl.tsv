@@ -964,3 +964,8 @@ Stop the alarm	Wekker uitzetten
 Shuffle is off while {room} plays along, because two systems can't shuffle the same way.	Willekeurig afspelen is uit zolang {room} meespeelt, omdat twee systemen niet hetzelfde kunnen schudden.
 This system's time zone isn't set, so its alarms won't ring. Set the time zone in the Sonos app, then check again.	Voor dit systeem is geen tijdzone ingesteld, dus de wekkers gaan niet af. Stel de tijdzone in de Sonos-app in en controleer opnieuw.
 Roomtone couldn't open its window. This computer's graphics may not be supported. Installing the latest graphics driver, or switching on graphics acceleration in a virtual machine, usually fixes it.	Roomtone kon zijn venster niet openen. De beeldkaart van deze computer wordt mogelijk niet ondersteund. Meestal helpt het om het nieuwste grafische stuurprogramma te installeren of, in een virtuele machine, grafische versnelling in te schakelen.
+Roomtone in the Windows notification area (experimental)	Roomtone in het Windows-meldingsgebied (experimenteel)
+Opens on virtual machines and Remote Desktop, where the graphics are basic (Windows)	Opent ook in virtuele machines en via Extern bureaublad, waar de beeldkaart eenvoudig is (Windows)
+The Mac menu bar can show the room that's playing (experimental)	De Mac-menubalk kan de kamer tonen waarin iets speelt (experimenteel)
+Scenes can set sound and speaker layouts (experimental)	Scènes kunnen geluid en luidsprekerindeling instellen (experimenteel)
+The S1 badge no longer says S2 in French, Spanish and Italian	Het S1-label zegt in het Frans, Spaans en Italiaans niet langer S2
