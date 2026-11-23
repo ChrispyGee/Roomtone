@@ -52,6 +52,8 @@ mod m3u;
 mod macos_about;
 #[cfg(target_os = "macos")]
 mod macos_menubar;
+#[cfg(target_os = "macos")]
+mod macos_player;
 mod mcp;
 mod model;
 mod net;

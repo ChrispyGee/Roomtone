@@ -12,7 +12,9 @@ use std::cell::RefCell;
 use objc2::rc::Retained;
 use objc2::runtime::{AnyObject, NSObject, NSObjectProtocol};
 use objc2::{define_class, msg_send, sel, MainThreadMarker, MainThreadOnly};
-use objc2_app_kit::{NSApplication, NSImage, NSMenu, NSMenuDelegate, NSMenuItem, NSStatusBar, NSStatusItem, NSVariableStatusItemLength};
+use objc2_app_kit::{
+    NSApplication, NSEventMask, NSEventModifierFlags, NSEventType, NSImage, NSMenu, NSMenuDelegate, NSMenuItem, NSStatusBar, NSStatusItem, NSVariableStatusItemLength, NSView,
+};
 use objc2_foundation::{NSString, NSTimer};
 
 use crate::backend::Backend;
@@ -42,6 +44,33 @@ define_class!(
         #[unsafe(method(tick:))]
         fn tick(&self, _timer: Option<&AnyObject>) {
             update_title();
+            apply_mode();
+            if std::env::var_os("ROOMTONE_TEST_PLAYER").is_some() && !crate::macos_player::is_open() && !TEST_OPENED.with(|t| t.replace(true)) {
+                if let (Some(mtm), Some(backend), Some(item)) = (MainThreadMarker::new(), BACKEND.with(|b| b.borrow().clone()), ITEM.with(|i| i.borrow().clone())) {
+                    if let Some(button) = item.button(mtm) {
+                        crate::macos_player::toggle(mtm, &backend, &button);
+                    }
+                }
+            }
+            if crate::macos_player::is_open() {
+                crate::macos_player::refresh();
+            }
+        }
+
+        /// The icon was clicked while it opens the player: left click shows it, right click (or
+        /// Control-click) shows the full menu.
+        #[unsafe(method(clicked:))]
+        fn clicked(&self, sender: &NSView) {
+            let Some(mtm) = MainThreadMarker::new() else { return };
+            let Some(backend) = BACKEND.with(|b| b.borrow().clone()) else { return };
+            let event = NSApplication::sharedApplication(mtm).currentEvent();
+            let menu_wanted = event.is_some_and(|e| e.r#type() == NSEventType::RightMouseUp || e.modifierFlags().contains(NSEventModifierFlags::Control));
+            if menu_wanted {
+                crate::macos_player::close();
+                show_menu();
+            } else {
+                crate::macos_player::toggle(mtm, &backend, sender);
+            }
         }
 
         #[unsafe(method(act:))]
@@ -60,6 +89,11 @@ thread_local! {
     /// Menu items only point weakly at their target, so keep it alive here.
     static TARGET: RefCell<Option<Retained<Target>>> = const { RefCell::new(None) };
     static ITEM: RefCell<Option<Retained<NSStatusItem>>> = const { RefCell::new(None) };
+    /// The menu, kept so it can be put back on the icon or shown on its own.
+    static MENU: RefCell<Option<Retained<NSMenu>>> = const { RefCell::new(None) };
+    /// Whether the icon currently opens the player (true) or the menu (false).
+    static PLAYER_MODE: RefCell<bool> = const { RefCell::new(false) };
+    static TEST_OPENED: std::cell::Cell<bool> = const { std::cell::Cell::new(false) };
     static TIMER: RefCell<Option<Retained<NSTimer>>> = const { RefCell::new(None) };
     static BACKEND: RefCell<Option<Backend>> = const { RefCell::new(None) };
     /// The actions of the menu as last built, by item tag.
@@ -143,6 +177,10 @@ pub fn install(backend: &Backend, on: bool) {
         return;
     }
     BACKEND.with(|b| *b.borrow_mut() = Some(backend.clone()));
+    // Test hook: switch the player on and open it (`ROOMTONE_TEST_PLAYER=1`), to picture it.
+    if std::env::var_os("ROOMTONE_TEST_PLAYER").is_some() {
+        backend.lock().config.menu_bar_player = true;
+    }
     let item = NSStatusBar::systemStatusBar().statusItemWithLength(NSVariableStatusItemLength);
     if let Some(button) = item.button(mtm) {
         let name = NSString::from_str("hifispeaker.fill");
@@ -165,9 +203,11 @@ pub fn install(backend: &Backend, on: bool) {
         eprintln!("MENUBAR: icon added, {} items, button: {}", menu.numberOfItems(), item.button(mtm).is_some());
     }
     item.setMenu(Some(&menu));
+    MENU.with(|m| *m.borrow_mut() = Some(menu));
+    PLAYER_MODE.with(|m| *m.borrow_mut() = false);
     ITEM.with(|i| *i.borrow_mut() = Some(item));
     // The words beside the icon (when switched on) follow what is playing, even with the window hidden.
-    let timer = unsafe { NSTimer::scheduledTimerWithTimeInterval_target_selector_userInfo_repeats(2.0, &t, sel!(tick:), None, true) };
+    let timer = unsafe { NSTimer::scheduledTimerWithTimeInterval_target_selector_userInfo_repeats(1.0, &t, sel!(tick:), None, true) };
     TIMER.with(|slot| *slot.borrow_mut() = Some(timer));
     update_title();
 }
@@ -193,6 +233,46 @@ fn update_title() {
             button.setTitle(&NSString::from_str(&if words.is_empty() { words } else { format!(" {words}") }));
         }
     });
+}
+
+/// Make the icon open the player or the menu, as the setting says.
+fn apply_mode() {
+    let Some(mtm) = MainThreadMarker::new() else { return };
+    let Some(backend) = BACKEND.with(|b| b.borrow().clone()) else { return };
+    let want = backend.lock().config.menu_bar_player;
+    if PLAYER_MODE.with(|m| *m.borrow()) == want {
+        return;
+    }
+    PLAYER_MODE.with(|m| *m.borrow_mut() = want);
+    let Some(item) = ITEM.with(|i| i.borrow().clone()) else { return };
+    let Some(button) = item.button(mtm) else { return };
+    if want {
+        item.setMenu(None);
+        unsafe {
+            button.setTarget(Some(&target(mtm)));
+            button.setAction(Some(sel!(clicked:)));
+        }
+        let _ = button.sendActionOn(NSEventMask::LeftMouseUp | NSEventMask::RightMouseUp);
+    } else {
+        crate::macos_player::close();
+        unsafe { button.setAction(None) };
+        MENU.with(|m| item.setMenu(m.borrow().as_deref()));
+    }
+}
+
+/// Show the full menu under the icon (from the player's *More…*, or a right click on the icon).
+pub fn show_menu() {
+    let Some(mtm) = MainThreadMarker::new() else { return };
+    let Some(item) = ITEM.with(|i| i.borrow().clone()) else { return };
+    let Some(button) = item.button(mtm) else { return };
+    let was_player = PLAYER_MODE.with(|m| *m.borrow());
+    if was_player {
+        MENU.with(|m| item.setMenu(m.borrow().as_deref()));
+    }
+    unsafe { button.performClick(None) };
+    if was_player {
+        item.setMenu(None);
+    }
 }
 
 /// Hide the app (as Hide does), so closing the window leaves Roomtone running in the menu bar.

@@ -136,6 +136,59 @@ fn nudge(b: &Backend, g: String, up: bool) {
     let _ = b.send(Cmd::GroupVolume(g, v));
 }
 
+/// What the pop-up player shows (Mac): the chosen room's song, where it is up to and how loud it
+/// is, with the rooms to choose from. Worked out here so it can be tested on every system.
+#[cfg_attr(not(target_os = "macos"), allow(dead_code))]
+#[derive(Clone, Debug, PartialEq, Default)]
+pub struct Player {
+    /// The chosen room's id, empty when there are no rooms.
+    pub group: String,
+    pub rooms: Vec<(String, String, bool)>,
+    pub title: String,
+    pub artist: String,
+    pub art: Option<String>,
+    pub playing: bool,
+    pub position: f32,
+    /// Zero when the song has no length (a radio station), so there is nothing to seek in.
+    pub duration: f32,
+    pub volume: u8,
+    pub muted: bool,
+}
+
+/// The player for the current state.
+#[cfg_attr(not(target_os = "macos"), allow(dead_code))]
+pub fn player(s: &crate::model::AppState) -> Player {
+    let Some(h) = s.household() else { return Player::default() };
+    let chosen = s.selected_group.as_ref().and_then(|g| h.groups.iter().find(|x| &x.id == g)).or_else(|| h.groups.first());
+    let rooms = h.groups.iter().map(|g| (g.id.clone(), h.group_name(g), chosen.is_some_and(|c| c.id == g.id))).collect();
+    let Some(g) = chosen else { return Player { rooms, ..Player::default() } };
+    let n = &g.now;
+    Player {
+        group: g.id.clone(),
+        rooms,
+        title: n.title.clone(),
+        artist: n.artist.clone(),
+        art: n.art.clone(),
+        playing: n.transport == Transport::Playing,
+        position: n.live_position(),
+        duration: if n.is_stream { 0.0 } else { n.duration },
+        volume: g.volume,
+        muted: g.muted,
+    }
+}
+
+/// Move the chosen room to `seconds` into the song.
+#[cfg_attr(not(target_os = "macos"), allow(dead_code))]
+pub fn seek(b: &Backend, group: &str, seconds: f32) {
+    let _ = b.send(Cmd::Seek(group.to_string(), seconds.max(0.0)));
+}
+
+/// Set the chosen room's volume (the normal path, so limits apply).
+#[cfg_attr(not(target_os = "macos"), allow(dead_code))]
+pub fn set_volume(b: &Backend, group: &str, volume: u8) {
+    let _ = b.send(Cmd::GroupVolume(group.to_string(), volume.min(100)));
+}
+
 #[cfg(test)]
 mod tests {
     use super::*;
@@ -178,5 +231,24 @@ mod tests {
         assert!(crate::test_support::wait_for(5, || b.lock().find_group(&gid).unwrap().1.volume > vol), "it got louder");
         run(&b, Action::Select(other.clone()), &|| {}, &|| {});
         assert_eq!(b.lock().selected_group.as_deref(), Some(other.as_str()));
+    }
+
+    #[test]
+    fn the_player_shows_the_chosen_rooms_song_and_every_room() {
+        let b = crate::test_support::demo_backend();
+        let p = player(&b.lock());
+        assert!(!p.group.is_empty() && !p.title.is_empty(), "something is playing in the demo: {p:?}");
+        assert!(p.rooms.len() > 1, "the demo has several rooms");
+        assert_eq!(p.rooms.iter().filter(|r| r.2).count(), 1, "exactly one room is chosen");
+        assert!(p.playing && p.duration > 0.0 && p.position <= p.duration);
+        let gid = p.group.clone();
+        seek(&b, &gid, 30.0);
+        set_volume(&b, &gid, 17);
+        assert!(crate::test_support::wait_for(5, || b.lock().find_group(&gid).unwrap().1.volume == 17), "the volume was set");
+        {
+            let mut s = b.lock();
+            s.selected_group = Some("nowhere".into());
+        }
+        assert!(!player(&b.lock()).group.is_empty(), "an unknown room falls back to the first");
     }
 }
