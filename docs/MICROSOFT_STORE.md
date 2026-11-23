@@ -55,6 +55,19 @@ Microsoft signs the package, so people who install from the Store get no "unknow
 **Notes for certification** (the free-text box for reviewers):
 > Roomtone is a desktop program packaged with the full trust capability because it must listen for notices from speakers on the user's home network and serve the user's own music files to those speakers over HTTP; it cannot run inside the app sandbox. It requests the network capabilities for this reason only. It sends no telemetry. The source code is public at https://github.com/ChrispyGee/Roomtone and its network connections are listed in SPEC.md section 9. No account is needed to test it: with no speakers on the network it offers a demo system with made-up rooms (Settings › Speakers › Demo system).
 
+## Images for the listing
+
+All made from the demo system (made-up rooms and music), 2640 by 1680 pixels, which the Store accepts (it wants at least 1366 by 768, and at most 3840 by 2160). Upload them in this order, with these captions:
+
+| File | Caption |
+| --- | --- |
+| `docs/images/roomtone-home.png` | Every room and what's playing, on one screen |
+| `docs/images/roomtone-now-playing.png` | The player: cover, queue and volume |
+| `docs/images/roomtone-scenes.png` | Scenes: one click sets up your rooms |
+| `docs/images/roomtone-home-light.png` | Light and dark, to match your PC |
+
+The **store logo** (300 by 300, the Store's "1:1 box art") is `packaging/windows/msix/listing/store-logo-300.png`, the same icon as the app. The 2:3 poster and 16:9 hero images are optional; skip them for the first submission.
+
 ## What could go wrong
 
 - **The name** may be taken, or the Sonos mention in the description may draw a trademark question. The wording above says it is not affiliated; keep it.
