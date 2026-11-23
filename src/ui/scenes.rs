@@ -27,6 +27,9 @@ fn summary(sc: &Scene) -> String {
     if sc.rooms.iter().any(|r| r.has_sound()) {
         parts.push(t!("with sound settings").to_string());
     }
+    if sc.layout.as_ref().is_some_and(|l| !l.pairs.is_empty() || !l.sets.is_empty()) {
+        parts.push(t!("with a speaker layout").to_string());
+    }
     if sc.sleep_minutes > 0 {
         parts.push(t!("stops after {n} min", n = sc.sleep_minutes));
     }
@@ -34,15 +37,62 @@ fn summary(sc: &Scene) -> String {
 }
 
 impl App {
+    /// The part of the scene window about the speaker layout (stereo pairs and soundbar speakers).
+    fn scene_layout_section(&mut self, ui: &mut Ui, s: &AppState, sc: &mut Scene) {
+        ui.label(RichText::new(t!("Speaker layout")).strong().color(TEXT()));
+        if !s.config.allow_layout {
+            // A layout already in the scene stays; it just isn't made until Speaker setup is on.
+            let text = if sc.layout.is_some() {
+                t!("This scene has a speaker layout, which is only made when Speaker setup is switched on (Settings › Speakers).")
+            } else {
+                t!("To include how the speakers are set up, switch on Speaker setup in Settings › Speakers.")
+            };
+            ui.label(RichText::new(text).size(12.0).color(TEXT_FAINT()));
+            return;
+        }
+        self.ask_once("layout", std::time::Duration::from_secs(15), Cmd::LoadLayout);
+        let mut include = sc.layout.is_some();
+        if ui.checkbox(&mut include, t!("Set the speakers up like this when the scene runs")).changed() {
+            sc.layout = include.then(|| crate::layout::capture(&s.layout.clone().unwrap_or_default()));
+        }
+        if let Some(l) = &sc.layout {
+            ui.label(RichText::new(t!("Stereo pairs: {pairs} · Soundbar sets: {sets}", pairs = l.pairs.len(), sets = l.sets.len())).size(12.0).color(TEXT_DIM()));
+            ui.label(RichText::new(t!("It only adds what is missing and asks before it changes anything. It never splits or removes a speaker.")).size(12.0).color(TEXT_FAINT()));
+            if pill(ui, None, t!("Use the layout as it is now"), false).clicked() {
+                sc.layout = Some(crate::layout::capture(&s.layout.clone().unwrap_or_default()));
+            }
+        }
+    }
+
     /// The scenes of the system being looked at (a scene made with no system shows everywhere).
     fn scenes_here<'a>(&self, s: &'a AppState) -> Vec<&'a Scene> {
         let hid = s.household().map(|h| h.id.clone()).unwrap_or_default();
         s.config.scenes.iter().filter(|sc| sc.household.is_empty() || sc.household == hid).collect()
     }
 
+    /// Run a scene. If it has a speaker layout that isn't how the speakers are now, ask first (it
+    /// stops the music in those rooms and can clear a measured tuning), and only then make it.
+    pub(super) fn do_scene(&mut self, s: &AppState, sc: &Scene) {
+        if let (Some(want), true) = (&sc.layout, s.config.allow_layout) {
+            self.ask_once("layout", std::time::Duration::from_secs(15), Cmd::LoadLayout);
+            if let Some(now) = &s.layout {
+                match crate::layout::plan(now, want) {
+                    Ok(steps) if !steps.is_empty() => {
+                        let lines: Vec<String> = steps.iter().map(|st| self.step_line(s, &st.cmd)).collect();
+                        self.layout_confirm = Some((t!("Set up the speakers for “{name}”?", name = sc.name), lines.join("\n"), Cmd::ApplySceneLayout(sc.name.clone())));
+                        return;
+                    }
+                    Err(why) => self.notes.push(t!("The speaker layout wasn't changed: {why}", why = why)),
+                    _ => {}
+                }
+            }
+        }
+        self.send(Cmd::ApplyScene(sc.name.clone()));
+    }
+
     pub(super) fn new_scene(&mut self, s: &AppState) -> Scene {
         let household = s.household().map(|h| h.id.clone()).unwrap_or_default();
-        Scene { name: String::new(), household, rooms: vec![], group: true, play: String::new(), sleep_minutes: 0 }
+        Scene { name: String::new(), household, rooms: vec![], group: true, play: String::new(), sleep_minutes: 0, layout: None }
     }
 
     /// A short row of scene buttons for Home.
@@ -57,7 +107,7 @@ impl App {
         ui.horizontal_wrapped(|ui| {
             for sc in scenes {
                 if pill(ui, Some(Icon::Sliders), &sc.name, false).on_hover_text(summary(sc)).clicked() {
-                    self.send(Cmd::ApplyScene(sc.name.clone()));
+                    self.do_scene(s, sc);
                 }
             }
         });
@@ -95,7 +145,7 @@ impl App {
                             self.scene_editor = Some((Some(sc.name.clone()), sc.clone()));
                         }
                         if pill(ui, Some(Icon::Play), t!("Do it"), true).clicked() {
-                            self.send(Cmd::ApplyScene(sc.name.clone()));
+                            self.do_scene(s, &sc);
                         }
                     });
                 });
@@ -176,10 +226,36 @@ impl App {
                             if speech_ok {
                                 sc.rooms[p].speech = tri_state(ui, ("scene_speech", &r.uuid), t!("Speech enhancement"), sc.rooms[p].speech);
                             }
+                            // Home-theatre settings, for a room that has them (a sub, surrounds or a soundbar).
+                            if let Some(st) = r.settings.as_ref() {
+                                if st.sub_enabled.is_some() {
+                                    sc.rooms[p].sub_on = tri_state(ui, ("scene_sub_on", &r.uuid), t!("Use the sub"), sc.rooms[p].sub_on);
+                                }
+                                if let Some(now) = st.sub_level {
+                                    sc.rooms[p].sub_level = optional_range(ui, t!("Sub level"), sc.rooms[p].sub_level, now as i8, -15, 15);
+                                }
+                                if st.surround_enabled.is_some() {
+                                    sc.rooms[p].surround_on = tri_state(ui, ("scene_surround_on", &r.uuid), t!("Use the rear speakers"), sc.rooms[p].surround_on);
+                                }
+                                if let Some(now) = st.surround_tv {
+                                    sc.rooms[p].surround_tv = optional_range(ui, t!("Surround level (TV)"), sc.rooms[p].surround_tv, now as i8, -15, 15);
+                                }
+                                if let Some(now) = st.surround_music {
+                                    sc.rooms[p].surround_music = optional_range(ui, t!("Surround level (music)"), sc.rooms[p].surround_music, now as i8, -15, 15);
+                                }
+                                if let Some(now) = st.height {
+                                    sc.rooms[p].height = optional_range(ui, t!("Height speakers level"), sc.rooms[p].height, now as i8, -10, 10);
+                                }
+                                if let Some(now) = st.delay {
+                                    sc.rooms[p].delay = optional_range(ui, t!("Lip-sync delay"), sc.rooms[p].delay.map(|d| d as i8), now as i8, 0, 5).map(|d| d as u8);
+                                }
+                            }
                         });
                     }
                 }
             });
+            ui.add_space(8.0);
+            self.scene_layout_section(ui, s, &mut sc);
             ui.add_space(8.0);
             let mut together = sc.group;
             if ui.checkbox(&mut together, t!("Play these rooms together")).changed() {
@@ -243,11 +319,16 @@ impl App {
 
 /// "Set it to …" with a tick box and a number from -10 to 10; unticked means leave it.
 fn optional_level(ui: &mut Ui, label: &str, value: Option<i8>, current: i8) -> Option<i8> {
+    optional_range(ui, label, value, current, -10, 10)
+}
+
+/// The same, for a setting with its own range.
+fn optional_range(ui: &mut Ui, label: &str, value: Option<i8>, current: i8, low: i8, high: i8) -> Option<i8> {
     let mut set = value.is_some();
-    let mut v = value.unwrap_or(current).clamp(-10, 10);
+    let mut v = value.unwrap_or(current).clamp(low, high);
     ui.horizontal(|ui| {
         ui.checkbox(&mut set, label);
-        ui.add_enabled(set, egui::DragValue::new(&mut v).range(-10..=10));
+        ui.add_enabled(set, egui::DragValue::new(&mut v).range(low..=high));
     });
     set.then_some(v)
 }

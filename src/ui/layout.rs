@@ -56,6 +56,24 @@ fn room_combo(ui: &mut Ui, id: &str, current: &mut String, rooms: &[(String, Str
 }
 
 impl App {
+    /// One plain line about a layout change, for the confirmation window.
+    pub(super) fn step_line(&self, s: &AppState, cmd: &Cmd) -> String {
+        let name = |uuid: &str| {
+            s.find_room(uuid)
+                .map(|(_, r)| r.name.clone())
+                .or_else(|| s.layout.as_ref().and_then(|l| l.pairs.iter().find(|p| p.left == uuid || p.right == uuid).map(|p| p.name.clone())))
+                .unwrap_or_else(|| t!("a speaker").to_string())
+        };
+        match cmd {
+            Cmd::CreatePair(l, _) => t!("Make {name} a stereo pair", name = name(l)),
+            Cmd::AddSatellites(bar, add) => {
+                let what: Vec<String> = add.iter().map(|(_, r)| role_label(*r)).collect();
+                t!("Add {what} to {bar}", what = what.join(", "), bar = name(bar))
+            }
+            _ => String::new(),
+        }
+    }
+
     pub(super) fn layout_card(&mut self, ui: &mut Ui, s: &AppState) {
         let Some(h) = s.household() else { return };
         if !h.is_set_up() {
@@ -223,7 +241,9 @@ impl App {
             ui.label(RichText::new(what).color(TEXT_DIM()));
             ui.add_space(6.0);
             ui.label(
-                RichText::new(t!("This can clear a room's measured Trueplay tuning, and music in these rooms stops. You can undo it from this card.")).size(12.5).color(TEXT_DIM()),
+                RichText::new(t!("This can clear a room's measured Trueplay tuning, and music in these rooms stops. You can undo it in Settings › Speakers › Speaker setup."))
+                    .size(12.5)
+                    .color(TEXT_DIM()),
             );
             ui.add_space(4.0);
             ui.label(RichText::new(t!("Not tried on real speakers yet.")).size(12.5).color(TEXT_FAINT()));

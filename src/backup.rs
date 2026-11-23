@@ -676,6 +676,7 @@ mod unit {
             group: true,
             play: "Dinner Party".into(),
             sleep_minutes: 90,
+            layout: None,
         });
         let (b, _) = Backup::build(None, &c, Sections::default(), 0);
         assert_eq!(b.app.scenes.len(), 1);

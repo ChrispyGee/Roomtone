@@ -278,7 +278,7 @@ impl Mcp {
                 let scene = self.b.lock().config.scenes.iter().find(|s| s.name.eq_ignore_ascii_case(&name)).cloned();
                 let scene = scene
                     .ok_or_else(|| format!("No scene called “{name}”. Scenes: {}", self.b.lock().config.scenes.iter().map(|s| s.name.clone()).collect::<Vec<_>>().join(", ")))?;
-                crate::scene::apply(&self.b, &scene).map(|steps| format!("Scene “{}” is on. {}", scene.name, steps.join(" ")))
+                crate::scene::apply(&self.b, &scene, false).map(|steps| format!("Scene “{}” is on. {}", scene.name, steps.join(" ")))
             }
             "save_backup" => {
                 let file = str_arg("file").ok_or("Say what to call it (file)")?;
@@ -497,6 +497,9 @@ impl Mcp {
                     group: bool_arg("group").unwrap_or(true),
                     play: str_arg("play").unwrap_or_default(),
                     sleep_minutes: int_arg("sleep_minutes").unwrap_or(0).clamp(0, 720) as u32,
+                    // An assistant can't set a speaker layout (that needs a person's confirmation), but
+                    // saving a scene again must not throw away the one a person gave it.
+                    layout: self.b.lock().config.scenes.iter().find(|x| x.name.eq_ignore_ascii_case(&name)).and_then(|x| x.layout.clone()),
                 };
                 self.wait(Cmd::SaveScene(None, scene))?;
                 Ok(format!("Saved scene “{name}”"))

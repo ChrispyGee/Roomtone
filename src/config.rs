@@ -73,13 +73,74 @@ pub struct SceneRoom {
     pub night: Option<bool>,
     #[serde(default)]
     pub speech: Option<bool>,
+    /// Home-theatre settings (a room with a sub, surround speakers or a soundbar): the sub on or off
+    /// and its level (-15 to 15), surround on or off, its TV and music levels (-15 to 15), the height
+    /// level (-10 to 10) and the lip-sync delay (0 to 5). `None` leaves each as it is.
+    #[serde(default)]
+    pub sub_on: Option<bool>,
+    #[serde(default)]
+    pub sub_level: Option<i8>,
+    #[serde(default)]
+    pub surround_on: Option<bool>,
+    #[serde(default)]
+    pub surround_tv: Option<i8>,
+    #[serde(default)]
+    pub surround_music: Option<i8>,
+    #[serde(default)]
+    pub height: Option<i8>,
+    #[serde(default)]
+    pub delay: Option<u8>,
 }
 
 impl SceneRoom {
     /// Does this room's entry change anything about its sound?
     pub fn has_sound(&self) -> bool {
-        self.bass.is_some() || self.treble.is_some() || self.night.is_some() || self.speech.is_some()
+        self.bass.is_some()
+            || self.treble.is_some()
+            || self.night.is_some()
+            || self.speech.is_some()
+            || self.sub_on.is_some()
+            || self.sub_level.is_some()
+            || self.surround_on.is_some()
+            || self.surround_tv.is_some()
+            || self.surround_music.is_some()
+            || self.height.is_some()
+            || self.delay.is_some()
     }
+}
+
+/// A stereo pair a scene wants to exist (the speakers, by id, so renaming doesn't break it).
+#[derive(Clone, Debug, Default, Serialize, Deserialize, PartialEq)]
+pub struct ScenePair {
+    pub left: String,
+    pub right: String,
+    /// The room's name when the scene was saved, for showing.
+    #[serde(default)]
+    pub name: String,
+}
+
+/// A soundbar with the speakers a scene wants bonded to it.
+#[derive(Clone, Debug, Default, Serialize, Deserialize, PartialEq)]
+pub struct SceneSet {
+    pub bar: String,
+    #[serde(default)]
+    pub name: String,
+    #[serde(default)]
+    pub sub: Option<String>,
+    #[serde(default)]
+    pub rear_left: Option<String>,
+    #[serde(default)]
+    pub rear_right: Option<String>,
+}
+
+/// How the speakers are set up (stereo pairs and soundbar speakers) when a scene is on. Applying it
+/// only ever adds what is missing; it never splits or removes anything, and it always asks first.
+#[derive(Clone, Debug, Default, Serialize, Deserialize, PartialEq)]
+pub struct SceneLayout {
+    #[serde(default)]
+    pub pairs: Vec<ScenePair>,
+    #[serde(default)]
+    pub sets: Vec<SceneSet>,
 }
 
 /// A named set of things one click does ("Movie night"): play the rooms together, set their
@@ -100,6 +161,9 @@ pub struct Scene {
     /// Stop the music after this many minutes; 0 sets no timer.
     #[serde(default)]
     pub sleep_minutes: u32,
+    /// The speaker set-up this scene wants (experimental; needs Speaker setup switched on).
+    #[serde(default)]
+    pub layout: Option<SceneLayout>,
 }
 
 /// A streaming service this app has been signed in to.
@@ -613,7 +677,7 @@ mod unit {
     fn alarms_and_scenes_are_hidden_until_wanted_but_existing_scenes_stay() {
         let mut c = Config::default();
         assert!(!c.alarms_shown() && !c.scenes_shown(), "off by default");
-        c.scenes.push(Scene { name: "Movie night".into(), household: String::new(), rooms: vec![], group: true, play: String::new(), sleep_minutes: 0 });
+        c.scenes.push(Scene { name: "Movie night".into(), household: String::new(), rooms: vec![], group: true, play: String::new(), sleep_minutes: 0, layout: None });
         assert!(c.scenes_shown(), "someone who already has scenes keeps them");
         c.show_scenes = Some(false);
         assert!(!c.scenes_shown(), "unless they switch the page off");

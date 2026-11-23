@@ -487,11 +487,39 @@ impl App {
                     group: true,
                     play: "Dinner Party".into(),
                     sleep_minutes: 120,
+                    layout: None,
                 },
-                Scene { name: "Good night".into(), household: hid.clone(), rooms: vec![room("Bedroom", Some(8))], group: true, play: String::new(), sleep_minutes: 30 },
+                Scene {
+                    name: "Good night".into(),
+                    household: hid.clone(),
+                    rooms: vec![room("Bedroom", Some(8))],
+                    group: true,
+                    play: String::new(),
+                    sleep_minutes: 30,
+                    layout: None,
+                },
             ];
-            if std::env::var("ROOMTONE_TEST_SCENE").as_deref() == Ok("edit") {
+            let how = std::env::var("ROOMTONE_TEST_SCENE").unwrap_or_default();
+            if how == "layout" || how == "confirm" {
+                // Picture checks of speaker layouts in scenes: "Movie night" wants a stereo pair, and
+                // "confirm" shows the window that asks first.
+                s.config.scenes[0].layout = Some(crate::config::SceneLayout {
+                    pairs: vec![crate::config::ScenePair { left: "D-KITCHEN".into(), right: "D-STUDY".into(), name: "Kitchen".into() }],
+                    sets: vec![],
+                });
+                s.config.scenes[0].rooms[0].sub_level = Some(4);
+                s.config.scenes[0].rooms[0].delay = Some(2);
+            }
+            if how == "edit" || how == "layout" {
                 self.scene_editor = Some((Some("Movie night".into()), s.config.scenes[0].clone()));
+            }
+            if how == "confirm" {
+                let scene = s.config.scenes[0].clone();
+                if let Some(now) = Some(crate::layout::Layout::default()) {
+                    let want = scene.layout.clone().unwrap_or_default();
+                    let lines: Vec<String> = crate::layout::plan(&now, &want).unwrap_or_default().iter().map(|st| self.step_line(&s, &st.cmd)).collect();
+                    self.layout_confirm = Some((t!("Set up the speakers for “{name}”?", name = scene.name), lines.join("\n"), Cmd::ApplySceneLayout(scene.name.clone())));
+                }
             }
         }
         if self.frame == 2 && std::env::var_os("ROOMTONE_TEST_LYRICS").is_some() {

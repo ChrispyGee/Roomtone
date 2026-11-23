@@ -389,6 +389,20 @@ Volume	Volumen
 Show in the notification area	Mostrar en el área de notificaciones
 An icon next to the clock with what's playing, play and pause, volume and your rooms.	Un icono junto al reloj con lo que suena, reproducir y pausar, volumen y tus habitaciones.
 Closing the window hides Roomtone instead of quitting. Open it again, or quit, from the icon next to the clock.	Al cerrar la ventana, Roomtone se oculta en lugar de salir. Ábrelo de nuevo o sal desde el icono junto al reloj.
+with a speaker layout	con configuración de altavoces
+Set up the speakers for “{name}”?	¿Configurar los altavoces para «{name}»?
+The speaker layout wasn't changed: {why}	No se cambió la configuración de altavoces: {why}
+Speaker layout	Configuración de altavoces
+This scene has a speaker layout, which is only made when Speaker setup is switched on (Settings › Speakers).	Esta escena tiene una configuración de altavoces, que solo se aplica con la configuración de altavoces activada (Ajustes › Altavoces).
+To include how the speakers are set up, switch on Speaker setup in Settings › Speakers.	Para incluir cómo están configurados los altavoces, activa la configuración de altavoces en Ajustes › Altavoces.
+Set the speakers up like this when the scene runs	Configurar los altavoces así al activar la escena
+Stereo pairs: {pairs} · Soundbar sets: {sets}	Parejas estéreo: {pairs} · Conjuntos de barra de sonido: {sets}
+It only adds what is missing and asks before it changes anything. It never splits or removes a speaker.	Solo añade lo que falta y pregunta antes de cambiar algo. Nunca separa ni quita un altavoz.
+Use the layout as it is now	Usar la configuración actual
+Make {name} a stereo pair	Hacer de {name} una pareja estéreo
+Add {what} to {bar}	Añadir {what} a {bar}
+a speaker	un altavoz
+This can clear a room's measured Trueplay tuning, and music in these rooms stops. You can undo it in Settings › Speakers › Speaker setup.	Esto puede borrar el ajuste Trueplay medido de una habitación y la música de estas habitaciones se detiene. Puedes deshacerlo en Ajustes › Altavoces › Configuración de altavoces.
 Show the room name next to the icon	Mostrar el nombre de la habitación junto al icono
 While something is playing, the room it is playing in is shown beside the icon.	Mientras suena algo, el nombre de la habitación donde suena aparece junto al icono.
 Dragging rooms to group them works again	Arrastrar habitaciones para agruparlas vuelve a funcionar
@@ -427,7 +441,6 @@ No sub is free to add.	No hay ningún sub libre para añadir.
 Add rear speakers	Añadir altavoces traseros
 Add {left} and {right} as the rear speakers of {bar}?	¿Añadir {left} y {right} como altavoces traseros de {bar}?
 They play the surround sounds of {bar} and stop being rooms of their own. Use two identical speakers.	Reproducen el sonido envolvente de {bar} y dejan de ser habitaciones propias. Usa dos altavoces idénticos.
-This can clear a room's measured Trueplay tuning, and music in these rooms stops. You can undo it from this card.	Esto puede borrar el ajuste Trueplay medido de una habitación y la música de estas habitaciones se detiene. Puedes deshacerlo desde esta tarjeta.
 Not tried on real speakers yet.	Aún no probado con altavoces reales.
 That stereo pair	Esa pareja estéreo
 No speakers found yet	Aún no se han encontrado altavoces
