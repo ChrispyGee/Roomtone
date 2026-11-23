@@ -62,6 +62,8 @@ pub enum Cmd {
     SaveScene(Option<String>, crate::config::Scene),
     DeleteScene(String),
     ApplyScene(String),
+    /// The same, and also make the scene's speaker layout (the window sends this after the person confirmed it).
+    ApplySceneLayout(String),
     LineIn(String, String),
     Tv(String, String),
     SleepTimer(String, Option<u32>),
@@ -1127,6 +1129,7 @@ fn run_live(b: &Backend, ctx: &Waker, cmd: Cmd) -> Result<(), String> {
         | Cmd::SaveScene(..)
         | Cmd::DeleteScene(_)
         | Cmd::ApplyScene(_)
+        | Cmd::ApplySceneLayout(_)
         | Cmd::CancelLink
         | Cmd::DisconnectService(_)
         | Cmd::SetAccountNumber(..)
@@ -1416,6 +1419,26 @@ fn after_layout_change(b: &Backend) -> Result<(), String> {
         b.lock().layout = Some(layout);
     }
     Ok(())
+}
+
+/// Start a scene on its own thread: it is a run of ordinary commands that each wait for the
+/// speakers, so it can't run on the worker itself. `with_layout` also makes the scene's speaker
+/// layout, which the window asks for only after the person has confirmed it.
+fn apply_scene_in_background(b: &Backend, ctx: &Waker, name: String, with_layout: bool) -> Result<Option<Cmd>, String> {
+    let scene = b.lock().config.scenes.iter().find(|x| x.name.eq_ignore_ascii_case(&name)).cloned();
+    let Some(scene) = scene else { return Err(crate::t!("There's no scene called “{name}”", name = name).to_string()) };
+    let (b2, ctx2) = (b.clone(), ctx.clone());
+    thread::spawn(move || {
+        let result = crate::scene::apply(&b2, &scene, with_layout);
+        let mut s = b2.lock();
+        match result {
+            Ok(_) => s.toast(crate::t!("Scene “{name}” is on", name = scene.name), false),
+            Err(e) => s.toast(crate::t!("Scene “{name}” stopped: {error}", name = scene.name, error = e), true),
+        }
+        drop(s);
+        ctx2.request_repaint();
+    });
+    Ok(None)
 }
 
 /// Seconds since 1970 by this computer's clock.
@@ -1885,24 +1908,8 @@ fn run_common(b: &Backend, ctx: &Waker, cmd: Cmd) -> Result<Option<Cmd>, String>
             save(b);
             Ok(None)
         }
-        Cmd::ApplyScene(name) => {
-            let scene = b.lock().config.scenes.iter().find(|x| x.name.eq_ignore_ascii_case(&name)).cloned();
-            let Some(scene) = scene else { return Err(crate::t!("There's no scene called “{name}”", name = name).to_string()) };
-            let (b2, ctx2) = (b.clone(), ctx.clone());
-            // A scene is a run of ordinary commands that each wait for the speakers, so it can't
-            // run on the worker itself.
-            thread::spawn(move || {
-                let result = crate::scene::apply(&b2, &scene);
-                let mut s = b2.lock();
-                match result {
-                    Ok(_) => s.toast(crate::t!("Scene “{name}” is on", name = scene.name), false),
-                    Err(e) => s.toast(crate::t!("Scene “{name}” stopped: {error}", name = scene.name, error = e), true),
-                }
-                drop(s);
-                ctx2.request_repaint();
-            });
-            Ok(None)
-        }
+        Cmd::ApplyScene(name) => apply_scene_in_background(b, ctx, name, false),
+        Cmd::ApplySceneLayout(name) => apply_scene_in_background(b, ctx, name, true),
         Cmd::GroupRooms(rooms) => {
             // Lead with a room that already leads a group, preferring one that's playing.
             let lead = {

@@ -531,6 +531,7 @@ pub fn apply(s: &mut AppState, cmd: &Cmd) {
         | Cmd::SaveScene(..)
         | Cmd::DeleteScene(_)
         | Cmd::ApplyScene(_)
+        | Cmd::ApplySceneLayout(_)
         | Cmd::CancelLink
         | Cmd::DisconnectService(_)
         | Cmd::SetAccountNumber(..)

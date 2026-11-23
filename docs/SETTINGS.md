@@ -152,7 +152,7 @@ Version, platform, your systems, the language in use, the address your computer 
 | Podcast shows you follow | a show's *Subscribe* button | `podcasts`: `{ "title", "author", "feed", "art" }` | none |
 | Streaming-service sign-ins | Settings › Services › *Connect*, *Disconnect*, and the account number if a service needs it | `accounts`: `{ "sid", "name", "uri", "manifest", "household", "device_id", "token", "key", "sn" }` | none |
 | Favorites kept in the app (albums, artists, folders, podcast shows, archive recordings the speakers can't store) | the star on those items | `favorites` | none |
-| Scenes ("Movie night") | *Scenes* in the sidebar (*New scene*, *Edit*, *Delete*; Home shows them as buttons) | `scenes`: `{ "name", "household", "rooms", "group", "play", "sleep_minutes" }` | none |
+| Scenes ("Movie night") | *Scenes* in the sidebar (*New scene*, *Edit*, *Delete*; Home shows them as buttons) | `scenes`: `{ "name", "household", "rooms", "group", "play", "sleep_minutes", "layout" }` (a room may also hold sound settings, including `sub_level`, `surround_tv`, `delay`; `layout` is optional, `{ "pairs": [...], "sets": [...] }`, made only after a confirmation and only with `allow_layout` on) | none |
 | Saved groups of rooms ("Downstairs") | Home › *Groups* (add or edit), or *Save as group* after grouping rooms | `groups`: `{ "name", "household", "rooms" }` | none |
 
 Edit `accounts` and `favorites` in the app, not by hand: they hold tokens and details copied from the services.

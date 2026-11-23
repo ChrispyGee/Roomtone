@@ -386,6 +386,20 @@ Unknown room	Unbekannter Raum
 Unsubscribe	Abo beenden
 Up next	Als Nächstes
 Volume	Lautstärke
+with a speaker layout	mit Lautsprecher-Einrichtung
+Set up the speakers for “{name}”?	Lautsprecher für „{name}“ einrichten?
+The speaker layout wasn't changed: {why}	Die Lautsprecher-Einrichtung wurde nicht geändert: {why}
+Speaker layout	Lautsprecher-Einrichtung
+This scene has a speaker layout, which is only made when Speaker setup is switched on (Settings › Speakers).	Diese Szene enthält eine Lautsprecher-Einrichtung, die nur umgesetzt wird, wenn „Lautsprecher einrichten“ eingeschaltet ist (Einstellungen › Lautsprecher).
+To include how the speakers are set up, switch on Speaker setup in Settings › Speakers.	Um die Lautsprecher-Einrichtung aufzunehmen, schalte „Lautsprecher einrichten“ unter Einstellungen › Lautsprecher ein.
+Set the speakers up like this when the scene runs	Lautsprecher beim Start der Szene so einrichten
+Stereo pairs: {pairs} · Soundbar sets: {sets}	Stereopaare: {pairs} · Soundbar-Sets: {sets}
+It only adds what is missing and asks before it changes anything. It never splits or removes a speaker.	Es fügt nur Fehlendes hinzu und fragt vor jeder Änderung. Es trennt oder entfernt nie einen Lautsprecher.
+Use the layout as it is now	Aktuelle Einrichtung übernehmen
+Make {name} a stereo pair	{name} zu einem Stereopaar machen
+Add {what} to {bar}	{what} zu {bar} hinzufügen
+a speaker	ein Lautsprecher
+This can clear a room's measured Trueplay tuning, and music in these rooms stops. You can undo it in Settings › Speakers › Speaker setup.	Das kann die gemessene Trueplay-Abstimmung eines Raums löschen, und die Musik in diesen Räumen stoppt. Du kannst es unter Einstellungen › Lautsprecher › Lautsprecher einrichten rückgängig machen.
 Dragging rooms to group them works again	Räume lassen sich wieder per Ziehen gruppieren
 Alarms can fade in over 1 to 30 minutes (experimental)	Wecker können über 1 bis 30 Minuten einblenden (experimentell)
 Roomtone in the Mac menu bar, which can keep running when the window is closed	Roomtone in der Mac-Menüleiste, das weiterlaufen kann, wenn das Fenster geschlossen wird
@@ -422,7 +436,6 @@ No sub is free to add.	Kein Subwoofer zum Hinzufügen frei.
 Add rear speakers	Hintere Lautsprecher hinzufügen
 Add {left} and {right} as the rear speakers of {bar}?	{left} und {right} als hintere Lautsprecher von {bar} hinzufügen?
 They play the surround sounds of {bar} and stop being rooms of their own. Use two identical speakers.	Sie spielen den Raumklang von {bar} und sind keine eigenen Räume mehr. Nimm zwei gleiche Lautsprecher.
-This can clear a room's measured Trueplay tuning, and music in these rooms stops. You can undo it from this card.	Das kann die gemessene Trueplay-Abstimmung eines Raums löschen, und die Musik in diesen Räumen stoppt. Du kannst es auf dieser Karte rückgängig machen.
 Not tried on real speakers yet.	Noch nicht an echten Lautsprechern getestet.
 That stereo pair	Dieses Stereopaar
 No speakers found yet	Keine Lautsprecher gefunden
