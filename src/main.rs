@@ -215,6 +215,13 @@ fn main() {
         .with_inner_size([1320.0, 840.0])
         .with_min_inner_size([1040.0, 660.0])
         .with_icon(eframe::egui::IconData { rgba: brand::icon_rgba(256), width: 256, height: 256 });
+    if quiet {
+        // For picture checks that need a particular size, such as the Microsoft Store listing:
+        // ROOMTONE_TEST_SIZE=1920x1080 (logical points; a Retina screen draws twice as many pixels).
+        if let Some((w, h)) = std::env::var("ROOMTONE_TEST_SIZE").ok().and_then(|v| v.split_once('x').and_then(|(w, h)| Some((w.parse::<f32>().ok()?, h.parse::<f32>().ok()?)))) {
+            viewport = viewport.with_inner_size([w, h]).with_min_inner_size([w.min(1040.0), h.min(660.0)]);
+        }
+    }
     if !quiet {
         // Open where and how the window was left.
         if let Some(w) = window::load() {

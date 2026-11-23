@@ -7,6 +7,9 @@ All notable changes to Roomtone. The format follows [Keep a Changelog](https://k
 ### Added
 - **Preparation for signed Windows downloads and the Microsoft Store (nothing signed or submitted yet).** A privacy statement (`PRIVACY.md`) and a code signing policy (`CODE_SIGNING_POLICY.md`), the two pages a SignPath Foundation application asks for; a Microsoft Store package definition and build script (`packaging/windows/msix/`) that a workflow builds to check it is well formed; and two maintainer guides, `docs/SIGNING.md` and `docs/MICROSOFT_STORE.md`, with the steps that need an account in the maintainer's name. Neither route is part of the release yet.
 
+### Fixed
+- **The S1 system's badge in the sidebar said "S2" in French, Spanish and Italian.** The badge took its letters from the start of the translated name ("Système S1", "Sistema S1"), so it only worked where the name begins with "S1". It now comes from the system itself.
+
 ## [0.9.4] — 2026-11-22
 
 Dragging rooms to group them works again, alarms that fade in, the Mac menu bar, sub and surround sound settings, and an experimental speaker setup for stereo pairs and a soundbar's sub and rear speakers.
