@@ -386,6 +386,8 @@ Unknown room	Unbekannter Raum
 Unsubscribe	Abo beenden
 Up next	Als Nächstes
 Volume	Lautstärke
+Show the room name next to the icon	Raumname neben dem Symbol anzeigen
+While something is playing, the room it is playing in is shown beside the icon.	Solange etwas spielt, steht der Name des Raums neben dem Symbol.
 Dragging rooms to group them works again	Räume lassen sich wieder per Ziehen gruppieren
 Alarms can fade in over 1 to 30 minutes (experimental)	Wecker können über 1 bis 30 Minuten einblenden (experimentell)
 Roomtone in the Mac menu bar, which can keep running when the window is closed	Roomtone in der Mac-Menüleiste, das weiterlaufen kann, wenn das Fenster geschlossen wird

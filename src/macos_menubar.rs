@@ -13,7 +13,7 @@ use objc2::rc::Retained;
 use objc2::runtime::{AnyObject, NSObject, NSObjectProtocol};
 use objc2::{define_class, msg_send, sel, MainThreadMarker, MainThreadOnly};
 use objc2_app_kit::{NSApplication, NSImage, NSMenu, NSMenuDelegate, NSMenuItem, NSStatusBar, NSStatusItem, NSVariableStatusItemLength};
-use objc2_foundation::NSString;
+use objc2_foundation::{NSString, NSTimer};
 
 use crate::backend::{Backend, Cmd};
 use crate::model::Transport;
@@ -167,6 +167,12 @@ define_class!(
     }
 
     impl Target {
+        /// Every couple of seconds: keep the words beside the icon current.
+        #[unsafe(method(tick:))]
+        fn tick(&self, _timer: Option<&AnyObject>) {
+            update_title();
+        }
+
         #[unsafe(method(act:))]
         fn act(&self, sender: &NSMenuItem) {
             let tag = sender.tag();
@@ -183,6 +189,7 @@ thread_local! {
     /// Menu items only point weakly at their target, so keep it alive here.
     static TARGET: RefCell<Option<Retained<Target>>> = const { RefCell::new(None) };
     static ITEM: RefCell<Option<Retained<NSStatusItem>>> = const { RefCell::new(None) };
+    static TIMER: RefCell<Option<Retained<NSTimer>>> = const { RefCell::new(None) };
     static BACKEND: RefCell<Option<Backend>> = const { RefCell::new(None) };
     /// The actions of the menu as last built, by item tag.
     static ACTIONS: RefCell<Vec<Action>> = const { RefCell::new(Vec::new()) };
@@ -256,6 +263,9 @@ pub fn install(backend: &Backend, on: bool) {
         return;
     }
     if !on {
+        if let Some(timer) = TIMER.with(|t| t.borrow_mut().take()) {
+            timer.invalidate();
+        }
         if let Some(item) = ITEM.with(|i| i.borrow_mut().take()) {
             NSStatusBar::systemStatusBar().removeStatusItem(&item);
         }
@@ -285,6 +295,33 @@ pub fn install(backend: &Backend, on: bool) {
     }
     item.setMenu(Some(&menu));
     ITEM.with(|i| *i.borrow_mut() = Some(item));
+    // The words beside the icon (when switched on) follow what is playing, even with the window hidden.
+    let timer = unsafe { NSTimer::scheduledTimerWithTimeInterval_target_selector_userInfo_repeats(2.0, &t, sel!(tick:), None, true) };
+    TIMER.with(|slot| *slot.borrow_mut() = Some(timer));
+    update_title();
+}
+
+/// Set the words beside the icon: the room that's playing, or nothing (the setting is off, or
+/// nothing is playing).
+fn update_title() {
+    let Some(mtm) = MainThreadMarker::new() else { return };
+    let Some(backend) = BACKEND.with(|b| b.borrow().clone()) else { return };
+    let words = {
+        let s = backend.lock();
+        if s.config.menu_bar_title {
+            title(&s)
+        } else {
+            String::new()
+        }
+    };
+    if std::env::var_os("ROOMTONE_TEST_MENUBAR").is_some() {
+        eprintln!("MENUBAR: title is {words:?}");
+    }
+    ITEM.with(|i| {
+        if let Some(button) = i.borrow().as_ref().and_then(|item| item.button(mtm)) {
+            button.setTitle(&NSString::from_str(&if words.is_empty() { words } else { format!(" {words}") }));
+        }
+    });
 }
 
 /// Hide the app (as Hide does), so closing the window leaves Roomtone running in the menu bar.
@@ -351,5 +388,53 @@ mod tests {
         assert!(crate::test_support::wait_for(5, || b.lock().find_group(&gid).unwrap().1.volume > vol), "it got louder");
         run(&b, Action::Select(other.clone()));
         assert_eq!(b.lock().selected_group.as_deref(), Some(other.as_str()));
+    }
+}
+
+/// The words shown beside the menu-bar icon: the room that's playing (empty when nothing is, so
+/// the icon is alone). Long names are cut short so the menu bar isn't crowded.
+pub fn title(s: &crate::model::AppState) -> String {
+    let Some(h) = s.household() else { return String::new() };
+    let chosen = s.selected_group.as_ref().and_then(|g| h.groups.iter().find(|x| &x.id == g));
+    // The chosen room if it is playing, otherwise any room that is.
+    let playing = chosen.filter(|g| g.now.transport == Transport::Playing).or_else(|| h.groups.iter().find(|g| g.now.transport == Transport::Playing));
+    let Some(g) = playing else { return String::new() };
+    let name = h.group_name(g);
+    if name.chars().count() > 18 {
+        format!("{}…", name.chars().take(17).collect::<String>().trim_end())
+    } else {
+        name
+    }
+}
+
+#[cfg(test)]
+mod title_tests {
+    use super::*;
+
+    #[test]
+    fn the_icon_title_is_the_playing_room_cut_short_and_empty_when_nothing_plays() {
+        let b = crate::test_support::demo_backend();
+        let t = title(&b.lock());
+        assert!(!t.is_empty(), "something is playing in the demo");
+        assert!(t.chars().count() <= 18);
+        {
+            let mut s = b.lock();
+            let h = s.active;
+            for g in s.households[h].groups.iter_mut() {
+                g.now.transport = Transport::Paused;
+            }
+        }
+        assert_eq!(title(&b.lock()), "", "nothing playing leaves the icon alone");
+        {
+            let mut s = b.lock();
+            let h = s.active;
+            let uuid = s.households[h].rooms[0].uuid.clone();
+            s.households[h].rooms[0].name = "A very long room name indeed".into();
+            let g = &mut s.households[h].groups[0];
+            g.members = vec![uuid];
+            g.now.transport = Transport::Playing;
+        }
+        let t = title(&b.lock());
+        assert!(t.ends_with('…') && t.chars().count() <= 18 && t.starts_with("A very long"), "cut short with an ellipsis: {t}");
     }
 }
