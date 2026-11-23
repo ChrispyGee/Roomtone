@@ -1,0 +1,66 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!--
+  The Microsoft Store package definition for Roomtone (a packaged desktop program, "full trust":
+  it is not sandboxed, because it listens on the home network for the speakers and serves music
+  files to them). The @TOKENS@ are filled in by build-msix.ps1:
+    @IDENTITY_NAME@      Package/Identity/Name from Partner Center (Product management > Product identity)
+    @PUBLISHER@          Package/Identity/Publisher from Partner Center, like CN=GUID
+    @PUBLISHER_DISPLAY@  the publisher display name from Partner Center
+    @VERSION4@           the version with a fourth number, 0.9.4 -> 0.9.4.0 (the Store keeps the last number at 0)
+  See docs/MICROSOFT_STORE.md.
+-->
+<Package xmlns="http://schemas.microsoft.com/appx/manifest/foundation/windows10"
+         xmlns:uap="http://schemas.microsoft.com/appx/manifest/uap/windows10"
+         xmlns:uap5="http://schemas.microsoft.com/appx/manifest/uap/windows10/5"
+         xmlns:rescap="http://schemas.microsoft.com/appx/manifest/foundation/windows10/restrictedcapabilities"
+         IgnorableNamespaces="uap uap5 rescap">
+
+  <Identity Name="@IDENTITY_NAME@" Publisher="@PUBLISHER@" Version="@VERSION4@" ProcessorArchitecture="x64" />
+
+  <Properties>
+    <DisplayName>Roomtone</DisplayName>
+    <PublisherDisplayName>@PUBLISHER_DISPLAY@</PublisherDisplayName>
+    <Logo>Assets\StoreLogo.png</Logo>
+  </Properties>
+
+  <Dependencies>
+    <TargetDeviceFamily Name="Windows.Desktop" MinVersion="10.0.17763.0" MaxVersionTested="10.0.22621.0" />
+  </Dependencies>
+
+  <Resources>
+    <Resource Language="en-US" />
+    <Resource Language="de-DE" />
+    <Resource Language="es-ES" />
+    <Resource Language="fr-FR" />
+    <Resource Language="it-IT" />
+    <Resource Language="nl-NL" />
+  </Resources>
+
+  <Applications>
+    <Application Id="Roomtone" Executable="roomtone.exe" EntryPoint="Windows.FullTrustApplication">
+      <uap:VisualElements DisplayName="Roomtone"
+                          Description="A free, open-source controller for all your Sonos speakers."
+                          BackgroundColor="transparent"
+                          Square150x150Logo="Assets\Square150x150Logo.png"
+                          Square44x44Logo="Assets\Square44x44Logo.png" />
+      <Extensions>
+        <!-- So `roomtone` works in a terminal: `roomtone --mcp`, `roomtone --headless` and the other commands. -->
+        <uap5:Extension Category="windows.appExecutionAlias" Executable="roomtone.exe" EntryPoint="Windows.FullTrustApplication">
+          <uap5:AppExecutionAlias>
+            <uap5:ExecutionAlias Alias="roomtone.exe" />
+          </uap5:AppExecutionAlias>
+        </uap5:Extension>
+      </Extensions>
+    </Application>
+  </Applications>
+
+  <Capabilities>
+    <!-- Reaching streaming services, radio and the project's release page on GitHub. -->
+    <Capability Name="internetClient" />
+    <!-- Receiving the speakers' notices and serving music files and the assistant link on the home network. -->
+    <Capability Name="internetClientServer" />
+    <Capability Name="privateNetworkClientServer" />
+    <!-- A normal desktop program, not run inside the app sandbox. -->
+    <rescap:Capability Name="runFullTrust" />
+  </Capabilities>
+</Package>
