@@ -44,7 +44,7 @@
                           Square150x150Logo="Assets\Square150x150Logo.png"
                           Square44x44Logo="Assets\Square44x44Logo.png" />
       <Extensions>
-        <!-- So `roomtone` works in a terminal: `roomtone --mcp`, `roomtone --headless` and the other commands. -->
+        <!-- So the command `roomtone` works in a terminal, with its options for the assistant link, headless mode and the other commands. -->
         <uap5:Extension Category="windows.appExecutionAlias" Executable="roomtone.exe" EntryPoint="Windows.FullTrustApplication">
           <uap5:AppExecutionAlias>
             <uap5:ExecutionAlias Alias="roomtone.exe" />
