@@ -71,7 +71,7 @@ After pushing, Dependabot closes its own pull requests when the same update is a
 | `MAC_NOTARY_PASSWORD` | An app-specific password made at account.apple.com › Sign-In and Security |
 | `MAC_TEAM_ID` | The 10-character Team ID (developer.apple.com › Membership details) |
 
-The certificate lasts five years and the program membership renews yearly (note the dates here when set up). The Windows installer on GitHub isn't signed (SignPath Foundation declined; see [SIGNING.md](SIGNING.md)); Windows users are pointed to the Microsoft Store, which signs its own package. **Each release also needs a Store submission:** build the package with the *Microsoft Store package* workflow, upload the `.msix` in Partner Center and let it go through review ([MICROSOFT_STORE.md](MICROSOFT_STORE.md)). See the [roadmap](ROADMAP.md) for an Intel Mac build and AppImage/Flatpak.
+The certificate lasts five years and the program membership renews yearly (note the dates here when set up). The Windows installer on GitHub isn't signed (SignPath Foundation declined; see [SIGNING.md](SIGNING.md)); Windows users are pointed to the Microsoft Store, which signs its own package. **Each release also needs a Store submission:** pushing the tag runs the *Microsoft Store package* workflow, which builds the `.msix` and, once the Store credentials are set, creates the submission in Partner Center (a draft you press Submit on, unless `STORE_AUTO_SUBMIT` is on). Without the credentials, upload the file by hand. See [MICROSOFT_STORE.md](MICROSOFT_STORE.md#automatic-submission-each-release). See the [roadmap](ROADMAP.md) for an Intel Mac build and AppImage/Flatpak.
 
 ## Package managers (Homebrew, winget, Arch)
 
