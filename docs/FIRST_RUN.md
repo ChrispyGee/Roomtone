@@ -1,10 +1,10 @@
 # Opening Roomtone for the first time
 
-**Roomtone isn't signed yet, so macOS and Windows will warn you the first time you open it.** That is expected, and you only have to do this once. This page walks through it, and explains why.
+**Mac downloads from version 0.9.6 are signed and notarised by Apple and open normally. On Windows, the [Microsoft Store](https://apps.microsoft.com/detail/9MXNHZ6K9NJQ) version is signed by Microsoft; the installer on GitHub isn't signed, so Windows warns you the first time.** That is expected, and you only have to do this once. This page walks through it, and explains why.
 
 ## Why the warning
 
-macOS and Windows show a warning for any program that isn't signed with a certificate from a company they know. Those certificates cost money every year (the Apple Developer Program is about US$99 a year), and Roomtone is a free, open-source hobby project. The plan is to pay for signing once enough people use it (see the [roadmap](ROADMAP.md)).
+macOS and Windows show a warning for any program that isn't signed with a certificate from a company they know. Roomtone's Mac downloads now are (Apple Developer ID, from version 0.9.6). Roomtone is a free, open-source hobby project, and a free signing service for the GitHub Windows installer was declined, so the installer there stays unsigned; the Microsoft Store version is signed by Microsoft. Mac steps below apply to **versions before 0.9.6** only.
 
 What you can do instead to be sure you have the real thing:
 
@@ -14,7 +14,9 @@ What you can do instead to be sure you have the real thing:
   - Windows (PowerShell): `Get-FileHash .\roomtone-vX.Y.Z-windows-x64-setup.exe` and compare the result with the line in `SHA256SUMS`.
 - **Read the code or build it yourself.** It's all at <https://github.com/ChrispyGee/Roomtone>; the [README](../README.md#build-it-yourself) shows how to build it. Roomtone sends nothing anywhere except to your speakers and the music services you connect (see the privacy section of the [README](../README.md)).
 
-## macOS
+## macOS (versions before 0.9.6)
+
+From 0.9.6 the `.dmg` is signed and notarised: open it, drag Roomtone to Applications and open it. The steps below are only for older downloads.
 
 Roomtone for Mac is built for **Apple silicon** (M1 and later). There's no Intel Mac download yet; if you have an Intel Mac you can [build it yourself](../README.md#build-it-yourself).
 
@@ -40,6 +42,8 @@ If macOS says the app **"is damaged and can't be opened"**, the download was pro
 - **"Do you want the application Roomtone to accept incoming network connections?":** choose **Allow**. Your speakers use it to fetch music from this computer's folders and to tell Roomtone what they're doing.
 
 ## Windows (10 and 11)
+
+The simplest route is the **[Microsoft Store](https://apps.microsoft.com/detail/9MXNHZ6K9NJQ)**: install it there and none of the steps below are needed. For the installer from GitHub:
 
 Roomtone for Windows is built for 64-bit Intel and AMD computers. It should also run on Windows on ARM through Windows' own emulation, but that hasn't been tried.
 

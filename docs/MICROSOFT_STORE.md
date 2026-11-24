@@ -1,6 +1,6 @@
 # Roomtone in the Microsoft Store
 
-**Status (2026-11-23): the name "Roomtone" is reserved and the package is built with the Store identity; nothing is submitted yet.** The package is not tested on a Windows PC, and the Store's review is untried. This page is for the maintainer.
+**Status (2026-11-24): certification passed and the maintainer published it in Partner Center; the listing is at https://apps.microsoft.com/detail/9MXNHZ6K9NJQ once it is live.** The package has been through the Store's review. This page is for the maintainer.
 
 **Roomtone's Store identity** (public, from Partner Center): package name `ChrispyGee.Roomtone`, publisher `CN=7B70B259-0799-4538-B08C-67D102EE553E`, publisher display name `ChrispyGee`, Store ID `9MXNHZ6K9NJQ`. They are set in `.github/workflows/msix.yml`, so the *Microsoft Store package* workflow (Actions › Run workflow) makes the file to upload, as the artifact `msix-check`.
 
@@ -32,9 +32,9 @@ Microsoft signs the package, so people who install from the Store get no "unknow
 
 Pushing a release tag (`v*`) runs the *Microsoft Store package* workflow, which builds the `.msix` and, **if the credentials below are set**, sends it to Partner Center with Microsoft's `msstore` command line. Without the credentials it only builds, and says so; you upload by hand as in step 6 above.
 
-**Not tried yet.** It was written from Microsoft's documentation ([Store CLI in GitHub Actions](https://learn.microsoft.com/en-us/windows/apps/publish/msstore-dev-cli/github-actions)) and needs a first run with real credentials before it can be trusted. Do the first one by hand: *Actions › Microsoft Store package › Run workflow* with **draft**, and check Partner Center.
+**Tried once (2026-11-24):** a by-hand run with **draft** signed in, created a submission and uploaded the package. A full submit-for-certification run hasn't happened yet. Written from Microsoft's documentation ([Store CLI in GitHub Actions](https://learn.microsoft.com/en-us/windows/apps/publish/msstore-dev-cli/github-actions)).
 
-**What it does:** it creates a new submission for Roomtone (Store ID `9MXNHZ6K9NJQ`) holding the package and keeps the listing as it is. By default it stops there, as a draft: open Partner Center, look it over and press **Submit**. To have it submit for certification itself, set the repository variable `STORE_AUTO_SUBMIT` to `true` (Settings › Secrets and variables › Actions › Variables); a by-hand run chooses with its own *submit* option. Certification still takes its usual time and the Store publishes when it passes. The workflow doesn't wait for the result: check Partner Center.
+**What it does:** it creates a new submission for Roomtone (Store ID `9MXNHZ6K9NJQ`) holding the package and keeps the listing as it is. **The repository variable `STORE_AUTO_SUBMIT` is `true` (set 2026-11-24), so a release tag submits for certification itself.** To go back to a draft that you submit by hand in Partner Center, delete the variable or set it to anything else (Settings › Secrets and variables › Actions › Variables); a by-hand run chooses with its own *submit* option. Certification still takes its usual time and the Store publishes when it passes. The workflow doesn't wait for the result: check Partner Center.
 
 **Set-up (maintainer, once).**
 1. In Partner Center: *Account settings › Tenant administration* to link a Microsoft Entra tenant (free; make one if you have none).
