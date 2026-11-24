@@ -159,6 +159,7 @@ mod tests {
         include_str!("ui/scenes.rs"),
         include_str!("ui/layout.rs"),
         include_str!("ui/widgets.rs"),
+        include_str!("ui/popup.rs"),
         include_str!("macos_about.rs"),
         include_str!("macos_menubar.rs"),
         include_str!("traymenu.rs"),

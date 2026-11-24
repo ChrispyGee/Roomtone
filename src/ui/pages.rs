@@ -3451,22 +3451,24 @@ impl App {
                         });
                     });
                 }
-                #[cfg(target_os = "macos")]
                 if bar {
-                    let mut name = s.config.menu_bar_title;
-                    ui.horizontal(|ui| {
-                        ui.set_min_height(40.0);
-                        ui.vertical(|ui| {
-                            ui.set_max_width((ui.available_width() - 64.0).max(120.0));
-                            ui.label(RichText::new(t!("Show the room name next to the icon")).color(TEXT()));
-                            ui.label(RichText::new(t!("While something is playing, the room it is playing in is shown beside the icon.")).size(12.0).color(TEXT_DIM()));
+                    #[cfg(target_os = "macos")]
+                    {
+                        let mut name = s.config.menu_bar_title;
+                        ui.horizontal(|ui| {
+                            ui.set_min_height(40.0);
+                            ui.vertical(|ui| {
+                                ui.set_max_width((ui.available_width() - 64.0).max(120.0));
+                                ui.label(RichText::new(t!("Show the room name next to the icon")).color(TEXT()));
+                                ui.label(RichText::new(t!("While something is playing, the room it is playing in is shown beside the icon.")).size(12.0).color(TEXT_DIM()));
+                            });
+                            ui.with_layout(Layout::right_to_left(Align::Center), |ui| {
+                                toggle(ui, &mut name, t!("Show the room name next to the icon"));
+                            });
                         });
-                        ui.with_layout(Layout::right_to_left(Align::Center), |ui| {
-                            toggle(ui, &mut name, t!("Show the room name next to the icon"));
-                        });
-                    });
-                    if name != s.config.menu_bar_title {
-                        self.send(Cmd::SetFeature(crate::config::Feature::MenuBarTitle, name));
+                        if name != s.config.menu_bar_title {
+                            self.send(Cmd::SetFeature(crate::config::Feature::MenuBarTitle, name));
+                        }
                     }
                     let mut player = s.config.menu_bar_player;
                     ui.horizontal(|ui| {
@@ -3475,9 +3477,13 @@ impl App {
                             ui.set_max_width((ui.available_width() - 64.0).max(120.0));
                             ui.label(RichText::new(t!("Open a small player when the icon is clicked")).color(TEXT()));
                             ui.label(
-                                RichText::new(t!("The cover, a seek bar, the buttons and the volume. The full menu is under More, or a right click on the icon."))
-                                    .size(12.0)
-                                    .color(TEXT_DIM()),
+                                RichText::new(if cfg!(target_os = "macos") {
+                                    t!("The cover, a seek bar, the buttons and the volume. The full menu is under More, or a right click on the icon.")
+                                } else {
+                                    t!("The cover, a seek bar, the buttons and the volume. The full menu is a right click on the icon.")
+                                })
+                                .size(12.0)
+                                .color(TEXT_DIM()),
                             );
                         });
                         ui.with_layout(Layout::right_to_left(Align::Center), |ui| {
