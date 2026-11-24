@@ -119,23 +119,61 @@ pub fn api_url(repo_url: &str) -> Option<String> {
     path.contains('/').then(|| format!("https://api.github.com/repos/{path}/releases/latest"))
 }
 
-/// Ask `fetch` (given the address, it returns the JSON text) and compare with `current`.
+/// The project's public "latest release" page. It redirects to the page of the newest release
+/// (`…/releases/tag/v1.2.3`) and, unlike the API, isn't limited to 60 looks an hour per network.
+pub fn latest_page_url(repo_url: &str) -> Option<String> {
+    api_url(repo_url).map(|_| format!("{}/releases/latest", repo_url.trim_end_matches('/').trim_end_matches(".git")))
+}
+
+/// Did GitHub refuse because this network has asked too often (HTTP 403 or 429)?
+fn is_rate_limited(error: &str) -> bool {
+    error.contains("status code 403") || error.contains("status code 429")
+}
+
+/// The release a "latest release" page redirected to, from its address (`…/releases/tag/v1.2.3`).
+/// It has no list of files, so the update is offered as a link to the download page.
+pub fn release_from_page_address(address: &str) -> Option<Release> {
+    let address = address.trim();
+    let tag = address.split("/releases/tag/").nth(1)?.split(['/', '?', '#']).next()?;
+    parse(tag)?;
+    address.starts_with("https://").then(|| Release { version: tag.trim_start_matches(['v', 'V']).to_string(), url: address.to_string(), assets: vec![] })
+}
+
+/// Ask `fetch` (given the address, it returns the JSON text) and compare with `current`. If GitHub
+/// is limiting this network, ask the public release page instead (`fetch` returns the address it
+/// redirects to for that one).
 pub fn check(repo_url: &str, current: &str, fetch: &dyn Fn(&str) -> Result<String, String>) -> Outcome {
     let Some(url) = api_url(repo_url) else { return Outcome::Failed("no project address".into()) };
-    match fetch(&url) {
-        Err(e) => Outcome::Failed(e),
+    let release = match fetch(&url) {
         Ok(text) => match parse_release(&text) {
-            Some(r) if is_newer(&r.version, current) => Outcome::Newer(r),
-            Some(_) => Outcome::UpToDate,
-            None => Outcome::Failed("the reply wasn't a release".into()),
+            Some(r) => r,
+            None => return Outcome::Failed("the reply wasn't a release".into()),
         },
+        Err(e) if is_rate_limited(&e) => {
+            let page = latest_page_url(repo_url).and_then(|u| fetch(&u).ok()).and_then(|a| release_from_page_address(&a));
+            match page {
+                Some(r) => r,
+                None => return Outcome::Failed("GitHub is limiting checks from this network right now; Roomtone will try again later".into()),
+            }
+        }
+        Err(e) => return Outcome::Failed(e),
+    };
+    if is_newer(&release.version, current) {
+        Outcome::Newer(release)
+    } else {
+        Outcome::UpToDate
     }
 }
 
 /// The real fetch: one HTTPS `GET`, a few seconds' patience, no cookies.
 pub fn fetch_over_https(url: &str) -> Result<String, String> {
-    let agent =
-        ureq::AgentBuilder::new().timeout_connect(Duration::from_secs(5)).timeout(Duration::from_secs(10)).user_agent(concat!("Roomtone/", env!("CARGO_PKG_VERSION"))).build();
+    let builder = ureq::AgentBuilder::new().timeout_connect(Duration::from_secs(5)).timeout(Duration::from_secs(10)).user_agent(concat!("Roomtone/", env!("CARGO_PKG_VERSION")));
+    // The public "latest release" page: don't follow its redirect, just say where it points.
+    if url.starts_with("https://github.com/") {
+        let reply = builder.redirects(0).build().get(url).call().map_err(|e| e.to_string())?;
+        return reply.header("Location").map(|l| l.to_string()).ok_or_else(|| "the release page didn't point anywhere".to_string());
+    }
+    let agent = builder.build();
     agent.get(url).set("Accept", "application/vnd.github+json").call().map_err(|e| e.to_string())?.into_string().map_err(|e| e.to_string())
 }
 
@@ -193,6 +231,34 @@ mod unit {
         assert_eq!(api_url("https://github.com/ChrispyGee/Roomtone.git/").as_deref(), Some("https://api.github.com/repos/ChrispyGee/Roomtone/releases/latest"));
         assert_eq!(api_url("https://example.com/x/y"), None);
         assert_eq!(api_url("https://github.com/only"), None);
+    }
+
+    #[test]
+    fn when_github_limits_the_api_the_release_page_answers() {
+        let repo = "https://github.com/ChrispyGee/Roomtone";
+        assert_eq!(latest_page_url(repo).as_deref(), Some("https://github.com/ChrispyGee/Roomtone/releases/latest"));
+        assert_eq!(latest_page_url("https://github.com/ChrispyGee/Roomtone.git/").as_deref(), Some("https://github.com/ChrispyGee/Roomtone/releases/latest"));
+        let tag = "https://github.com/ChrispyGee/Roomtone/releases/tag/v0.9.6";
+        assert_eq!(release_from_page_address(tag), Some(Release { version: "0.9.6".into(), url: tag.into(), assets: vec![] }));
+        assert_eq!(release_from_page_address("https://github.com/ChrispyGee/Roomtone/releases"), None);
+        assert_eq!(release_from_page_address("https://github.com/x/y/releases/tag/nightly"), None);
+        assert_eq!(release_from_page_address("http://github.com/x/y/releases/tag/v1.0.0"), None, "only https");
+
+        let limited = |page: Result<String, String>| move |u: &str| if u.starts_with("https://api.") { Err(format!("{u}: status code 403")) } else { page.clone() };
+        assert!(matches!(check(repo, "0.9.5", &limited(Ok(tag.into()))), Outcome::Newer(r) if r.version == "0.9.6" && r.assets.is_empty()));
+        assert_eq!(check(repo, "0.9.6", &limited(Ok(tag.into()))), Outcome::UpToDate);
+        let both = check(repo, "0.9.5", &limited(Err("offline".into())));
+        assert!(matches!(&both, Outcome::Failed(m) if m.contains("limiting") && !m.contains("403")), "{both:?}");
+        assert!(matches!(check(repo, "0.9.5", &|u: &str| Err(format!("{u}: status code 404"))), Outcome::Failed(m) if m.contains("404")), "other errors are told as they are");
+    }
+
+    /// The real release page: `cargo test real_release_page -- --ignored --nocapture`.
+    #[test]
+    #[ignore]
+    fn real_release_page() {
+        let address = fetch_over_https(&latest_page_url(crate::help::REPO_URL).unwrap()).unwrap();
+        eprintln!("{address}");
+        assert!(release_from_page_address(&address).is_some());
     }
 
     #[test]

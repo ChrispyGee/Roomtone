@@ -368,6 +368,7 @@ All in the app's data folder: `~/Library/Application Support/Roomtone/` (macOS),
 | TCP 8791 (configurable, only while *Now-playing display* is on) | in | Read-only now-playing page, cover and description (§4.8a); every address starts with a secret, other requests get 404 |
 | HTTPS to github.com release downloads (only when *Download* is pressed in *New versions*) | out | One `GET` of `SHA256SUMS` and one of the installer, from this project's own release; the same `User-Agent`; saved to the Downloads folder |
 | HTTPS to api.github.com (only if *New versions* is on, or *Check now* is pressed) | out | One `GET` of this project's latest release; the only thing sent that identifies the app is the usual `User-Agent: Roomtone/<version>`; no account, no identifier |
+| HTTPS to github.com (only when api.github.com answers 403 or 429, because it limits each network to 60 looks an hour) | out | One `GET` of the project's public `/releases/latest` page, which is not followed: only the address it redirects to is read, to learn the newest version. Same `User-Agent`; nothing else sent |
 | HTTPS to lrclib.net (only if *Lyrics* is on and Now Playing is open) | out | One or two `GET`s per new song with its title, artist, album and length (a `User-Agent` with the app version and project address); no account, no identifier; the answer is kept in memory only |
 | HTTPS out | out | Radio Browser, Apple Podcasts search and feeds, Internet Archive, streaming services' own APIs |
 
