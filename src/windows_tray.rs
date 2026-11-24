@@ -306,11 +306,7 @@ pub fn install(backend: &Backend, on: bool) {
                     show_window()
                 }
             }
-            TrayIconEvent::DoubleClick { button: MouseButton::Left, .. } => {
-                if !current_backend().is_some_and(|b| b.lock().config.menu_bar_player) {
-                    show_window()
-                }
-            }
+            TrayIconEvent::DoubleClick { button: MouseButton::Left, .. } if !current_backend().is_some_and(|b| b.lock().config.menu_bar_player) => show_window(),
             _ => {}
         }));
     });
