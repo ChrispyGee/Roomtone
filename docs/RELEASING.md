@@ -61,7 +61,17 @@ After pushing, Dependabot closes its own pull requests when the same update is a
 8. To try the installers without releasing, run the workflow by hand (Actions › Release › Run workflow) on a branch: the files are kept as workflow artifacts and no release is made.
 9. To build by hand instead: `cargo build --release`; the program is `target/release/roomtone` (`roomtone.exe` on Windows). On a Mac, `packaging/macos/build-dmg.sh <version> <out.dmg>` makes the `.dmg`.
 
-The installers aren't signed or notarised; see the [roadmap](ROADMAP.md) for signing, an Intel Mac build and AppImage/Flatpak. The preparation for Windows signing (SignPath Foundation) and the Microsoft Store is in [SIGNING.md](SIGNING.md) and [MICROSOFT_STORE.md](MICROSOFT_STORE.md); neither is part of the release yet.
+**Mac signing and notarisation.** When these five repository secrets are set (*Settings › Secrets and variables › Actions*), the *Release* workflow signs the Mac program and `.dmg` with the Developer ID certificate (hardened runtime, secure timestamp), has Apple notarise the `.dmg` and staples the ticket, so it opens with no warning. Without them it signs ad hoc as before, so forks and test runs still work.
+
+| Secret | What it is |
+| --- | --- |
+| `MAC_CERT_P12` | The *Developer ID Application* certificate and its private key, exported from Keychain Access as a `.p12`, then `base64 -i cert.p12 \| pbcopy` |
+| `MAC_CERT_PASSWORD` | The password chosen when exporting the `.p12` |
+| `MAC_NOTARY_APPLE_ID` | The Apple ID's email |
+| `MAC_NOTARY_PASSWORD` | An app-specific password made at account.apple.com › Sign-In and Security |
+| `MAC_TEAM_ID` | The 10-character Team ID (developer.apple.com › Membership details) |
+
+The certificate lasts five years and the program membership renews yearly (note the dates here when set up). Windows installers aren't signed yet; see the [roadmap](ROADMAP.md) for signing, an Intel Mac build and AppImage/Flatpak. The preparation for Windows signing (SignPath Foundation) and the Microsoft Store is in [SIGNING.md](SIGNING.md) and [MICROSOFT_STORE.md](MICROSOFT_STORE.md); neither is part of the release yet.
 
 ## Package managers (Homebrew, winget, Arch)
 
@@ -75,4 +85,4 @@ Each release also attaches `SHA256SUMS` (a checksum for every file) and `roomton
 
 Nothing is published automatically: each of these puts the project's name on someone else's service and needs an account, so a person does it, once per release, after the release is out and its files are downloadable. To make the files by hand for any release: `gh release download vX.Y.Z -p '*' -D dist && (cd dist && sha256sum -- * > ../SHA256SUMS) && packaging/package-managers/render.sh X.Y.Z SHA256SUMS out`.
 
-The installers aren't signed, so macOS and Windows still ask for confirmation the first time whichever way Roomtone is installed.
+Windows installers aren't signed, and the Mac one isn't until the secrets above are set, so they still ask for confirmation the first time whichever way Roomtone is installed.

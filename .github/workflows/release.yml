@@ -41,8 +41,38 @@ jobs:
           sudo apt-get install -y libxkbcommon-dev libgtk-3-dev libwayland-dev \
             libxcb-render0-dev libxcb-shape0-dev libxcb-xfixes0-dev libssl-dev
 
+      # Signing (macOS): only when the Apple secrets are set in the repository; without them the
+      # build is signed ad hoc as before. See docs/RELEASING.md.
+      - name: Import the Mac signing certificate
+        if: runner.os == 'macOS'
+        env:
+          MAC_CERT_P12: ${{ secrets.MAC_CERT_P12 }}
+          MAC_CERT_PASSWORD: ${{ secrets.MAC_CERT_PASSWORD }}
+        run: |
+          [ -n "$MAC_CERT_P12" ] || { echo "No Apple certificate set; signing ad hoc."; exit 0; }
+          kc="$RUNNER_TEMP/roomtone.keychain-db"
+          pw="$(uuidgen)"
+          security create-keychain -p "$pw" "$kc"
+          security set-keychain-settings -lut 3600 "$kc"
+          security unlock-keychain -p "$pw" "$kc"
+          echo "$MAC_CERT_P12" | base64 --decode > "$RUNNER_TEMP/cert.p12"
+          security import "$RUNNER_TEMP/cert.p12" -P "$MAC_CERT_PASSWORD" -A -t cert -f pkcs12 -k "$kc"
+          rm "$RUNNER_TEMP/cert.p12"
+          security set-key-partition-list -S apple-tool:,apple: -k "$pw" "$kc" > /dev/null
+          security list-keychains -d user -s "$kc" login.keychain-db
+          identity="$(security find-identity -v -p codesigning "$kc" | sed -n 's/.*"\(Developer ID Application:.*\)"/\1/p' | head -1)"
+          [ -n "$identity" ] || { echo "The certificate has no Developer ID Application identity." >&2; exit 1; }
+          echo "ROOMTONE_SIGN_IDENTITY=$identity" >> "$GITHUB_ENV"
+          echo "Signing as: $identity"
+
       - name: Build
         run: cargo build --release --locked
+
+      - name: Sign the program (macOS)
+        if: runner.os == 'macOS'
+        run: |
+          [ -n "${ROOMTONE_SIGN_IDENTITY:-}" ] || exit 0
+          codesign --force --options runtime --timestamp --sign "$ROOMTONE_SIGN_IDENTITY" target/release/roomtone
 
       - name: Version
         shell: bash
@@ -70,7 +100,15 @@ jobs:
 
       - name: Installer (macOS .dmg)
         if: runner.os == 'macOS'
+        env:
+          ROOMTONE_NOTARY_APPLE_ID: ${{ secrets.MAC_NOTARY_APPLE_ID }}
+          ROOMTONE_NOTARY_PASSWORD: ${{ secrets.MAC_NOTARY_PASSWORD }}
+          ROOMTONE_NOTARY_TEAM: ${{ secrets.MAC_TEAM_ID }}
         run: packaging/macos/build-dmg.sh "$VERSION" "dist/roomtone-v${VERSION}-macos-arm64.dmg"
+
+      - name: Remove the signing keychain
+        if: always() && runner.os == 'macOS'
+        run: security delete-keychain "$RUNNER_TEMP/roomtone.keychain-db" 2>/dev/null || true
 
       - name: Installer (Windows setup)
         if: runner.os == 'Windows'
