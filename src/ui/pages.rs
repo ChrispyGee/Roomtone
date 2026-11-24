@@ -2523,11 +2523,9 @@ impl App {
             ui.add_space(6.0);
             ui.label(RichText::new(t!("What's new in this version")).color(TEXT()).strong());
             for line in [
-                t!("Roomtone in the Windows notification area (experimental)"),
-                t!("Opens on virtual machines and Remote Desktop, where the graphics are basic (Windows)"),
-                t!("The Mac menu bar can show the room that's playing (experimental)"),
-                t!("Scenes can set sound and speaker layouts (experimental)"),
-                t!("The S1 badge no longer says S2 in French, Spanish and Italian"),
+                t!("A small player from the Mac menu bar and the Windows notification area (experimental)"),
+                t!("The Mac download is now signed and notarised by Apple"),
+                t!("Roomtone is now in the Microsoft Store (Windows)"),
             ] {
                 ui.horizontal_wrapped(|ui| {
                     ui.label(RichText::new("•").color(ACCENT()));

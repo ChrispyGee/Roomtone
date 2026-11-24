@@ -4,6 +4,10 @@ All notable changes to Roomtone. The format follows [Keep a Changelog](https://k
 
 ## [Unreleased]
 
+## [0.9.6] — 2026-11-24
+
+Roomtone in the Microsoft Store, a signed and notarised Mac download, and a small player from the Windows notification area.
+
 ### Added
 - **Roomtone is in the Microsoft Store.** [Get it from the Store](https://apps.microsoft.com/detail/9MXNHZ6K9NJQ): one-click install, automatic updates, signed by Microsoft. The Windows installer on GitHub stays unsigned (SignPath Foundation declined), so SmartScreen still warns there.
 - **Each release is sent to the Microsoft Store automatically.** Pushing a release tag builds the Store package and submits it to Partner Center for certification through Microsoft's Store command line (the Partner Center credentials are repository secrets; without them it only builds). Set-up and the draft-only option are in `docs/MICROSOFT_STORE.md`.

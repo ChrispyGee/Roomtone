@@ -54,20 +54,20 @@ There are no ads, no call-homes and you can run it completely offline.
 >
 > The Windows installer on GitHub isn't signed, so SmartScreen warns the first time: **More info › Run anyway**. Step by step, and how to check your download: **[Opening Roomtone for the first time](docs/FIRST_RUN.md)**.
 
-Download Roomtone 0.9.5 (or see [all releases](https://github.com/ChrispyGee/Roomtone/releases/latest) and what changed):
+Download Roomtone 0.9.6 (or see [all releases](https://github.com/ChrispyGee/Roomtone/releases/latest) and what changed):
 
 | System | Download | How |
 | --- | --- | --- |
-| macOS (Apple silicon) | [`roomtone-v0.9.5-macos-arm64.dmg`](https://github.com/ChrispyGee/Roomtone/releases/download/v0.9.5/roomtone-v0.9.5-macos-arm64.dmg) | Open it and drag Roomtone to Applications. Apple silicon only. Signed and notarised by Apple. |
+| macOS (Apple silicon) | [`roomtone-v0.9.6-macos-arm64.dmg`](https://github.com/ChrispyGee/Roomtone/releases/download/v0.9.6/roomtone-v0.9.6-macos-arm64.dmg) | Open it and drag Roomtone to Applications. Apple silicon only. Signed and notarised by Apple. |
 | Windows 10/11 (Store) | [Roomtone in the Microsoft Store](https://apps.microsoft.com/detail/9MXNHZ6K9NJQ) | One click, updates itself, signed by Microsoft. The easiest way. |
-| Windows 10/11 | [`roomtone-v0.9.5-windows-x64-setup.exe`](https://github.com/ChrispyGee/Roomtone/releases/download/v0.9.5/roomtone-v0.9.5-windows-x64-setup.exe) | Run it. It installs for your user only. SmartScreen warns because this installer isn't signed: choose *More info*, then *Run anyway* ([details](docs/FIRST_RUN.md#windows-10-and-11)). |
-| Debian, Ubuntu and similar | [`roomtone-v0.9.5-linux-x64.deb`](https://github.com/ChrispyGee/Roomtone/releases/download/v0.9.5/roomtone-v0.9.5-linux-x64.deb) | `sudo apt install ./roomtone-v0.9.5-linux-x64.deb` |
-| Fedora, openSUSE, RHEL and similar | [`roomtone-v0.9.5-linux-x64.rpm`](https://github.com/ChrispyGee/Roomtone/releases/download/v0.9.5/roomtone-v0.9.5-linux-x64.rpm) | `sudo dnf install ./roomtone-v0.9.5-linux-x64.rpm` |
+| Windows 10/11 | [`roomtone-v0.9.6-windows-x64-setup.exe`](https://github.com/ChrispyGee/Roomtone/releases/download/v0.9.6/roomtone-v0.9.6-windows-x64-setup.exe) | Run it. It installs for your user only. SmartScreen warns because this installer isn't signed: choose *More info*, then *Run anyway* ([details](docs/FIRST_RUN.md#windows-10-and-11)). |
+| Debian, Ubuntu and similar | [`roomtone-v0.9.6-linux-x64.deb`](https://github.com/ChrispyGee/Roomtone/releases/download/v0.9.6/roomtone-v0.9.6-linux-x64.deb) | `sudo apt install ./roomtone-v0.9.6-linux-x64.deb` |
+| Fedora, openSUSE, RHEL and similar | [`roomtone-v0.9.6-linux-x64.rpm`](https://github.com/ChrispyGee/Roomtone/releases/download/v0.9.6/roomtone-v0.9.6-linux-x64.rpm) | `sudo dnf install ./roomtone-v0.9.6-linux-x64.rpm` |
 | macOS (Homebrew) | `brew install --cask ChrispyGee/roomtone/roomtone` | Installs the same `.dmg` app from the project's tap. |
 
-**Advanced: no installer.** Most people should use the installers above. Each release also has plain archives holding just the program, the README and the licences, for running without installing: [`roomtone-v0.9.5-macos-arm64.tar.gz`](https://github.com/ChrispyGee/Roomtone/releases/download/v0.9.5/roomtone-v0.9.5-macos-arm64.tar.gz) and [`roomtone-v0.9.5-windows-x64.zip`](https://github.com/ChrispyGee/Roomtone/releases/download/v0.9.5/roomtone-v0.9.5-windows-x64.zip) (the bare program, without the app icon or the Mac app, handy for the command line, a computer with no screen, or a portable copy) and [`roomtone-v0.9.5-linux-x64.tar.gz`](https://github.com/ChrispyGee/Roomtone/releases/download/v0.9.5/roomtone-v0.9.5-linux-x64.tar.gz) (for Linux systems that use neither `.deb` nor `.rpm`).
+**Advanced: no installer.** Most people should use the installers above. Each release also has plain archives holding just the program, the README and the licences, for running without installing: [`roomtone-v0.9.6-macos-arm64.tar.gz`](https://github.com/ChrispyGee/Roomtone/releases/download/v0.9.6/roomtone-v0.9.6-macos-arm64.tar.gz) and [`roomtone-v0.9.6-windows-x64.zip`](https://github.com/ChrispyGee/Roomtone/releases/download/v0.9.6/roomtone-v0.9.6-windows-x64.zip) (the bare program, without the app icon or the Mac app, handy for the command line, a computer with no screen, or a portable copy) and [`roomtone-v0.9.6-linux-x64.tar.gz`](https://github.com/ChrispyGee/Roomtone/releases/download/v0.9.6/roomtone-v0.9.6-linux-x64.tar.gz) (for Linux systems that use neither `.deb` nor `.rpm`).
 
-Every download's checksum is in [`SHA256SUMS`](https://github.com/ChrispyGee/Roomtone/releases/download/v0.9.5/SHA256SUMS) (check with `shasum -a 256 -c` or `sha256sum -c`).
+Every download's checksum is in [`SHA256SUMS`](https://github.com/ChrispyGee/Roomtone/releases/download/v0.9.6/SHA256SUMS) (check with `shasum -a 256 -c` or `sha256sum -c`).
 
 ## Build it yourself
 
