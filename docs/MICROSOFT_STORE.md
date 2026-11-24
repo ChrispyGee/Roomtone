@@ -28,6 +28,23 @@ Microsoft signs the package, so people who install from the Store get no "unknow
 5. **Fill in the listing** with the text below, upload screenshots (use the ones in `docs/images/`), set the age rating and submit the `.msix`. The Store signs it, so it is uploaded unsigned.
 6. Each release afterwards: upload a new `.msix` with the new version; it goes through review again.
 
+## Automatic submission (each release)
+
+Pushing a release tag (`v*`) runs the *Microsoft Store package* workflow, which builds the `.msix` and, **if the credentials below are set**, sends it to Partner Center with Microsoft's `msstore` command line. Without the credentials it only builds, and says so; you upload by hand as in step 6 above.
+
+**Tried once (2026-11-24):** a by-hand run with **draft** signed in, created a submission and uploaded the package. A full submit-for-certification run hasn't happened yet. Written from Microsoft's documentation ([Store CLI in GitHub Actions](https://learn.microsoft.com/en-us/windows/apps/publish/msstore-dev-cli/github-actions)).
+
+**What it does:** it creates a new submission for Roomtone (Store ID `9MXNHZ6K9NJQ`) holding the package and keeps the listing as it is. **The repository variable `STORE_AUTO_SUBMIT` is `true` (set 2026-11-24), so a release tag submits for certification itself.** To go back to a draft that you submit by hand in Partner Center, delete the variable or set it to anything else (Settings › Secrets and variables › Actions › Variables); a by-hand run chooses with its own *submit* option. Certification still takes its usual time and the Store publishes when it passes. The workflow doesn't wait for the result: check Partner Center.
+
+**Set-up (maintainer, once).**
+1. In Partner Center: *Account settings › Tenant administration* to link a Microsoft Entra tenant (free; make one if you have none).
+2. In the Entra admin center (<https://entra.microsoft.com>): *App registrations › New registration* (any name, e.g. "Roomtone Store publisher"). Note the **Application (client) ID** and the **Directory (tenant) ID**. Under *Certificates & secrets* make a **client secret** and copy its value at once (it's shown once; it expires, so note the date).
+3. Back in Partner Center: *Account settings › User management › Microsoft Entra applications › Add Microsoft Entra application*, pick that app and give it the **Manager** role.
+4. Find the **Seller ID** (Partner Center *Account settings › Organization profile › Legal info*, shown as the Seller ID or Publisher ID).
+5. In GitHub (*Settings › Secrets and variables › Actions › Secrets*) add four secrets: `AZURE_AD_TENANT_ID`, `AZURE_AD_APPLICATION_CLIENT_ID`, `AZURE_AD_APPLICATION_SECRET`, `STORE_SELLER_ID`. **Don't paste them into a chat or an issue.**
+
+**Limits to know.** Only one submission can be in progress at a time: if one is waiting in Partner Center (draft or in certification), the next run will probably be refused until you finish or delete it. Microsoft documents this route for free apps (Roomtone is free). The client secret expires (note the date and renew it, or the run fails with an authentication error).
+
 ## Listing text (starting point)
 
 **Name:** Roomtone
