@@ -973,3 +973,6 @@ More…	Plus…
 Open a small player when the icon is clicked	Ouvrir un petit lecteur en cliquant sur l'icône
 The cover, a seek bar, the buttons and the volume. The full menu is under More, or a right click on the icon.	La pochette, une barre de lecture, les boutons et le volume. Le menu complet est sous Plus, ou par clic droit sur l'icône.
 The cover, a seek bar, the buttons and the volume. The full menu is a right click on the icon.	La pochette, une barre de lecture, les boutons et le volume. Le menu complet s'ouvre par clic droit sur l'icône.
+A small player from the Mac menu bar and the Windows notification area (experimental)	Un petit lecteur dans la barre des menus du Mac et la zone de notification de Windows (expérimental)
+The Mac download is now signed and notarised by Apple	Le téléchargement pour Mac est désormais signé et notarié par Apple
+Roomtone is now in the Microsoft Store (Windows)	Roomtone est maintenant dans le Microsoft Store (Windows)

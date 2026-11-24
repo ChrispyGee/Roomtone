@@ -1,6 +1,6 @@
 # Code signing policy
 
-**Status: Roomtone's releases are not code-signed yet.** This page is the policy we will follow when they are (see [docs/SIGNING.md](docs/SIGNING.md) for the plan). Until then, the first-run steps in [docs/FIRST_RUN.md](docs/FIRST_RUN.md) apply, and every release still carries a `SHA256SUMS` file.
+**Status (2026-11-24): the Mac download is signed with an Apple Developer ID and notarised by Apple (from 0.9.6); Windows users get a Microsoft-signed build from the [Microsoft Store](https://apps.microsoft.com/detail/9MXNHZ6K9NJQ); the Windows installer and the Linux packages on GitHub are not code-signed.** This page is the policy we follow for signed builds, and the one we will follow if the GitHub installer is signed later (see [docs/SIGNING.md](docs/SIGNING.md)). For the unsigned files, the first-run steps in [docs/FIRST_RUN.md](docs/FIRST_RUN.md) apply, and every release carries a `SHA256SUMS` file.
 
 ## What gets signed
 
