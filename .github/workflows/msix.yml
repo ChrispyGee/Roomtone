@@ -1,11 +1,24 @@
 name: Microsoft Store package
 
-# Builds the Store package (.msix) with Roomtone's Microsoft Store identity. It does not publish
-# anything: a Store submission is made by hand in Partner Center (docs/MICROSOFT_STORE.md), by
-# uploading the file this makes (the artifact). The Store signs the package itself. Runs by hand,
-# and when the packaging files change.
+# Builds the Store package (.msix) with Roomtone's Microsoft Store identity, and, when the Store
+# credentials are set (docs/MICROSOFT_STORE.md, "Automatic submission"), sends it to Partner Center
+# for a release tag. The Store signs the package itself. Runs when a release tag is pushed, by hand
+# (Actions > Run workflow) and when the packaging files change; the last only builds, for checking.
+#
+# What a submission does: it makes a NEW SUBMISSION in Partner Center holding this package. By
+# default it stops there as a draft (nothing goes to certification): open Partner Center, look
+# at it and press Submit. Set the repository variable STORE_AUTO_SUBMIT to true to have it submit
+# for certification itself. A by-hand run chooses with its own switch.
 on:
+  push:
+    tags: ["v*"]
   workflow_dispatch:
+    inputs:
+      submit:
+        description: "Send the package to Partner Center? none = build only; draft = create the submission but don't submit it; submit = submit it for certification"
+        type: choice
+        options: [none, draft, submit]
+        default: none
   pull_request:
     paths:
       - "packaging/windows/msix/**"
@@ -17,6 +30,7 @@ permissions:
 # Roomtone's identity in the Store, from Partner Center (Product management > Product identity).
 # These are public (they are inside every package), so they are not secrets.
 env:
+  STORE_PRODUCT_ID: 9MXNHZ6K9NJQ
   STORE_IDENTITY_NAME: ChrispyGee.Roomtone
   STORE_PUBLISHER: CN=7B70B259-0799-4538-B08C-67D102EE553E
   STORE_PUBLISHER_DISPLAY: ChrispyGee
@@ -42,3 +56,47 @@ jobs:
           name: msix-check
           path: dist/*.msix
           if-no-files-found: error
+
+  submit:
+    name: Send it to Partner Center
+    needs: msix
+    # Only for a release tag or a by-hand run that asked for it, never for a pull request.
+    if: github.event_name == 'push' || (github.event_name == 'workflow_dispatch' && inputs.submit != 'none')
+    runs-on: windows-latest
+    env:
+      # Skipped, with a note, when the Store credentials aren't set (as the Mac signing is).
+      STORE_TENANT_ID: ${{ secrets.AZURE_AD_TENANT_ID }}
+      STORE_CLIENT_ID: ${{ secrets.AZURE_AD_APPLICATION_CLIENT_ID }}
+      STORE_CLIENT_SECRET: ${{ secrets.AZURE_AD_APPLICATION_SECRET }}
+      STORE_SELLER_ID: ${{ secrets.STORE_SELLER_ID }}
+      # draft (no certification) unless the tag build is set to submit, or the run asked for it
+      STORE_COMMIT: ${{ (github.event_name == 'workflow_dispatch' && inputs.submit == 'submit') || (github.event_name == 'push' && vars.STORE_AUTO_SUBMIT == 'true') }}
+    steps:
+      - name: Check the Store credentials are set
+        id: creds
+        shell: pwsh
+        run: |
+          $have = $env:STORE_TENANT_ID -and $env:STORE_CLIENT_ID -and $env:STORE_CLIENT_SECRET -and $env:STORE_SELLER_ID
+          "have=$($have.ToString().ToLower())" >> $env:GITHUB_OUTPUT
+          if (-not $have) { Write-Output "::notice::The Microsoft Store credentials aren't set, so nothing was sent to Partner Center. Upload the package by hand (docs/MICROSOFT_STORE.md)." }
+      - uses: actions/download-artifact@v7
+        if: steps.creds.outputs.have == 'true'
+        with:
+          name: msix-check
+          path: dist
+      - name: Set up the Microsoft Store command line
+        if: steps.creds.outputs.have == 'true'
+        uses: microsoft/microsoft-store-apppublisher@v1.1
+      - name: Sign in to Partner Center
+        if: steps.creds.outputs.have == 'true'
+        shell: pwsh
+        run: msstore reconfigure --tenantId $env:STORE_TENANT_ID --sellerId $env:STORE_SELLER_ID --clientId $env:STORE_CLIENT_ID --clientSecret $env:STORE_CLIENT_SECRET
+      - name: Send the package
+        if: steps.creds.outputs.have == 'true'
+        shell: pwsh
+        run: |
+          $pkg = (Get-ChildItem dist -Filter *.msix | Select-Object -First 1).FullName
+          $extra = @()
+          if ($env:STORE_COMMIT -ne 'true') { $extra += '--noCommit' }
+          Write-Output "Sending $pkg to the Store product $env:STORE_PRODUCT_ID (commit: $env:STORE_COMMIT)"
+          msstore publish $pkg -id $env:STORE_PRODUCT_ID @extra
