@@ -12,11 +12,15 @@
 use std::cell::RefCell;
 use std::sync::atomic::{AtomicBool, AtomicIsize, Ordering};
 use std::sync::{Mutex, Once};
+use std::time::{Duration, Instant};
 
 use tray_icon::menu::{CheckMenuItem, IsMenuItem, Menu, MenuEvent, MenuItem, PredefinedMenuItem, Submenu};
 use tray_icon::{Icon, MouseButton, MouseButtonState, TrayIcon, TrayIconBuilder, TrayIconEvent};
-use windows_sys::Win32::Foundation::HWND;
-use windows_sys::Win32::UI::WindowsAndMessaging::{IsIconic, PostMessageW, SetForegroundWindow, ShowWindow, SW_HIDE, SW_RESTORE, SW_SHOW, WM_CLOSE};
+use windows_sys::Win32::Foundation::{HWND, RECT};
+use windows_sys::Win32::UI::WindowsAndMessaging::{
+    GetWindowLongPtrW, IsIconic, IsWindowVisible, PostMessageW, SetForegroundWindow, SetLayeredWindowAttributes, SetWindowLongPtrW, ShowWindow, SystemParametersInfoW, GWL_EXSTYLE,
+    LWA_ALPHA, SPI_GETWORKAREA, SW_HIDE, SW_RESTORE, SW_SHOW, SW_SHOWMINNOACTIVE, SW_SHOWNOACTIVATE, WM_CLOSE, WS_EX_LAYERED, WS_EX_TOOLWINDOW, WS_EX_TRANSPARENT,
+};
 
 use crate::backend::Backend;
 use crate::traymenu::{entries, run, Action, Entry};
@@ -33,6 +37,18 @@ static ACTIONS: Mutex<Vec<Action>> = Mutex::new(Vec::new());
 static WINDOW: AtomicIsize = AtomicIsize::new(0);
 static QUITTING: AtomicBool = AtomicBool::new(false);
 static HANDLERS: Once = Once::new();
+
+// The small player (`ui/popup.rs`): whether it is open, where, and what was done to the main window
+// so the player can be drawn while that is hidden.
+static CTX: Mutex<Option<eframe::egui::Context>> = Mutex::new(None);
+static POPUP_OPEN: AtomicBool = AtomicBool::new(false);
+static POPUP_AT: Mutex<Option<eframe::egui::Pos2>> = Mutex::new(None);
+static POPUP_CLOSED: Mutex<Option<Instant>> = Mutex::new(None);
+/// The main window was hidden (or minimised) when the player opened, so it was shown without being
+/// seen (see `cover_window`); this is how it was, to put it back.
+static COVERED: AtomicBool = AtomicBool::new(false);
+static WAS_MINIMISED: AtomicBool = AtomicBool::new(false);
+static SAVED_STYLE: AtomicIsize = AtomicIsize::new(0);
 
 /// Remember the window to show and hide (its handle), once it exists.
 pub fn set_window(hwnd: isize) {
@@ -59,6 +75,7 @@ pub fn hide_window() {
 
 /// Bring the window back to the front.
 pub fn show_window() {
+    uncover_window();
     if let Some(h) = window() {
         // SAFETY: `h` is the handle of this program's own window.
         unsafe {
@@ -66,6 +83,109 @@ pub fn show_window() {
             SetForegroundWindow(h);
         }
     }
+}
+
+/// The window is only drawn (and the app only runs) while it is shown, or while a second window it
+/// owns is. The small player is that second window, but it is created from the main window's
+/// drawing, so when the main window is hidden it is first shown without being seen: see-through,
+/// ignoring the mouse and with no taskbar button. `uncover_window` puts it back as it was.
+fn cover_window() {
+    let Some(h) = window() else { return };
+    // SAFETY: `h` is the handle of this program's own window.
+    unsafe {
+        let minimised = IsIconic(h) != 0;
+        if IsWindowVisible(h) != 0 && !minimised {
+            return;
+        }
+        let style = GetWindowLongPtrW(h, GWL_EXSTYLE);
+        SAVED_STYLE.store(style, Ordering::SeqCst);
+        WAS_MINIMISED.store(minimised, Ordering::SeqCst);
+        SetWindowLongPtrW(h, GWL_EXSTYLE, style | (WS_EX_LAYERED | WS_EX_TRANSPARENT | WS_EX_TOOLWINDOW) as isize);
+        SetLayeredWindowAttributes(h, 0, 0, LWA_ALPHA);
+        COVERED.store(true, Ordering::SeqCst);
+        ShowWindow(h, SW_SHOWNOACTIVATE);
+    }
+}
+
+fn uncover_window() {
+    if !COVERED.swap(false, Ordering::SeqCst) {
+        return;
+    }
+    let Some(h) = window() else { return };
+    // SAFETY: `h` is the handle of this program's own window.
+    unsafe {
+        ShowWindow(h, if WAS_MINIMISED.load(Ordering::SeqCst) { SW_SHOWMINNOACTIVE } else { SW_HIDE });
+        SetWindowLongPtrW(h, GWL_EXSTYLE, SAVED_STYLE.load(Ordering::SeqCst));
+    }
+}
+
+/// Remember the drawing context, so the icon's events can ask for a redraw.
+pub fn set_context(ctx: &eframe::egui::Context) {
+    if let Ok(mut c) = CTX.lock() {
+        if c.is_none() {
+            *c = Some(ctx.clone());
+        }
+    }
+}
+
+fn wake() {
+    if let Some(c) = CTX.lock().ok().and_then(|c| c.clone()) {
+        c.request_repaint();
+    }
+}
+
+/// Is the small player open?
+pub fn popup_open() -> bool {
+    POPUP_OPEN.load(Ordering::SeqCst)
+}
+
+/// Where the small player goes (top-left, in points).
+pub fn popup_at() -> eframe::egui::Pos2 {
+    POPUP_AT.lock().ok().and_then(|p| *p).unwrap_or_default()
+}
+
+/// Close the small player (it has closed itself, or the icon was clicked again).
+pub fn close_popup() {
+    if POPUP_OPEN.swap(false, Ordering::SeqCst) {
+        if let Ok(mut c) = POPUP_CLOSED.lock() {
+            *c = Some(Instant::now());
+        }
+        uncover_window();
+        wake();
+    }
+}
+
+/// Bring the main window forward from the small player.
+pub fn open_app() {
+    close_popup();
+    show_window();
+}
+
+/// Open the small player beside the icon at `icon` (left, top, right, bottom, in pixels), or close
+/// it if it is open.
+fn toggle_popup(icon: (f32, f32, f32, f32)) {
+    if popup_open() {
+        close_popup();
+        return;
+    }
+    // Clicking the icon moves the focus off the player, which closes it just before this click
+    // arrives; that click is the one that closed it, not a request to open it again.
+    if POPUP_CLOSED.lock().ok().and_then(|c| *c).is_some_and(|t| t.elapsed() < Duration::from_millis(400)) {
+        return;
+    }
+    let ctx = CTX.lock().ok().and_then(|c| c.clone());
+    let ppp = ctx.as_ref().map(|c| c.pixels_per_point()).unwrap_or(1.0).max(0.5);
+    let mut work = RECT { left: 0, top: 0, right: 1920, bottom: 1080 };
+    // SAFETY: `work` is a RECT, which is what this request fills in.
+    unsafe { SystemParametersInfoW(SPI_GETWORKAREA, 0, &mut work as *mut RECT as *mut _, 0) };
+    let size = (crate::ui::popup_size().0 * ppp, crate::ui::popup_size().1 * ppp);
+    let (x, y) = crate::ui::popup_place(icon, (work.left as f32, work.top as f32, work.right as f32, work.bottom as f32), size);
+    if let Ok(mut p) = POPUP_AT.lock() {
+        *p = Some(eframe::egui::pos2(x / ppp, y / ppp));
+    }
+    cover_window();
+    POPUP_OPEN.store(true, Ordering::SeqCst);
+    wake();
 }
 
 /// Quit: ask the window to close (it is shown first so it can answer), and if that hasn't ended
@@ -173,9 +293,20 @@ pub fn install(backend: &Backend, on: bool) {
                     });
                 }
             }
-            TrayIconEvent::Click { button: MouseButton::Left, button_state: MouseButtonState::Up, .. } | TrayIconEvent::DoubleClick { button: MouseButton::Left, .. } => {
-                show_window()
+            TrayIconEvent::Click { button: MouseButton::Left, button_state: MouseButtonState::Up, rect, position, .. } => {
+                if current_backend().is_some_and(|b| b.lock().config.menu_bar_player) {
+                    let (x, y) = (rect.position.x as f32, rect.position.y as f32);
+                    let icon = if rect.size.width > 0 {
+                        (x, y, x + rect.size.width as f32, y + rect.size.height as f32)
+                    } else {
+                        (position.x as f32, position.y as f32, position.x as f32, position.y as f32)
+                    };
+                    toggle_popup(icon);
+                } else {
+                    show_window()
+                }
             }
+            TrayIconEvent::DoubleClick { button: MouseButton::Left, .. } if !current_backend().is_some_and(|b| b.lock().config.menu_bar_player) => show_window(),
             _ => {}
         }));
     });

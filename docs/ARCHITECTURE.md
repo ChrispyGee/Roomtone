@@ -79,6 +79,7 @@ This is the map of the code. What the app should do is in [SPEC.md](../SPEC.md);
 | `layout.rs` | Speaker layouts: reads stereo pairs and soundbar sets from the topology (`parse`), builds the channel maps the speakers want (`pair_map`, `set_map`) |
 | `traymenu.rs` | The menu behind the menu-bar and notification-area icons: `entries` works out what it shows from the state, `run` does what an item says; shared and tested on every system |
 | `windows_tray.rs` | Windows only: the notification-area icon (`tray-icon`), the menu rebuilt on right-click, and hiding and showing the window with Win32 calls |
+| `ui/popup.rs` | The small player window the Windows notification-area icon opens (drawn with the app's own widgets as a second window; `ROOMTONE_TEST_POPUP=1` draws it beside the window on any system, to picture it) |
 | `macos_player.rs` | macOS only: the pop-over player that opens from the menu-bar icon (native AppKit controls; what it shows is `traymenu::player`, what it does goes through the normal commands) |
 | `macos_menubar.rs` | macOS only: the menu-bar icon and its menu, built each time it opens from the app's state (`entries`, pure and tested), plus hide and show for *Keep running when the window is closed* |
 | `macos_about.rs` | macOS only: the filled-in About box, the Dock icon and translated application-menu titles |
