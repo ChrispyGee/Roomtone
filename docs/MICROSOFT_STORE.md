@@ -1,6 +1,6 @@
 # Roomtone in the Microsoft Store
 
-**Status (2026-11-23): the name "Roomtone" is reserved and the package is built with the Store identity; nothing is submitted yet.** The package is not tested on a Windows PC, and the Store's review is untried. This page is for the maintainer.
+**Status (2026-11-24): certification passed and the maintainer published it in Partner Center; the listing is at https://apps.microsoft.com/detail/9MXNHZ6K9NJQ once it is live.** The package has been through the Store's review. This page is for the maintainer.
 
 **Roomtone's Store identity** (public, from Partner Center): package name `ChrispyGee.Roomtone`, publisher `CN=7B70B259-0799-4538-B08C-67D102EE553E`, publisher display name `ChrispyGee`, Store ID `9MXNHZ6K9NJQ`. They are set in `.github/workflows/msix.yml`, so the *Microsoft Store package* workflow (Actions › Run workflow) makes the file to upload, as the artifact `msix-check`.
 

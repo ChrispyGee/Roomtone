@@ -1,6 +1,6 @@
 # Signing Roomtone for Windows
 
-**Status (2026-11-23): prepared, not started with any service.** Nothing is signed yet. This page is for the maintainer: what is ready, what needs an account in the maintainer's own name, and what changes in the build once an account exists. The larger plan (including macOS and Linux) is the maintainer's own planning notes; [ROADMAP.md](ROADMAP.md) item 1 is the public summary.
+**Status (2026-11-24): SignPath Foundation declined the application (the project isn't established enough yet). Windows distribution goes through the Microsoft Store, which passed certification; the installer attached to GitHub releases stays unsigned.** Paid routes (Azure Artifact Signing, a commercial certificate) can be revisited if adoption grows, and SignPath can be asked again later. The rest of this page is kept for reference. This page is for the maintainer: what is ready, what needs an account in the maintainer's own name, and what changes in the build once an account exists. The larger plan (including macOS and Linux) is the maintainer's own planning notes; [ROADMAP.md](ROADMAP.md) item 1 is the public summary.
 
 ## What signing does and doesn't do
 
