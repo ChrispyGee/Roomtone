@@ -5,6 +5,7 @@ All notable changes to Roomtone. The format follows [Keep a Changelog](https://k
 ## [Unreleased]
 
 ### Added
+- **The same small player in the Windows notification area (experimental).** With *Open a small player when the icon is clicked* on, a left click on the icon opens a small window beside it: the room to choose, the cover, the song, a seek bar, previous, play or pause and next, the volume (and mute) and *Open Roomtone*. It closes when you click elsewhere or press Esc; a right click still opens the full menu. It works while Roomtone is hidden in the notification area. Not yet tried on a real Windows PC.
 - **A small player in the Mac menu bar (experimental).** *Settings › Appearance › Open a small player when the icon is clicked* (off by default, shown when the menu bar is on): clicking the icon opens a pop-over with the room to choose, the cover, the song, a seek bar, previous, play or pause and next, and the volume. *Open Roomtone* and *More…* sit at the bottom; *More…* and a right click (or Control-click) on the icon open the full menu as before.
 
 ## [0.9.5] — 2026-11-23

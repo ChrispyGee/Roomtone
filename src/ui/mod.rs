@@ -4,6 +4,15 @@ pub(crate) mod art;
 mod layout;
 mod lists;
 mod pages;
+mod popup;
+
+/// The small player's size in points, and where it goes (used by the Windows icon's code).
+#[cfg(target_os = "windows")]
+pub fn popup_size() -> (f32, f32) {
+    (popup::W, popup::H)
+}
+#[cfg(target_os = "windows")]
+pub use popup::place as popup_place;
 mod scenes;
 pub mod theme;
 pub mod widgets;
@@ -41,6 +50,9 @@ pub enum View {
 pub struct App {
     backend: Backend,
     art: ArtCache,
+    popup: popup::State,
+    #[cfg_attr(not(target_os = "windows"), allow(dead_code))]
+    popup_was_open: bool,
     view: View,
     stack: Vec<Item>,
     search: String,
@@ -193,6 +205,8 @@ impl App {
         App {
             backend,
             art: ArtCache::new(&cc.egui_ctx),
+            popup: popup::State::default(),
+            popup_was_open: false,
             view,
             stack: open_list.into_iter().collect(),
             search: preset_search.clone().unwrap_or_default(),
@@ -2310,10 +2324,26 @@ impl eframe::App for App {
                 (s.config.menu_bar && self.shot.is_none(), s.config.menu_bar_keep)
             };
             crate::windows_tray::install(&self.backend, on);
+            crate::windows_tray::set_context(ctx);
+            // The small player beside the icon, while it is open.
+            let open = crate::windows_tray::popup_open();
+            if open {
+                if !self.popup_was_open {
+                    self.popup.reset();
+                }
+                if !popup::show(ctx, &self.backend, &mut self.art, &mut self.popup, crate::windows_tray::popup_at(), &crate::windows_tray::open_app) {
+                    crate::windows_tray::close_popup();
+                }
+            }
+            self.popup_was_open = open;
             if on && keep && !crate::windows_tray::quitting() && ctx.input(|i| i.viewport().close_requested()) {
                 ctx.send_viewport_cmd(egui::ViewportCommand::CancelClose);
                 crate::windows_tray::hide_window();
             }
+        }
+        // A picture check: open the small player beside the window, as on Windows (ROOMTONE_TEST_POPUP=1).
+        if self.shot.is_none() && std::env::var_os("ROOMTONE_TEST_POPUP").is_some() {
+            popup::show(ctx, &self.backend, &mut self.art, &mut self.popup, pos2(60.0, 80.0), &|| {});
         }
         self.remember_the_window(ctx);
         let backend = self.backend.clone();
