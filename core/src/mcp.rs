@@ -36,6 +36,20 @@ pub struct Mcp {
 
 type ToolResult = Result<String, String>;
 
+thread_local! {
+    /// The machine-readable form of the reply a tool is just making (a tool call runs on one thread, so
+    /// this can't be mixed up with another call). Sent as `structuredContent` beside the text.
+    static STRUCTURED: std::cell::RefCell<Option<Value>> = const { std::cell::RefCell::new(None) };
+}
+
+fn set_structured(v: Value) {
+    STRUCTURED.with(|s| *s.borrow_mut() = Some(v));
+}
+
+fn take_structured() -> Option<Value> {
+    STRUCTURED.with(|s| s.borrow_mut().take())
+}
+
 /// The kinds of changing tool the person can switch on or off separately (Settings › Assistant
 /// link). *Look-only* switches every changing tool off whatever these say.
 #[derive(Clone, Copy, Debug, PartialEq, Eq)]
@@ -358,12 +372,18 @@ impl Mcp {
                         Err(e) => Ok(json!({"content": [{"type": "text", "text": e}], "isError": true})),
                     },
                     Some(_) => {
+                        take_structured();
                         let out = self.call(name, &args);
                         let (text, err) = match out {
                             Ok(t) => (t, false),
                             Err(e) => (e, true),
                         };
-                        Ok(json!({"content": [{"type": "text", "text": text}], "isError": err}))
+                        let mut reply = json!({"content": [{"type": "text", "text": text}], "isError": err});
+                        // The same answer as data, so an app doesn't have to read the sentences.
+                        if let (false, Some(data)) = (err, take_structured()) {
+                            reply["structuredContent"] = data;
+                        }
+                        Ok(reply)
                     }
                 }
             }
@@ -481,9 +501,18 @@ impl Mcp {
 
     fn list_text(&self, prefix: &str, items: &[Item], empty: &str) -> String {
         if items.is_empty() {
+            set_structured(json!({"items": []}));
             return empty.to_string();
         }
         let refs = self.remember(prefix, items);
+        set_structured(json!({"items": items.iter().zip(&refs).map(|(it, r)| json!({
+            "ref": r,
+            "title": it.title,
+            "detail": it.subtitle(),
+            "kind": kind_label(&it.class),
+            "browsable": it.is_container,
+            "art": it.art,
+        })).collect::<Vec<_>>()}));
         items.iter().zip(refs).map(|(it, r)| format!("[{r}] {} — {} ({})", it.title, it.subtitle(), kind_label(&it.class))).collect::<Vec<_>>().join("\n")
     }
 
@@ -584,7 +613,13 @@ impl Mcp {
                 // The look-up waits on the network with no lock held; the demo system never goes online.
                 let found = if demo { Ok(Some(crate::lyrics::demo(&title))) } else { crate::lyrics::find(&crate::lyrics::get_over_https, &artist, &title, &album, duration) };
                 match found {
-                    Ok(Some(l)) => Ok(lyrics_text(&l)),
+                    Ok(Some(l)) => {
+                        set_structured(json!({
+                            "kind": if l.instrumental { "instrumental" } else if l.synced { "timed" } else { "plain" },
+                            "lines": l.lines.iter().map(|x| json!({"time": if l.synced { json!(x.at) } else { Value::Null }, "text": x.text})).collect::<Vec<_>>(),
+                        }));
+                        Ok(lyrics_text(&l))
+                    }
                     Ok(None) => Err(format!("No lyrics found for “{title}”.")),
                     Err(e) => Err(format!("Couldn't look up the lyrics: {e}")),
                 }
@@ -783,10 +818,16 @@ impl Mcp {
                 let s = self.b.lock();
                 let (_, g) = s.find_group(&gid).ok_or("That room isn't available right now")?;
                 let q = g.queue.clone().unwrap_or_default();
+                let cur = g.now.track_no as usize;
+                set_structured(json!({"queue": q.iter().enumerate().map(|(i, it)| json!({
+                    "position": i + 1,
+                    "title": it.title,
+                    "detail": it.subtitle(),
+                    "current": i + 1 == cur && !g.now.is_stream,
+                })).collect::<Vec<_>>()}));
                 if q.is_empty() {
                     return Ok("The queue is empty.".to_string());
                 }
-                let cur = g.now.track_no as usize;
                 Ok(q.iter()
                     .enumerate()
                     .map(|(i, it)| format!("{}{}. {} — {}", if i + 1 == cur && !g.now.is_stream { "▶ " } else { "" }, i + 1, it.title, it.subtitle()))
@@ -999,6 +1040,21 @@ impl Mcp {
                 let s = self.b.lock();
                 let list = s.alarms.clone().unwrap_or_default();
                 let warning = if s.alarms_zone_unset { ZONE_UNSET_NOTE } else { "" };
+                set_structured(json!({
+                    "no_time_zone": s.alarms_zone_unset,
+                    "alarms": list.iter().map(|al| json!({
+                        "id": al.id,
+                        "hour": al.hour,
+                        "minute": al.minute,
+                        "time": format!("{:02}:{:02}", al.hour, al.minute),
+                        "days": recurrence_label(&al.recurrence),
+                        "room": self_name(&s, &al.room_uuid),
+                        "plays": if al.program_name.is_empty() { "chime".to_string() } else { al.program_name.clone() },
+                        "volume": al.volume,
+                        "fade_minutes": al.fade_min,
+                        "enabled": al.enabled,
+                    })).collect::<Vec<_>>(),
+                }));
                 if list.is_empty() {
                     return Ok(format!("{warning}No alarms yet."));
                 }
@@ -1473,6 +1529,38 @@ mod unit {
             }
         });
         format!("http://127.0.0.1:{port}/cover.png")
+    }
+
+    #[test]
+    fn lists_also_come_back_as_data() {
+        let m = link();
+        let call = |name: &str, args: Value| rpc(&m, 1, "tools/call", json!({"name": name, "arguments": args}))["result"].clone();
+        let fav = call("list_favorites", json!({}));
+        let items = fav["structuredContent"]["items"].as_array().expect("favorites as data");
+        assert!(!items.is_empty());
+        assert_eq!(items[0]["ref"], "fav1");
+        assert!(items[0]["title"].as_str().is_some() && items[0]["kind"].as_str().is_some() && items[0]["browsable"].is_boolean());
+        let text = fav["content"][0]["text"].as_str().unwrap();
+        assert!(text.starts_with("[fav1] "), "the sentences are still there: {text}");
+        // What was listed can be played by the ref it carries.
+        assert_eq!(call("browse", json!({}))["structuredContent"]["items"][0]["ref"], "b1");
+        let queue = call("get_queue", json!({"room": "Living Room"}));
+        let entries = queue["structuredContent"]["queue"].as_array().unwrap();
+        assert_eq!(entries[0]["position"], 1);
+        assert!(entries.iter().filter(|e| e["current"] == true).count() == 1, "one song is current: {entries:?}");
+        let alarms = call("list_alarms", json!({}));
+        assert!(alarms["structuredContent"]["alarms"].as_array().is_some() && alarms["structuredContent"]["no_time_zone"].is_boolean());
+        assert!(call("list_scenes", json!({}))["structuredContent"]["scenes"].is_array());
+        // A tool with nothing to list, or one that fails, carries no stale data from the one before.
+        let said = call("get_status", json!({}));
+        assert!(said.get("structuredContent").is_none(), "{said}");
+        let failed = call("get_lyrics", json!({"room": "Living Room"}));
+        assert_eq!(failed["isError"], true);
+        assert!(failed.get("structuredContent").is_none());
+        m.b.lock().config.show_lyrics = true;
+        let words = call("get_lyrics", json!({"room": "Living Room"}));
+        assert_eq!(words["structuredContent"]["kind"], "timed");
+        assert_eq!(words["structuredContent"]["lines"][0]["time"], 10.0);
     }
 
     #[test]

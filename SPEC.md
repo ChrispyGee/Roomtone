@@ -262,7 +262,7 @@ A tool in a switched-off group isn't listed and is refused with a plain sentence
   - Bodies up to 1 MB. A notification-only request returns 202.
 
 ### 6.3 Tools
-Rooms are given by name (exact, or a unique part of a name) or id. Leaving the room out means the room selected in the app. Look-only tools are marked *(read)*; the others are hidden and refused in look-only mode.
+Tools that list things (`list_favorites`, `list_playlists`, `list_recent`, `search`, `browse`, `get_queue`, `list_alarms`, `list_scenes`, `get_lyrics`) also return the same answer as data in the reply's `structuredContent` (MCP 2025-06-18), beside the text: `items` (`ref`, `title`, `detail`, `kind`, `browsable`, `art`), `queue` (`position`, `title`, `detail`, `current`), `alarms` and `no_time_zone`, `scenes`, or `kind` and `lines` for lyrics. The text is unchanged, so assistants and older apps are unaffected. Rooms are given by name (exact, or a unique part of a name) or id. Leaving the room out means the room selected in the app. Look-only tools are marked *(read)*; the others are hidden and refused in look-only mode.
 
 | Tool | Does |
 | --- | --- |

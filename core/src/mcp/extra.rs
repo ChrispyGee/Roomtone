@@ -248,6 +248,14 @@ impl Mcp {
             },
             "list_scenes" => {
                 let scenes = self.b.lock().config.scenes.clone();
+                set_structured(json!({"scenes": scenes.iter().map(|s| json!({
+                    "name": s.name,
+                    "rooms": s.rooms.iter().map(|r| json!({"room": r.room, "volume": r.volume})).collect::<Vec<_>>(),
+                    "group": s.group,
+                    "play": s.play,
+                    "shuffle": s.shuffle,
+                    "sleep_minutes": s.sleep_minutes,
+                })).collect::<Vec<_>>()}));
                 if scenes.is_empty() {
                     return Ok("No scenes saved yet. Make one in the app's Scenes page.".into());
                 }
