@@ -4,17 +4,17 @@ Read this before changing anything. It's the short, checkable version of [CONTRI
 
 ## What this is
 
-Roomtone: a Rust + eframe/egui desktop controller for S1 and S2 wireless speaker systems, which also runs headless and serves MCP to AI assistants. Single binary crate; the entry point is `src/main.rs`.
+Roomtone: a Rust + eframe/egui desktop controller for S1 and S2 wireless speaker systems, which also runs headless and serves MCP to AI assistants. Two crates in one workspace: **`core/`** (`roomtone-core`: everything that talks to speakers, with no window code, so other programs such as phone apps can use it) and the desktop program at the root (`src/main.rs`, the window in `src/ui/`, the tray and menu bar, the command line).
 
 **Source of truth for behaviour: [SPEC.md](SPEC.md).** If your change alters what the app does, update SPEC.md in the same change. If SPEC.md and the code disagree, ask which is right; don't silently pick one.
 
 ## Commands
 
 ```sh
-cargo build                                        # must succeed
-cargo test                                         # must pass (includes the translation check)
-cargo fmt                                          # always run; CI checks it
-cargo clippy --all-targets -- -D warnings          # must be clean
+cargo build --workspace                            # must succeed
+cargo test --workspace                             # must pass (includes the translation check)
+cargo fmt --all                                    # always run; CI checks it
+cargo clippy --workspace --all-targets -- -D warnings   # must be clean
 cargo run -- --demo                                # try it with made-up rooms
 cargo run -- --screenshot shots/now.png            # picture of the demo window; look at it
 printf '%s\n' '{"jsonrpc":"2.0","id":1,"method":"initialize","params":{}}' \
@@ -27,19 +27,19 @@ For MCP tests, set `HOME` (Windows: `APPDATA`) to a scratch folder such as `targ
 
 | Need to change | Look in |
 | --- | --- |
-| What a button or command does | `src/backend.rs` (`Cmd`, `run_common`, `run_live`) and `src/demo.rs` (`apply`) |
-| A speaker call | `src/net/speaker.rs` (protocol notes: `docs/PROTOCOL.md`) |
+| What a button or command does | `core/src/backend.rs` (`Cmd`, `run_common`, `run_live`) and `core/src/demo.rs` (`apply`) |
+| A speaker call | `core/src/net/speaker.rs` (protocol notes: `docs/PROTOCOL.md`) |
 | A page or control | `src/ui/pages.rs`, `src/ui/mod.rs`, `src/ui/widgets.rs` |
-| Data the UI shows | `src/model.rs` (`AppState`) |
-| Saved settings | `src/config.rs` |
-| Assistant tools | `src/mcp.rs` (`tools()`, `Mcp::call`) |
-| Wording and languages | `t!`/`tn!`/`n_!` from `src/i18n.rs`; tables in `locales/*.tsv` |
-| Music sources | `src/sources/` |
-| Command-line help | `src/help.rs`, `src/main.rs` |
+| Data the UI shows | `core/src/model.rs` (`AppState`) |
+| Saved settings | `core/src/config.rs` |
+| Assistant tools | `core/src/mcp.rs` (`tools()`, `Mcp::call`) |
+| Wording and languages | `t!`/`tn!`/`n_!` from `core/src/i18n.rs`; tables in `locales/*.tsv` |
+| Music sources | `core/src/sources/` |
+| Command-line help | `core/src/help.rs`, `src/main.rs` |
 
 ## Rules (checklist)
 
-- [ ] Every new user-visible string is wrapped in `t!`/`tn!` (or `n_!` for constants, shown with `i18n::tr`) **and** added to all five `locales/*.tsv` files with placeholders kept. `cargo test` tells you what's missing. MCP replies and CLI help stay English. A **new source file** with `t!` strings must also be added to `SOURCES` in `src/i18n.rs`, or the test won't see its phrases.
+- [ ] Every new user-visible string is wrapped in `t!`/`tn!` (or `n_!` for constants, shown with `i18n::tr`) **and** added to all five `locales/*.tsv` files with placeholders kept. `cargo test` tells you what's missing. MCP replies and CLI help stay English. A **new source file** with `t!` strings must also be added to `SOURCES` in `core/src/i18n.rs`, or the test won't see its phrases.
 - [ ] Wording is plain and friendly: say what happened and what to do; no bare error codes or jargon.
 - [ ] New behaviour is a `Cmd`, handled in the backend **and** working in the demo system. The window, `--headless` and MCP must behave the same.
 - [ ] No network calls on the UI thread; don't hold the `AppState` lock across a network call.

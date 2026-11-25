@@ -3014,6 +3014,7 @@ dependencies = [
  "objc2-foundation 0.3.2",
  "raw-window-handle",
  "rfd",
+ "roomtone-core",
  "roxmltree",
  "serde",
  "serde_json",
@@ -3023,6 +3024,21 @@ dependencies = [
  "ureq",
  "windows-sys 0.61.2",
  "winit",
+]
+
+[[package]]
+name = "roomtone-core"
+version = "0.9.6"
+dependencies = [
+ "if-addrs",
+ "image",
+ "lofty",
+ "roxmltree",
+ "serde",
+ "serde_json",
+ "sha2",
+ "socket2",
+ "ureq",
 ]
 
 [[package]]

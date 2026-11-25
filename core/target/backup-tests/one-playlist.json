@@ -1,0 +1,132 @@
+{
+  "roomtone_backup": 1,
+  "created": 1795628187,
+  "app_version": "0.9.6",
+  "system": {
+    "generation": "S2",
+    "rooms": []
+  },
+  "sonos_favorites": [],
+  "sonos_playlists": [
+    {
+      "title": "Copy 1795628188047214000",
+      "tracks": [
+        {
+          "id": "A:TRACKS/5/0",
+          "parent_id": "A:ALBUM/5",
+          "title": "Simmer Down",
+          "artist": "The Copper Pots",
+          "album": "Northern Soul Kitchen",
+          "class": "object.item.audioItem.musicTrack",
+          "uri": "demo-track:5:0",
+          "meta": "",
+          "art": null,
+          "description": "",
+          "is_container": false,
+          "duration": 185.0,
+          "source": "",
+          "genre": "",
+          "track_no": 0
+        },
+        {
+          "id": "A:TRACKS/3/1",
+          "parent_id": "A:ALBUM/3",
+          "title": "Harbor Lights",
+          "artist": "Marlow Quartet",
+          "album": "Low Tide Sessions",
+          "class": "object.item.audioItem.musicTrack",
+          "uri": "demo-track:3:1",
+          "meta": "",
+          "art": null,
+          "description": "",
+          "is_container": false,
+          "duration": 287.0,
+          "source": "",
+          "genre": "",
+          "track_no": 0
+        },
+        {
+          "id": "A:TRACKS/2/3",
+          "parent_id": "A:ALBUM/2",
+          "title": "Blue Hour",
+          "artist": "Juniper & The Echoes",
+          "album": "Velvet Static",
+          "class": "object.item.audioItem.musicTrack",
+          "uri": "demo-track:2:3",
+          "meta": "",
+          "art": null,
+          "description": "",
+          "is_container": false,
+          "duration": 251.0,
+          "source": "",
+          "genre": "",
+          "track_no": 0
+        },
+        {
+          "id": "A:TRACKS/5/3",
+          "parent_id": "A:ALBUM/5",
+          "title": "Late Supper",
+          "artist": "The Copper Pots",
+          "album": "Northern Soul Kitchen",
+          "class": "object.item.audioItem.musicTrack",
+          "uri": "demo-track:5:3",
+          "meta": "",
+          "art": null,
+          "description": "",
+          "is_container": false,
+          "duration": 233.0,
+          "source": "",
+          "genre": "",
+          "track_no": 0
+        },
+        {
+          "id": "A:TRACKS/3/2",
+          "parent_id": "A:ALBUM/3",
+          "title": "Saltwater Waltz",
+          "artist": "Marlow Quartet",
+          "album": "Low Tide Sessions",
+          "class": "object.item.audioItem.musicTrack",
+          "uri": "demo-track:3:2",
+          "meta": "",
+          "art": null,
+          "description": "",
+          "is_container": false,
+          "duration": 265.0,
+          "source": "",
+          "genre": "",
+          "track_no": 0
+        },
+        {
+          "id": "A:TRACKS/0/4",
+          "parent_id": "A:ALBUM/0",
+          "title": "After the Rain",
+          "artist": "The Paper Lanterns",
+          "album": "Golden Hour Drive",
+          "class": "object.item.audioItem.musicTrack",
+          "uri": "demo-track:0:4",
+          "meta": "",
+          "art": null,
+          "description": "",
+          "is_container": false,
+          "duration": 226.0,
+          "source": "",
+          "genre": "",
+          "track_no": 0
+        }
+      ]
+    }
+  ],
+  "alarms": [],
+  "app": {
+    "folders": [],
+    "stations": [],
+    "podcasts": [],
+    "services": [],
+    "favorites": [],
+    "groups": [],
+    "scenes": [],
+    "language": "",
+    "theme": "",
+    "speaker_events": false
+  }
+}

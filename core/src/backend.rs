@@ -201,21 +201,23 @@ impl Cmd {
     }
 }
 
-/// Asks the window (if there is one) to draw again after the shared state changed.
+/// Tells whoever is showing the state (a window, a phone screen) that it changed and should be
+/// drawn again. The backend knows nothing about how: the caller supplies a function.
 #[derive(Clone, Default)]
-pub struct Waker(Option<eframe::egui::Context>);
+pub struct Waker(Option<Arc<dyn Fn() + Send + Sync>>);
 
 impl Waker {
-    pub fn window(ctx: eframe::egui::Context) -> Waker {
-        Waker(Some(ctx))
+    /// Call `f` (from any thread) whenever the shared state has changed.
+    pub fn new(f: impl Fn() + Send + Sync + 'static) -> Waker {
+        Waker(Some(Arc::new(f)))
     }
-    /// For running without a window.
+    /// For running without anything to wake (headless, tests).
     pub fn none() -> Waker {
         Waker(None)
     }
     pub fn request_repaint(&self) {
-        if let Some(c) = &self.0 {
-            c.request_repaint();
+        if let Some(f) = &self.0 {
+            f();
         }
     }
 }
