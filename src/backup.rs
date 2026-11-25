@@ -354,7 +354,13 @@ impl Backup {
         for a in &self.alarms {
             let Some((uuid, _)) = rooms.iter().find(|(_, n)| n.eq_ignore_ascii_case(&a.room)) else {
                 r.failed.alarms += 1;
-                r.notes.push(format!("Alarm at {:02}:{:02}: there's no room called “{}” on this system.", a.hour, a.minute, a.room));
+                let here: Vec<&str> = rooms.iter().map(|(_, n)| n.as_str()).collect();
+                let what = if here.is_empty() {
+                    "Roomtone can't see any rooms on this system right now, so try again in a moment".to_string()
+                } else {
+                    format!("this system's rooms are {}", here.join(", "))
+                };
+                r.notes.push(format!("Alarm at {:02}:{:02}: there's no room called “{}” on this system ({what}).", a.hour, a.minute, a.room));
                 continue;
             };
             if have.iter().any(|h| h.room_uuid == *uuid && h.hour == a.hour && h.minute == a.minute && h.recurrence == a.recurrence && h.program_uri == a.program_uri) {
@@ -622,6 +628,7 @@ mod unit {
         let r = b.restore(Some(&garage_only), &mut cfg, Sections::default(), "H");
         assert_eq!((r.added.alarms, r.failed.alarms), (0, 1));
         assert!(r.notes.iter().any(|n| n.contains("no room called “Bedroom”")), "{:?}", r.notes);
+        assert!(r.notes.iter().any(|n| n.contains("this system's rooms are Garage")), "the note says which rooms there are: {:?}", r.notes);
         assert!(garage_only.alarms.borrow().is_empty());
     }
 
