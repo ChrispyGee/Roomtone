@@ -87,6 +87,7 @@ pub(super) fn tools() -> Vec<(&'static str, &'static str, Value, bool)> {
                 "rooms": {"type": "array", "items": {"type": "object", "properties": {"room": {"type": "string"}, "volume": {"type": "integer", "minimum": 0, "maximum": 100}}, "required": ["room"]}, "minItems": 1},
                 "group": {"type": "boolean", "default": true},
                 "play": {"type": "string", "description": "A favorite or playlist name; leave out to keep what's playing."},
+                "shuffle": {"type": "boolean", "default": false, "description": "Turn shuffle on for what plays (false leaves the shuffle setting alone)."},
                 "sleep_minutes": {"type": "integer", "minimum": 0, "maximum": 720}
             }, "required": ["name", "rooms"]}),
             true,
@@ -264,6 +265,9 @@ impl Mcp {
                         let mut line = format!("{}: {}", s.name, rooms.join(", "));
                         if !s.play.is_empty() {
                             line.push_str(&format!("; plays {}", s.play));
+                        }
+                        if s.shuffle {
+                            line.push_str(", shuffled");
                         }
                         if s.sleep_minutes > 0 {
                             line.push_str(&format!("; stops after {} minutes", s.sleep_minutes));
@@ -496,6 +500,7 @@ impl Mcp {
                     rooms,
                     group: bool_arg("group").unwrap_or(true),
                     play: str_arg("play").unwrap_or_default(),
+                    shuffle: bool_arg("shuffle").unwrap_or(false),
                     sleep_minutes: int_arg("sleep_minutes").unwrap_or(0).clamp(0, 720) as u32,
                     // An assistant can't set a speaker layout (that needs a person's confirmation), but
                     // saving a scene again must not throw away the one a person gave it.

@@ -675,6 +675,7 @@ mod unit {
             rooms: vec![SceneRoom { room: "Kitchen".into(), volume: Some(20), bass: Some(3), night: Some(true), ..Default::default() }],
             group: true,
             play: "Dinner Party".into(),
+            shuffle: true,
             sleep_minutes: 90,
             layout: None,
         });

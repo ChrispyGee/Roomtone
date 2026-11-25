@@ -22,7 +22,7 @@ fn summary(sc: &Scene) -> String {
         .collect();
     let mut parts = vec![rooms.join(", ")];
     if !sc.play.is_empty() {
-        parts.push(t!("plays {name}", name = sc.play));
+        parts.push(if sc.shuffle { t!("plays {name}, shuffled", name = sc.play) } else { t!("plays {name}", name = sc.play) });
     }
     if sc.rooms.iter().any(|r| r.has_sound()) {
         parts.push(t!("with sound settings").to_string());
@@ -92,7 +92,7 @@ impl App {
 
     pub(super) fn new_scene(&mut self, s: &AppState) -> Scene {
         let household = s.household().map(|h| h.id.clone()).unwrap_or_default();
-        Scene { name: String::new(), household, rooms: vec![], group: true, play: String::new(), sleep_minutes: 0, layout: None }
+        Scene { name: String::new(), household, rooms: vec![], group: true, play: String::new(), shuffle: false, sleep_minutes: 0, layout: None }
     }
 
     /// A short row of scene buttons for Home.
@@ -116,10 +116,32 @@ impl App {
 
     pub(super) fn scenes_page(&mut self, ui: &mut Ui, s: &AppState) {
         self.header(ui, t!("Scenes"), t!("One click sets up your rooms: who plays together, how loud, what plays, and when it stops"));
-        if pill(ui, Some(Icon::Plus), t!("New scene"), true).clicked() {
-            let sc = self.new_scene(s);
-            self.scene_editor = Some((None, sc));
-        }
+        ui.horizontal(|ui| {
+            if pill(ui, Some(Icon::Plus), t!("New scene"), true).clicked() {
+                let sc = self.new_scene(s);
+                self.scene_editor = Some((None, sc));
+            }
+            // What's playing now, as a scene: the person only has to name it.
+            if let Some(gid) = s.selected_group.clone() {
+                if pill(ui, None, t!("Save what's playing as a scene"), false)
+                    .on_hover_text(t!(
+                        "Starts a new scene from the selected room or group: its rooms and volumes, shuffle and sleep timer, and the favorite it is playing if it can tell which."
+                    ))
+                    .clicked()
+                {
+                    let mut playable: Vec<Item> = vec![];
+                    for id in ["FV:2", "SQ:"] {
+                        if let Some(Browse::Ready(v)) = s.browse.get(id) {
+                            playable.extend(v.iter().cloned());
+                        }
+                    }
+                    playable.extend(s.config.favorites.iter().cloned());
+                    if let Some(sc) = crate::scene::capture(s, &gid, &playable) {
+                        self.scene_editor = Some((None, sc));
+                    }
+                }
+            }
+        });
         ui.add_space(12.0);
         let scenes: Vec<Scene> = self.scenes_here(s).into_iter().cloned().collect();
         if scenes.is_empty() {
@@ -274,6 +296,7 @@ impl App {
                     }
                 }
             });
+            ui.checkbox(&mut sc.shuffle, t!("Shuffle"));
             ui.add_space(8.0);
             ui.horizontal(|ui| {
                 let mut timer = sc.sleep_minutes > 0;
