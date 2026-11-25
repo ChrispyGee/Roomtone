@@ -1478,6 +1478,8 @@ mod unit {
     #[test]
     fn lyrics_are_asked_for_only_when_switched_on_and_come_back_as_text() {
         let m = link();
+        // Another test may have saved the switch as on in the shared settings folder: start from off.
+        m.b.lock().config.show_lyrics = false;
         let (off, err) = tool(&m, "get_lyrics", json!({"room": "Living Room"}));
         assert!(err && off.contains("switched off"), "{off}");
         m.b.lock().config.show_lyrics = true;
