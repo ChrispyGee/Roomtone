@@ -173,6 +173,18 @@ pub fn of(track_uri: &str, media_uri: &str, track_meta: &str) -> Quality {
     if let Some(m) = &mime {
         q.details.push(("Format (MIME)".into(), m.clone()));
     }
+    // An adaptive (HLS) stream from a service: it carries several bitrates and the speaker doesn't
+    // say which it picked, so say that rather than leave the bare address type.
+    let hls = track_uri.starts_with("x-sonosapi-hls")
+        || media_uri.starts_with("x-sonosapi-hls")
+        || mime.as_deref().is_some_and(|m| {
+            let m = m.to_lowercase();
+            m == "application/x-mpegurl" || m == "application/vnd.apple.mpegurl"
+        });
+    if hls {
+        q.details.push(("Stream type".into(), "Adaptive (HLS) stream from a service".into()));
+        q.details.push(("Bitrate".into(), "Not reported: an adaptive stream switches between several bitrates and the speaker doesn't say which it is using".into()));
+    }
     let (format, lossless) = mime.as_deref().and_then(from_mime).or_else(|| from_extension(track_uri)).or_else(|| from_scheme(track_uri)).unzip();
     q.format = q.format.take().or(format.map(String::from));
     q.lossless = lossless.unwrap_or(false);
@@ -289,6 +301,21 @@ fn apply_stream_info(q: &mut Quality, text: &str) {
 #[cfg(test)]
 mod unit {
     use super::*;
+
+    #[test]
+    fn an_adaptive_service_stream_is_explained() {
+        let uri = "x-sonosapi-hls:stations%7eplayable%7e%7ebbc_radio_two?sid=325&flags=288&sn=4";
+        let meta =
+            r#"<DIDL-Lite xmlns="urn:schemas-upnp-org:metadata-1-0/DIDL-Lite/"><item><res protocolInfo="sonos.com-http:*:application/x-mpegURL:*">x</res></item></DIDL-Lite>"#;
+        let q = of(uri, "", meta);
+        assert_eq!(q.format.as_deref(), Some("AAC"));
+        assert_eq!(q.bitrate_kbps, None, "no figure is made up");
+        assert!(q.details.iter().any(|(k, v)| k == "Stream type" && v.contains("HLS")), "{:?}", q.details);
+        assert!(q.details.iter().any(|(k, v)| k == "Bitrate" && v.contains("Not reported")), "{:?}", q.details);
+        assert!(!q.report().contains("bbc"), "the address isn't copied into reports");
+        // An ordinary stream isn't called adaptive.
+        assert!(!of("x-rincon-mp3radio://s.example.com/live", "", "").details.iter().any(|(k, _)| k == "Stream type"));
+    }
 
     #[test]
     fn a_stream_fills_in_only_what_the_speaker_left_out() {
