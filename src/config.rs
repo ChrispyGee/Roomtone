@@ -482,6 +482,10 @@ pub struct Config {
     /// lrclib.net for them.
     #[serde(default)]
     pub show_lyrics: bool,
+    /// Ask the playing internet stream for its bitrate and rate (experimental; off until switched
+    /// on). Opens the stream's own address once per stream, reading only its reply headers.
+    #[serde(default)]
+    pub probe_streams: bool,
     /// How much the volume keyboard shortcut (Ctrl or Cmd with the up and down arrows) changes the
     /// volume: 1, 2, 5 or 10.
     #[serde(default = "default_volume_step")]
@@ -543,6 +547,7 @@ impl Default for Config {
             last_version_check: 0,
             media_keys: true,
             show_lyrics: false,
+            probe_streams: false,
             volume_step: 5,
             show_alarms: None,
             show_scenes: None,

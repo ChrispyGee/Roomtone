@@ -63,6 +63,7 @@ mod s2;
 mod scene;
 mod sources;
 mod status;
+mod stream_probe;
 #[cfg(test)]
 mod test_support;
 mod traymenu;

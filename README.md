@@ -33,6 +33,7 @@ There are no ads, no call-homes and you can run it completely offline.
 - **Assistant link (MCP)**: 60 tools (status, playback, volume, browse and search, favorites, queue, grouping, scenes, alarms, rooms, services, stations, podcasts, backups and updates), live resources that assistants can follow for changes, ready-made prompts and name suggestions. Off by default, with look-only mode, a separate switch for each kind of change (saved items, alarms, names and sound, speaker updates, saving files into a folder you choose) and an access key.
 - **Command line**: `roomtone play`, `volume 30 --room Kitchen`, `scene "Movie night"`, `backup file.json` and more control the running app, for scripts, Stream Deck and Shortcuts.
 - **Backup and restore** of favorites, playlists and alarms, and playlists as M3U, PLS, XSPF or CSV files, to move between S1 and S2 or between apps.
+- **Stream details (experimental)**: an optional switch shows an internet radio stream's bitrate and sample rate in Technical details, read from the stream itself (off by default).
 - **Lyrics (experimental)**: an optional switch shows the words of the song that's playing, following along when they're timed (fetched from lrclib.net; off by default).
 - **Podcasts that remember**: skip back and forward, where you stopped, *Continue listening*. **Listening history** kept on this computer only, with a History page.
 - A window that remembers its size and position.
@@ -125,7 +126,7 @@ Step-by-step guides for macOS, Windows and Linux (including starting it automati
 | Windows | `%APPDATA%\Roomtone\` |
 | Linux | `~/.config/roomtone/` |
 
-`config.json` holds your settings, scenes, sign-ins and the assistant access key, readable only by you; every setting is explained in the [settings guide](docs/SETTINGS.md). `speakers.json` remembers your speakers for a fast start, `songs.json` keeps song details, `history.json` your listening history, `podcast-progress.json` where you stopped in episodes and `window.json` the window's size and position. Nothing is sent anywhere except to your speakers, the music sources you use, the services you sign in to and, only if you switch it on, lrclib.net for lyrics. There's no telemetry.
+`config.json` holds your settings, scenes, sign-ins and the assistant access key, readable only by you; every setting is explained in the [settings guide](docs/SETTINGS.md). `speakers.json` remembers your speakers for a fast start, `songs.json` keeps song details, `history.json` your listening history, `podcast-progress.json` where you stopped in episodes and `window.json` the window's size and position. Nothing is sent anywhere except to your speakers, the music sources you use, the services you sign in to and, only if you switch them on, lrclib.net for lyrics and the playing stream's own address for its bitrate. There's no telemetry.
 
 ## Contributing
 

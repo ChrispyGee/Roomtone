@@ -47,6 +47,36 @@ impl Quality {
         v
     }
 
+    /// Fill in what the speaker left out from what the stream said about itself (the speaker's own
+    /// figures win), and list it in the details as coming from the stream.
+    pub fn add_stream(&mut self, p: &crate::stream_probe::Probe) {
+        if self.bitrate_kbps.is_none() {
+            self.bitrate_kbps = p.bitrate_kbps;
+        }
+        if self.sample_rate.is_none() {
+            self.sample_rate = p.sample_rate;
+        }
+        if self.channels.is_none() {
+            self.channels = p.channels;
+        }
+        if self.format.is_none() {
+            let found = p.content_type.as_deref().and_then(from_mime);
+            self.format = found.map(|(f, _)| f.to_string());
+            self.lossless = found.is_some_and(|(_, l)| l);
+        }
+        for (label, value) in [
+            ("Bitrate (stream header)", p.bitrate_kbps.map(|k| format!("{k} kbps"))),
+            ("Sample rate (stream header)", p.sample_rate.map(khz)),
+            ("Channels (stream header)", p.channels.map(|c| c.to_string())),
+            ("Format (stream header)", p.content_type.clone()),
+            ("Station name (stream header)", p.name.clone()),
+        ] {
+            if let Some(v) = value {
+                self.details.push((label.into(), v));
+            }
+        }
+    }
+
     /// The details as plain text, for pasting into a bug report. No addresses, names or titles.
     pub fn report(&self) -> String {
         let mut out = String::new();
@@ -259,6 +289,31 @@ fn apply_stream_info(q: &mut Quality, text: &str) {
 #[cfg(test)]
 mod unit {
     use super::*;
+
+    #[test]
+    fn a_stream_fills_in_only_what_the_speaker_left_out() {
+        let probe = crate::stream_probe::Probe {
+            bitrate_kbps: Some(128),
+            sample_rate: Some(44100),
+            channels: Some(2),
+            content_type: Some("audio/mpeg".into()),
+            name: Some("Jazz FM".into()),
+        };
+        // The speaker said only the format: the stream adds the rest, listed as from the stream.
+        let mut q = of("x-rincon-mp3radio://s.example.com/live", "", "");
+        assert_eq!(q.format.as_deref(), Some("MP3"));
+        q.add_stream(&probe);
+        assert_eq!(q.labels(), vec!["MP3".to_string(), "44.1 kHz".into(), "128 kbps".into()]);
+        assert!(q.details.iter().any(|(k, v)| k == "Bitrate (stream header)" && v == "128 kbps"), "{:?}", q.details);
+        // What the speaker did say is kept.
+        let mut q = Quality { bitrate_kbps: Some(320), ..Default::default() };
+        q.add_stream(&probe);
+        assert_eq!(q.bitrate_kbps, Some(320));
+        // With no format from the speaker, the stream's content type gives one.
+        let mut q = Quality::default();
+        q.add_stream(&probe);
+        assert_eq!(q.format.as_deref(), Some("MP3"));
+    }
 
     fn didl(inner: &str) -> String {
         format!(
