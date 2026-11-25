@@ -274,11 +274,13 @@ impl App {
         // An internet stream: with the look-up on, ask the stream itself what it says about its sound.
         let mut stream_note: Option<String> = None;
         let probing = self.backend.lock().config.probe_streams;
-        if probing && now.is_stream {
-            if let Some(url) = crate::stream_probe::address(&now.uri, &now.media_uri) {
+        // A stream's address, or for a podcast episode (one file) its own address.
+        let address = if now.is_stream { crate::stream_probe::address(&now.uri, &now.media_uri) } else { crate::stream_probe::file_address(&now.uri) };
+        if probing {
+            if let Some(url) = address {
                 self.ask_once(&format!("probe:{url}"), std::time::Duration::from_secs(60), Cmd::ProbeStream(url.clone()));
                 match self.backend.lock().probes.get(&url) {
-                    Some(crate::stream_probe::State::Found(p)) => q.add_stream(p),
+                    Some(crate::stream_probe::State::Found(p)) => q.add_stream(p, now.duration),
                     Some(crate::stream_probe::State::Failed(why)) => stream_note = Some(t!("The stream didn't answer: {why}", why = why).to_string()),
                     _ => {}
                 }
@@ -3279,17 +3281,17 @@ impl App {
                 ui.set_min_height(40.0);
                 ui.vertical(|ui| {
                     ui.set_max_width((ui.available_width() - 64.0).max(120.0));
-                    ui.label(RichText::new(t!("Show an internet stream's bitrate in Technical details")).color(TEXT()));
+                    ui.label(RichText::new(t!("Show the bitrate of streams and podcasts in Technical details")).color(TEXT()));
                     ui.label(
                         RichText::new(t!(
-                            "Speakers often report only the format of an internet radio stream. With this on, Roomtone opens the playing stream's own web address once, as the speaker does, and reads the bitrate and sample rate it announces in its reply, then closes it again without playing anything. Only the stream's address is contacted, and nothing about you or your speakers is sent. Some streams say nothing. This is experimental and may change."
+                            "Speakers often report only the format of an internet radio stream or a podcast episode. With this on, Roomtone opens the playing stream's or episode's own web address once, as the speaker does, and reads what its reply says: the bitrate and sample rate of a stream, or the size of an episode, from which it works out an average bitrate using the episode's length. It then closes the connection without playing anything. Only that address is contacted (a podcast host may pass it on to the host that serves the file), and nothing about you or your speakers is sent. Some streams say nothing. This is experimental and may change."
                         ))
                         .size(12.0)
                         .color(TEXT_DIM()),
                     );
                 });
                 ui.with_layout(Layout::right_to_left(Align::Center), |ui| {
-                    toggle(ui, &mut on, t!("Show an internet stream's bitrate in Technical details"));
+                    toggle(ui, &mut on, t!("Show the bitrate of streams and podcasts in Technical details"));
                 });
             });
         });

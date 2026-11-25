@@ -1,4 +1,4 @@
-//! The stream's own description of its sound (experimental, off until the person switches it on).
+//! The stream's (or podcast episode's) own description of its sound (experimental, off until the person switches it on).
 //!
 //! A speaker usually reports only the *format* of an internet radio stream. The stream itself often
 //! says more in the headers of its reply: Shoutcast and Icecast servers send `icy-br` (the bitrate),
@@ -20,6 +20,8 @@ pub struct Probe {
     pub content_type: Option<String>,
     /// The station's own name for itself (`icy-name`), shown only in the details.
     pub name: Option<String>,
+    /// The size of a file (`Content-Length`): for a podcast episode, which gives an average bitrate.
+    pub size_bytes: Option<u64>,
 }
 
 impl Probe {
@@ -34,6 +36,13 @@ pub enum State {
     Found(Probe),
     /// The stream couldn't be reached or said nothing useful; tried again the next time it plays.
     Failed(String),
+}
+
+/// The web address of a podcast episode or other single file the speaker is playing: only the
+/// song's own address, and only a plain `http(s)` one (a queue or a service has none).
+pub fn file_address(track_uri: &str) -> Option<String> {
+    let u = track_uri.trim();
+    ((u.starts_with("http://") || u.starts_with("https://")) && address(u, "").is_some()).then(|| u.to_string())
 }
 
 /// The web address of the stream a speaker was given, if it is a plain `http(s)` one: the song's
@@ -79,6 +88,7 @@ pub fn from_headers(header: &dyn Fn(&str) -> Option<String>) -> Probe {
     }
     p.sample_rate = p.sample_rate.or_else(|| header("icy-sr").and_then(|v| num(&v)));
     p.content_type = header("content-type").map(|v| v.split(';').next().unwrap_or("").trim().to_string()).filter(|v| !v.is_empty());
+    p.size_bytes = header("content-length").and_then(|v| v.trim().parse::<u64>().ok()).filter(|n| *n > 0);
     p.name = header("icy-name").map(|v| v.trim().chars().take(80).collect::<String>()).filter(|v| !v.is_empty());
     p
 }
@@ -103,7 +113,7 @@ pub fn probe_over_http(url: &str) -> Result<Probe, String> {
 
 /// Made-up details for the demo system, which never goes online.
 pub fn demo() -> Probe {
-    Probe { bitrate_kbps: Some(128), sample_rate: Some(44100), channels: Some(2), content_type: Some("audio/aacp".into()), name: Some("Demo Radio".into()) }
+    Probe { bitrate_kbps: Some(128), sample_rate: Some(44100), channels: Some(2), content_type: Some("audio/aacp".into()), name: Some("Demo Radio".into()), size_bytes: None }
 }
 
 #[cfg(test)]
@@ -124,6 +134,10 @@ mod unit {
         assert_eq!(address("https://example.com/list.m3u8", ""), None, "a segmented or playlist address isn't the stream");
         assert_eq!(address("http://example.com/radio.pls", ""), None);
         assert_eq!(address("", ""), None);
+        assert_eq!(file_address("https://traffic.example.com/ep/1.mp3?x=1").as_deref(), Some("https://traffic.example.com/ep/1.mp3?x=1"));
+        assert_eq!(file_address("x-rincon-mp3radio://s.example.com/live"), None, "a stream isn't a file");
+        assert_eq!(file_address("x-rincon-queue:RINCON_1#0"), None);
+        assert_eq!(file_address("https://example.com/list.m3u8"), None);
     }
 
     #[test]
@@ -138,6 +152,8 @@ mod unit {
         assert_eq!((p.sample_rate, p.channels), (Some(44100), Some(2)));
         assert_eq!(p.content_type.as_deref(), Some("audio/aacp"));
         assert_eq!(p.name.as_deref(), Some("Jazz FM"));
+        assert_eq!(p.size_bytes, None);
+        assert_eq!(from_headers(&headers(&[("Content-Length", " 48000000 ")])).size_bytes, Some(48_000_000));
         let only_info = from_headers(&headers(&[("ice-audio-info", "ice-bitrate=192")]));
         assert_eq!(only_info.bitrate_kbps, Some(192));
         let list = from_headers(&headers(&[("icy-br", "96,48")]));
