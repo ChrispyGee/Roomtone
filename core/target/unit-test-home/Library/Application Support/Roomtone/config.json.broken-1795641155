@@ -1,0 +1,81 @@
+{
+  "folders": [],
+  "stations": [],
+  "podcasts": [],
+  "services": [
+    "local",
+    "radio",
+    "podcasts",
+    "archive"
+  ],
+  "accounts": [],
+  "favorites": [],
+  "groups": [
+    {
+      "name": "Upstairs",
+      "household": "demo-s2",
+      "rooms": [
+        "D-BEDROOM",
+        "D-STUDY"
+      ]
+    }
+  ],
+  "scenes": [],
+  "language": "auto",
+  "mcp": {
+    "enabled": true,
+    "allow_control": true,
+    "allow_saved": true,
+    "allow_alarms": true,
+    "allow_names": true,
+    "allow_updates": false,
+    "allow_files": false,
+    "files_folder": "",
+    "allow_network": false,
+    "port": 8790,
+    "token": "0c306891b9e9963ca5042bcaf7aac5ba"
+  },
+  "frame": {
+    "enabled": false,
+    "port": 8791,
+    "token": "dd54b5da0f7bad155cd9893f54fccea6",
+    "room": ""
+  },
+  "theme": "auto",
+  "high_contrast": false,
+  "menu_bar": false,
+  "menu_bar_keep": true,
+  "menu_bar_title": false,
+  "menu_bar_player": false,
+  "alarm_timers": [],
+  "alarm_fades": [],
+  "volume_limits": {
+    "rooms": [],
+    "quiet": {
+      "enabled": false,
+      "from": 1320,
+      "to": 420,
+      "max": 20
+    },
+    "keep_down": false
+  },
+  "speaker_events": false,
+  "check_new_versions": false,
+  "last_version_check": 1795641155,
+  "media_keys": true,
+  "show_lyrics": false,
+  "probe_streams": false,
+  "volume_step": 10,
+  "show_alarms": null,
+  "show_scenes": null,
+  "allow_update_install": false,
+  "allow_layout": false,
+  "remember_history": false,
+  "room_order": [
+    "D-BEDROOM",
+    "D-LIVING",
+    "D-KITCHEN",
+    "D-PATIO",
+    "D-STUDY"
+  ]
+}

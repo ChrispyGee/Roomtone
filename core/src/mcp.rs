@@ -1534,6 +1534,8 @@ mod unit {
     #[test]
     fn lists_also_come_back_as_data() {
         let m = link();
+        // Another test may have saved the lyrics switch as on in the shared settings folder.
+        m.b.lock().config.show_lyrics = false;
         let call = |name: &str, args: Value| rpc(&m, 1, "tools/call", json!({"name": name, "arguments": args}))["result"].clone();
         let fav = call("list_favorites", json!({}));
         let items = fav["structuredContent"]["items"].as_array().expect("favorites as data");
