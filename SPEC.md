@@ -241,9 +241,9 @@ Both modes re-read the settings file every 2 s, so switching the link off in the
 | --- | --- | --- |
 | Let AI assistants use Roomtone | **off** | When off, every request is refused (stdio: error −32001) and the HTTP port is closed |
 | Assistants can change things | on | Off: only the look-only tools are listed; the others are refused. Look-only beats every switch below |
-| Saved items | on | Within *change things*: `add_favorite`, `remove_favorite`, `save_queue_as_playlist`, `add_station`, `remove_station`, `subscribe_podcast`, `unsubscribe_podcast`, `save_group`, `delete_saved_group`, `save_scene`, `delete_scene` |
+| Saved items | on | Within *change things*: `add_favorite`, `remove_favorite`, `save_queue_as_playlist`, `add_station`, `remove_station`, `subscribe_podcast`, `unsubscribe_podcast`, `save_group`, `delete_saved_group`, `save_scene`, `delete_scene`, `keep_in_step` |
 | Alarms | on | `create_alarm`, `delete_alarm`, `set_alarm_enabled` |
-| Room names and sound | on | `rename_room`, `set_sound`, `identify_speaker` |
+| Room names and sound | on | `rename_room`, `set_sound`, `identify_speaker`, `set_volume_limits` |
 | Speaker updates | **off** | `install_update` (still refused unless `confirm: true`) |
 | Save files | **off** | `save_backup`, `export_playlist`. Needs a **folder** (`files_folder`) chosen in Settings: files are written only there, a bare file name goes in it, a longer path must already point into it, `..` is refused, the name must end in `.json` and nothing is overwritten |
 | Allow other computers | off | Off: listen on 127.0.0.1 only and accept only local `Host` names. On: listen on all interfaces (Settings only, not on the command line) |
@@ -305,6 +305,9 @@ Tools that list things (`list_favorites`, `list_playlists`, `list_recent`, `sear
 | `pause_all` | Pause every playing group (or one system's) |
 | `rename_room` | New room name (up to 40 characters) |
 | `create_alarm`, `delete_alarm` | `time` "HH:MM", `days` (daily, weekdays, weekends, once, or day names), `volume`, `minutes`, optional `ref` to play (otherwise the chime) |
+| `get_volume_limits`, `set_volume_limits` | Read and change the volume safeguards (each room's highest volume, quiet hours as HH:MM and a highest volume, *keep down*). Changing them is in *Names and sound*. Same rules as the Volume safeguards setting |
+| `add_speaker` | Add a speaker by its IPv4 address when it isn't found; says whether a new room appeared |
+| `keep_in_step` | Preview (default) or `apply` copying favorites, playlists and alarms between systems, one way (`from` S1 or S2) or both; only adds. Applying is in *Saved items* |
 | `save_group`, `delete_saved_group` | Named groups for `use_saved_group` (rooms of one system) |
 | `list_services` *(read)*, `check_service` *(read)* | Each service's state; an end-to-end check of a connected one without playing anything |
 | `find_speakers` *(read)* | Search the network again |
@@ -441,7 +444,7 @@ Quick checks that a change hasn't broken behaviour. Each needs no real speakers 
 
 1. `cargo test` passes: 103 unit tests, including that every phrase is translated and placeholders are kept.
 2. `roomtone --screenshot shots/x.png` saves a non-blank picture of the demo system within a few seconds.
-3. `roomtone --mcp --demo` with an `initialize` line, then `tools/list`, lists 58 tools when control is allowed (with speaker updates and saving files left off, as they are by default; 61 with every switch on) and 20 when look-only.
+3. `roomtone --mcp --demo` with an `initialize` line, then `tools/list`, lists 62 tools when control is allowed (with speaker updates and saving files left off, as they are by default; 65 with every switch on) and 21 when look-only.
 4. With the link off, `tools/call` answers error −32001.
 5. Over HTTP, a request without the key gets 401, one with `Origin: https://example.com` gets 403, and `--mcp-off` closes the port within ~2 s.
 6. In the demo: `play_along` from "Living Room" to "Office", then `playback next` on Living Room, changes Office's track too.
