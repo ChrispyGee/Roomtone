@@ -162,6 +162,12 @@ pub(super) fn is_saved_playlist(item: &Item) -> bool {
     item.parent_id == "SQ:" && item.is_container && item.id.starts_with("SQ:")
 }
 
+/// A waker that asks this window to draw again.
+fn window_waker(ctx: &egui::Context) -> Waker {
+    let ctx = ctx.clone();
+    Waker::new(move || ctx.request_repaint())
+}
+
 impl App {
     pub fn new(cc: &eframe::CreationContext<'_>, shot: Option<PathBuf>, demo: bool, view: Option<&str>) -> App {
         let preset_search = view.and_then(|v| v.strip_prefix("search:")).map(String::from);
@@ -202,11 +208,11 @@ impl App {
             _ => View::Home,
         };
         theme::apply(&cc.egui_ctx);
-        let backend = Backend::start(Waker::window(cc.egui_ctx.clone()), demo);
+        let backend = Backend::start(window_waker(&cc.egui_ctx), demo);
         // Picture checks mustn't take the assistant link's port from a running copy.
         if shot.is_none() {
-            crate::mcp::start_http(crate::mcp::Mcp::new(backend.clone()), Waker::window(cc.egui_ctx.clone()));
-            crate::frame::start(crate::frame::Frame::new(backend.clone()), Waker::window(cc.egui_ctx.clone()));
+            crate::mcp::start_http(crate::mcp::Mcp::new(backend.clone()), window_waker(&cc.egui_ctx));
+            crate::frame::start(crate::frame::Frame::new(backend.clone()), window_waker(&cc.egui_ctx));
         }
         App {
             backend,

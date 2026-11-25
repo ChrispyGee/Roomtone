@@ -559,9 +559,23 @@ impl Default for Config {
     }
 }
 
+/// A folder chosen by the program embedding the core (see `Config::set_data_dir`).
+static DATA_DIR_OVERRIDE: std::sync::Mutex<Option<PathBuf>> = std::sync::Mutex::new(None);
+
 impl Config {
+    /// Use this folder for everything the app keeps (settings, history, known speakers), instead of
+    /// the usual place under the home folder. For a phone, where an app has its own sandbox folder.
+    /// Call it once, before starting the backend.
+    #[allow(dead_code)] // used by the mobile apps, which supply their own folder
+    pub fn set_data_dir(dir: PathBuf) {
+        *DATA_DIR_OVERRIDE.lock().unwrap_or_else(|e| e.into_inner()) = Some(dir);
+    }
+
     /// The folder where the app keeps its own files.
     pub fn data_dir() -> Option<PathBuf> {
+        if let Some(dir) = DATA_DIR_OVERRIDE.lock().unwrap_or_else(|e| e.into_inner()).clone() {
+            return Some(dir);
+        }
         if cfg!(target_os = "windows") {
             // %APPDATA%\Roomtone
             let mut p = PathBuf::from(std::env::var_os("APPDATA").or_else(|| std::env::var_os("USERPROFILE"))?);
