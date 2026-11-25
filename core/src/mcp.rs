@@ -1733,15 +1733,16 @@ mod unit {
         let m = link();
         m.b.lock().config.mcp.allow_saved = true;
         m.b.lock().config.mcp.allow_names = true;
+        // The unit tests share one settings folder, so nothing here may switch a limit on (another
+        // test could then find its volumes lowered): times are set with quiet hours left off.
         ok(
             &m,
             "set_volume_limits",
-            json!({"room_limits": [{"room": "Bedroom", "max": 40}], "quiet_enabled": true, "quiet_from": "21:30", "quiet_to": "06:45", "quiet_max": 15, "keep_down": true}),
+            json!({"room_limits": [{"room": "Bedroom", "max": 100}], "quiet_enabled": false, "quiet_from": "21:30", "quiet_to": "06:45", "quiet_max": 15, "keep_down": false}),
         );
         let text = ok(&m, "get_volume_limits", json!({}));
-        assert!(text.contains("Bedroom is limited to 40") && text.contains("21:30") && text.contains("06:45"), "{text}");
-        ok(&m, "set_volume_limits", json!({"room_limits": [{"room": "Bedroom", "max": 100}]}));
-        assert!(ok(&m, "get_volume_limits", json!({})).contains("No room has its own limit"));
+        assert!(text.contains("No room has its own limit") && text.contains("Quiet hours are off"), "{text}");
+        m.b.send_and_wait(Cmd::SetVolumeLimits(crate::config::VolumeLimits::default()), Duration::from_secs(5)).unwrap();
         assert!(tool(&m, "set_volume_limits", json!({"quiet_from": "25:00"})).1, "a time that isn't one is refused");
         assert!(tool(&m, "add_speaker", json!({"address": "not an address"})).1);
         let (text, _) = tool(&m, "keep_in_step", json!({}));
