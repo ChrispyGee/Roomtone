@@ -6,8 +6,6 @@ All notable changes to Roomtone. The format follows [Keep a Changelog](https://k
 
 ### Added
 - **A `get_lyrics` assistant tool.** It returns the words of what a room is playing (timed `[mm:ss.cc] words` lines, or plain text), using the same lrclib.net look-up as the Lyrics section, and only when the *Lyrics* switch is on. Look-only, experimental, 61 tools now. It is what lets the phone apps show lyrics too.
-
-### Added
 - **Keep systems in step (Settings › Backups, with two or more systems).** Adds the favorites, playlists and alarms one system has to the others so they match, one way or both ways, after showing what each system would get. It only adds; nothing is changed or removed. Alarms need rooms with the same names, and favorites from a music service only play where that service is connected. Tried on the demo system only.
 
 ### Fixed
