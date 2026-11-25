@@ -4,6 +4,9 @@ All notable changes to Roomtone. The format follows [Keep a Changelog](https://k
 
 ## [Unreleased]
 
+### Added
+- **Keep systems in step (Settings › Backups, with two or more systems).** Adds the favorites, playlists and alarms one system has to the others so they match, one way or both ways, after showing what each system would get. It only adds; nothing is changed or removed. Alarms need rooms with the same names, and favorites from a music service only play where that service is connected. Tried on the demo system only.
+
 ### Fixed
 - **Restoring a backup now lets you choose which systems to restore onto.** It used to restore only onto the system selected in the sidebar, so a backup made on S1 restored with the S2 system selected reported its alarm rooms as missing. *Restore to* lists each system with its rooms and ticks the ones that match the backup; each ticked system gets its own report. When an alarm's room isn't found, the note lists the rooms that system has.
 

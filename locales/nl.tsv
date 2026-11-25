@@ -984,3 +984,17 @@ The stream didn't answer: {why}	De stream antwoordde niet: {why}
 Restore to	Herstellen naar
 Alarms are matched to rooms by name, so they only come back on a system that has those rooms. Things already on a system are skipped.	Wekkers worden op naam aan kamers gekoppeld en komen dus alleen terug op een systeem dat die kamers heeft. Wat een systeem al heeft, wordt overgeslagen.
 Adds what's in a backup file to the systems you choose. Nothing that's already there is changed or removed.	Voegt de inhoud van een back-upbestand toe aan de systemen die je kiest. Niets wat er al is, wordt gewijzigd of verwijderd.
+Add them	Voeg ze toe
+Adds the favorites, playlists and alarms one system has to the others, so they match. Nothing is changed or removed, so something you delete in one system stays in the others. You see what would be added before anything is.	Voegt de favorieten, afspeellijsten en wekkers die een systeem heeft toe aan de andere, zodat ze overeenkomen. Er wordt niets gewijzigd of verwijderd, dus wat je in het ene systeem verwijdert, blijft in de andere staan. Je ziet wat er toegevoegd zou worden voordat het gebeurt.
+Alarms are matched to rooms by name, so they only come across to a system that has those rooms. Favorites from a music service only play where that service is connected.	Wekkers worden op naam aan kamers gekoppeld, dus ze komen alleen op een systeem dat die kamers heeft. Favorieten van een muziekdienst spelen alleen waar die dienst is gekoppeld.
+Copy one way, from	Eenrichtingskopie, van
+Couldn't be added: {counts}	Kon niet worden toegevoegd: {counts}
+Couldn't reach the {system} system, so nothing was changed.	Het {system}-systeem was niet bereikbaar, dus er is niets gewijzigd.
+Keep systems in step	Systemen gelijk houden
+Lists	Lijsten
+Nothing to add: it already has everything.	Niets toe te voegen: het heeft al alles.
+See what would be added	Bekijk wat er toegevoegd zou worden
+What would be added	Wat er toegevoegd zou worden
+Would get: {counts}	Zou krijgen: {counts}
+{favorites} favorites · {playlists} playlists · {alarms} alarms	{favorites} favorieten · {playlists} afspeellijsten · {alarms} wekkers
+…and {n} more	…en {n} meer

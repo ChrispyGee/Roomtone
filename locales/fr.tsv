@@ -984,3 +984,17 @@ The stream didn't answer: {why}	Le flux n'a pas répondu : {why}
 Restore to	Restaurer sur
 Alarms are matched to rooms by name, so they only come back on a system that has those rooms. Things already on a system are skipped.	Les alarmes sont associées aux pièces par leur nom : elles ne reviennent que sur un système qui a ces pièces. Ce qu'un système a déjà est ignoré.
 Adds what's in a backup file to the systems you choose. Nothing that's already there is changed or removed.	Ajoute le contenu d'un fichier de sauvegarde aux systèmes choisis. Rien de ce qui existe déjà n'est modifié ni supprimé.
+Add them	Les ajouter
+Adds the favorites, playlists and alarms one system has to the others, so they match. Nothing is changed or removed, so something you delete in one system stays in the others. You see what would be added before anything is.	Ajoute aux autres systèmes les favoris, listes de lecture et alarmes qu'un système possède, pour qu'ils correspondent. Rien n'est modifié ni supprimé : ce que vous supprimez dans un système reste dans les autres. Vous voyez ce qui serait ajouté avant que cela ne le soit.
+Alarms are matched to rooms by name, so they only come across to a system that has those rooms. Favorites from a music service only play where that service is connected.	Les alarmes sont associées aux pièces par leur nom : elles ne passent que sur un système qui a ces pièces. Les favoris d'un service de musique ne jouent que là où ce service est connecté.
+Copy one way, from	Copier dans un seul sens, depuis
+Couldn't be added: {counts}	Impossible d'ajouter : {counts}
+Couldn't reach the {system} system, so nothing was changed.	Le système {system} est injoignable, rien n'a été modifié.
+Keep systems in step	Synchroniser les systèmes
+Lists	Listes
+Nothing to add: it already has everything.	Rien à ajouter : il a déjà tout.
+See what would be added	Voir ce qui serait ajouté
+What would be added	Ce qui serait ajouté
+Would get: {counts}	Recevrait : {counts}
+{favorites} favorites · {playlists} playlists · {alarms} alarms	{favorites} favoris · {playlists} listes de lecture · {alarms} alarmes
+…and {n} more	…et {n} de plus

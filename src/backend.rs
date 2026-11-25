@@ -168,6 +168,13 @@ pub enum Cmd {
     RestoreBackup(std::path::PathBuf, crate::backup::Sections),
     /// The same, onto the chosen systems (by household id), one after another.
     RestoreBackupTo(std::path::PathBuf, crate::backup::Sections, Vec<String>),
+    /// Work out what keeping these systems in step would add (nothing is written): the systems
+    /// (household ids), which lists, and `Some(source)` to copy one way from that system.
+    PreviewSync(Vec<String>, crate::backup::Sections, Option<String>),
+    /// Do it: add what's missing to each system, after the person has seen the preview.
+    ApplySync(Vec<String>, crate::backup::Sections, Option<String>),
+    /// Forget a preview or result.
+    DismissSync,
     /// Save one playlist (with its songs) to its own file; it restores like any backup.
     ExportPlaylist(Item, std::path::PathBuf),
     /// Close the backup panel.
@@ -1175,6 +1182,9 @@ fn run_live(b: &Backend, ctx: &Waker, cmd: Cmd) -> Result<(), String> {
         | Cmd::ReadBackup(_)
         | Cmd::RestoreBackup(..)
         | Cmd::RestoreBackupTo(..)
+        | Cmd::PreviewSync(..)
+        | Cmd::ApplySync(..)
+        | Cmd::DismissSync
         | Cmd::ExportPlaylist(..)
         | Cmd::DismissBackup => Ok(()),
         Cmd::PlayItem(g, item, how) => {
@@ -1662,6 +1672,14 @@ fn run_common(b: &Backend, ctx: &Waker, cmd: Cmd) -> Result<Option<Cmd>, String>
             restore_onto(b, &path, sections, &[active])
         }
         Cmd::RestoreBackupTo(path, sections, targets) => restore_onto(b, &path, sections, &targets),
+        Cmd::PreviewSync(ids, sections, from) => sync_systems(b, &ids, sections, from.as_deref(), true),
+        Cmd::ApplySync(ids, sections, from) => sync_systems(b, &ids, sections, from.as_deref(), false),
+        Cmd::DismissSync => {
+            let mut s = b.lock();
+            s.sync_preview = None;
+            s.sync_result = None;
+            Ok(None)
+        }
         Cmd::MarkEpisode(item, played) => {
             crate::sources::progress::mark(&item, played);
             let text = if played { crate::t!("Marked “{title}” as played", title = item.title) } else { crate::t!("Marked “{title}” as not played", title = item.title) };
@@ -3616,6 +3634,70 @@ fn restore_onto(b: &Backend, path: &std::path::Path, sections: crate::backup::Se
     Ok(None)
 }
 
+/// Keep systems in step: for each source system, what each other system is missing from its
+/// favorites, playlists and alarms (by title and address, playlist name, alarm room and time), as a
+/// preview (`dry`) or added for real. Only adds, never changes or removes. With `from`, one way
+/// from that system to the others; without it, every system to every other (a union).
+fn sync_systems(b: &Backend, ids: &[String], sections: crate::backup::Sections, from: Option<&str>, dry: bool) -> Result<Option<Cmd>, String> {
+    let sections = crate::backup::Sections { app: false, ..sections };
+    let cfg = b.lock().config.clone();
+    let mut by_target: Vec<(String, crate::backup::Report)> = vec![];
+    let sources: Vec<&String> = ids.iter().filter(|id| from.is_none_or(|f| f == id.as_str())).collect();
+    for src in sources {
+        let (Some(from_sys), from_name) = system_for(b, src) else {
+            return Err(crate::t!("Couldn't reach the {system} system, so nothing was changed.", system = system_label(b, src)).to_string());
+        };
+        let _ = from_name;
+        let (backup, _notes) = crate::backup::Backup::build(Some(&from_sys as &dyn crate::backup::SystemAccess), &cfg, sections, 0);
+        for dst in ids.iter().filter(|d| *d != src) {
+            let (Some(to_sys), to_name) = system_for(b, dst) else {
+                return Err(crate::t!("Couldn't reach the {system} system, so nothing was changed.", system = system_label(b, dst)).to_string());
+            };
+            let report = if dry {
+                backup.plan(&to_sys, sections)
+            } else {
+                let mut scratch = crate::config::Config::default();
+                backup.restore(Some(&to_sys as &dyn crate::backup::SystemAccess), &mut scratch, sections, dst)
+            };
+            match by_target.iter_mut().find(|(n, _)| *n == to_name) {
+                Some((_, total)) => merge_reports(total, report),
+                None => by_target.push((to_name, report)),
+            }
+        }
+    }
+    let mut s = b.lock();
+    if !dry && s.phase != Phase::Demo {
+        s.browse.remove("FV:2");
+        s.browse.remove("SQ:");
+    }
+    if dry {
+        s.sync_result = None;
+        s.sync_preview = Some(by_target);
+    } else {
+        s.sync_preview = None;
+        s.sync_result = Some(by_target);
+    }
+    Ok(None)
+}
+
+fn system_label(b: &Backend, household: &str) -> String {
+    b.lock().households.iter().find(|h| h.id == household).map(|h| h.system.label().to_string()).unwrap_or_default()
+}
+
+fn merge_reports(into: &mut crate::backup::Report, from: crate::backup::Report) {
+    let add = |a: &mut crate::backup::Counts, c: &crate::backup::Counts| {
+        a.favorites += c.favorites;
+        a.playlists += c.playlists;
+        a.alarms += c.alarms;
+        a.app += c.app;
+    };
+    add(&mut into.added, &from.added);
+    add(&mut into.skipped, &from.skipped);
+    add(&mut into.failed, &from.failed);
+    into.notes.extend(from.notes);
+    into.would.extend(from.would);
+}
+
 /// A system by household id, as the backup code sees it, and its name for showing.
 fn system_for(b: &Backend, household: &str) -> (Option<ActiveSystem>, String) {
     let s = b.lock();
@@ -3904,6 +3986,32 @@ mod unit {
         assert!(!progress::continue_list(50).iter().any(|e| e.item.uri == url));
         b.send_and_wait(Cmd::MarkEpisode(episode.clone(), false), wait).unwrap();
         assert_eq!(progress::status(&url), Status::New);
+    }
+
+    #[test]
+    fn keeping_systems_in_step_previews_first_and_never_removes() {
+        use crate::backup::Sections;
+        let b = demo_backend();
+        let wait = Duration::from_secs(10);
+        let ids: Vec<String> = b.lock().households.iter().map(|h| h.id.clone()).collect();
+        assert_eq!(ids.len(), 2);
+        let lists = Sections { favorites: true, playlists: true, alarms: true, app: false };
+        b.send_and_wait(Cmd::PreviewSync(ids.clone(), lists, None), wait).unwrap();
+        {
+            let s = b.lock();
+            let preview = s.sync_preview.as_ref().expect("a preview");
+            assert_eq!(preview.len(), 2, "one entry per system");
+            assert!(s.sync_result.is_none());
+        }
+        let before = b.lock().alarms.clone();
+        b.send_and_wait(Cmd::ApplySync(ids.clone(), lists, Some(ids[0].clone())), wait).unwrap();
+        {
+            let s = b.lock();
+            assert!(s.sync_preview.is_none() && s.sync_result.as_ref().is_some_and(|r| r.len() == 1), "one way gives the one target");
+            assert_eq!(s.alarms.as_ref().map(|a| a.len()), before.as_ref().map(|a| a.len()), "nothing was removed");
+        }
+        b.send_and_wait(Cmd::DismissSync, wait).unwrap();
+        assert!(b.lock().sync_result.is_none());
     }
 
     #[test]

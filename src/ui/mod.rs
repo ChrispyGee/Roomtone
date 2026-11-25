@@ -151,6 +151,10 @@ pub struct App {
     backup_sections: crate::backup::Sections,
     /// Which systems (household ids) to restore a chosen backup onto; `None` until suggested.
     backup_targets: Option<Vec<String>>,
+    /// Keeping systems in step: which systems, which lists, and one way from which (`None`: both ways).
+    sync_systems: Option<Vec<String>>,
+    sync_sections: crate::backup::Sections,
+    sync_from: Option<String>,
 }
 
 /// A playlist saved on the speakers (the kind that can be exported).
@@ -278,6 +282,9 @@ impl App {
             layout_form: Default::default(),
             backup_sections: Default::default(),
             backup_targets: None,
+            sync_systems: None,
+            sync_sections: crate::backup::Sections { favorites: true, playlists: true, alarms: true, app: false },
+            sync_from: None,
             group_preset: open_new_group
                 .then(|| (None, crate::config::SavedGroup { name: "Downstairs".into(), household: "demo-s2".into(), rooms: vec!["D-LIVING".into(), "D-KITCHEN".into()] })),
         }

@@ -984,3 +984,17 @@ The stream didn't answer: {why}	Lo stream non ha risposto: {why}
 Restore to	Ripristina su
 Alarms are matched to rooms by name, so they only come back on a system that has those rooms. Things already on a system are skipped.	Le sveglie sono associate alle stanze per nome, quindi tornano solo su un sistema che ha quelle stanze. Ciò che un sistema ha già viene saltato.
 Adds what's in a backup file to the systems you choose. Nothing that's already there is changed or removed.	Aggiunge il contenuto di un file di backup ai sistemi scelti. Nulla di ciò che c'è già viene modificato o rimosso.
+Add them	Aggiungili
+Adds the favorites, playlists and alarms one system has to the others, so they match. Nothing is changed or removed, so something you delete in one system stays in the others. You see what would be added before anything is.	Aggiunge agli altri sistemi i preferiti, le playlist e le sveglie di un sistema, perché coincidano. Nulla viene modificato o rimosso, quindi ciò che elimini in un sistema resta negli altri. Vedi cosa verrebbe aggiunto prima che venga aggiunto.
+Alarms are matched to rooms by name, so they only come across to a system that has those rooms. Favorites from a music service only play where that service is connected.	Le sveglie sono associate alle stanze per nome, quindi passano solo a un sistema che ha quelle stanze. I preferiti di un servizio musicale suonano solo dove il servizio è collegato.
+Copy one way, from	Copia in una sola direzione, da
+Couldn't be added: {counts}	Impossibile aggiungere: {counts}
+Couldn't reach the {system} system, so nothing was changed.	Il sistema {system} non è raggiungibile, quindi non è stato modificato nulla.
+Keep systems in step	Mantieni i sistemi allineati
+Lists	Elenchi
+Nothing to add: it already has everything.	Niente da aggiungere: ha già tutto.
+See what would be added	Vedi cosa verrebbe aggiunto
+What would be added	Cosa verrebbe aggiunto
+Would get: {counts}	Riceverebbe: {counts}
+{favorites} favorites · {playlists} playlists · {alarms} alarms	{favorites} preferiti · {playlists} playlist · {alarms} sveglie
+…and {n} more	…e altri {n}

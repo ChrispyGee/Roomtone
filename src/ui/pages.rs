@@ -2347,7 +2347,13 @@ impl App {
                 self.language_card(ui, s);
             }
             5 => self.assistant_card(ui, s),
-            _ => self.backup_card(ui, s),
+            _ => {
+                self.backup_card(ui, s);
+                if s.households.len() > 1 {
+                    ui.add_space(14.0);
+                    self.sync_card(ui, s);
+                }
+            }
         }
         set_title_mode(TitleMode::Normal);
     }
@@ -2784,6 +2790,115 @@ impl App {
         if install != s.config.allow_update_install {
             self.send(Cmd::SetFeature(crate::config::Feature::UpdateInstall, install));
         }
+    }
+
+    /// Keep the systems' favorites, playlists and alarms in step: pick systems and lists, look at what
+    /// each would get, then add it. Only ever adds.
+    fn sync_card(&mut self, ui: &mut Ui, s: &AppState) {
+        use crate::backup::Counts;
+        let counts_line = |c: &Counts| -> String {
+            t!("{favorites} favorites · {playlists} playlists · {alarms} alarms", favorites = c.favorites, playlists = c.playlists, alarms = c.alarms).to_string()
+        };
+        section_title(ui, t!("Keep systems in step"));
+        card_frame().show(ui, |ui| {
+            ui.set_width(ui.available_width());
+            ui.label(RichText::new(t!("Adds the favorites, playlists and alarms one system has to the others, so they match. Nothing is changed or removed, so something you delete in one system stays in the others. You see what would be added before anything is.")).size(12.0).color(TEXT_DIM()));
+            ui.add_space(8.0);
+            let mut ids = self.sync_systems.clone().unwrap_or_else(|| s.households.iter().map(|h| h.id.clone()).collect());
+            ui.label(RichText::new(t!("Systems")).strong().color(TEXT()));
+            for h in &s.households {
+                let mut on = ids.contains(&h.id);
+                let names: Vec<&str> = h.rooms.iter().map(|r| r.name.as_str()).collect();
+                if ui.checkbox(&mut on, format!("{} · {}", t!("{system} system", system = h.system.label()), names.join(", "))).changed() {
+                    ids.retain(|i| i != &h.id);
+                    if on {
+                        ids.push(h.id.clone());
+                    }
+                }
+            }
+            self.sync_systems = Some(ids.clone());
+            ui.add_space(6.0);
+            ui.label(RichText::new(t!("Lists")).strong().color(TEXT()));
+            ui.horizontal(|ui| {
+                ui.checkbox(&mut self.sync_sections.favorites, t!("Favorites"));
+                ui.checkbox(&mut self.sync_sections.playlists, t!("Playlists"));
+                ui.checkbox(&mut self.sync_sections.alarms, t!("Alarms"));
+            });
+            ui.add_space(6.0);
+            ui.horizontal(|ui| {
+                let mut one_way = self.sync_from.is_some();
+                if ui.checkbox(&mut one_way, t!("Copy one way, from")).changed() {
+                    self.sync_from = one_way.then(|| ids.first().cloned().unwrap_or_default());
+                }
+                if let Some(from) = self.sync_from.clone() {
+                    let label = |id: &str| s.households.iter().find(|h| h.id == id).map(|h| t!("{system} system", system = h.system.label()).to_string()).unwrap_or_default();
+                    egui::ComboBox::from_id_salt("sync_from").selected_text(label(&from)).show_ui(ui, |ui| {
+                        for id in &ids {
+                            if ui.selectable_label(*id == from, label(id)).clicked() {
+                                self.sync_from = Some(id.clone());
+                            }
+                        }
+                    });
+                }
+            });
+            ui.label(RichText::new(t!("Alarms are matched to rooms by name, so they only come across to a system that has those rooms. Favorites from a music service only play where that service is connected.")).size(12.0).color(TEXT_FAINT()));
+            ui.add_space(8.0);
+            let sec = self.sync_sections;
+            let ready = ids.len() >= 2 && (sec.favorites || sec.playlists || sec.alarms) && self.sync_from.as_ref().is_none_or(|f| ids.contains(f));
+            if ui.add_enabled_ui(ready, |ui| pill(ui, Some(Icon::Refresh), t!("See what would be added"), true)).inner.clicked() {
+                self.send(Cmd::PreviewSync(ids.clone(), sec, self.sync_from.clone()));
+            }
+            if let Some(list) = &s.sync_preview {
+                ui.add_space(8.0);
+                ui.separator();
+                ui.add_space(6.0);
+                let any = list.iter().any(|(_, r)| r.added.total() > 0);
+                for (name, r) in list {
+                    ui.label(RichText::new(name).strong().color(TEXT()));
+                    if r.added.total() == 0 {
+                        ui.label(RichText::new(t!("Nothing to add: it already has everything.")).size(12.5).color(TEXT_DIM()));
+                    } else {
+                        ui.label(RichText::new(t!("Would get: {counts}", counts = counts_line(&r.added))).size(12.5).color(GOOD()));
+                        egui::CollapsingHeader::new(RichText::new(t!("What would be added")).size(12.5).color(TEXT_DIM())).id_salt(format!("sync_would_{name}")).show(ui, |ui| {
+                            for w in r.would.iter().take(30) {
+                                ui.label(RichText::new(w).size(12.0).color(TEXT_FAINT()));
+                            }
+                            if r.would.len() > 30 {
+                                ui.label(RichText::new(t!("…and {n} more", n = r.would.len() - 30)).size(12.0).color(TEXT_FAINT()));
+                            }
+                        });
+                    }
+                    if r.failed.total() > 0 {
+                        ui.label(RichText::new(t!("Couldn't be added: {counts}", counts = counts_line(&r.failed))).size(12.5).color(BAD()));
+                    }
+                    for n in r.notes.iter().take(6) {
+                        ui.label(RichText::new(n).size(12.0).color(TEXT_FAINT()));
+                    }
+                }
+                ui.add_space(8.0);
+                ui.horizontal(|ui| {
+                    if ui.add_enabled_ui(any, |ui| pill(ui, Some(Icon::Refresh), t!("Add them"), true)).inner.clicked() {
+                        self.send(Cmd::ApplySync(ids.clone(), sec, self.sync_from.clone()));
+                    }
+                    if pill(ui, None, t!("Cancel"), false).clicked() {
+                        self.send(Cmd::DismissSync);
+                    }
+                });
+            }
+            if let Some(list) = &s.sync_result {
+                ui.add_space(8.0);
+                ui.separator();
+                for (name, r) in list {
+                    ui.add_space(6.0);
+                    ui.label(RichText::new(name).strong().color(TEXT()));
+                    self.restore_report(ui, r, &|c: &Counts| t!("{favorites} favorites · {playlists} playlists · {alarms} alarms · {app} of Roomtone's own", favorites = c.favorites, playlists = c.playlists, alarms = c.alarms, app = c.app).to_string());
+                }
+                ui.add_space(6.0);
+                if pill(ui, None, t!("Close"), false).clicked() {
+                    self.send(Cmd::DismissSync);
+                }
+            }
+        });
     }
 
     /// What a restore did on one system: added, already there, couldn't, and the details.

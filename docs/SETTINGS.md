@@ -132,6 +132,10 @@ Lets AI assistants that support MCP see and control your speakers. **Off until y
 
 The command line can change these too, each saving and quitting: `--mcp-on`, `--mcp-off`, `--mcp-read-only`, `--mcp-allow-control`, `--mcp-allow` / `--mcp-deny` `saved|alarms|names|updates`, `--mcp-files <folder>`, `--mcp-files-off`, `--mcp-port <port>`, and `--mcp-info` to show them with the web address and key. *Copy setup*, *Copy web address* and *Copy access key* are conveniences and store nothing.
 
+### Keep systems in step
+
+With two or more systems, *Settings › Backups* has a *Keep systems in step* card. Tick the systems and the lists (favorites, playlists, alarms), optionally *Copy one way, from* one system, and press *See what would be added*: for each system it lists what it would get from the others, without changing anything. *Add them* then adds those. It **only adds**: nothing is changed or removed, so something you delete in one system stays in the others. Alarms are matched to rooms by name (a system without that room is told so and skipped), and favorites from a music service only play where that service is connected. Roomtone's own lists and settings are shared by both systems already, so they aren't part of it. No setting is saved.
+
 ### Backup and restore
 Saves what you've built up to one file, and puts it back, on this system or a new one. Not stored in `config.json`.
 

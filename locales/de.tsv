@@ -984,3 +984,17 @@ The stream didn't answer: {why}	Der Stream hat nicht geantwortet: {why}
 Restore to	Wiederherstellen auf
 Alarms are matched to rooms by name, so they only come back on a system that has those rooms. Things already on a system are skipped.	Wecker werden den Räumen nach Namen zugeordnet und kommen daher nur auf einem System zurück, das diese Räume hat. Was ein System schon hat, wird übersprungen.
 Adds what's in a backup file to the systems you choose. Nothing that's already there is changed or removed.	Fügt den Inhalt einer Sicherungsdatei den gewählten Systemen hinzu. Nichts, was schon da ist, wird geändert oder entfernt.
+Add them	Hinzufügen
+Adds the favorites, playlists and alarms one system has to the others, so they match. Nothing is changed or removed, so something you delete in one system stays in the others. You see what would be added before anything is.	Fügt die Favoriten, Playlists und Wecker, die ein System hat, den anderen hinzu, damit sie übereinstimmen. Nichts wird geändert oder entfernt; was Sie in einem System löschen, bleibt in den anderen erhalten. Sie sehen vorher, was hinzugefügt würde.
+Alarms are matched to rooms by name, so they only come across to a system that has those rooms. Favorites from a music service only play where that service is connected.	Wecker werden den Räumen nach Namen zugeordnet und kommen daher nur auf Systeme, die diese Räume haben. Favoriten eines Musikdienstes spielen nur dort, wo der Dienst verbunden ist.
+Copy one way, from	Nur in eine Richtung kopieren, von
+Couldn't be added: {counts}	Konnte nicht hinzugefügt werden: {counts}
+Couldn't reach the {system} system, so nothing was changed.	Das {system}-System war nicht erreichbar, daher wurde nichts geändert.
+Keep systems in step	Systeme abgleichen
+Lists	Listen
+Nothing to add: it already has everything.	Nichts hinzuzufügen: Es hat bereits alles.
+See what would be added	Anzeigen, was hinzugefügt würde
+What would be added	Was hinzugefügt würde
+Would get: {counts}	Würde bekommen: {counts}
+{favorites} favorites · {playlists} playlists · {alarms} alarms	{favorites} Favoriten · {playlists} Playlists · {alarms} Wecker
+…and {n} more	…und {n} weitere
