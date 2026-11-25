@@ -134,6 +134,10 @@ pub enum Cmd {
     CheckConnections,
     /// Switch lyrics (experimental) on or off.
     SetLyrics(bool),
+    /// Switch the stream look-up (bitrate and rate from the stream's own headers) on or off.
+    SetProbeStreams(bool),
+    /// Ask a stream's address what it says about its sound.
+    ProbeStream(String),
     SetVolumeStep(u8),
     /// Show or hide a page or feature (alarms, scenes, the update-install buttons).
     SetFeature(crate::config::Feature, bool),
@@ -1152,6 +1156,8 @@ fn run_live(b: &Backend, ctx: &Waker, cmd: Cmd) -> Result<(), String> {
         | Cmd::CheckConnections
         | Cmd::SetVersionCheck(_)
         | Cmd::SetLyrics(_)
+        | Cmd::SetProbeStreams(_)
+        | Cmd::ProbeStream(_)
         | Cmd::SetVolumeStep(_)
         | Cmd::SetFeature(..)
         | Cmd::ForgetSystem(_)
@@ -2236,6 +2242,40 @@ fn run_common(b: &Backend, ctx: &Waker, cmd: Cmd) -> Result<Option<Cmd>, String>
         Cmd::SetLyrics(on) => {
             b.lock().config.show_lyrics = on;
             save(b);
+            Ok(None)
+        }
+        Cmd::SetProbeStreams(on) => {
+            b.lock().config.probe_streams = on;
+            save(b);
+            Ok(None)
+        }
+        Cmd::ProbeStream(url) => {
+            let demo = {
+                let mut s = b.lock();
+                // A stream that couldn't be asked is tried again the next time it plays.
+                let settled = matches!(s.probes.get(&url), Some(st) if !matches!(st, crate::stream_probe::State::Failed(_)));
+                if !s.config.probe_streams || settled || !(url.starts_with("http://") || url.starts_with("https://")) {
+                    return Ok(None);
+                }
+                if s.probes.len() >= 100 {
+                    s.probes.clear();
+                }
+                s.probes.insert(url.clone(), crate::stream_probe::State::Loading);
+                s.phase == Phase::Demo
+            };
+            let (b2, ctx2) = (b.clone(), ctx.clone());
+            thread::spawn(move || {
+                let state = if demo {
+                    crate::stream_probe::State::Found(crate::stream_probe::demo())
+                } else {
+                    match crate::stream_probe::probe_over_http(&url) {
+                        Ok(p) => crate::stream_probe::State::Found(p),
+                        Err(e) => crate::stream_probe::State::Failed(e),
+                    }
+                };
+                b2.lock().probes.insert(url, state);
+                ctx2.request_repaint();
+            });
             Ok(None)
         }
         Cmd::LoadLyrics(artist, title, album, duration) => {
@@ -4200,6 +4240,27 @@ mod unit {
         // The demo system's pretend songs are never added to the real history.
         track_history(&b);
         assert_eq!(crate::history::count(), 0);
+    }
+
+    #[test]
+    fn stream_look_ups_are_off_until_switched_on_and_the_demo_never_goes_online() {
+        let b = demo_backend();
+        let wait = Duration::from_secs(10);
+        assert!(!crate::config::Config::default().probe_streams, "off by default");
+        let url = "http://radio.example.com/live".to_string();
+        b.send_and_wait(Cmd::SetProbeStreams(false), wait).unwrap();
+        b.send_and_wait(Cmd::ProbeStream(url.clone()), wait).unwrap();
+        assert!(b.lock().probes.is_empty(), "nothing is asked while it's off");
+        b.send_and_wait(Cmd::SetProbeStreams(true), wait).unwrap();
+        b.send_and_wait(Cmd::ProbeStream("x-sonosapi-stream:s1".into()), wait).unwrap();
+        assert!(b.lock().probes.is_empty(), "only web addresses are asked");
+        b.send_and_wait(Cmd::ProbeStream(url.clone()), wait).unwrap();
+        let t0 = std::time::Instant::now();
+        while !matches!(b.lock().probes.get(&url), Some(crate::stream_probe::State::Found(_))) {
+            assert!(t0.elapsed() < wait, "the demo's made-up answer should arrive");
+            thread::sleep(Duration::from_millis(20));
+        }
+        b.send_and_wait(Cmd::SetProbeStreams(false), wait).unwrap();
     }
 
     #[test]

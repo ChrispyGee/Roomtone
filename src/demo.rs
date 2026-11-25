@@ -546,6 +546,8 @@ pub fn apply(s: &mut AppState, cmd: &Cmd) {
         | Cmd::CheckConnections
         | Cmd::SetVersionCheck(_)
         | Cmd::SetLyrics(_)
+        | Cmd::SetProbeStreams(_)
+        | Cmd::ProbeStream(_)
         | Cmd::SetVolumeStep(_)
         | Cmd::SetFeature(..)
         | Cmd::ForgetSystem(_)

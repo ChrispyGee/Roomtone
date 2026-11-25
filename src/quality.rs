@@ -18,6 +18,8 @@ pub struct Quality {
     pub sample_rate: Option<u32>,
     pub bit_depth: Option<u32>,
     pub bitrate_kbps: Option<u32>,
+    /// The bitrate was worked out from a file's size and length, so it is an average.
+    pub bitrate_is_average: bool,
     pub channels: Option<u32>,
     /// What the speaker sent, as (what, value), with addresses reduced to their kind.
     pub details: Vec<(String, String)>,
@@ -42,9 +44,50 @@ impl Quality {
             v.push(format!("{b}-bit"));
         }
         if let Some(k) = self.bitrate_kbps {
-            v.push(format!("{k} kbps"));
+            v.push(if self.bitrate_is_average { format!("≈{k} kbps") } else { format!("{k} kbps") });
         }
         v
+    }
+
+    /// Fill in what the speaker left out from what the stream said about itself (the speaker's own
+    /// figures win), and list it in the details as coming from the stream.
+    pub fn add_stream(&mut self, p: &crate::stream_probe::Probe, duration_secs: f32) {
+        if self.bitrate_kbps.is_none() {
+            self.bitrate_kbps = p.bitrate_kbps;
+        }
+        if self.sample_rate.is_none() {
+            self.sample_rate = p.sample_rate;
+        }
+        if self.channels.is_none() {
+            self.channels = p.channels;
+        }
+        if self.format.is_none() {
+            let found = p.content_type.as_deref().and_then(from_mime);
+            self.format = found.map(|(f, _)| f.to_string());
+            self.lossless = found.is_some_and(|(_, l)| l);
+        }
+        // A podcast episode or other file: its size over its length is an average bitrate.
+        if self.bitrate_kbps.is_none() {
+            if let (Some(bytes), true) = (p.size_bytes, duration_secs >= 30.0) {
+                let kbps = (bytes as f64 * 8.0 / duration_secs as f64 / 1000.0).round() as u32;
+                if (8..=3000).contains(&kbps) {
+                    self.bitrate_kbps = Some(kbps);
+                    self.bitrate_is_average = true;
+                    self.details.push(("Average bitrate (file size over length)".into(), format!("{kbps} kbps")));
+                }
+            }
+        }
+        for (label, value) in [
+            ("Bitrate (stream header)", p.bitrate_kbps.map(|k| format!("{k} kbps"))),
+            ("Sample rate (stream header)", p.sample_rate.map(khz)),
+            ("Channels (stream header)", p.channels.map(|c| c.to_string())),
+            ("Format (stream header)", p.content_type.clone()),
+            ("Station name (stream header)", p.name.clone()),
+        ] {
+            if let Some(v) = value {
+                self.details.push((label.into(), v));
+            }
+        }
     }
 
     /// The details as plain text, for pasting into a bug report. No addresses, names or titles.
@@ -142,6 +185,18 @@ pub fn of(track_uri: &str, media_uri: &str, track_meta: &str) -> Quality {
     }
     if let Some(m) = &mime {
         q.details.push(("Format (MIME)".into(), m.clone()));
+    }
+    // An adaptive (HLS) stream from a service: it carries several bitrates and the speaker doesn't
+    // say which it picked, so say that rather than leave the bare address type.
+    let hls = track_uri.starts_with("x-sonosapi-hls")
+        || media_uri.starts_with("x-sonosapi-hls")
+        || mime.as_deref().is_some_and(|m| {
+            let m = m.to_lowercase();
+            m == "application/x-mpegurl" || m == "application/vnd.apple.mpegurl"
+        });
+    if hls {
+        q.details.push(("Stream type".into(), "Adaptive (HLS) stream from a service".into()));
+        q.details.push(("Bitrate".into(), "Not reported: an adaptive stream switches between several bitrates and the speaker doesn't say which it is using".into()));
     }
     let (format, lossless) = mime.as_deref().and_then(from_mime).or_else(|| from_extension(track_uri)).or_else(|| from_scheme(track_uri)).unzip();
     q.format = q.format.take().or(format.map(String::from));
@@ -259,6 +314,70 @@ fn apply_stream_info(q: &mut Quality, text: &str) {
 #[cfg(test)]
 mod unit {
     use super::*;
+
+    #[test]
+    fn a_podcast_file_gets_an_average_bitrate_from_its_size_and_length() {
+        // 48 MB over 3000 seconds is 128 kbps.
+        let file = crate::stream_probe::Probe { size_bytes: Some(48_000_000), content_type: Some("audio/mpeg".into()), ..Default::default() };
+        let mut q = of("https://cdn.example.com/ep1.mp3", "x-rincon-queue:RINCON_1#0", "");
+        q.add_stream(&file, 3000.0);
+        assert_eq!(q.bitrate_kbps, Some(128));
+        assert!(q.bitrate_is_average);
+        assert!(q.labels().contains(&"≈128 kbps".to_string()), "{:?}", q.labels());
+        assert!(q.details.iter().any(|(k, v)| k.starts_with("Average bitrate") && v == "128 kbps"));
+        // Without a length, or with an absurd result, nothing is claimed.
+        let mut q = Quality::default();
+        q.add_stream(&file, 0.0);
+        assert_eq!(q.bitrate_kbps, None);
+        let mut q = Quality::default();
+        q.add_stream(&file, 5.0);
+        assert_eq!(q.bitrate_kbps, None, "a few seconds is too short to trust");
+        // A figure the speaker or stream gave is never replaced by an average.
+        let mut q = Quality { bitrate_kbps: Some(64), ..Default::default() };
+        q.add_stream(&file, 3000.0);
+        assert_eq!((q.bitrate_kbps, q.bitrate_is_average), (Some(64), false));
+    }
+
+    #[test]
+    fn an_adaptive_service_stream_is_explained() {
+        let uri = "x-sonosapi-hls:stations%7eplayable%7e%7ebbc_radio_two?sid=325&flags=288&sn=4";
+        let meta =
+            r#"<DIDL-Lite xmlns="urn:schemas-upnp-org:metadata-1-0/DIDL-Lite/"><item><res protocolInfo="sonos.com-http:*:application/x-mpegURL:*">x</res></item></DIDL-Lite>"#;
+        let q = of(uri, "", meta);
+        assert_eq!(q.format.as_deref(), Some("AAC"));
+        assert_eq!(q.bitrate_kbps, None, "no figure is made up");
+        assert!(q.details.iter().any(|(k, v)| k == "Stream type" && v.contains("HLS")), "{:?}", q.details);
+        assert!(q.details.iter().any(|(k, v)| k == "Bitrate" && v.contains("Not reported")), "{:?}", q.details);
+        assert!(!q.report().contains("bbc"), "the address isn't copied into reports");
+        // An ordinary stream isn't called adaptive.
+        assert!(!of("x-rincon-mp3radio://s.example.com/live", "", "").details.iter().any(|(k, _)| k == "Stream type"));
+    }
+
+    #[test]
+    fn a_stream_fills_in_only_what_the_speaker_left_out() {
+        let probe = crate::stream_probe::Probe {
+            bitrate_kbps: Some(128),
+            sample_rate: Some(44100),
+            channels: Some(2),
+            content_type: Some("audio/mpeg".into()),
+            name: Some("Jazz FM".into()),
+            size_bytes: None,
+        };
+        // The speaker said only the format: the stream adds the rest, listed as from the stream.
+        let mut q = of("x-rincon-mp3radio://s.example.com/live", "", "");
+        assert_eq!(q.format.as_deref(), Some("MP3"));
+        q.add_stream(&probe, 0.0);
+        assert_eq!(q.labels(), vec!["MP3".to_string(), "44.1 kHz".into(), "128 kbps".into()]);
+        assert!(q.details.iter().any(|(k, v)| k == "Bitrate (stream header)" && v == "128 kbps"), "{:?}", q.details);
+        // What the speaker did say is kept.
+        let mut q = Quality { bitrate_kbps: Some(320), ..Default::default() };
+        q.add_stream(&probe, 0.0);
+        assert_eq!(q.bitrate_kbps, Some(320));
+        // With no format from the speaker, the stream's content type gives one.
+        let mut q = Quality::default();
+        q.add_stream(&probe, 0.0);
+        assert_eq!(q.format.as_deref(), Some("MP3"));
+    }
 
     fn didl(inner: &str) -> String {
         format!(

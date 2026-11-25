@@ -270,7 +270,22 @@ impl App {
     /// The sound of what's playing (format, sample rate, bit depth, bitrate) where the speaker says,
     /// and a plain list of what it sent, to copy into a report.
     fn quality_row(&mut self, ui: &mut Ui, now: &NowPlaying) {
-        let q = crate::quality::of(&now.uri, &now.media_uri, &now.track_meta);
+        let mut q = crate::quality::of(&now.uri, &now.media_uri, &now.track_meta);
+        // An internet stream: with the look-up on, ask the stream itself what it says about its sound.
+        let mut stream_note: Option<String> = None;
+        let probing = self.backend.lock().config.probe_streams;
+        // A stream's address, or for a podcast episode (one file) its own address.
+        let address = if now.is_stream { crate::stream_probe::address(&now.uri, &now.media_uri) } else { crate::stream_probe::file_address(&now.uri) };
+        if probing {
+            if let Some(url) = address {
+                self.ask_once(&format!("probe:{url}"), std::time::Duration::from_secs(60), Cmd::ProbeStream(url.clone()));
+                match self.backend.lock().probes.get(&url) {
+                    Some(crate::stream_probe::State::Found(p)) => q.add_stream(p, now.duration),
+                    Some(crate::stream_probe::State::Failed(why)) => stream_note = Some(t!("The stream didn't answer: {why}", why = why).to_string()),
+                    _ => {}
+                }
+            }
+        }
         if !q.is_empty() {
             ui.add_space(8.0);
             ui.horizontal_wrapped(|ui| {
@@ -282,7 +297,7 @@ impl App {
                 }
             });
         }
-        if q.details.is_empty() {
+        if q.details.is_empty() && stream_note.is_none() {
             return;
         }
         egui::CollapsingHeader::new(RichText::new(t!("Technical details")).size(12.5).color(TEXT_FAINT())).id_salt("np_quality").show(ui, |ui| {
@@ -293,6 +308,9 @@ impl App {
                     ui.label(RichText::new(k).size(12.0).color(TEXT_DIM()));
                     ui.label(RichText::new(v).size(12.0).monospace().color(TEXT()));
                 });
+            }
+            if let Some(n) = &stream_note {
+                ui.label(RichText::new(n).size(12.0).color(TEXT_FAINT()));
             }
             ui.add_space(6.0);
             if pill(ui, None, t!("Copy details"), false).clicked() {
@@ -2307,6 +2325,8 @@ impl App {
                 self.frame_card(ui, s);
                 ui.add_space(14.0);
                 self.lyrics_card(ui, s);
+                ui.add_space(14.0);
+                self.probe_streams_card(ui, s);
             }
             2 => self.services_tab(ui, s),
             3 => {
@@ -3248,6 +3268,35 @@ impl App {
         });
         if on != s.config.show_lyrics {
             self.send(Cmd::SetLyrics(on));
+        }
+    }
+
+    /// The switch for asking a playing internet stream about its bitrate.
+    fn probe_streams_card(&mut self, ui: &mut Ui, s: &AppState) {
+        experimental_title(ui, t!("Stream details"));
+        let mut on = s.config.probe_streams;
+        card_frame().show(ui, |ui| {
+            ui.set_width(ui.available_width());
+            ui.horizontal(|ui| {
+                ui.set_min_height(40.0);
+                ui.vertical(|ui| {
+                    ui.set_max_width((ui.available_width() - 64.0).max(120.0));
+                    ui.label(RichText::new(t!("Show the bitrate of streams and podcasts in Technical details")).color(TEXT()));
+                    ui.label(
+                        RichText::new(t!(
+                            "Speakers often report only the format of an internet radio stream or a podcast episode. With this on, Roomtone opens the playing stream's or episode's own web address once, as the speaker does, and reads what its reply says: the bitrate and sample rate of a stream, or the size of an episode, from which it works out an average bitrate using the episode's length. It then closes the connection without playing anything. Only that address is contacted (a podcast host may pass it on to the host that serves the file), and nothing about you or your speakers is sent. Some streams say nothing. This is experimental and may change."
+                        ))
+                        .size(12.0)
+                        .color(TEXT_DIM()),
+                    );
+                });
+                ui.with_layout(Layout::right_to_left(Align::Center), |ui| {
+                    toggle(ui, &mut on, t!("Show the bitrate of streams and podcasts in Technical details"));
+                });
+            });
+        });
+        if on != s.config.probe_streams {
+            self.send(Cmd::SetProbeStreams(on));
         }
     }
 

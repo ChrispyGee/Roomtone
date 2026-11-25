@@ -47,6 +47,7 @@ This is the map of the code. What the app should do is in [SPEC.md](../SPEC.md);
 | `version.rs` | The optional look for a newer Roomtone on GitHub |
 | `s2.rs` | Reading what a speaker says about itself, and judging whether it could move to S2 |
 | `diagnose.rs`, `status.rs` | *Can't find your speakers?* (checks, advice, redacted report) and wired/wireless from a speaker's network counters |
+| `stream_probe.rs` | The experimental stream look-up: a playing stream's address and its bitrate from the reply headers (off by default) |
 | `quality.rs` | Sound-quality labels read from what the speaker reports for the playing track |
 | `crash.rs` | The local crash log: a panic hook that writes `crash.log` (addresses and the home folder blanked out); nothing is sent |
 | `known.rs` | `speakers.json`: speakers from last time, for an instant start; forgets systems unseen for 30 days |

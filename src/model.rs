@@ -728,6 +728,8 @@ pub struct AppState {
     pub version_checking: bool,
     /// Lyrics looked up this run, by `lyrics::key` (kept in memory only).
     pub lyrics: HashMap<String, crate::lyrics::State>,
+    /// What internet streams said about their sound this run, by address (kept in memory only).
+    pub probes: HashMap<String, crate::stream_probe::State>,
     /// A check was asked for (*Check now*) and hasn't run yet.
     pub version_check_asked: bool,
     /// The installer being fetched for a newer Roomtone.
@@ -827,6 +829,7 @@ impl Default for AppState {
             new_version: Default::default(),
             version_checking: false,
             lyrics: HashMap::new(),
+            probes: HashMap::new(),
             version_check_asked: false,
             update_download: Default::default(),
             version_failures: 0,

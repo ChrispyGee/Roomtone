@@ -100,6 +100,8 @@ Services seen refusing third-party sign-in (2026-11-11): Apple Music (`getAppLin
 
 ## 6c. Sound quality of what's playing
 
+*(Stream details, experimental and off by default, adds one thing to this: for a plain `http(s)` stream the app reads the stream's own reply headers (`icy-br`, `icy-audio-info`, `icy-sr`, `Content-Type`) once, with `stream_probe`. See SPEC §9.)*
+
 Read from the track's address and its DIDL-Lite `TrackMetaData` (from `GetPositionInfo`), with no extra calls (`quality::of`):
 
 - `res@protocolInfo` third field is the MIME type: `audio/flac`, `audio/mpeg`, `audio/mp4`, `audio/ogg`, `audio/wav`… → format and whether it's lossless. **Seen on a real S1 system** for tracks from the music library (only the MIME type; no rate or depth).
