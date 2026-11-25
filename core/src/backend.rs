@@ -229,8 +229,29 @@ pub struct Backend {
     seq: Arc<AtomicU64>,
 }
 
+/// What a program embedding the core wants it to do on its own. The desktop program wants all of it;
+/// a phone app finds speakers with the phone's own discovery (and gives their addresses with
+/// `Cmd::AddManual`) and doesn't serve music files from the phone.
+#[derive(Clone, Copy, Debug, PartialEq)]
+pub struct Options {
+    /// Serve this computer's music folders to the speakers, and scan them.
+    pub serve_local_music: bool,
+    /// Look for speakers by listening and asking on the network (multicast), and reconnect that way.
+    pub search_network: bool,
+}
+
+impl Default for Options {
+    fn default() -> Self {
+        Options { serve_local_music: true, search_network: true }
+    }
+}
+
 impl Backend {
     pub fn start(ctx: Waker, demo_only: bool) -> Backend {
+        Backend::start_with(ctx, demo_only, Options::default())
+    }
+
+    pub fn start_with(ctx: Waker, demo_only: bool, options: Options) -> Backend {
         let (config, config_problem) = crate::config::Config::load();
         let mut first = AppState { config, config_problem, ..Default::default() };
         if first.config.remember_history {
@@ -253,7 +274,7 @@ impl Backend {
             let (b, ctx) = (backend.clone(), ctx.clone());
             thread::spawn(move || events_manager(b, ctx));
         }
-        if !demo_only {
+        if !demo_only && options.search_network {
             watch_announcements(&backend, &ctx);
         }
         {
@@ -272,9 +293,15 @@ impl Backend {
             let b = backend.clone();
             thread::spawn(move || alarm_fader(b));
         }
-        crate::sources::local::start_server();
-        backend.send(Cmd::Rescan);
-        backend.send(if demo_only { Cmd::UseDemo } else { Cmd::QuickStart });
+        if options.serve_local_music {
+            crate::sources::local::start_server();
+            backend.send(Cmd::Rescan);
+        }
+        if demo_only {
+            backend.send(Cmd::UseDemo);
+        } else if options.search_network {
+            backend.send(Cmd::QuickStart);
+        }
         backend
     }
 
@@ -4409,6 +4436,17 @@ mod unit {
         // The demo system's pretend songs are never added to the real history.
         track_history(&b);
         assert_eq!(crate::history::count(), 0);
+    }
+
+    #[test]
+    fn a_program_that_finds_speakers_itself_starts_without_searching_the_network() {
+        crate::test_support::isolate();
+        let b = Backend::start_with(Waker::none(), false, Options { serve_local_music: false, search_network: false });
+        std::thread::sleep(Duration::from_millis(500));
+        let s = b.lock();
+        assert!(s.households.is_empty(), "nothing is found until the program says where a speaker is");
+        assert_ne!(s.phase, Phase::Live);
+        assert_eq!(Options::default(), Options { serve_local_music: true, search_network: true }, "the desktop program keeps everything");
     }
 
     #[test]

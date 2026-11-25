@@ -1,0 +1,58 @@
+name: Core for phones
+
+# The speaker library (core/) is also used inside phone apps, which are built elsewhere. This only
+# checks that it still compiles for iPhone and Android, with the settings a phone uses (no system
+# certificate store, no window code), so a change that breaks that is found here, not later.
+on:
+  push:
+    branches: [main]
+    paths: ["core/**", "Cargo.toml", "Cargo.lock", ".github/workflows/core-mobile.yml"]
+  pull_request:
+    paths: ["core/**", "Cargo.toml", "Cargo.lock", ".github/workflows/core-mobile.yml"]
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+env:
+  CARGO_TERM_COLOR: always
+
+jobs:
+  tests:
+    name: Tests with the phone settings
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v7
+      - uses: dtolnay/rust-toolchain@stable
+      - uses: Swatinem/rust-cache@v2
+      - name: Test the core without the desktop defaults
+        run: cargo test --locked -p roomtone-core --no-default-features
+
+  ios:
+    name: iPhone build
+    runs-on: macos-latest
+    steps:
+      - uses: actions/checkout@v7
+      - uses: dtolnay/rust-toolchain@stable
+        with:
+          targets: aarch64-apple-ios,aarch64-apple-ios-sim
+      - uses: Swatinem/rust-cache@v2
+      - name: Build for iPhone and the Simulator
+        run: |
+          for t in aarch64-apple-ios aarch64-apple-ios-sim; do
+            cargo build --locked -p roomtone-core --no-default-features --release --target "$t"
+          done
+
+  android:
+    name: Android build
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v7
+      - uses: dtolnay/rust-toolchain@stable
+        with:
+          targets: aarch64-linux-android,x86_64-linux-android
+      - uses: Swatinem/rust-cache@v2
+      - name: Build for Android phones and the emulator
+        run: |
+          cargo install cargo-ndk --locked
+          cargo ndk -t arm64-v8a -t x86_64 build --locked -p roomtone-core --no-default-features --release
