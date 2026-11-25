@@ -4,6 +4,9 @@ All notable changes to Roomtone. The format follows [Keep a Changelog](https://k
 
 ## [Unreleased]
 
+### Added
+- **Ask where the Microsoft Store submission stands.** The *Microsoft Store package* workflow has a new *status* choice that reads the latest submission's state from Partner Center (draft, in certification, published) without building or sending anything, and a real submission now prints its state at the end. Not tried yet.
+
 ### Fixed
 - **The update check no longer fails with "status code 403" when GitHub limits your network.** GitHub allows each network address only 60 anonymous looks an hour, which a shared office or home connection can use up. Roomtone now asks the project's public release page when that happens (and offers a link to the download page, without the in-app *Download*), and if that fails too it says in plain words that GitHub is limiting checks and it will try again later.
 

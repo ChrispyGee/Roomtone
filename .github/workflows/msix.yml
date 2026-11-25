@@ -8,16 +8,17 @@ name: Microsoft Store package
 # What a submission does: it makes a NEW SUBMISSION in Partner Center holding this package. By
 # default it stops there as a draft (nothing goes to certification): open Partner Center, look
 # at it and press Submit. Set the repository variable STORE_AUTO_SUBMIT to true to have it submit
-# for certification itself. A by-hand run chooses with its own switch.
+# for certification itself. A by-hand run chooses with its own switch; its "status" choice only asks
+# Partner Center where the latest submission stands (draft, in certification, published...).
 on:
   push:
     tags: ["v*"]
   workflow_dispatch:
     inputs:
       submit:
-        description: "Send the package to Partner Center? none = build only; draft = create the submission but don't submit it; submit = submit it for certification"
+        description: "Send the package to Partner Center? none = build only; draft = create the submission but don't submit it; submit = submit it for certification; status = send nothing, just report where the Store submission stands"
         type: choice
-        options: [none, draft, submit]
+        options: [none, draft, submit, status]
         default: none
   pull_request:
     paths:
@@ -61,7 +62,7 @@ jobs:
     name: Send it to Partner Center
     needs: msix
     # Only for a release tag or a by-hand run that asked for it, never for a pull request.
-    if: github.event_name == 'push' || (github.event_name == 'workflow_dispatch' && inputs.submit != 'none')
+    if: github.event_name == 'push' || (github.event_name == 'workflow_dispatch' && (inputs.submit == 'draft' || inputs.submit == 'submit'))
     runs-on: windows-latest
     env:
       # Skipped, with a note, when the Store credentials aren't set (as the Mac signing is).
@@ -100,3 +101,35 @@ jobs:
           if ($env:STORE_COMMIT -ne 'true') { $extra += '--noCommit' }
           Write-Output "Sending $pkg to the Store product $env:STORE_PRODUCT_ID (commit: $env:STORE_COMMIT)"
           msstore publish $pkg -id $env:STORE_PRODUCT_ID @extra
+          Write-Output "Where the submission stands now:"
+          msstore submission status $env:STORE_PRODUCT_ID
+
+  status:
+    name: Where the Store submission stands
+    # By hand only, with "status" chosen. Builds and sends nothing.
+    if: github.event_name == 'workflow_dispatch' && inputs.submit == 'status'
+    runs-on: windows-latest
+    env:
+      STORE_TENANT_ID: ${{ secrets.AZURE_AD_TENANT_ID }}
+      STORE_CLIENT_ID: ${{ secrets.AZURE_AD_APPLICATION_CLIENT_ID }}
+      STORE_CLIENT_SECRET: ${{ secrets.AZURE_AD_APPLICATION_SECRET }}
+      STORE_SELLER_ID: ${{ secrets.STORE_SELLER_ID }}
+    steps:
+      - name: Check the Store credentials are set
+        id: creds
+        shell: pwsh
+        run: |
+          $have = $env:STORE_TENANT_ID -and $env:STORE_CLIENT_ID -and $env:STORE_CLIENT_SECRET -and $env:STORE_SELLER_ID
+          "have=$($have.ToString().ToLower())" >> $env:GITHUB_OUTPUT
+          if (-not $have) { Write-Output "::error::The Microsoft Store credentials aren't set, so the status can't be read. Look in Partner Center instead." }
+      - name: Set up the Microsoft Store command line
+        if: steps.creds.outputs.have == 'true'
+        uses: microsoft/microsoft-store-apppublisher@v1.1
+      - name: Sign in to Partner Center
+        if: steps.creds.outputs.have == 'true'
+        shell: pwsh
+        run: msstore reconfigure --tenantId $env:STORE_TENANT_ID --sellerId $env:STORE_SELLER_ID --clientId $env:STORE_CLIENT_ID --clientSecret $env:STORE_CLIENT_SECRET
+      - name: Ask Partner Center
+        if: steps.creds.outputs.have == 'true'
+        shell: pwsh
+        run: msstore submission status $env:STORE_PRODUCT_ID
