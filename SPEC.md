@@ -268,6 +268,7 @@ Rooms are given by name (exact, or a unique part of a name) or id. Leaving the r
 | --- | --- |
 | `get_status` *(read)* | Every system, room (model, software version and, when known, wired or wireless), group, what's playing (with the sound details the speaker reports: format, sample rate, bit depth, bitrate, lossless), volumes, play mode, play-along links and saved groups (JSON) |
 | `now_playing` *(read)* | One room's group: track, position, state, volume, play mode, sleep timer |
+| `get_lyrics` *(read, experimental)* | The words of what a room is playing, from lrclib.net (the same look-up as the Lyrics section, §4.8): first line `# timed`, `# plain` or `# instrumental`, then the lines (timed ones as `[mm:ss.cc] words`). **Refused unless the Lyrics switch is on** (`show_lyrics`), because it sends the song's title, artist, album and length to lrclib.net; live radio has none; the demo system makes up its own and never goes online. Used by the phone app's lyrics |
 | `get_cover_art` *(read)* | The cover of what a room's group is playing, as a small JPEG image (an MCP `image` content block, base64) plus a line naming it; `size` (32 to 1000, default 300) is the longest side. Fetched from the speaker (or wherever the cover's address says) when asked, never kept. Says so, as an error, if there is no cover. Used by the Stream Deck plugin's Now Playing key |
 | `playback` | `scene <name>`, `scenes`, `backup <file.json>`, `play`, `pause`, `toggle`, `next`, `previous` |
 | `set_volume` | Absolute `volume` 0–100 or relative `change`; `whole_group` for the group |
@@ -440,7 +441,7 @@ Quick checks that a change hasn't broken behaviour. Each needs no real speakers 
 
 1. `cargo test` passes: 103 unit tests, including that every phrase is translated and placeholders are kept.
 2. `roomtone --screenshot shots/x.png` saves a non-blank picture of the demo system within a few seconds.
-3. `roomtone --mcp --demo` with an `initialize` line, then `tools/list`, lists 57 tools when control is allowed (with speaker updates and saving files left off, as they are by default; 60 with every switch on) and 19 when look-only.
+3. `roomtone --mcp --demo` with an `initialize` line, then `tools/list`, lists 58 tools when control is allowed (with speaker updates and saving files left off, as they are by default; 61 with every switch on) and 20 when look-only.
 4. With the link off, `tools/call` answers error −32001.
 5. Over HTTP, a request without the key gets 401, one with `Origin: https://example.com` gets 403, and `--mcp-off` closes the port within ~2 s.
 6. In the demo: `play_along` from "Living Room" to "Office", then `playback next` on Living Room, changes Office's track too.

@@ -112,6 +112,23 @@ fn tools() -> Vec<(&'static str, &'static str, Value, bool)> {
     all
 }
 
+/// Lyrics as text: a first line saying what kind, then the lines (timed ones as `[mm:ss.cc] words`).
+fn lyrics_text(l: &crate::lyrics::Lyrics) -> String {
+    if l.instrumental {
+        return "# instrumental\nThis song has no words.".into();
+    }
+    let mut out = String::from(if l.synced { "# timed" } else { "# plain" });
+    for line in &l.lines {
+        out.push('\n');
+        if l.synced {
+            let t = line.at.max(0.0);
+            out.push_str(&format!("[{:02}:{:05.2}] ", (t / 60.0) as u32, t % 60.0));
+        }
+        out.push_str(&line.text);
+    }
+    out
+}
+
 /// The first set of tools: status, playback, volume, search and play, queue, grouping, sound, alarms, updates.
 fn base_tools() -> Vec<(&'static str, &'static str, Value, bool)> {
     let room = json!({"type": "string", "description": "Room name (e.g. \"Kitchen\"). Leave out to use the room selected in the app."});
@@ -122,6 +139,12 @@ fn base_tools() -> Vec<(&'static str, &'static str, Value, bool)> {
             "get_cover_art",
             "The cover picture of what a room is playing right now, as a small JPEG image (for a display or a button). Says so if there is none.",
             json!({"type": "object", "properties": {"room": room, "size": {"type": "integer", "minimum": 32, "maximum": 1000, "default": 300, "description": "The longest side in pixels."}}}),
+            false,
+        ),
+        (
+            "get_lyrics",
+            "Experimental: the words of the song a room is playing, from lrclib.net. The first line says `# timed`, `# plain` or `# instrumental`; timed lyrics have one `[mm:ss.cc] words` line each. Only works when the person has switched lyrics on (the song's title, artist, album and length are sent to lrclib.net); live radio has none.",
+            json!({"type": "object", "properties": {"room": room}}),
             false,
         ),
         (
@@ -544,6 +567,27 @@ impl Mcp {
                     .map(|g| json!({"name": g.name, "rooms": g.rooms.iter().map(|r| s.find_room(r).map(|(_, x)| x.name.clone()).unwrap_or(r.clone())).collect::<Vec<_>>()}))
                     .collect();
                 Ok(serde_json::to_string_pretty(&json!({"status": phase, "systems": systems, "saved_groups": saved})).unwrap_or_default())
+            }
+            "get_lyrics" => {
+                let (_, gid) = self.room(a)?;
+                let (artist, title, album, duration, stream, demo, on) = {
+                    let s = self.b.lock();
+                    let (_, g) = s.find_group(&gid).ok_or_else(|| "That room isn't available right now".to_string())?;
+                    (g.now.artist.clone(), g.now.title.clone(), g.now.album.clone(), g.now.duration, g.now.is_stream, s.phase == Phase::Demo, s.config.show_lyrics)
+                };
+                if !on {
+                    return Err("Lyrics are switched off. The person can switch them on in Settings; they are looked up on lrclib.net, which is sent the song's title, artist, album and length.".into());
+                }
+                if title.trim().is_empty() || stream {
+                    return Err("Nothing is playing that has lyrics (live radio has none).".into());
+                }
+                // The look-up waits on the network with no lock held; the demo system never goes online.
+                let found = if demo { Ok(Some(crate::lyrics::demo(&title))) } else { crate::lyrics::find(&crate::lyrics::get_over_https, &artist, &title, &album, duration) };
+                match found {
+                    Ok(Some(l)) => Ok(lyrics_text(&l)),
+                    Ok(None) => Err(format!("No lyrics found for “{title}”.")),
+                    Err(e) => Err(format!("Couldn't look up the lyrics: {e}")),
+                }
             }
             "now_playing" => {
                 let (_, gid) = self.room(a)?;
@@ -1369,8 +1413,8 @@ mod unit {
         m.b.lock().config.mcp.allow_updates = false;
         m.b.lock().config.mcp.allow_files = false;
         let all = rpc(&m, 1, "tools/list", json!({}))["result"]["tools"].as_array().unwrap().len();
-        assert_eq!(tools().len(), 60);
-        assert_eq!(all, 57, "installing updates and saving files are off until switched on");
+        assert_eq!(tools().len(), 61);
+        assert_eq!(all, 58, "installing updates and saving files are off until switched on");
         let mut names: Vec<&str> = tools().iter().map(|t| t.0).collect();
         names.sort();
         names.dedup();
@@ -1380,7 +1424,7 @@ mod unit {
         }
         m.b.lock().config.mcp.allow_control = false;
         let look = rpc(&m, 2, "tools/list", json!({}))["result"]["tools"].as_array().unwrap().clone();
-        assert_eq!(look.len(), 19);
+        assert_eq!(look.len(), 20);
         assert!(look.iter().all(|t| t["annotations"]["readOnlyHint"] == true));
         let (text, err) = tool(&m, "playback", json!({"action": "pause"}));
         assert!(err && text.contains("only lets assistants look"));
@@ -1429,6 +1473,27 @@ mod unit {
             }
         });
         format!("http://127.0.0.1:{port}/cover.png")
+    }
+
+    #[test]
+    fn lyrics_are_asked_for_only_when_switched_on_and_come_back_as_text() {
+        let m = link();
+        let (off, err) = tool(&m, "get_lyrics", json!({"room": "Living Room"}));
+        assert!(err && off.contains("switched off"), "{off}");
+        m.b.lock().config.show_lyrics = true;
+        // The demo system makes up timed lyrics and never goes online.
+        let (text, err) = tool(&m, "get_lyrics", json!({"room": "Living Room"}));
+        assert!(!err, "{text}");
+        assert!(text.starts_with("# timed\n[00:10.00] "), "{text}");
+        assert!(text.contains("[00:35.00] These are made-up words"), "{text}");
+        assert!(tools().iter().any(|t| t.0 == "get_lyrics" && !t.3), "it only looks, so it is there in look-only mode");
+        let plain = crate::lyrics::Lyrics {
+            lines: vec![crate::lyrics::Line { at: 0.0, text: "One".into() }, crate::lyrics::Line { at: 0.0, text: "Two".into() }],
+            synced: false,
+            instrumental: false,
+        };
+        assert_eq!(lyrics_text(&plain), "# plain\nOne\nTwo");
+        assert!(lyrics_text(&crate::lyrics::Lyrics { instrumental: true, ..Default::default() }).starts_with("# instrumental"));
     }
 
     #[test]
