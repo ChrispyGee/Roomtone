@@ -2305,7 +2305,9 @@ impl App {
         }
         ui.add_space(16.0);
         set_title_mode(match self.settings_tab {
-            0 | 5 | 6 => TitleMode::Hidden,
+            0 | 5 => TitleMode::Hidden,
+            // Backups has one card, or two when there are several systems to keep in step.
+            6 if s.households.len() < 2 => TitleMode::Hidden,
             _ => TitleMode::Compact,
         });
         match self.settings_tab {
