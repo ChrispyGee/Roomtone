@@ -81,9 +81,10 @@ impl Allowance {
             | "subscribe_podcast"
             | "unsubscribe_podcast"
             | "save_group"
-            | "delete_saved_group" => Allowance::Saved,
+            | "delete_saved_group"
+            | "keep_in_step" => Allowance::Saved,
             "create_alarm" | "delete_alarm" | "set_alarm_enabled" => Allowance::Alarms,
-            "rename_room" | "set_sound" | "identify_speaker" => Allowance::Names,
+            "rename_room" | "set_sound" | "identify_speaker" | "set_volume_limits" => Allowance::Names,
             "install_update" => Allowance::Updates,
             "save_backup" | "export_playlist" => Allowance::Files,
             _ => Allowance::Playback,
@@ -1469,8 +1470,8 @@ mod unit {
         m.b.lock().config.mcp.allow_updates = false;
         m.b.lock().config.mcp.allow_files = false;
         let all = rpc(&m, 1, "tools/list", json!({}))["result"]["tools"].as_array().unwrap().len();
-        assert_eq!(tools().len(), 61);
-        assert_eq!(all, 58, "installing updates and saving files are off until switched on");
+        assert_eq!(tools().len(), 65);
+        assert_eq!(all, 62, "installing updates and saving files are off until switched on");
         let mut names: Vec<&str> = tools().iter().map(|t| t.0).collect();
         names.sort();
         names.dedup();
@@ -1480,7 +1481,7 @@ mod unit {
         }
         m.b.lock().config.mcp.allow_control = false;
         let look = rpc(&m, 2, "tools/list", json!({}))["result"]["tools"].as_array().unwrap().clone();
-        assert_eq!(look.len(), 20);
+        assert_eq!(look.len(), 21);
         assert!(look.iter().all(|t| t["annotations"]["readOnlyHint"] == true));
         let (text, err) = tool(&m, "playback", json!({"action": "pause"}));
         assert!(err && text.contains("only lets assistants look"));
@@ -1725,6 +1726,27 @@ mod unit {
         ok(&m, "delete_saved_group", json!({"name": "Upstairs"}));
         assert!(tool(&m, "save_group", json!({"name": "Mixed", "rooms": ["Bedroom", "Office"]})).1);
         assert!(ok(&m, "pause_all", json!({})).contains("Paused") || true);
+    }
+
+    #[test]
+    fn volume_limits_add_speaker_and_keep_in_step() {
+        let m = link();
+        m.b.lock().config.mcp.allow_saved = true;
+        m.b.lock().config.mcp.allow_names = true;
+        // The unit tests share one settings folder, so nothing here may switch a limit on (another
+        // test could then find its volumes lowered): times are set with quiet hours left off.
+        ok(
+            &m,
+            "set_volume_limits",
+            json!({"room_limits": [{"room": "Bedroom", "max": 100}], "quiet_enabled": false, "quiet_from": "21:30", "quiet_to": "06:45", "quiet_max": 15, "keep_down": false}),
+        );
+        let text = ok(&m, "get_volume_limits", json!({}));
+        assert!(text.contains("No room has its own limit") && text.contains("Quiet hours are off"), "{text}");
+        m.b.send_and_wait(Cmd::SetVolumeLimits(crate::config::VolumeLimits::default()), Duration::from_secs(5)).unwrap();
+        assert!(tool(&m, "set_volume_limits", json!({"quiet_from": "25:00"})).1, "a time that isn't one is refused");
+        assert!(tool(&m, "add_speaker", json!({"address": "not an address"})).1);
+        let (text, _) = tool(&m, "keep_in_step", json!({}));
+        assert!(!text.is_empty());
     }
 
     #[test]

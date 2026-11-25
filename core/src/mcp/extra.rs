@@ -99,6 +99,43 @@ pub(super) fn tools() -> Vec<(&'static str, &'static str, Value, bool)> {
             json!({"type": "object", "properties": {"ref": reff, "file": {"type": "string"}}, "required": ["ref", "file"]}),
             true,
         ),
+        (
+            "get_volume_limits",
+            "The volume safeguards: each room's highest volume, quiet hours (when every room is held lower) and whether Roomtone turns a room back down.",
+            json!({"type": "object", "properties": {}}),
+            false,
+        ),
+        (
+            "set_volume_limits",
+            "Change the volume safeguards. Give any of: room_limits (a list of {room, max}; max 100 removes a room's limit; rooms not listed keep theirs), quiet_enabled, quiet_from and quiet_to (HH:MM), quiet_max (0 to 100), keep_down.",
+            json!({"type": "object", "properties": {
+                "room_limits": {"type": "array", "items": {"type": "object", "properties": {"room": {"type": "string"}, "max": {"type": "integer", "minimum": 0, "maximum": 100}}, "required": ["room", "max"]}},
+                "quiet_enabled": {"type": "boolean"},
+                "quiet_from": {"type": "string", "description": "HH:MM"},
+                "quiet_to": {"type": "string", "description": "HH:MM"},
+                "quiet_max": {"type": "integer", "minimum": 0, "maximum": 100},
+                "keep_down": {"type": "boolean"}
+            }}),
+            true,
+        ),
+        (
+            "add_speaker",
+            "Add a speaker by its network address (for example 192.168.1.20) when it isn't found on its own.",
+            json!({"type": "object", "properties": {"address": {"type": "string"}}, "required": ["address"]}),
+            true,
+        ),
+        (
+            "keep_in_step",
+            "Copy favorites, playlists and alarms between systems (an S1 and an S2 system can't share them, so this keeps them alike). With apply false it only says what would be added. from names the system to copy from (S1 or S2); leave it out to copy both ways.",
+            json!({"type": "object", "properties": {
+                "apply": {"type": "boolean", "default": false},
+                "from": {"type": "string", "enum": ["S1", "S2"]},
+                "favorites": {"type": "boolean", "default": true},
+                "playlists": {"type": "boolean", "default": true},
+                "alarms": {"type": "boolean", "default": true}
+            }}),
+            true,
+        ),
         ("find_speakers", "Search the network for speakers again (after adding or moving one).", json!({"type": "object", "properties": {}}), false),
         (
             "add_station",
@@ -582,6 +619,145 @@ impl Mcp {
                     }
                     thread::sleep(Duration::from_millis(150));
                 }
+            }
+            "get_volume_limits" => {
+                let (l, rooms) = {
+                    let st = self.b.lock();
+                    let names: Vec<(String, String)> = st.households.iter().flat_map(|h| h.rooms.iter()).map(|r| (r.uuid.clone(), r.name.clone())).collect();
+                    (st.config.volume_limits.clone(), names)
+                };
+                let name_of = |id: &str| rooms.iter().find(|(u, _)| u == id).map(|(_, n)| n.clone()).unwrap_or_else(|| id.to_string());
+                let hm = |m: u16| format!("{:02}:{:02}", m / 60, m % 60);
+                let mut out = String::new();
+                for r in &l.rooms {
+                    out.push_str(&format!("{} is limited to {}\n", name_of(&r.room), r.max));
+                }
+                if l.rooms.is_empty() {
+                    out.push_str("No room has its own limit.\n");
+                }
+                out.push_str(&if l.quiet.enabled {
+                    format!("Quiet hours {}–{}, no louder than {}\n", hm(l.quiet.from), hm(l.quiet.to), l.quiet.max)
+                } else {
+                    "Quiet hours are off.\n".to_string()
+                });
+                out.push_str(if l.keep_down { "Roomtone turns a room back down if it goes over." } else { "Roomtone doesn't turn rooms back down." });
+                set_structured(json!({
+                    "rooms": l.rooms.iter().map(|r| json!({"room": name_of(&r.room), "max": r.max})).collect::<Vec<_>>(),
+                    "quiet": {"enabled": l.quiet.enabled, "from": hm(l.quiet.from), "to": hm(l.quiet.to), "max": l.quiet.max},
+                    "keep_down": l.keep_down
+                }));
+                Ok(out)
+            }
+            "set_volume_limits" => {
+                let parse_hm = |k: &str| -> Result<Option<u16>, String> {
+                    match str_arg(k) {
+                        None => Ok(None),
+                        Some(t) => {
+                            let (h, m) = t.split_once(':').ok_or(format!("{k} should look like 22:00"))?;
+                            let (h, m): (u16, u16) =
+                                (h.trim().parse().map_err(|_| format!("{k} should look like 22:00"))?, m.trim().parse().map_err(|_| format!("{k} should look like 22:00"))?);
+                            if h > 23 || m > 59 {
+                                return Err(format!("{k} should look like 22:00"));
+                            }
+                            Ok(Some(h * 60 + m))
+                        }
+                    }
+                };
+                let mut l = self.b.lock().config.volume_limits.clone();
+                if let Some(list) = a.get("room_limits").and_then(|v| v.as_array()) {
+                    for e in list {
+                        let name = e.get("room").and_then(|v| v.as_str()).ok_or("Each limit needs a room")?;
+                        let max = e.get("max").and_then(|v| v.as_f64()).ok_or("Each limit needs a max")?.round().clamp(0.0, 100.0) as u8;
+                        let id = find_room(&self.b.lock(), name)?;
+                        l.rooms.retain(|r| r.room != id);
+                        if max < 100 {
+                            l.rooms.push(crate::config::RoomLimit { room: id, max });
+                        }
+                    }
+                }
+                if let Some(v) = bool_arg("quiet_enabled") {
+                    l.quiet.enabled = v;
+                }
+                if let Some(v) = parse_hm("quiet_from")? {
+                    l.quiet.from = v;
+                }
+                if let Some(v) = parse_hm("quiet_to")? {
+                    l.quiet.to = v;
+                }
+                if let Some(v) = int_arg("quiet_max") {
+                    l.quiet.max = v.clamp(0, 100) as u8;
+                }
+                if let Some(v) = bool_arg("keep_down") {
+                    l.keep_down = v;
+                }
+                self.wait(Cmd::SetVolumeLimits(l))?;
+                Ok("Saved the volume limits".into())
+            }
+            "add_speaker" => {
+                let addr = str_arg("address").ok_or("Give the speaker's address, like 192.168.1.20")?;
+                let ok = !addr.is_empty() && addr.split('.').count() == 4 && addr.split('.').all(|p| p.parse::<u8>().is_ok());
+                if !ok {
+                    return Err("That doesn't look like an address. It should be four numbers with dots, like 192.168.1.20".into());
+                }
+                let before: usize = self.b.lock().households.iter().map(|h| h.rooms.len()).sum();
+                self.wait(Cmd::AddManual(addr.clone()))?;
+                thread::sleep(Duration::from_secs(4));
+                let after: usize = self.b.lock().households.iter().map(|h| h.rooms.len()).sum();
+                if after > before {
+                    Ok(format!("Added {addr}: {} new room(s)", after - before))
+                } else {
+                    Ok(format!("Asked {addr}, but no new room appeared. Check the address and that the speaker is on."))
+                }
+            }
+            "keep_in_step" => {
+                let ids: Vec<String> = self.b.lock().households.iter().filter(|h| h.is_set_up()).map(|h| h.id.clone()).collect();
+                if ids.len() < 2 {
+                    return Err("Keeping systems in step needs two systems (an S1 and an S2). Only one was found.".into());
+                }
+                let from = match str_arg("from") {
+                    None => None,
+                    Some(g) => Some(
+                        self.b.lock().households.iter().find(|h| h.system.label().eq_ignore_ascii_case(&g)).map(|h| h.id.clone()).ok_or(format!("There's no {g} system here."))?,
+                    ),
+                };
+                let sections = crate::backup::Sections {
+                    favorites: bool_arg("favorites").unwrap_or(true),
+                    playlists: bool_arg("playlists").unwrap_or(true),
+                    alarms: bool_arg("alarms").unwrap_or(true),
+                    app: false,
+                };
+                let apply = bool_arg("apply").unwrap_or(false);
+                self.wait(if apply { Cmd::ApplySync(ids, sections, from) } else { Cmd::PreviewSync(ids, sections, from) })?;
+                let st = self.b.lock();
+                let list = if apply { st.sync_result.clone() } else { st.sync_preview.clone() };
+                let Some(list) = list else { return Err("Nothing came back. Try again in a moment.".into()) };
+                let mut out = String::new();
+                for (name, r) in &list {
+                    if apply {
+                        out.push_str(&format!(
+                            "{name}: added {} favorites, {} playlists, {} alarms; {} already there; {} failed\n",
+                            r.added.favorites,
+                            r.added.playlists,
+                            r.added.alarms,
+                            r.skipped.favorites + r.skipped.playlists + r.skipped.alarms,
+                            r.failed.favorites + r.failed.playlists + r.failed.alarms
+                        ));
+                        for n in &r.notes {
+                            out.push_str(&format!("  {n}\n"));
+                        }
+                    } else if r.would.is_empty() {
+                        out.push_str(&format!("{name}: already in step\n"));
+                    } else {
+                        out.push_str(&format!("{name} would get:\n"));
+                        for w in &r.would {
+                            out.push_str(&format!("  {w}\n"));
+                        }
+                    }
+                }
+                if !apply {
+                    out.push_str("Nothing was changed. Run again with apply true to do it.");
+                }
+                Ok(out)
             }
             "find_speakers" => {
                 self.wait(Cmd::Discover)?;
