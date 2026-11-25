@@ -976,3 +976,6 @@ The cover, a seek bar, the buttons and the volume. The full menu is a right clic
 A small player from the Mac menu bar and the Windows notification area (experimental)	Un petit lecteur dans la barre des menus du Mac et la zone de notification de Windows (expérimental)
 The Mac download is now signed and notarised by Apple	Le téléchargement pour Mac est désormais signé et notarié par Apple
 Roomtone is now in the Microsoft Store (Windows)	Roomtone est maintenant dans le Microsoft Store (Windows)
+plays {name}, shuffled	joue {name}, en aléatoire
+Save what's playing as a scene	Enregistrer la lecture en cours comme scène
+Starts a new scene from the selected room or group: its rooms and volumes, shuffle and sleep timer, and the favorite it is playing if it can tell which.	Crée une scène à partir de la pièce ou du groupe sélectionné : ses pièces et volumes, la lecture aléatoire et la minuterie, et le favori en cours s'il est reconnu.

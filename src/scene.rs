@@ -8,7 +8,7 @@
 //! confirmed it; an assistant or the command line leaves the layout alone and says so.
 
 use crate::backend::{Backend, Cmd};
-use crate::config::Scene;
+use crate::config::{Scene, SceneRoom};
 use crate::mcp::Mcp;
 use serde_json::json;
 
@@ -100,6 +100,10 @@ pub fn apply(b: &Backend, scene: &Scene, with_layout: bool) -> Result<Vec<String
         step(&format!("Setting the sound in {}", r.room), "set_sound", serde_json::Value::Object(args))?;
     }
     let lead = names[0].clone();
+    // Shuffle before the music, so the first song is already a random one.
+    if scene.shuffle {
+        step("Turning shuffle on", "set_play_mode", json!({"room": lead, "shuffle": true}))?;
+    }
     if !scene.play.trim().is_empty() {
         step(&format!("Starting “{}”", scene.play), "play", json!({"room": lead, "name": scene.play}))?;
     }
@@ -109,10 +113,34 @@ pub fn apply(b: &Backend, scene: &Scene, with_layout: bool) -> Result<Vec<String
     Ok(done)
 }
 
+/// A scene made from what a group is doing right now ("Save as a scene"): its rooms at their
+/// volumes, played together if there are two or more, shuffle as it is, the sleep timer's minutes left,
+/// and the favorite or playlist (from `playable`) it is playing, if it can be told which. The name is
+/// left empty for the person to give. Sound settings and speaker layouts are not taken.
+pub fn capture(s: &crate::model::AppState, gid: &str, playable: &[crate::model::Item]) -> Option<Scene> {
+    let (h, g) = s.find_group(gid)?;
+    let rooms: Vec<SceneRoom> =
+        g.members.iter().filter_map(|m| h.rooms.iter().find(|r| &r.uuid == m)).map(|r| SceneRoom { room: r.name.clone(), volume: Some(r.volume), ..Default::default() }).collect();
+    if rooms.is_empty() {
+        return None;
+    }
+    let asked = g.now.media_uri.trim();
+    let play = playable.iter().find(|i| !asked.is_empty() && i.uri == asked).map(|i| i.title.clone()).unwrap_or_default();
+    Some(Scene {
+        name: String::new(),
+        household: h.id.clone(),
+        group: rooms.len() >= 2,
+        rooms,
+        play,
+        shuffle: g.shuffle,
+        sleep_minutes: g.sleep_left.map(|secs| secs.div_ceil(60).min(1440)).unwrap_or(0),
+        layout: None,
+    })
+}
+
 #[cfg(test)]
 mod unit {
     use super::*;
-    use crate::config::SceneRoom;
     use crate::test_support::demo_backend;
 
     fn scene(rooms: &[(&str, Option<u8>)], play: &str, sleep: u32) -> Scene {
@@ -122,6 +150,7 @@ mod unit {
             rooms: rooms.iter().map(|(r, v)| SceneRoom { room: r.to_string(), volume: *v, ..Default::default() }).collect(),
             group: true,
             play: play.into(),
+            shuffle: false,
             sleep_minutes: sleep,
             layout: None,
         }
@@ -139,6 +168,43 @@ mod unit {
         assert!(g.sleep_left.is_some(), "the sleep timer is set");
         let kitchen = s.households.iter().flat_map(|h| h.rooms.iter()).find(|r| r.name == "Kitchen").unwrap();
         assert_eq!(kitchen.volume, 35);
+    }
+
+    #[test]
+    fn a_scene_can_turn_shuffle_on_and_leaves_it_alone_otherwise() {
+        let b = demo_backend();
+        let shuffled = |b: &crate::backend::Backend| b.lock().households.iter().flat_map(|h| h.groups.iter()).any(|g| g.shuffle);
+        let mut sc = scene(&[("Living Room", None)], "Dinner Party", 0);
+        sc.group = false;
+        apply(&b, &sc, false).expect("the scene runs");
+        assert!(!shuffled(&b), "no shuffle unless asked");
+        sc.shuffle = true;
+        let steps = apply(&b, &sc, false).expect("the scene runs");
+        assert!(steps.iter().any(|l| l.to_lowercase().contains("shuffle on")), "{steps:?}");
+        assert!(shuffled(&b));
+    }
+
+    #[test]
+    fn a_scene_can_be_made_from_what_is_playing() {
+        let b = demo_backend();
+        let mut sc = scene(&[("Living Room", Some(22)), ("Kitchen", Some(35))], "Dinner Party", 45);
+        sc.shuffle = true;
+        apply(&b, &sc, false).expect("the scene runs");
+        let s = b.lock();
+        let gid = s.households.iter().flat_map(|h| h.groups.iter()).find(|g| g.members.len() == 2).map(|g| g.id.clone()).expect("grouped");
+        let got = capture(&s, &gid, &[]).expect("a scene from the group");
+        let rooms: Vec<(&str, Option<u8>)> = got.rooms.iter().map(|r| (r.room.as_str(), r.volume)).collect();
+        assert!(rooms.contains(&("Living Room", Some(22))) && rooms.contains(&("Kitchen", Some(35))), "{rooms:?}");
+        assert!(got.group && got.shuffle && got.name.is_empty());
+        assert!(got.sleep_minutes > 40 && got.sleep_minutes <= 45, "{}", got.sleep_minutes);
+        assert!(got.play.is_empty(), "no favorite matched, so nothing is guessed");
+        // A favorite whose address is what the group was asked to play is named.
+        let asked = s.find_group(&gid).unwrap().1.now.media_uri.clone();
+        if !asked.is_empty() {
+            let item = crate::model::Item { title: "Dinner Party".into(), uri: asked, ..Default::default() };
+            assert_eq!(capture(&s, &gid, &[item]).unwrap().play, "Dinner Party");
+        }
+        assert!(capture(&s, "nothing", &[]).is_none());
     }
 
     #[test]

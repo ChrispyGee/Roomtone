@@ -158,6 +158,9 @@ pub struct Scene {
     /// A favorite or playlist to start, by name; empty leaves what's playing.
     #[serde(default)]
     pub play: String,
+    /// Turn shuffle on for what plays; off leaves the shuffle setting as it is.
+    #[serde(default)]
+    pub shuffle: bool,
     /// Stop the music after this many minutes; 0 sets no timer.
     #[serde(default)]
     pub sleep_minutes: u32,
@@ -684,7 +687,16 @@ mod unit {
     fn alarms_and_scenes_are_hidden_until_wanted_but_existing_scenes_stay() {
         let mut c = Config::default();
         assert!(!c.alarms_shown() && !c.scenes_shown(), "off by default");
-        c.scenes.push(Scene { name: "Movie night".into(), household: String::new(), rooms: vec![], group: true, play: String::new(), sleep_minutes: 0, layout: None });
+        c.scenes.push(Scene {
+            name: "Movie night".into(),
+            household: String::new(),
+            rooms: vec![],
+            group: true,
+            play: String::new(),
+            shuffle: false,
+            sleep_minutes: 0,
+            layout: None,
+        });
         assert!(c.scenes_shown(), "someone who already has scenes keeps them");
         c.show_scenes = Some(false);
         assert!(!c.scenes_shown(), "unless they switch the page off");

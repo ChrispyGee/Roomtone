@@ -5,6 +5,7 @@ All notable changes to Roomtone. The format follows [Keep a Changelog](https://k
 ## [Unreleased]
 
 ### Added
+- **Scenes can shuffle, and you can save what's playing as a scene.** A scene has a *Shuffle* tick (it turns shuffle on before the music starts; left off, shuffle stays as it is), also in the assistants' `save_scene`. A new *Save what's playing as a scene* button on the Scenes page starts a scene from the selected room or group: its rooms and volumes, shuffle, the sleep timer's time left and, when it can tell, the favorite it is playing; you name it and change what you like. Both are tried on the demo system only. These are the two things the Sonos app's presets had that scenes lacked.
 - **Ask where the Microsoft Store submission stands.** The *Microsoft Store package* workflow has a new *status* choice that reads the latest submission's state from Partner Center (draft, in certification, published) without building or sending anything, and a real submission now prints its state at the end. Not tried yet.
 
 ### Fixed
