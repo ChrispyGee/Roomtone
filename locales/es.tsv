@@ -721,9 +721,7 @@ Marked “{title}” as played	«{title}» marcado como escuchado
 Marked “{title}” as not played	«{title}» marcado como no escuchado
 Resuming where you left off	Continuando donde lo dejaste
 Added: {counts}	Añadido: {counts}
-Adds what's in a backup file to this system. Nothing that's already there is changed or removed.	Añade a este sistema lo que hay en un archivo de copia. No se cambia ni se quita nada de lo que ya está.
 Alarms ({n})	Alarmas ({n})
-Alarms are matched to rooms by name. Things already on this system are skipped.	Las alarmas se asocian a las habitaciones por su nombre. Lo que ya está en este sistema se omite.
 Already there, left alone: {counts}	Ya estaba, sin cambios: {counts}
 Backup and restore	Copia de seguridad y restauración
 Backup made on {date}	Copia hecha el {date}
@@ -983,3 +981,20 @@ Stream details	Detalles del flujo
 Show the bitrate of streams and podcasts in Technical details	Mostrar la tasa de bits de flujos y pódcast en los detalles técnicos
 Speakers often report only the format of an internet radio stream or a podcast episode. With this on, Roomtone opens the playing stream's or episode's own web address once, as the speaker does, and reads what its reply says: the bitrate and sample rate of a stream, or the size of an episode, from which it works out an average bitrate using the episode's length. It then closes the connection without playing anything. Only that address is contacted (a podcast host may pass it on to the host that serves the file), and nothing about you or your speakers is sent. Some streams say nothing. This is experimental and may change.	Los altavoces suelen informar solo del formato de una emisora de radio por internet o de un episodio de pódcast. Con esto activado, Roomtone abre una vez la dirección web del flujo o episodio que suena, como hace el altavoz, y lee lo que dice la respuesta: la tasa de bits y la frecuencia de muestreo de un flujo, o el tamaño de un episodio, con el que calcula una tasa de bits media usando su duración. Después cierra la conexión sin reproducir nada. Solo se contacta esa dirección (el alojamiento de un pódcast puede pasarla al que sirve el archivo) y no se envía nada sobre ti ni tus altavoces. Algunos flujos no dicen nada. Es experimental y puede cambiar.
 The stream didn't answer: {why}	El flujo no respondió: {why}
+Restore to	Restaurar en
+Alarms are matched to rooms by name, so they only come back on a system that has those rooms. Things already on a system are skipped.	Las alarmas se asocian a las salas por nombre, así que solo vuelven en un sistema que tenga esas salas. Lo que un sistema ya tiene se omite.
+Adds what's in a backup file to the systems you choose. Nothing that's already there is changed or removed.	Añade lo que hay en un archivo de copia a los sistemas que elijas. No se cambia ni se elimina nada de lo que ya existe.
+Add them	Añadirlos
+Adds the favorites, playlists and alarms one system has to the others, so they match. Nothing is changed or removed, so something you delete in one system stays in the others. You see what would be added before anything is.	Añade a los demás sistemas los favoritos, listas y alarmas que tiene uno, para que coincidan. No se cambia ni se elimina nada, así que lo que borres en un sistema sigue en los otros. Ves lo que se añadiría antes de que se añada.
+Alarms are matched to rooms by name, so they only come across to a system that has those rooms. Favorites from a music service only play where that service is connected.	Las alarmas se asocian a las salas por nombre, así que solo pasan a un sistema que tenga esas salas. Los favoritos de un servicio de música solo suenan donde ese servicio está conectado.
+Copy one way, from	Copiar en un solo sentido, desde
+Couldn't be added: {counts}	No se pudo añadir: {counts}
+Couldn't reach the {system} system, so nothing was changed.	No se pudo contactar con el sistema {system}, así que no se cambió nada.
+Keep systems in step	Mantener los sistemas al día
+Lists	Listas
+Nothing to add: it already has everything.	Nada que añadir: ya lo tiene todo.
+See what would be added	Ver qué se añadiría
+What would be added	Qué se añadiría
+Would get: {counts}	Recibiría: {counts}
+{favorites} favorites · {playlists} playlists · {alarms} alarms	{favorites} favoritos · {playlists} listas · {alarms} alarmas
+…and {n} more	…y {n} más

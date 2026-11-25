@@ -561,6 +561,10 @@ pub fn apply(s: &mut AppState, cmd: &Cmd) {
         | Cmd::SaveBackup(..)
         | Cmd::ReadBackup(_)
         | Cmd::RestoreBackup(..)
+        | Cmd::RestoreBackupTo(..)
+        | Cmd::PreviewSync(..)
+        | Cmd::ApplySync(..)
+        | Cmd::DismissSync
         | Cmd::DismissBackup
         | Cmd::ExportPlaylist(..)
         | Cmd::CheckService(_)

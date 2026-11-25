@@ -135,6 +135,8 @@ pub struct Report {
     pub failed: Counts,
     /// One plain sentence per thing that failed, and anything else worth saying.
     pub notes: Vec<String>,
+    /// For a preview (`Backup::plan`): what would be added, one line each. Empty after a real restore.
+    pub would: Vec<String>,
 }
 
 /// What's inside a backup file, for the person to look over before restoring.
@@ -143,6 +145,8 @@ pub struct Summary {
     pub created: u64,
     pub app_version: String,
     pub generation: String,
+    /// The rooms the backup was made from, to suggest which system to restore to.
+    pub rooms: Vec<String>,
     pub counts: Counts,
 }
 
@@ -159,7 +163,60 @@ pub trait SystemAccess {
     fn save_alarm(&self, alarm: &Alarm) -> Result<(), String>;
 }
 
+/// A system that reads like the real one but only notes what would be written (for a preview).
+struct DryRun<'a> {
+    inner: &'a dyn SystemAccess,
+    would: std::cell::RefCell<Vec<String>>,
+}
+
+impl SystemAccess for DryRun<'_> {
+    fn generation(&self) -> String {
+        self.inner.generation()
+    }
+    fn rooms(&self) -> Vec<(String, String)> {
+        self.inner.rooms()
+    }
+    fn favorites(&self) -> Result<Vec<Item>, String> {
+        self.inner.favorites()
+    }
+    fn playlists(&self) -> Result<Vec<PlaylistBackup>, String> {
+        self.inner.playlists()
+    }
+    fn alarms(&self) -> Result<Vec<Alarm>, String> {
+        self.inner.alarms()
+    }
+    fn add_favorite(&self, item: &Item) -> Result<(), String> {
+        self.would.borrow_mut().push(format!("Favorite “{}”", item.title));
+        Ok(())
+    }
+    fn create_playlist(&self, title: &str, tracks: &[Item]) -> Result<(), String> {
+        self.would.borrow_mut().push(format!("Playlist “{title}” ({} songs)", tracks.len()));
+        Ok(())
+    }
+    fn save_alarm(&self, alarm: &Alarm) -> Result<(), String> {
+        let room = self.inner.rooms().into_iter().find(|(id, _)| *id == alarm.room_uuid).map(|(_, n)| n).unwrap_or_default();
+        self.would.borrow_mut().push(format!("Alarm at {:02}:{:02} in {room}", alarm.hour, alarm.minute));
+        Ok(())
+    }
+}
+
 impl Backup {
+    /// What `restore` would add to this system, without adding anything: the same checks (what's
+    /// already there is skipped, an alarm's room must exist) and the same counts, plus a line for
+    /// each thing that would be added in `would`. Only the speakers' lists, never Roomtone's own.
+    pub fn plan(&self, system: &dyn SystemAccess, sections: Sections) -> Report {
+        let dry = DryRun { inner: system, would: Default::default() };
+        let mut scratch = Config::default();
+        let mut r = self.restore(Some(&dry), &mut scratch, Sections { app: false, ..sections }, "");
+        r.would = dry.would.into_inner();
+        // A service's songs only play where that service is connected.
+        let service = self.sonos_favorites.iter().filter(|f| f.uri.contains("sid=") && r.would.iter().any(|w| *w == format!("Favorite “{}”", f.title))).count();
+        if service > 0 {
+            r.notes.push(format!("{service} of these favorites come from music services; they only play on a system where that service is connected."));
+        }
+        r
+    }
+
     /// Gather everything wanted. `system` is `None` when no speakers are connected: the
     /// speaker-side sections are then left out (and say so in the notes).
     pub fn build(system: Option<&dyn SystemAccess>, cfg: &Config, sections: Sections, now: u64) -> (Backup, Vec<String>) {
@@ -252,6 +309,7 @@ impl Backup {
             created: self.created,
             app_version: self.app_version.clone(),
             generation: self.system.generation.clone(),
+            rooms: self.system.rooms.clone(),
             counts: Counts {
                 favorites: self.sonos_favorites.len(),
                 playlists: self.sonos_playlists.len(),
@@ -354,7 +412,13 @@ impl Backup {
         for a in &self.alarms {
             let Some((uuid, _)) = rooms.iter().find(|(_, n)| n.eq_ignore_ascii_case(&a.room)) else {
                 r.failed.alarms += 1;
-                r.notes.push(format!("Alarm at {:02}:{:02}: there's no room called “{}” on this system.", a.hour, a.minute, a.room));
+                let here: Vec<&str> = rooms.iter().map(|(_, n)| n.as_str()).collect();
+                let what = if here.is_empty() {
+                    "Roomtone can't see any rooms on this system right now, so try again in a moment".to_string()
+                } else {
+                    format!("this system's rooms are {}", here.join(", "))
+                };
+                r.notes.push(format!("Alarm at {:02}:{:02}: there's no room called “{}” on this system ({what}).", a.hour, a.minute, a.room));
                 continue;
             };
             if have.iter().any(|h| h.room_uuid == *uuid && h.hour == a.hour && h.minute == a.minute && h.recurrence == a.recurrence && h.program_uri == a.program_uri) {
@@ -615,6 +679,28 @@ mod unit {
     }
 
     #[test]
+    fn a_preview_says_what_would_be_added_and_writes_nothing() {
+        let source = stocked();
+        source.favorites.borrow_mut().push(Item { title: "Service song".into(), uri: "x-sonosapi-hls:abc?sid=9&sn=1".into(), ..Default::default() });
+        let (b, _) = Backup::build(Some(&source), &config(), Sections { app: false, ..Sections::default() }, 0);
+        let empty = Fake::default();
+        let plan = b.plan(&empty, Sections::default());
+        assert_eq!((plan.added.favorites, plan.added.playlists, plan.added.alarms), (2, 1, 1), "{plan:?}");
+        assert!(plan.would.iter().any(|w| w == "Favorite “Jazz FM”"), "{:?}", plan.would);
+        assert!(plan.would.iter().any(|w| w.starts_with("Playlist “Road trip”") && w.contains("2 songs")), "{:?}", plan.would);
+        assert!(plan.would.iter().any(|w| w.starts_with("Alarm at 07:30")), "{:?}", plan.would);
+        assert!(plan.notes.iter().any(|n| n.contains("1 of these favorites come from music services")), "{:?}", plan.notes);
+        assert!(empty.favorites.borrow().is_empty() && empty.playlists.borrow().is_empty() && empty.alarms.borrow().is_empty(), "a preview writes nothing");
+        // Doing it for real adds exactly what the preview said, and then there is nothing left to add.
+        let mut cfg = Config::default();
+        let done = b.restore(Some(&empty), &mut cfg, Sections { app: false, ..Sections::default() }, "H");
+        assert_eq!(done.added, plan.added);
+        let again = b.plan(&empty, Sections::default());
+        assert_eq!(again.added.total(), 0, "{again:?}");
+        assert!(again.would.is_empty());
+    }
+
+    #[test]
     fn an_alarm_for_a_missing_room_is_reported_not_guessed() {
         let (b, _) = Backup::build(Some(&stocked()), &config(), Sections::default(), 0);
         let garage_only = Fake { other_rooms: true, ..Default::default() };
@@ -622,6 +708,7 @@ mod unit {
         let r = b.restore(Some(&garage_only), &mut cfg, Sections::default(), "H");
         assert_eq!((r.added.alarms, r.failed.alarms), (0, 1));
         assert!(r.notes.iter().any(|n| n.contains("no room called “Bedroom”")), "{:?}", r.notes);
+        assert!(r.notes.iter().any(|n| n.contains("this system's rooms are Garage")), "the note says which rooms there are: {:?}", r.notes);
         assert!(garage_only.alarms.borrow().is_empty());
     }
 

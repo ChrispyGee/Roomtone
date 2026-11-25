@@ -721,9 +721,7 @@ Marked “{title}” as played	„{title}” gemarkeerd als beluisterd
 Marked “{title}” as not played	„{title}” gemarkeerd als niet beluisterd
 Resuming where you left off	Verder waar je gebleven was
 Added: {counts}	Toegevoegd: {counts}
-Adds what's in a backup file to this system. Nothing that's already there is changed or removed.	Voegt toe aan dit systeem wat in een back-upbestand staat. Wat er al is, wordt niet gewijzigd of verwijderd.
 Alarms ({n})	Wekkers ({n})
-Alarms are matched to rooms by name. Things already on this system are skipped.	Wekkers worden op naam aan kamers gekoppeld. Wat al op dit systeem staat, wordt overgeslagen.
 Already there, left alone: {counts}	Al aanwezig, ongewijzigd: {counts}
 Backup and restore	Back-up en herstel
 Backup made on {date}	Back-up van {date}
@@ -983,3 +981,20 @@ Stream details	Streamdetails
 Show the bitrate of streams and podcasts in Technical details	Toon de bitrate van streams en podcasts in de technische details
 Speakers often report only the format of an internet radio stream or a podcast episode. With this on, Roomtone opens the playing stream's or episode's own web address once, as the speaker does, and reads what its reply says: the bitrate and sample rate of a stream, or the size of an episode, from which it works out an average bitrate using the episode's length. It then closes the connection without playing anything. Only that address is contacted (a podcast host may pass it on to the host that serves the file), and nothing about you or your speakers is sent. Some streams say nothing. This is experimental and may change.	Speakers melden bij een internetradiostream of podcastaflevering vaak alleen het formaat. Als dit aan staat, opent Roomtone één keer het eigen webadres van de stream of aflevering die speelt, zoals de speaker doet, en leest wat het antwoord zegt: de bitrate en samplefrequentie van een stream, of de grootte van een aflevering, waaruit het met de lengte een gemiddelde bitrate berekent. Daarna sluit het de verbinding zonder iets af te spelen. Alleen dat adres wordt benaderd (een podcasthost kan het doorgeven aan de host die het bestand levert) en er wordt niets over jou of je speakers verstuurd. Sommige streams zeggen niets. Dit is experimenteel en kan veranderen.
 The stream didn't answer: {why}	De stream antwoordde niet: {why}
+Restore to	Herstellen naar
+Alarms are matched to rooms by name, so they only come back on a system that has those rooms. Things already on a system are skipped.	Wekkers worden op naam aan kamers gekoppeld en komen dus alleen terug op een systeem dat die kamers heeft. Wat een systeem al heeft, wordt overgeslagen.
+Adds what's in a backup file to the systems you choose. Nothing that's already there is changed or removed.	Voegt de inhoud van een back-upbestand toe aan de systemen die je kiest. Niets wat er al is, wordt gewijzigd of verwijderd.
+Add them	Voeg ze toe
+Adds the favorites, playlists and alarms one system has to the others, so they match. Nothing is changed or removed, so something you delete in one system stays in the others. You see what would be added before anything is.	Voegt de favorieten, afspeellijsten en wekkers die een systeem heeft toe aan de andere, zodat ze overeenkomen. Er wordt niets gewijzigd of verwijderd, dus wat je in het ene systeem verwijdert, blijft in de andere staan. Je ziet wat er toegevoegd zou worden voordat het gebeurt.
+Alarms are matched to rooms by name, so they only come across to a system that has those rooms. Favorites from a music service only play where that service is connected.	Wekkers worden op naam aan kamers gekoppeld, dus ze komen alleen op een systeem dat die kamers heeft. Favorieten van een muziekdienst spelen alleen waar die dienst is gekoppeld.
+Copy one way, from	Eenrichtingskopie, van
+Couldn't be added: {counts}	Kon niet worden toegevoegd: {counts}
+Couldn't reach the {system} system, so nothing was changed.	Het {system}-systeem was niet bereikbaar, dus er is niets gewijzigd.
+Keep systems in step	Systemen gelijk houden
+Lists	Lijsten
+Nothing to add: it already has everything.	Niets toe te voegen: het heeft al alles.
+See what would be added	Bekijk wat er toegevoegd zou worden
+What would be added	Wat er toegevoegd zou worden
+Would get: {counts}	Zou krijgen: {counts}
+{favorites} favorites · {playlists} playlists · {alarms} alarms	{favorites} favorieten · {playlists} afspeellijsten · {alarms} wekkers
+…and {n} more	…en {n} meer

@@ -659,8 +659,14 @@ pub enum S2State {
 /// What the last backup action did.
 #[derive(Clone, Debug, PartialEq)]
 pub enum BackupResult {
-    Saved { file: String, counts: crate::backup::Counts, notes: Vec<String> },
+    Saved {
+        file: String,
+        counts: crate::backup::Counts,
+        notes: Vec<String>,
+    },
     Restored(crate::backup::Report),
+    /// Restored onto several systems: what happened on each, by the system's name.
+    RestoredEach(Vec<(String, crate::backup::Report)>),
 }
 
 #[derive(Clone, Copy, Debug, PartialEq, Eq)]
@@ -730,6 +736,9 @@ pub struct AppState {
     pub lyrics: HashMap<String, crate::lyrics::State>,
     /// What internet streams said about their sound this run, by address (kept in memory only).
     pub probes: HashMap<String, crate::stream_probe::State>,
+    /// What keeping the systems in step would add, by target system (a preview), and what it did.
+    pub sync_preview: Option<Vec<(String, crate::backup::Report)>>,
+    pub sync_result: Option<Vec<(String, crate::backup::Report)>>,
     /// A check was asked for (*Check now*) and hasn't run yet.
     pub version_check_asked: bool,
     /// The installer being fetched for a newer Roomtone.
@@ -830,6 +839,8 @@ impl Default for AppState {
             version_checking: false,
             lyrics: HashMap::new(),
             probes: HashMap::new(),
+            sync_preview: None,
+            sync_result: None,
             version_check_asked: false,
             update_download: Default::default(),
             version_failures: 0,

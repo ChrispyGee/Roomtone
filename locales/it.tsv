@@ -721,9 +721,7 @@ Marked “{title}” as played	«{title}» segnato come ascoltato
 Marked “{title}” as not played	«{title}» segnato come non ascoltato
 Resuming where you left off	Riprendo da dove avevi interrotto
 Added: {counts}	Aggiunto: {counts}
-Adds what's in a backup file to this system. Nothing that's already there is changed or removed.	Aggiunge a questo sistema ciò che c’è in un file di backup. Nulla di ciò che c’è già viene modificato o rimosso.
 Alarms ({n})	Sveglie ({n})
-Alarms are matched to rooms by name. Things already on this system are skipped.	Le sveglie sono abbinate alle stanze in base al nome. Ciò che è già su questo sistema viene saltato.
 Already there, left alone: {counts}	Già presente, lasciato invariato: {counts}
 Backup and restore	Backup e ripristino
 Backup made on {date}	Backup del {date}
@@ -983,3 +981,20 @@ Stream details	Dettagli dello stream
 Show the bitrate of streams and podcasts in Technical details	Mostra il bitrate di stream e podcast nei dettagli tecnici
 Speakers often report only the format of an internet radio stream or a podcast episode. With this on, Roomtone opens the playing stream's or episode's own web address once, as the speaker does, and reads what its reply says: the bitrate and sample rate of a stream, or the size of an episode, from which it works out an average bitrate using the episode's length. It then closes the connection without playing anything. Only that address is contacted (a podcast host may pass it on to the host that serves the file), and nothing about you or your speakers is sent. Some streams say nothing. This is experimental and may change.	Gli altoparlanti spesso indicano solo il formato di uno stream radio internet o di un episodio di podcast. Se attivo, Roomtone apre una volta l'indirizzo web dello stream o dell'episodio in riproduzione, come fa l'altoparlante, e legge cosa dice la risposta: bitrate e frequenza di campionamento di uno stream, o la dimensione di un episodio, da cui ricava un bitrate medio usando la durata. Poi chiude la connessione senza riprodurre nulla. Viene contattato solo quell'indirizzo (chi ospita un podcast può inoltrarlo a chi serve il file) e non viene inviato nulla su di te o sui tuoi altoparlanti. Alcuni stream non dicono nulla. È sperimentale e può cambiare.
 The stream didn't answer: {why}	Lo stream non ha risposto: {why}
+Restore to	Ripristina su
+Alarms are matched to rooms by name, so they only come back on a system that has those rooms. Things already on a system are skipped.	Le sveglie sono associate alle stanze per nome, quindi tornano solo su un sistema che ha quelle stanze. Ciò che un sistema ha già viene saltato.
+Adds what's in a backup file to the systems you choose. Nothing that's already there is changed or removed.	Aggiunge il contenuto di un file di backup ai sistemi scelti. Nulla di ciò che c'è già viene modificato o rimosso.
+Add them	Aggiungili
+Adds the favorites, playlists and alarms one system has to the others, so they match. Nothing is changed or removed, so something you delete in one system stays in the others. You see what would be added before anything is.	Aggiunge agli altri sistemi i preferiti, le playlist e le sveglie di un sistema, perché coincidano. Nulla viene modificato o rimosso, quindi ciò che elimini in un sistema resta negli altri. Vedi cosa verrebbe aggiunto prima che venga aggiunto.
+Alarms are matched to rooms by name, so they only come across to a system that has those rooms. Favorites from a music service only play where that service is connected.	Le sveglie sono associate alle stanze per nome, quindi passano solo a un sistema che ha quelle stanze. I preferiti di un servizio musicale suonano solo dove il servizio è collegato.
+Copy one way, from	Copia in una sola direzione, da
+Couldn't be added: {counts}	Impossibile aggiungere: {counts}
+Couldn't reach the {system} system, so nothing was changed.	Il sistema {system} non è raggiungibile, quindi non è stato modificato nulla.
+Keep systems in step	Mantieni i sistemi allineati
+Lists	Elenchi
+Nothing to add: it already has everything.	Niente da aggiungere: ha già tutto.
+See what would be added	Vedi cosa verrebbe aggiunto
+What would be added	Cosa verrebbe aggiunto
+Would get: {counts}	Riceverebbe: {counts}
+{favorites} favorites · {playlists} playlists · {alarms} alarms	{favorites} preferiti · {playlists} playlist · {alarms} sveglie
+…and {n} more	…e altri {n}
