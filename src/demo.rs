@@ -561,6 +561,7 @@ pub fn apply(s: &mut AppState, cmd: &Cmd) {
         | Cmd::SaveBackup(..)
         | Cmd::ReadBackup(_)
         | Cmd::RestoreBackup(..)
+        | Cmd::RestoreBackupTo(..)
         | Cmd::DismissBackup
         | Cmd::ExportPlaylist(..)
         | Cmd::CheckService(_)

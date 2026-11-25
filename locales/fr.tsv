@@ -721,9 +721,7 @@ Marked “{title}” as played	« {title} » marqué comme écouté
 Marked “{title}” as not played	« {title} » marqué comme non écouté
 Resuming where you left off	Reprise là où vous vous étiez arrêté
 Added: {counts}	Ajouté : {counts}
-Adds what's in a backup file to this system. Nothing that's already there is changed or removed.	Ajoute à ce système ce que contient un fichier de sauvegarde. Rien de ce qui est déjà là n’est modifié ni supprimé.
 Alarms ({n})	Alarmes ({n})
-Alarms are matched to rooms by name. Things already on this system are skipped.	Les alarmes sont associées aux pièces par leur nom. Ce qui est déjà sur ce système est ignoré.
 Already there, left alone: {counts}	Déjà présent, laissé tel quel : {counts}
 Backup and restore	Sauvegarde et restauration
 Backup made on {date}	Sauvegarde du {date}
@@ -983,3 +981,6 @@ Stream details	Détails du flux
 Show the bitrate of streams and podcasts in Technical details	Afficher le débit des flux et des podcasts dans les détails techniques
 Speakers often report only the format of an internet radio stream or a podcast episode. With this on, Roomtone opens the playing stream's or episode's own web address once, as the speaker does, and reads what its reply says: the bitrate and sample rate of a stream, or the size of an episode, from which it works out an average bitrate using the episode's length. It then closes the connection without playing anything. Only that address is contacted (a podcast host may pass it on to the host that serves the file), and nothing about you or your speakers is sent. Some streams say nothing. This is experimental and may change.	Les enceintes ne signalent souvent que le format d'un flux de radio Internet ou d'un épisode de podcast. Activée, cette option fait ouvrir à Roomtone une fois l'adresse web du flux ou de l'épisode en cours, comme le fait l'enceinte, et lit ce que dit la réponse : le débit et la fréquence d'échantillonnage d'un flux, ou la taille d'un épisode, dont il tire un débit moyen avec la durée de l'épisode. Il referme ensuite la connexion sans rien lire. Seule cette adresse est contactée (l'hébergeur d'un podcast peut la transmettre à celui qui sert le fichier) et rien sur vous ni sur vos enceintes n'est envoyé. Certains flux ne disent rien. C'est expérimental et peut changer.
 The stream didn't answer: {why}	Le flux n'a pas répondu : {why}
+Restore to	Restaurer sur
+Alarms are matched to rooms by name, so they only come back on a system that has those rooms. Things already on a system are skipped.	Les alarmes sont associées aux pièces par leur nom : elles ne reviennent que sur un système qui a ces pièces. Ce qu'un système a déjà est ignoré.
+Adds what's in a backup file to the systems you choose. Nothing that's already there is changed or removed.	Ajoute le contenu d'un fichier de sauvegarde aux systèmes choisis. Rien de ce qui existe déjà n'est modifié ni supprimé.

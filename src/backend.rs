@@ -164,7 +164,10 @@ pub enum Cmd {
     /// Read a backup file and show what's in it, ready to restore.
     ReadBackup(std::path::PathBuf),
     /// Add what's in a backup file to this system and to Roomtone's settings.
+    #[cfg_attr(not(test), allow(dead_code))] // the window uses `RestoreBackupTo`; tests use this
     RestoreBackup(std::path::PathBuf, crate::backup::Sections),
+    /// The same, onto the chosen systems (by household id), one after another.
+    RestoreBackupTo(std::path::PathBuf, crate::backup::Sections, Vec<String>),
     /// Save one playlist (with its songs) to its own file; it restores like any backup.
     ExportPlaylist(Item, std::path::PathBuf),
     /// Close the backup panel.
@@ -1171,6 +1174,7 @@ fn run_live(b: &Backend, ctx: &Waker, cmd: Cmd) -> Result<(), String> {
         | Cmd::SaveBackup(..)
         | Cmd::ReadBackup(_)
         | Cmd::RestoreBackup(..)
+        | Cmd::RestoreBackupTo(..)
         | Cmd::ExportPlaylist(..)
         | Cmd::DismissBackup => Ok(()),
         Cmd::PlayItem(g, item, how) => {
@@ -1654,32 +1658,10 @@ fn run_common(b: &Backend, ctx: &Waker, cmd: Cmd) -> Result<Option<Cmd>, String>
             Ok(None)
         }
         Cmd::RestoreBackup(path, sections) => {
-            let backup = load_backup_file(&path)?;
-            let system = active_system(b);
-            let (mut cfg, household) = {
-                let s = b.lock();
-                (s.config.clone(), s.household().map(|h| h.id.clone()).unwrap_or_default())
-            };
-            let report = backup.restore(system.as_ref().map(|s| s as &dyn crate::backup::SystemAccess), &mut cfg, sections, &household);
-            {
-                let mut s = b.lock();
-                s.config = cfg;
-                // The demo system keeps its lists in this cache; real speakers are asked again.
-                if s.phase != Phase::Demo {
-                    s.browse.remove("FV:2");
-                    s.browse.remove("SQ:");
-                }
-                s.backup_preview = None;
-                s.backup_result = Some(BackupResult::Restored(report));
-            }
-            save(b);
-            if let Some(sys) = &system {
-                if let Ok(list) = crate::backup::SystemAccess::alarms(sys) {
-                    b.lock().alarms = Some(list);
-                }
-            }
-            Ok(None)
+            let active = b.lock().household().map(|h| h.id.clone()).unwrap_or_default();
+            restore_onto(b, &path, sections, &[active])
         }
+        Cmd::RestoreBackupTo(path, sections, targets) => restore_onto(b, &path, sections, &targets),
         Cmd::MarkEpisode(item, played) => {
             crate::sources::progress::mark(&item, played);
             let text = if played { crate::t!("Marked “{title}” as played", title = item.title) } else { crate::t!("Marked “{title}” as not played", title = item.title) };
@@ -3595,6 +3577,58 @@ struct ActiveSystem {
     rooms: Vec<(String, String)>,
 }
 
+/// Restore a backup onto each of these systems (household ids), one after another. Roomtone's own
+/// lists and settings are put back once, with the first. One system gives the plain report; several
+/// give one report each, named by system.
+fn restore_onto(b: &Backend, path: &std::path::Path, sections: crate::backup::Sections, targets: &[String]) -> Result<Option<Cmd>, String> {
+    let backup = load_backup_file(path)?;
+    let mut reports: Vec<(String, crate::backup::Report)> = vec![];
+    let mut cfg = b.lock().config.clone();
+    for (n, hid) in targets.iter().enumerate() {
+        let (system, name) = system_for(b, hid);
+        // Sign-ins and settings of the app aren't per system: once is enough.
+        let sections = if n == 0 { sections } else { crate::backup::Sections { app: false, ..sections } };
+        let report = backup.restore(system.as_ref().map(|s| s as &dyn crate::backup::SystemAccess), &mut cfg, sections, hid);
+        reports.push((name, report));
+        if let Some(sys) = &system {
+            if let Ok(list) = crate::backup::SystemAccess::alarms(sys) {
+                if b.lock().household().is_some_and(|h| &h.id == hid) {
+                    b.lock().alarms = Some(list);
+                }
+            }
+        }
+    }
+    {
+        let mut s = b.lock();
+        s.config = cfg;
+        // The demo system keeps its lists in this cache; real speakers are asked again.
+        if s.phase != Phase::Demo {
+            s.browse.remove("FV:2");
+            s.browse.remove("SQ:");
+        }
+        s.backup_preview = None;
+        s.backup_result = Some(if reports.len() == 1 { BackupResult::Restored(reports.remove(0).1) } else { BackupResult::RestoredEach(reports) });
+    }
+    let cfg = b.lock().config.clone();
+    if let Err(e) = cfg.save() {
+        b.lock().toast(crate::t!("Couldn't save settings: {error}", error = e), true);
+    }
+    Ok(None)
+}
+
+/// A system by household id, as the backup code sees it, and its name for showing.
+fn system_for(b: &Backend, household: &str) -> (Option<ActiveSystem>, String) {
+    let s = b.lock();
+    let Some(h) = s.households.iter().find(|h| h.id == household) else { return (None, String::new()) };
+    let name = crate::t!("{system} system", system = h.system.label()).to_string();
+    let demo = s.phase == Phase::Demo;
+    let ip = if demo { None } else { h.rooms.first().map(|r| r.ip.clone()) };
+    if !demo && (s.phase != Phase::Live || ip.is_none()) {
+        return (None, name);
+    }
+    (Some(ActiveSystem { b: b.clone(), ip, generation: h.system.label().to_string(), rooms: h.rooms.iter().map(|r| (r.uuid.clone(), r.name.clone())).collect() }), name)
+}
+
 /// The system a backup or restore works on, if there is one.
 fn active_system(b: &Backend) -> Option<ActiveSystem> {
     let s = b.lock();
@@ -3870,6 +3904,31 @@ mod unit {
         assert!(!progress::continue_list(50).iter().any(|e| e.item.uri == url));
         b.send_and_wait(Cmd::MarkEpisode(episode.clone(), false), wait).unwrap();
         assert_eq!(progress::status(&url), Status::New);
+    }
+
+    #[test]
+    fn a_backup_can_be_restored_to_each_chosen_system() {
+        use crate::backup::Sections;
+        let b = demo_backend();
+        let wait = Duration::from_secs(10);
+        let dir = std::env::temp_dir().join(format!("roomtone-multi-{}", std::process::id()));
+        std::fs::create_dir_all(&dir).unwrap();
+        let file = dir.join("b.json");
+        b.send_and_wait(Cmd::SaveBackup(file.clone(), Sections::default()), wait).unwrap();
+        let ids: Vec<String> = b.lock().households.iter().map(|h| h.id.clone()).collect();
+        assert_eq!(ids.len(), 2, "the demo has two systems");
+        // One system: the plain report. Two: one report each, named by system.
+        b.send_and_wait(Cmd::RestoreBackupTo(file.clone(), Sections::default(), vec![ids[0].clone()]), wait).unwrap();
+        assert!(matches!(b.lock().backup_result, Some(BackupResult::Restored(_))));
+        b.send_and_wait(Cmd::RestoreBackupTo(file.clone(), Sections::default(), ids.clone()), wait).unwrap();
+        match &b.lock().backup_result {
+            Some(BackupResult::RestoredEach(list)) => {
+                assert_eq!(list.len(), 2);
+                assert!(list.iter().all(|(name, _)| name.contains("system")), "{list:?}");
+            }
+            other => panic!("expected a report per system: {other:?}"),
+        }
+        let _ = std::fs::remove_dir_all(&dir);
     }
 
     #[test]

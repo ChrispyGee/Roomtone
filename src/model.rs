@@ -659,8 +659,14 @@ pub enum S2State {
 /// What the last backup action did.
 #[derive(Clone, Debug, PartialEq)]
 pub enum BackupResult {
-    Saved { file: String, counts: crate::backup::Counts, notes: Vec<String> },
+    Saved {
+        file: String,
+        counts: crate::backup::Counts,
+        notes: Vec<String>,
+    },
     Restored(crate::backup::Report),
+    /// Restored onto several systems: what happened on each, by the system's name.
+    RestoredEach(Vec<(String, crate::backup::Report)>),
 }
 
 #[derive(Clone, Copy, Debug, PartialEq, Eq)]

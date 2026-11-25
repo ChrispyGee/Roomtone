@@ -2786,6 +2786,28 @@ impl App {
         }
     }
 
+    /// What a restore did on one system: added, already there, couldn't, and the details.
+    fn restore_report(&mut self, ui: &mut Ui, r: &crate::backup::Report, counts_line: &dyn Fn(&crate::backup::Counts) -> String) {
+        if r.added.total() == 0 && r.failed.total() == 0 {
+            ui.label(RichText::new(t!("Nothing new to add: everything was already there.")).color(TEXT()));
+        } else {
+            ui.label(RichText::new(t!("Added: {counts}", counts = counts_line(&r.added))).color(GOOD()));
+        }
+        if r.skipped.total() > 0 {
+            ui.label(RichText::new(t!("Already there, left alone: {counts}", counts = counts_line(&r.skipped))).size(12.5).color(TEXT_DIM()));
+        }
+        if r.failed.total() > 0 {
+            ui.label(RichText::new(t!("Couldn't restore: {counts}", counts = counts_line(&r.failed))).size(12.5).color(BAD()));
+        }
+        if !r.notes.is_empty() {
+            egui::CollapsingHeader::new(RichText::new(t!("Details")).size(12.5).color(TEXT_DIM())).id_salt(format!("backup_notes_{}", r.notes.len())).show(ui, |ui| {
+                for n in r.notes.iter().take(20) {
+                    ui.label(RichText::new(n).size(12.0).color(TEXT_FAINT()));
+                }
+            });
+        }
+    }
+
     /// Save and restore favorites, playlists, alarms and Roomtone's own lists and settings.
     fn backup_card(&mut self, ui: &mut Ui, s: &AppState) {
         use crate::backup::Counts;
@@ -2835,12 +2857,17 @@ impl App {
                         ui.label(RichText::new(t!("Restore from a backup")).color(TEXT()));
                         chip(ui, t!("Experimental"), TEXT_DIM());
                     });
-                    ui.label(RichText::new(t!("Adds what's in a backup file to this system. Nothing that's already there is changed or removed.")).size(12.0).color(TEXT_DIM()));
+                    ui.label(
+                        RichText::new(t!("Adds what's in a backup file to the systems you choose. Nothing that's already there is changed or removed."))
+                            .size(12.0)
+                            .color(TEXT_DIM()),
+                    );
                 });
                 ui.with_layout(Layout::right_to_left(Align::Center), |ui| {
                     if pill(ui, None, t!("Choose a backup"), false).clicked() {
                         if let Some(path) = rfd::FileDialog::new().set_title(t!("Choose a backup")).add_filter("Roomtone backup", &["json"]).pick_file() {
                             self.backup_sections = Default::default();
+                            self.backup_targets = None;
                             self.send(Cmd::ReadBackup(path));
                         }
                     }
@@ -2862,12 +2889,42 @@ impl App {
                 ui.checkbox(&mut sec.alarms, t!("Alarms ({n})", n = c.alarms));
                 ui.checkbox(&mut sec.app, t!("Roomtone's own lists and settings ({n})", n = c.app));
                 ui.add_space(4.0);
-                ui.label(RichText::new(t!("Alarms are matched to rooms by name. Things already on this system are skipped.")).size(12.0).color(TEXT_FAINT()));
+                // Which systems to restore onto: suggested from the rooms the backup was made from.
+                if self.backup_targets.is_none() {
+                    let overlap = |h: &Household| h.rooms.iter().filter(|r| sum.rooms.iter().any(|n| n.eq_ignore_ascii_case(&r.name))).count();
+                    let best = s.households.iter().map(overlap).max().unwrap_or(0);
+                    let mut pick: Vec<String> = if best > 0 { s.households.iter().filter(|h| overlap(h) == best).map(|h| h.id.clone()).collect() } else { vec![] };
+                    if pick.is_empty() {
+                        pick = s.household().map(|h| vec![h.id.clone()]).unwrap_or_default();
+                    }
+                    self.backup_targets = Some(pick);
+                }
+                let mut targets = self.backup_targets.clone().unwrap_or_default();
+                if s.households.len() > 1 {
+                    ui.label(RichText::new(t!("Restore to")).strong().color(TEXT()));
+                    for h in &s.households {
+                        let mut on = targets.contains(&h.id);
+                        let names: Vec<&str> = h.rooms.iter().map(|r| r.name.as_str()).collect();
+                        if ui.checkbox(&mut on, format!("{} · {}", t!("{system} system", system = h.system.label()), names.join(", "))).changed() {
+                            targets.retain(|t| t != &h.id);
+                            if on {
+                                targets.push(h.id.clone());
+                            }
+                        }
+                    }
+                    ui.add_space(4.0);
+                }
+                self.backup_targets = Some(targets.clone());
+                ui.label(
+                    RichText::new(t!("Alarms are matched to rooms by name, so they only come back on a system that has those rooms. Things already on a system are skipped."))
+                        .size(12.0)
+                        .color(TEXT_FAINT()),
+                );
                 ui.add_space(8.0);
                 ui.horizontal(|ui| {
                     let sections = self.backup_sections;
-                    if pill(ui, Some(Icon::Refresh), t!("Restore"), true).clicked() {
-                        self.send(Cmd::RestoreBackup(path.clone(), sections));
+                    if ui.add_enabled_ui(!targets.is_empty(), |ui| pill(ui, Some(Icon::Refresh), t!("Restore"), true)).inner.clicked() {
+                        self.send(Cmd::RestoreBackupTo(path.clone(), sections, targets.clone()));
                     }
                     if pill(ui, None, t!("Cancel"), false).clicked() {
                         self.send(Cmd::DismissBackup);
@@ -2889,24 +2946,20 @@ impl App {
                     ui.add_space(8.0);
                     ui.separator();
                     ui.add_space(6.0);
-                    if r.added.total() == 0 && r.failed.total() == 0 {
-                        ui.label(RichText::new(t!("Nothing new to add: everything was already there.")).color(TEXT()));
-                    } else {
-                        ui.label(RichText::new(t!("Added: {counts}", counts = counts_line(&r.added))).color(GOOD()));
+                    self.restore_report(ui, r, &counts_line);
+                    if pill(ui, None, t!("Close"), false).clicked() {
+                        self.send(Cmd::DismissBackup);
                     }
-                    if r.skipped.total() > 0 {
-                        ui.label(RichText::new(t!("Already there, left alone: {counts}", counts = counts_line(&r.skipped))).size(12.5).color(TEXT_DIM()));
+                }
+                Some(BackupResult::RestoredEach(list)) => {
+                    ui.add_space(8.0);
+                    ui.separator();
+                    for (name, r) in list {
+                        ui.add_space(6.0);
+                        ui.label(RichText::new(name).strong().color(TEXT()));
+                        self.restore_report(ui, r, &counts_line);
                     }
-                    if r.failed.total() > 0 {
-                        ui.label(RichText::new(t!("Couldn't restore: {counts}", counts = counts_line(&r.failed))).size(12.5).color(BAD()));
-                    }
-                    if !r.notes.is_empty() {
-                        egui::CollapsingHeader::new(RichText::new(t!("Details")).size(12.5).color(TEXT_DIM())).id_salt("backup_notes").show(ui, |ui| {
-                            for n in r.notes.iter().take(20) {
-                                ui.label(RichText::new(n).size(12.0).color(TEXT_FAINT()));
-                            }
-                        });
-                    }
+                    ui.add_space(6.0);
                     if pill(ui, None, t!("Close"), false).clicked() {
                         self.send(Cmd::DismissBackup);
                     }
