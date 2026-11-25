@@ -30,46 +30,30 @@
 #![cfg_attr(windows, windows_subsystem = "windows")]
 
 #[macro_use]
-mod i18n;
-mod backend;
-mod backup;
+extern crate roomtone_core;
+
+// The core's modules, under the names this program has always used (`crate::backend` and so on).
+#[cfg(test)]
+use roomtone_core::test_support;
+#[allow(unused_imports)]
+use roomtone_core::{
+    backend, backup, config, csv, demo, diagnose, frame, help, history, i18n, known, layout, limits, lyrics, m3u, mcp, model, net, pls_xspf, quality, s2, scene, sources, status,
+    stream_probe, update, version,
+};
+#[allow(unused_imports)]
+pub(crate) use roomtone_core::{n_, t, tn};
+
 mod brand;
 mod cli;
-mod config;
 mod crash;
-mod csv;
-mod demo;
-mod diagnose;
-mod frame;
-mod help;
-mod history;
-mod known;
-mod layout;
-mod limits;
-mod lyrics;
-mod m3u;
 #[cfg(target_os = "macos")]
 mod macos_about;
 #[cfg(target_os = "macos")]
 mod macos_menubar;
 #[cfg(target_os = "macos")]
 mod macos_player;
-mod mcp;
-mod model;
-mod net;
-mod pls_xspf;
-mod quality;
-mod s2;
-mod scene;
-mod sources;
-mod status;
-mod stream_probe;
-#[cfg(test)]
-mod test_support;
 mod traymenu;
 mod ui;
-mod update;
-mod version;
 mod window;
 #[cfg(target_os = "windows")]
 mod windows_tray;

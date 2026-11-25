@@ -274,7 +274,7 @@ mod unit {
     /// pointing at an old release: run `scripts/set-download-links.sh <version>` when releasing.
     #[test]
     fn the_readme_download_links_match_this_version() {
-        let readme = include_str!("../README.md");
+        let readme = include_str!("../../README.md");
         let v = env!("CARGO_PKG_VERSION");
         for file in ["macos-arm64.dmg", "windows-x64-setup.exe", "linux-x64.deb", "linux-x64.rpm", "macos-arm64.tar.gz", "windows-x64.zip", "linux-x64.tar.gz"] {
             let want = format!("releases/download/v{v}/roomtone-v{v}-{file}");

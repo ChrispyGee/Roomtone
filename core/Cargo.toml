@@ -1,0 +1,24 @@
+[package]
+name = "roomtone-core"
+version.workspace = true
+edition = "2021"
+description = "The part of Roomtone that talks to speakers: discovery, the speaker protocol, state, scenes, backups, sources and the assistant tool layer. No window code."
+license = "MIT OR Apache-2.0"
+repository = "https://github.com/ChrispyGee/Roomtone"
+homepage = "https://github.com/ChrispyGee/Roomtone"
+publish = false
+
+[dependencies]
+image = { version = "0.25", default-features = false, features = ["png", "jpeg", "gif", "webp", "ico"] }
+ureq = { version = "2", features = ["json", "native-certs"] }
+roxmltree = "0.21"
+serde = { version = "1", features = ["derive"] }
+serde_json = "1"
+lofty = "0.25"
+if-addrs = "0.15.0"
+socket2 = { version = "0.6.5", features = ["all"] }
+sha2 = { version = "0.10", default-features = false }
+
+[features]
+# Helpers for tests in other crates (a demo backend and an isolated settings folder).
+test-support = []

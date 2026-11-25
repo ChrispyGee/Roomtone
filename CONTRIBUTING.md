@@ -19,9 +19,9 @@ Fork <https://github.com/ChrispyGee/Roomtone> on GitHub, then:
 git clone https://github.com/<your-user-name>/Roomtone.git
 cd Roomtone
 git remote add upstream https://github.com/ChrispyGee/Roomtone.git
-cargo build
+cargo build --workspace
 cargo run -- --demo          # every screen, no speakers needed
-cargo test
+cargo test --workspace
 ```
 
 On Linux you need the desktop development packages first, for example on Debian or Ubuntu:
@@ -35,8 +35,8 @@ Read [SPEC.md](SPEC.md) (what the app does) and [docs/ARCHITECTURE.md](docs/ARCH
 ## Before you open a pull request
 
 1. `cargo fmt` (line width is set in `rustfmt.toml`).
-2. `cargo clippy --all-targets -- -D warnings`: no warnings.
-3. `cargo test`: this also fails if any wording isn't translated.
+2. `cargo clippy --workspace --all-targets -- -D warnings`: no warnings.
+3. `cargo test --workspace`: this also fails if any wording isn't translated.
 4. `cargo run -- --screenshot shots/check.png`, then look at the picture: the demo system should draw correctly.
 5. If behaviour changed, update **[SPEC.md](SPEC.md)** in the same pull request, and add a line to **[CHANGELOG.md](CHANGELOG.md)** under *Unreleased*. If you add or change a setting, update **[docs/SETTINGS.md](docs/SETTINGS.md)** as well.
 6. If you touched the speaker protocol, update **[docs/PROTOCOL.md](docs/PROTOCOL.md)**.
@@ -74,11 +74,11 @@ The tables are `locales/<code>.tsv`, one `English<TAB>Translation` per line. The
 - **Improve a translation**: edit the right-hand side and run `cargo test`.
 - **Find what's missing**: `cargo test` lists any untranslated phrase.
 - **List every phrase**: `ROOMTONE_PHRASES=phrases.txt cargo test dump -- --ignored`.
-- **Add a language**: add `(code, name)` to `LANGUAGES` and an `include_str!` line to `TABLES_TSV` in `src/i18n.rs`, create `locales/<code>.tsv` with every phrase, run `cargo test`, then try it with `cargo run -- --demo --lang <code>`. Check that long words still fit the buttons.
+- **Add a language**: add `(code, name)` to `LANGUAGES` and an `include_str!` line to `TABLES_TSV` in `core/src/i18n.rs`, create `locales/<code>.tsv` with every phrase, run `cargo test`, then try it with `cargo run -- --demo --lang <code>`. Check that long words still fit the buttons.
 
 ## Adding an assistant (MCP) tool
 
-Add a row to `tools()` in `src/mcp.rs` (name, description written for an AI, JSON schema, whether it changes things) and an arm in `Mcp::call` that sends `Cmd`s and waits with `self.wait`. Replies are English. Document it in SPEC.md §6.3 and update the tool counts in SPEC.md §11.
+Add a row to `tools()` in `core/src/mcp.rs` (name, description written for an AI, JSON schema, whether it changes things) and an arm in `Mcp::call` that sends `Cmd`s and waits with `self.wait`. Replies are English. Document it in SPEC.md §6.3 and update the tool counts in SPEC.md §11.
 
 ## Licence
 

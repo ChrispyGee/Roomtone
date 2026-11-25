@@ -1,6 +1,12 @@
+[workspace]
+members = ["core"]
+
+[workspace.package]
+version = "0.9.6"
+
 [package]
 name = "roomtone"
-version = "0.9.6"
+version.workspace = true
 edition = "2021"
 description = "A modern controller for S1 and S2 wireless speaker systems, with a headless mode and an MCP server for AI assistants"
 license = "MIT OR Apache-2.0"
@@ -12,6 +18,7 @@ categories = ["multimedia::audio", "gui"]
 publish = false
 
 [dependencies]
+roomtone-core = { path = "core" }
 eframe = { version = "0.37", default-features = false, features = ["accesskit", "clipboard", "default_fonts", "glow", "links", "system_fonts", "wayland", "web_screen_reader", "x11"] }
 image = { version = "0.25", default-features = false, features = ["png", "jpeg", "gif", "webp", "ico"] }
 ureq = { version = "2", features = ["json", "native-certs"] }
@@ -42,6 +49,9 @@ objc2-app-kit = { version = "0.3", features = ["NSApplication", "NSResponder", "
 tray-icon = { version = "0.26", default-features = false }
 windows-sys = { version = "0.61", features = ["Win32_Foundation", "Win32_UI_WindowsAndMessaging"] }
 raw-window-handle = "0.6"
+
+[dev-dependencies]
+roomtone-core = { path = "core", features = ["test-support"] }
 
 [profile.dev]
 opt-level = 1

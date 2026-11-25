@@ -51,7 +51,7 @@ After pushing, Dependabot closes its own pull requests when the same update is a
 ## Making a release
 
 1. Make sure `main` is green in CI.
-2. Pick the version ([Semantic Versioning](https://semver.org/)): bump `version` in `Cargo.toml` and run `cargo build`, so `Cargo.lock` updates.
+2. Pick the version ([Semantic Versioning](https://semver.org/)): bump `version` under `[workspace.package]` in `Cargo.toml` (the desktop program and the core library share it) and run `cargo build`, so `Cargo.lock` updates.
 3. In `CHANGELOG.md`, move *Unreleased* items under a new `## [x.y.z] — YYYY-MM-DD` heading.
 4. Point the README's download links at the new version with `scripts/set-download-links.sh X.Y.Z` (a unit test fails if they and `Cargo.toml` disagree; the links work once the release exists, a few minutes after the pull request merges). Update the version in the title of `SPEC.md`, and the "What's new in this version" list in Settings › About (`src/ui/pages.rs`, `about_card`), translated.
    **Keep every document up to date in the same release, every time**, not only the version numbers: `SPEC.md` (behaviour, network table, privacy lines, what's verified in §10), `docs/ROADMAP.md` (move what shipped out of *Ideas*, update what's been checked on real speakers), `docs/SETTINGS.md`, `docs/ARCHITECTURE.md` when files or flows changed, `README.md` (features, privacy, download links) and `CHANGELOG.md`. Read each one against what the release actually contains before opening the pull request.

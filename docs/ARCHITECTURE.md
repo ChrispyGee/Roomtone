@@ -28,6 +28,10 @@ This is the map of the code. What the app should do is in [SPEC.md](../SPEC.md);
 - **One command type**: `backend::Cmd`. Everything the person (or an assistant) asks for is a `Cmd`. That keeps the window, headless mode and MCP behaving identically.
 - **No window needed**: the backend only knows a `backend::Waker`, which asks the window to redraw if there is one and does nothing in `--headless` and `--mcp`.
 
+## Two crates
+
+The code is a Cargo workspace of two crates. **`core/` (`roomtone-core`)** holds everything that talks to speakers and keeps their state: discovery and the speaker protocol (`net/`), `backend.rs`, `model.rs`, `config.rs`, the sources, scenes, backups, limits, the assistant tool layer (`mcp.rs`), the demo system, wording (`i18n.rs`) and the tests' helpers. It has no window code, and knows a window only as a function it is given to call when the state changes (`backend::Waker`); a program using it can also name the folder for its files (`Config::set_data_dir`). **The root crate (`roomtone`)** is the desktop program: `main.rs`, the window (`ui/`), the Mac menu bar and player, the Windows tray, the command line (`cli.rs`), the crash log and window-size memory. It re-exports the core's modules under their old names, so `crate::backend` still works there. Files listed below are in `core/src/` unless they are `main.rs`, `cli.rs`, `ui/`, `traymenu.rs`, `brand.rs`, `crash.rs`, `window.rs`, `macos_*.rs` or `windows_tray.rs` (all in `src/`).
+
 ## Modules
 
 | File | Role |

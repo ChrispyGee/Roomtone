@@ -18,11 +18,11 @@ pub const LANGUAGES: &[(&str, &str)] = &[("en", "English"), ("de", "Deutsch"), (
 
 const TABLES_TSV: &[&str] = &[
     "",
-    include_str!("../locales/de.tsv"),
-    include_str!("../locales/fr.tsv"),
-    include_str!("../locales/es.tsv"),
-    include_str!("../locales/it.tsv"),
-    include_str!("../locales/nl.tsv"),
+    include_str!("../../locales/de.tsv"),
+    include_str!("../../locales/fr.tsv"),
+    include_str!("../../locales/es.tsv"),
+    include_str!("../../locales/it.tsv"),
+    include_str!("../../locales/nl.tsv"),
 ];
 
 static CURRENT: AtomicUsize = AtomicUsize::new(0);
@@ -147,23 +147,23 @@ mod tests {
     use super::*;
 
     const SOURCES: &[&str] = &[
-        include_str!("main.rs"),
+        include_str!("../../src/main.rs"),
         #[cfg(target_os = "macos")]
-        include_str!("macos_player.rs"),
+        include_str!("../../src/macos_player.rs"),
         include_str!("backend.rs"),
         include_str!("model.rs"),
         include_str!("demo.rs"),
         include_str!("sources/mod.rs"),
-        include_str!("ui/mod.rs"),
-        include_str!("ui/pages.rs"),
-        include_str!("ui/scenes.rs"),
-        include_str!("ui/layout.rs"),
-        include_str!("ui/widgets.rs"),
-        include_str!("ui/popup.rs"),
-        include_str!("macos_about.rs"),
-        include_str!("macos_menubar.rs"),
-        include_str!("traymenu.rs"),
-        include_str!("windows_tray.rs"),
+        include_str!("../../src/ui/mod.rs"),
+        include_str!("../../src/ui/pages.rs"),
+        include_str!("../../src/ui/scenes.rs"),
+        include_str!("../../src/ui/layout.rs"),
+        include_str!("../../src/ui/widgets.rs"),
+        include_str!("../../src/ui/popup.rs"),
+        include_str!("../../src/macos_about.rs"),
+        include_str!("../../src/macos_menubar.rs"),
+        include_str!("../../src/traymenu.rs"),
+        include_str!("../../src/windows_tray.rs"),
         include_str!("limits.rs"),
     ];
 
