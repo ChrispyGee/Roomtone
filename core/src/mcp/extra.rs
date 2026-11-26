@@ -28,6 +28,18 @@ pub(super) fn tools() -> Vec<(&'static str, &'static str, Value, bool)> {
             json!({"type": "object", "properties": {"file": {"type": "string", "description": "A file name ending in .json, e.g. roomtone-backup.json. It is saved in the folder the person chose in Settings; an existing file is not overwritten."}}, "required": ["file"]}),
             true,
         ),
+        (
+            "export_backup",
+            "Give a backup of the system's favorites, playlists and alarms and Roomtone's own lists and settings as text (the same JSON a saved backup file holds), for an app to keep or share. Reads the speakers; writes nothing. Never includes sign-ins.",
+            json!({"type": "object", "properties": {}}),
+            false,
+        ),
+        (
+            "restore_backup",
+            "Add what a backup holds (its text, as from export_backup or a saved backup file) to the system and the app. Only adds: nothing existing is changed or removed, duplicates are skipped.",
+            json!({"type": "object", "properties": {"backup": {"type": "string", "description": "The backup's text."}}, "required": ["backup"]}),
+            true,
+        ),
         ("list_recent", "What was played recently from this app, with refs to play again.", json!({"type": "object", "properties": {}}), false),
         (
             "add_favorite",
@@ -346,6 +358,52 @@ impl Mcp {
                         if notes.is_empty() { String::new() } else { format!(" Not included: {}", notes.join("; ")) }
                     )),
                     _ => Err("The backup didn't finish".into()),
+                }
+            }
+            "export_backup" => {
+                let file = scratch_file("export")?;
+                let result = self.wait(Cmd::SaveBackup(file.clone(), crate::backup::Sections::default())).and_then(|_| std::fs::read_to_string(&file).map_err(|e| e.to_string()));
+                let _ = std::fs::remove_file(&file);
+                let text = result?;
+                let counts = match self.b.lock().backup_result.clone() {
+                    Some(BackupResult::Saved { counts, .. }) => counts,
+                    _ => Default::default(),
+                };
+                set_structured(json!({
+                    "backup": text,
+                    "favorites": counts.favorites, "playlists": counts.playlists, "alarms": counts.alarms, "app": counts.app
+                }));
+                Ok(format!("Backup made: {} favorites, {} playlists, {} alarms, {} of Roomtone's own.", counts.favorites, counts.playlists, counts.alarms, counts.app))
+            }
+            "restore_backup" => {
+                let text = str_arg("backup").ok_or("Give the backup's text (backup)")?;
+                crate::backup::Backup::parse(&text)?;
+                let file = scratch_file("restore")?;
+                std::fs::write(&file, text).map_err(|e| e.to_string())?;
+                self.b.lock().backup_result = None;
+                let done = self.wait(Cmd::RestoreBackup(file.clone(), crate::backup::Sections::default()));
+                let _ = std::fs::remove_file(&file);
+                done?;
+                match self.b.lock().backup_result.clone() {
+                    Some(BackupResult::Restored(r)) => {
+                        set_structured(json!({
+                            "added": {"favorites": r.added.favorites, "playlists": r.added.playlists, "alarms": r.added.alarms, "app": r.added.app},
+                            "skipped": {"favorites": r.skipped.favorites, "playlists": r.skipped.playlists, "alarms": r.skipped.alarms, "app": r.skipped.app},
+                            "failed": {"favorites": r.failed.favorites, "playlists": r.failed.playlists, "alarms": r.failed.alarms, "app": r.failed.app},
+                            "notes": r.notes
+                        }));
+                        Ok(format!(
+                            "Restored: added {} favorites, {} playlists, {} alarms, {} of Roomtone's own; skipped {} already there; {} failed.{}",
+                            r.added.favorites,
+                            r.added.playlists,
+                            r.added.alarms,
+                            r.added.app,
+                            r.skipped.favorites + r.skipped.playlists + r.skipped.alarms + r.skipped.app,
+                            r.failed.favorites + r.failed.playlists + r.failed.alarms + r.failed.app,
+                            if r.notes.is_empty() { String::new() } else { format!(" {}", r.notes.join(" ")) }
+                        ))
+                    }
+                    _ => Err("The restore didn't finish".into()),
                 }
             }
             "list_recent" => {
@@ -975,4 +1033,12 @@ pub(super) fn file_in_folder(folder: &str, file: &str, endings: &[&str]) -> Resu
         return Err(format!("{} already exists; choose a new name so nothing is overwritten.", target.display()));
     }
     Ok(target)
+}
+
+/// A fresh file name in the app's own data folder for handing a backup across (the apps keep the
+/// text; the file lives only for the length of the call).
+fn scratch_file(what: &str) -> Result<std::path::PathBuf, String> {
+    let dir = crate::config::Config::data_dir().unwrap_or_else(std::env::temp_dir);
+    let nanos = std::time::SystemTime::now().duration_since(std::time::UNIX_EPOCH).map(|d| d.as_nanos()).unwrap_or(0);
+    Ok(dir.join(format!(".backup-{what}-{nanos}.json")))
 }

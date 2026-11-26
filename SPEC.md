@@ -295,6 +295,8 @@ Tools that list things (`list_favorites`, `list_playlists`, `list_recent`, `sear
 | `install_update` | Installs on every speaker of a room's system; refused unless `confirm: true` |
 | `browse` *(read)* | Step through the sources: without a ref the top level (favorites, playlists, library, this computer, radio, podcasts, Internet Archive, services); with a ref, what's inside (refs `b1`…) |
 | `save_backup` | Writes a backup `.json` of the system's favorites, playlists and alarms and Roomtone's own lists and settings to a new file on this computer (never overwrites; `.json` only). Reads the speakers; restoring stays in the app |
+| `export_backup` | Gives the same backup as `save_backup` as text (`structuredContent.backup`, with counts) instead of a file, for the phone apps to keep or share. Look-only; writes nothing |
+| `restore_backup` | Adds what a backup's text holds to the system and the app, like *Restore* with every part ticked: only adds, duplicates skipped, a report of added, skipped and failed. In *Saved items* |
 | `save_scene`, `delete_scene` | Make or replace a scene (rooms with optional volumes, group or not, a favorite or playlist by name, a sleep timer; rooms in one system) and delete one. In the *Saved items* switch |
 | `check_s2` *(read)*, `diagnose_network` *(read)* | Which speakers could move to S2 (the app's *Check my speakers*); the *Can't find your speakers?* check as a report with no names or addresses |
 | `export_playlist` | Save a playlist (a ref from `list_playlists`) as `.m3u`, `.m3u8`, `.pls`, `.xspf`, `.csv` or `.json` in the folder chosen for assistants; same folder rules and switch as `save_backup` (*Save files*) |
@@ -444,7 +446,7 @@ Quick checks that a change hasn't broken behaviour. Each needs no real speakers 
 
 1. `cargo test` passes: 103 unit tests, including that every phrase is translated and placeholders are kept.
 2. `roomtone --screenshot shots/x.png` saves a non-blank picture of the demo system within a few seconds.
-3. `roomtone --mcp --demo` with an `initialize` line, then `tools/list`, lists 62 tools when control is allowed (with speaker updates and saving files left off, as they are by default; 65 with every switch on) and 21 when look-only.
+3. `roomtone --mcp --demo` with an `initialize` line, then `tools/list`, lists 64 tools when control is allowed (with speaker updates and saving files left off, as they are by default; 67 with every switch on) and 22 when look-only.
 4. With the link off, `tools/call` answers error −32001.
 5. Over HTTP, a request without the key gets 401, one with `Origin: https://example.com` gets 403, and `--mcp-off` closes the port within ~2 s.
 6. In the demo: `play_along` from "Living Room" to "Office", then `playback next` on Living Room, changes Office's track too.

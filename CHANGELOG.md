@@ -5,6 +5,7 @@ All notable changes to Roomtone. The format follows [Keep a Changelog](https://k
 ## [Unreleased]
 
 ### Added
+- **Two more assistant tools, for backups on the phone apps.** `export_backup` (look-only) gives a backup as text instead of writing a file, and `restore_backup` (in *Saved items*) adds what a backup's text holds, skipping what is already there. 67 tools now (64 by default, 22 look-only).
 - **Four more assistant tools, for the phone apps.** `get_volume_limits` (look-only) and `set_volume_limits` (in *Names and sound*) read and change each room's highest volume, quiet hours and *keep down*; `add_speaker` adds a speaker by its address; `keep_in_step` shows (or, with `apply`, does) copying favorites, playlists and alarms between systems, in *Saved items*. 65 tools now (62 by default, 21 look-only).
 - **Tools that list things also return their answer as data.** `list_favorites`, `list_playlists`, `list_recent`, `search`, `browse`, `get_queue`, `list_alarms`, `list_scenes` and `get_lyrics` add a `structuredContent` object to the reply (refs, titles, kinds, positions, times and so on) beside the unchanged text. Apps built on the assistant link, such as the phone apps, read that instead of the sentences.
 - **A `get_lyrics` assistant tool.** It returns the words of what a room is playing (timed `[mm:ss.cc] words` lines, or plain text), using the same lrclib.net look-up as the Lyrics section, and only when the *Lyrics* switch is on. Look-only, experimental, 61 tools now. It is what lets the phone apps show lyrics too.
