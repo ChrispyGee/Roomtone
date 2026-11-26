@@ -82,7 +82,8 @@ impl Allowance {
             | "unsubscribe_podcast"
             | "save_group"
             | "delete_saved_group"
-            | "keep_in_step" => Allowance::Saved,
+            | "keep_in_step"
+            | "restore_backup" => Allowance::Saved,
             "create_alarm" | "delete_alarm" | "set_alarm_enabled" => Allowance::Alarms,
             "rename_room" | "set_sound" | "identify_speaker" | "set_volume_limits" => Allowance::Names,
             "install_update" => Allowance::Updates,
@@ -1470,8 +1471,8 @@ mod unit {
         m.b.lock().config.mcp.allow_updates = false;
         m.b.lock().config.mcp.allow_files = false;
         let all = rpc(&m, 1, "tools/list", json!({}))["result"]["tools"].as_array().unwrap().len();
-        assert_eq!(tools().len(), 65);
-        assert_eq!(all, 62, "installing updates and saving files are off until switched on");
+        assert_eq!(tools().len(), 67);
+        assert_eq!(all, 64, "installing updates and saving files are off until switched on");
         let mut names: Vec<&str> = tools().iter().map(|t| t.0).collect();
         names.sort();
         names.dedup();
@@ -1481,7 +1482,7 @@ mod unit {
         }
         m.b.lock().config.mcp.allow_control = false;
         let look = rpc(&m, 2, "tools/list", json!({}))["result"]["tools"].as_array().unwrap().clone();
-        assert_eq!(look.len(), 21);
+        assert_eq!(look.len(), 22);
         assert!(look.iter().all(|t| t["annotations"]["readOnlyHint"] == true));
         let (text, err) = tool(&m, "playback", json!({"action": "pause"}));
         assert!(err && text.contains("only lets assistants look"));
@@ -1726,6 +1727,22 @@ mod unit {
         ok(&m, "delete_saved_group", json!({"name": "Upstairs"}));
         assert!(tool(&m, "save_group", json!({"name": "Mixed", "rooms": ["Bedroom", "Office"]})).1);
         assert!(ok(&m, "pause_all", json!({})).contains("Paused") || true);
+    }
+
+    #[test]
+    fn backup_goes_out_and_comes_back_as_text() {
+        let m = link();
+        m.b.lock().config.mcp.allow_saved = true;
+        let r = rpc(&m, 1, "tools/call", json!({"name": "export_backup", "arguments": {}}));
+        let text = r["result"]["structuredContent"]["backup"].as_str().expect("the backup as text").to_string();
+        assert!(text.contains("roomtone_backup") && !text.contains("access_key"), "{text}");
+        // Putting a backup back adds nothing that is already there, and nothing is left behind.
+        let said = ok(&m, "restore_backup", json!({"backup": text}));
+        assert!(said.starts_with("Restored:") && said.contains("0 failed"), "{said}");
+        let dir = crate::config::Config::data_dir().unwrap();
+        assert!(std::fs::read_dir(dir).unwrap().all(|e| !e.unwrap().file_name().to_string_lossy().starts_with(".backup-")));
+        let (bad, err) = tool(&m, "restore_backup", json!({"backup": "not a backup"}));
+        assert!(err && bad.contains("readable"), "{bad}");
     }
 
     #[test]
