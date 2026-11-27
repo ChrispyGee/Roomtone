@@ -1238,6 +1238,34 @@ impl App {
                 }
             }
         });
+        // Years sit with the other filters, so source, type, genre and year all narrow one search.
+        ui.add_space(4.0);
+        ui.horizontal_wrapped(|ui| {
+            ui.label(RichText::new(t!("Years")).size(12.0).color(TEXT_FAINT()));
+            let chosen = YearRange::parse(&self.search_year);
+            if filter_chip(ui, t!("All"), self.search_year.trim().is_empty()).clicked() {
+                self.search_year.clear();
+            }
+            for (label, text) in [
+                ("2020s", "2020s"),
+                ("2010s", "2010s"),
+                ("2000s", "2000s"),
+                ("1990s", "1990s"),
+                ("1980s", "1980s"),
+                ("1970s", "1970s"),
+                ("1960s", "1960s"),
+                (t!("Before 1960"), "1900-1959"),
+            ] {
+                let on = chosen.is_some() && chosen == YearRange::parse(text);
+                if filter_chip(ui, label, on).clicked() {
+                    self.search_year = if on { String::new() } else { text.to_string() };
+                }
+            }
+            ui.add(egui::TextEdit::singleline(&mut self.search_year).hint_text(t!("Year: 1985, 1980s, 1985-89")).desired_width(200.0));
+            if !self.search_year.trim().is_empty() && chosen.is_none() {
+                ui.label(RichText::new(t!("Not a year")).size(12.0).color(TEXT_FAINT()));
+            }
+        });
         ui.add_space(10.0);
 
         if self.searched.is_empty() {
@@ -1287,10 +1315,6 @@ impl App {
                         ui.selectable_value(&mut self.search_genre, Some(g.clone()), g);
                     }
                 });
-            }
-            ui.add(egui::TextEdit::singleline(&mut self.search_year).hint_text(t!("Year: 1985, 1980s, 1985-89")).desired_width(230.0));
-            if !self.search_year.trim().is_empty() && YearRange::parse(&self.search_year).is_none() {
-                ui.label(RichText::new(t!("Not a year")).size(12.0).color(TEXT_FAINT()));
             }
             if !waiting.is_empty() {
                 spinner_dots(ui, TEXT_DIM());
