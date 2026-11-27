@@ -1844,6 +1844,8 @@ mod unit {
         m.b.lock().config.mcp.allow_names = true;
         // The unit tests share one settings folder, so nothing here may switch a limit on (another
         // test could then find its volumes lowered): times are set with quiet hours left off.
+        // Another test (or an earlier run) may have left a limit in the shared settings folder.
+        m.b.send_and_wait(Cmd::SetVolumeLimits(crate::config::VolumeLimits::default()), Duration::from_secs(5)).unwrap();
         ok(
             &m,
             "set_volume_limits",
