@@ -1003,6 +1003,26 @@ fn worker(b: Backend, rx: Receiver<(u64, Cmd)>, ctx: Waker) {
 }
 
 /// The service number in an address such as `x-sonos-spotify:…?sid=9&…`.
+/// A speaker answers code 402 (invalid arguments) to a favorite from a music service that isn't
+/// set up on its system: it carries the account numbers of the system it was saved on. Say that
+/// in plain words instead of showing the code.
+fn explain_refusal(b: &Backend, item: &Item, err: String) -> String {
+    if !err.contains("code 402") {
+        return err;
+    }
+    let Some(sid) = service_of(&item.uri) else { return err };
+    let service = b.lock().music_services.iter().find(|s| s.sid == sid).map(|s| s.name.clone());
+    match service {
+        Some(service) => crate::t!(
+            "“{title}” comes from {service}, which isn't set up on this system yet. Add {service} in the Sonos app, then try again.",
+            title = item.title,
+            service = service
+        )
+        .to_string(),
+        None => crate::t!("“{title}” comes from a music service that isn't set up on this system yet. Add it in the Sonos app, then try again.", title = item.title).to_string(),
+    }
+}
+
 fn service_of(uri: &str) -> Option<u32> {
     let rest = uri.split("sid=").nth(1)?;
     rest.split(|c: char| !c.is_ascii_digit()).next()?.parse().ok()
@@ -1297,7 +1317,7 @@ fn run_live(b: &Backend, ctx: &Waker, cmd: Cmd) -> Result<(), String> {
             crate::sources::memory::remember(std::slice::from_ref(&item));
             match service_of(&item.uri) {
                 Some(sid) if b.lock().config.account(sid).is_some() => play_from_service(b, &ip, &g, item.clone(), how, sid)?,
-                _ => speaker::play_item(&ip, &g, &item, how)?,
+                _ => speaker::play_item(&ip, &g, &item, how).map_err(|e| explain_refusal(b, &item, e))?,
             }
             b.lock().toast(played(how, &item.title), false);
             if let Some(ep) = episode {
@@ -2875,14 +2895,26 @@ fn background_scan(b: &Backend, ctx: &Waker) {
             }
             continue;
         }
-        let Ok(fresh) = discovery::household_from(&f.ip, f.household.clone()) else { continue };
+        let Ok(mut fresh) = discovery::household_from(&f.ip, f.household.clone()) else { continue };
+        // What this speaker doesn't list isn't necessarily gone: the system's other speakers are
+        // asked too (a room that has been bonded into a pair stays hidden, as they report it).
+        let others: Vec<String> = b
+            .lock()
+            .households
+            .iter()
+            .find(|h| h.id == fresh.id)
+            .map(|h| h.rooms.iter().map(|r| r.ip.clone()).filter(|ip| !ip.is_empty() && *ip != f.ip).collect())
+            .unwrap_or_default();
+        for ip in others {
+            if let Some(more) = discovery::unknown_to(&ip, &fresh) {
+                fresh.absorb(more);
+            }
+        }
         let mut s = b.lock();
         match s.households.iter().position(|h| h.id == fresh.id) {
             Some(i) => {
                 let before = s.households[i].rooms.len();
-                let mut merged = merge_household(&s.households[i], fresh);
-                // What this speaker doesn't list isn't gone: keep the rooms that were answering.
-                merged.absorb(s.households[i].clone());
+                let merged = merge_household(&s.households[i], fresh);
                 added += merged.rooms.len().saturating_sub(before);
                 s.households[i] = merged;
             }
@@ -4430,6 +4462,42 @@ mod unit {
         assert!(b.send_and_wait(Cmd::CheckS2("nope".into()), Duration::from_secs(10)).is_err());
     }
 
+    /// **Changes real speakers** (and puts them back): splits a stereo pair with Roomtone's own commands, looks at
+    /// the rooms, then makes the pair again. No audio. Needs both speakers in one system, already paired, and
+    /// `ROOMTONE_PAIR_TEST=1` (plus `HOME` set to a scratch folder):
+    /// `ROOMTONE_PAIR_TEST=1 cargo test real_stereo_pair_round_trip -- --ignored --nocapture`.
+    #[test]
+    #[ignore]
+    fn real_stereo_pair_round_trip() {
+        if std::env::var_os("ROOMTONE_PAIR_TEST").is_none() {
+            eprintln!("Set ROOMTONE_PAIR_TEST=1 to run this (it changes real speakers).");
+            return;
+        }
+        let b = Backend::start_with(Waker::none(), false, Options { serve_local_music: false, search_network: true });
+        let wait = Duration::from_secs(60);
+        assert!(wait_for(40, || b.lock().phase == Phase::Live && b.lock().households.iter().any(|h| h.system == System::S2)), "found the speakers");
+        b.lock().config.allow_layout = true;
+        let rooms =
+            |b: &Backend| b.lock().households.iter().filter(|h| h.system == System::S2).flat_map(|h| h.rooms.iter().map(|r| format!("{} ({})", r.name, r.ip))).collect::<Vec<_>>();
+        b.send_and_wait(Cmd::LoadLayout, wait).unwrap();
+        let pair = {
+            let s = b.lock();
+            let l = s.layout.as_ref().expect("layout read");
+            eprintln!("start: pairs={:?} rooms={:?}", l.pairs.iter().map(|p| (&p.name, &p.left, &p.right)).collect::<Vec<_>>(), rooms(&b));
+            l.pairs.first().cloned().expect("a stereo pair to start from")
+        };
+        b.send_and_wait(Cmd::SplitPair(pair.left.clone()), wait).unwrap();
+        b.send_and_wait(Cmd::LoadLayout, wait).unwrap();
+        eprintln!("after split: pairs={} rooms={:?}", b.lock().layout.as_ref().unwrap().pairs.len(), rooms(&b));
+        assert!(b.lock().layout.as_ref().unwrap().pairs.is_empty(), "the pair is gone");
+        let split_rooms = rooms(&b);
+        b.send_and_wait(Cmd::CreatePair(pair.left.clone(), pair.right.clone()), wait).unwrap();
+        b.send_and_wait(Cmd::LoadLayout, wait).unwrap();
+        eprintln!("after making it again: pairs={} rooms={:?}", b.lock().layout.as_ref().unwrap().pairs.len(), rooms(&b));
+        assert_eq!(b.lock().layout.as_ref().unwrap().pairs.len(), 1, "the pair is back");
+        assert!(split_rooms.len() > rooms(&b).len(), "the right speaker is hidden again");
+    }
+
     /// Read-only check of the S2 report against real speakers (prints models and verdicts only):
     /// `ROOMTONE_SPEAKER=<ip> cargo test real_speaker_s2_report -- --ignored --nocapture`.
     #[test]
@@ -5124,6 +5192,22 @@ mod unit {
         mine.absorb(theirs);
         assert_eq!(mine.rooms.len(), 2);
         assert!(mine.groups.iter().all(|g| g.members.len() == 1), "both rooms appear, each in a group of its own here");
+    }
+
+    #[test]
+    fn a_refused_service_favorite_is_explained_in_plain_words() {
+        let b = demo_backend();
+        b.lock().music_services =
+            vec![crate::sources::smapi::MusicService { sid: 325, name: "BBC Sounds".into(), uri: String::new(), auth: String::new(), manifest: String::new() }];
+        let refused = "SetAVTransportURI was refused (HTTP 500, code 402)".to_string();
+        let item = |uri: &str| Item { title: "Radio 2".into(), uri: uri.into(), ..Default::default() };
+        let known = explain_refusal(&b, &item("x-sonosapi-hls:abc?sid=325&flags=288&sn=4"), refused.clone());
+        assert!(known.contains("Radio 2") && known.contains("BBC Sounds") && known.contains("Sonos app") && !known.contains("402"), "{known}");
+        let unknown = explain_refusal(&b, &item("x-sonosapi-hls:abc?sid=999&sn=2"), refused.clone());
+        assert!(unknown.contains("a music service") && !unknown.contains("402"), "{unknown}");
+        assert_eq!(explain_refusal(&b, &item("x-rincon-mp3radio://example.com/s"), refused.clone()), refused, "no service: left as it was");
+        let other = "SetAVTransportURI was refused (HTTP 500, code 714)".to_string();
+        assert_eq!(explain_refusal(&b, &item("x-sonosapi-hls:abc?sid=325&sn=4"), other.clone()), other, "other codes are left as they were");
     }
 
     fn look(offer: Result<Option<&str>, &str>, build: Option<&str>) -> UpdateLook {
