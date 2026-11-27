@@ -252,7 +252,12 @@ mod tests {
     }
 
     /// Run `check` once for each of the four palettes, with the flags set to match.
+    ///
+    /// The palette is a global, so tests that switch it take turns: otherwise one test reads the
+    /// colours another has just set.
     fn each_palette(mut check: impl FnMut(&str, bool)) {
+        static TURN: std::sync::Mutex<()> = std::sync::Mutex::new(());
+        let _turn = TURN.lock().unwrap_or_else(|e| e.into_inner());
         let (was_dark, was_hc) = (is_dark(), high_contrast());
         for (name, dark, hc) in [("dark", true, false), ("light", false, false), ("high-contrast dark", true, true), ("high-contrast light", false, true)] {
             set_dark(dark);
