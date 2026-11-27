@@ -87,7 +87,7 @@ jobs:
           path: dist
       - name: Set up the Microsoft Store command line
         if: steps.creds.outputs.have == 'true'
-        uses: microsoft/microsoft-store-apppublisher@v1.1
+        uses: microsoft/microsoft-store-apppublisher@v1.4
       - name: Sign in to Partner Center
         if: steps.creds.outputs.have == 'true'
         shell: pwsh
@@ -124,7 +124,7 @@ jobs:
           if (-not $have) { Write-Output "::error::The Microsoft Store credentials aren't set, so the status can't be read. Look in Partner Center instead." }
       - name: Set up the Microsoft Store command line
         if: steps.creds.outputs.have == 'true'
-        uses: microsoft/microsoft-store-apppublisher@v1.1
+        uses: microsoft/microsoft-store-apppublisher@v1.4
       - name: Sign in to Partner Center
         if: steps.creds.outputs.have == 'true'
         shell: pwsh
