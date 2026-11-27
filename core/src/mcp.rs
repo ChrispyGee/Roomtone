@@ -1462,6 +1462,10 @@ mod unit {
             let mut s = b.lock();
             s.config.mcp.enabled = true;
             s.config.mcp.allow_control = true;
+            // The unit tests share one settings folder, so an earlier run (or test) may have left these on.
+            s.config.mcp.allow_updates = false;
+            s.config.mcp.allow_files = false;
+            s.config.mcp.files_folder = String::new();
         }
         Mcp::new(b)
     }
