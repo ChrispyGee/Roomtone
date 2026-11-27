@@ -189,8 +189,8 @@ fn base_tools() -> Vec<(&'static str, &'static str, Value, bool)> {
         ("list_playlists", "Playlists saved on the system. Each has a ref to pass to play.", json!({"type": "object", "properties": {"room": room}}), false),
         (
             "search",
-            "Search the music library, favorites, playlists, this computer's music, radio, podcasts and connected services. Each result has a ref to pass to play.",
-            json!({"type": "object", "properties": {"query": {"type": "string"}, "room": room, "limit": {"type": "integer", "default": 25, "minimum": 1, "maximum": 100}}, "required": ["query"]}),
+            "Search the music library, favorites, playlists, this computer's music, radio, podcasts and connected services. Each result has a ref to pass to play. Give year (1985, 1980s or 1985-1989) to keep only what came out then; results whose source doesn't say when are left out. A query that is only a year works too.",
+            json!({"type": "object", "properties": {"query": {"type": "string"}, "year": {"type": "string", "description": "A year (1985), decade (1980s) or range (1985-1989)"}, "room": room, "limit": {"type": "integer", "default": 25, "minimum": 1, "maximum": 100}}, "required": ["query"]}),
             false,
         ),
         (
@@ -756,6 +756,10 @@ impl Mcp {
                 self.use_system_of(a)?;
                 let q = str_arg("query").map(|q| q.trim().to_string()).filter(|q| !q.is_empty()).ok_or("What should I search for?")?;
                 let limit = int_arg("limit").unwrap_or(25).clamp(1, 100) as usize;
+                let years = match str_arg("year").map(|y| y.trim().to_string()).filter(|y| !y.is_empty()) {
+                    Some(y) => Some(crate::years::YearRange::parse(&y).ok_or_else(|| format!("I can't read “{y}” as a year. Try 1985, 1980s or 1985-1989."))?),
+                    None => crate::years::YearRange::parse(&q),
+                };
                 let sources = crate::sources::all_search_sources(&self.b.lock().config);
                 self.b.send(Cmd::Search(q.clone()));
                 let until = Instant::now() + Duration::from_secs(15);
@@ -770,16 +774,30 @@ impl Mcp {
                     thread::sleep(Duration::from_millis(100));
                 }
                 let mut found: Vec<Item> = vec![];
+                let mut no_year = 0;
                 {
                     let s = self.b.lock();
                     for src in &sources {
                         if let Some(Browse::Ready(v)) = s.browse.get(&format!("search:{src}:{q}")) {
-                            found.extend(v.iter().take(limit).cloned());
+                            let (kept, unknown) = crate::years::keep(v.clone(), years);
+                            no_year += unknown;
+                            found.extend(kept.into_iter().take(limit));
                         }
                     }
                 }
                 found.truncate(limit);
-                Ok(self.list_text("r", &found, "Nothing found."))
+                let mut text = match years {
+                    Some(r) if found.is_empty() => {
+                        set_structured(json!({"items": []}));
+                        format!("Nothing from {} found.", r.label())
+                    }
+                    _ => self.list_text("r", &found, "Nothing found."),
+                };
+                if years.is_some() && no_year > 0 {
+                    let (n, s) = (no_year, if no_year == 1 { "" } else { "s" });
+                    text.push_str(&format!("\n({n} result{s} left out because the source doesn't say what year {} from.)", if no_year == 1 { "it's" } else { "they're" }));
+                }
+                Ok(text)
             }
             "play" => {
                 let (_, gid) = self.room(a)?;
@@ -1756,6 +1774,25 @@ mod unit {
         assert!(std::fs::read_dir(dir).unwrap().all(|e| !e.unwrap().file_name().to_string_lossy().starts_with(".backup-")));
         let (bad, err) = tool(&m, "restore_backup", json!({"backup": "not a backup"}));
         assert!(err && bad.contains("readable"), "{bad}");
+    }
+
+    #[test]
+    fn search_can_keep_one_year_decade_or_range() {
+        let m = link();
+        // Only the speakers' own lists: no internet in a test.
+        m.b.lock().config.services.clear();
+        // The demo albums came out in 1987 (Low Tide Sessions), 1972, 2005, 2016, 2019 and 2023.
+        let eighties = ok(&m, "search", json!({"query": "Marlow", "year": "1980s"}));
+        assert!(eighties.contains("Low Tide Sessions"), "{eighties}");
+        let other = ok(&m, "search", json!({"query": "Marlow", "year": "2010s"}));
+        assert!(other.starts_with("Nothing from 2010–2019 found."), "{other}");
+        // A search that is only a year works without the year field, and a range reads too.
+        assert!(ok(&m, "search", json!({"query": "1987"})).contains("Low Tide Sessions"));
+        assert!(ok(&m, "search", json!({"query": "1970-1990"})).contains("Northern Soul Kitchen"));
+        let (bad, err) = tool(&m, "search", json!({"query": "Marlow", "year": "last summer"}));
+        assert!(err && bad.contains("1985, 1980s or 1985-1989"), "{bad}");
+        // Without a year, nothing is filtered and a title that contains digits is left alone.
+        assert!(ok(&m, "search", json!({"query": "Marlow"})).contains("Low Tide Sessions"));
     }
 
     #[test]

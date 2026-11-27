@@ -1004,3 +1004,6 @@ Software update	Aggiornamento software
 Not started on {rooms}. A speaker that isn't registered in the Sonos app can ignore the update: register it there, then update again.	Non avviato su {rooms}. Un diffusore non registrato nell'app Sonos può ignorare l'aggiornamento: registralo lì, poi aggiorna di nuovo.
 “{title}” comes from {service}, which isn't set up on this system yet. Add {service} in the Sonos app, then try again.	«{title}» proviene da {service}, che non è ancora configurato su questo sistema. Aggiungi {service} nell'app Sonos, poi riprova.
 “{title}” comes from a music service that isn't set up on this system yet. Add it in the Sonos app, then try again.	«{title}» proviene da un servizio musicale che non è ancora configurato su questo sistema. Aggiungilo nell'app Sonos, poi riprova.
+Year: 1985, 1980s, 1985-89	Anno: 1985, 1980s, 1985-89
+Not a year	Non è un anno
+Only showing {year}. {n} results are hidden because their source doesn't say when they came out.	Mostro solo {year}. {n} risultati sono nascosti perché la loro fonte non indica l’anno di uscita.

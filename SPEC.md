@@ -134,7 +134,9 @@ Sign-in happens on the service's own web page, with a code when the service uses
 - *Rescan* (Music Library, when music folders are added) reads the folders again.
 
 ### 4.5 Search
-One box searches every source in parallel: library, favorites (by title, artist, album, description or service name), playlists, this computer, My stations, the radio directory, podcasts, the Internet Archive and each connected service. Results are grouped by type (artists, albums, songs, playlists, stations, podcasts, episodes, folders). There are source and type filters, a genre filter and sort orders. A source that fails says so; the others still show.
+One box searches every source in parallel: library, favorites (by title, artist, album, description or service name), playlists, this computer, My stations, the radio directory, podcasts, the Internet Archive and each connected service. Results are grouped by type (artists, albums, songs, playlists, stations, podcasts, episodes, folders). There are source and type filters, a genre filter, a **year filter** and sort orders. A source that fails says so; the others still show.
+
+**Searching by year.** Items carry an optional `year` (0: unknown). It comes from the tags of music on this computer (`lofty`), the Internet Archive's year or date, podcast episodes' publish date, and a `dc:date` in the speakers' library when one is given; the demo albums have made-up years. Podcast *shows*, radio stations, favorites, playlists and streaming-service results have none, because their sources don't say. The year box next to the genre filter reads `1985`, `1980s`, `80s` / `'80s` (only 50s–90s and 00s–10s), `1985-89`, `1985–1989` or `1985 to 1989` (years 1900–2099; a backwards range is turned round). With a year on, results with no year are hidden and a line says how many. A search that is only a year (typing `1980s` in the search box) filters the same way, and the music on this computer and the demo list what came out then; a search with other words (`Blade Runner 2049`) is never read as a year. The year is kept with the song details remembered for playlists (`songs.json`, `year`).
 
 ### 4.6 Line-In & TV
 Plays a speaker's line-in or TV input in the selected room. Each speaker with an input has one row, with a button for each of its inputs. Which speakers have them is guessed from the model name. A speaker without the socket refuses.
@@ -281,7 +283,7 @@ Tools that list things (`list_favorites`, `list_playlists`, `list_recent`, `sear
 | `sleep_timer` | Stop after `minutes` (0 = off) |
 | `list_favorites` *(read)* | Favorites with refs (`fav1`…) |
 | `list_playlists` *(read)* | Playlists with refs (`pl1`…) |
-| `search` *(read)* | Everything search covers, with refs (`r1`…), up to `limit` |
+| `search` *(read)* | Everything search covers, with refs (`r1`…), up to `limit`; `year` (`1985`, `1980s`, `1985-1989`) keeps only what came out then and says how many results had no year |
 | `play` | A `ref`, or a favorite/playlist `name`; `how`: now, next, end, replace |
 | `get_queue` *(read)* | The queue numbered from 1, the current song marked ▶ |
 | `play_from_queue`, `remove_from_queue`, `clear_queue` | Queue control by position; `remove_from_queue` takes an optional `count` to remove that many songs in a row in one request |

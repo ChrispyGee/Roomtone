@@ -479,6 +479,8 @@ pub struct Item {
     pub source: String,
     pub genre: String,
     pub track_no: u32,
+    /// The year it came out, when the source says (0: unknown).
+    pub year: u32,
 }
 
 impl Item {
@@ -492,6 +494,9 @@ impl Item {
         }
         if !self.album.is_empty() && self.album != self.title {
             parts.push(self.album.clone());
+        }
+        if self.year > 0 && !parts.is_empty() {
+            parts.push(self.year.to_string());
         }
         if parts.is_empty() {
             kind_label(&self.class).to_string()

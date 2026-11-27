@@ -11,6 +11,7 @@ struct Album {
     title: &'static str,
     artist: &'static str,
     genre: &'static str,
+    year: u32,
     tracks: &'static [(&'static str, u32)],
 }
 
@@ -19,36 +20,42 @@ const ALBUMS: &[Album] = &[
         title: "Golden Hour Drive",
         artist: "The Paper Lanterns",
         genre: "Indie",
+        year: 2019,
         tracks: &[("Neon Coastline", 214), ("Slow Motion Summer", 198), ("Highway Glow", 241), ("Tidal Hearts", 187), ("After the Rain", 226), ("Last Light", 263)],
     },
     Album {
         title: "Midnight Atlas",
         artist: "Nova Reyes",
         genre: "Electronic",
+        year: 2023,
         tracks: &[("Constellations", 232), ("Northbound", 205), ("Paper Moon", 189), ("Satellite Love", 244), ("Quiet Orbit", 270)],
     },
     Album {
         title: "Velvet Static",
         artist: "Juniper & The Echoes",
         genre: "Indie",
+        year: 2016,
         tracks: &[("Static Bloom", 201), ("Velvet Room", 223), ("Echo Chamber", 196), ("Blue Hour", 251), ("Wildflower Radio", 210)],
     },
     Album {
         title: "Low Tide Sessions",
         artist: "Marlow Quartet",
         genre: "Jazz",
+        year: 1987,
         tracks: &[("Morning Fog", 312), ("Harbor Lights", 287), ("Saltwater Waltz", 265), ("Driftwood", 298)],
     },
     Album {
         title: "Electric Orchard",
         artist: "Kites Over Kyoto",
         genre: "Electronic",
+        year: 2005,
         tracks: &[("Plum Blossom Circuit", 219), ("Lantern Festival", 238), ("Bullet Train Dreams", 207), ("Moss Garden", 254), ("Orchard Lights", 229)],
     },
     Album {
         title: "Northern Soul Kitchen",
         artist: "The Copper Pots",
         genre: "Soul",
+        year: 1972,
         tracks: &[("Simmer Down", 185), ("Sunday Roast", 202), ("Spice Rack Shuffle", 177), ("Late Supper", 233)],
     },
 ];
@@ -81,6 +88,7 @@ fn track(a: usize, t: usize) -> Item {
         class: "object.item.audioItem.musicTrack".into(),
         uri: format!("demo-track:{a}:{t}"),
         duration: secs as f32,
+        year: al.year,
         ..Default::default()
     }
 }
@@ -96,6 +104,7 @@ fn album(a: usize) -> Item {
         class: "object.container.album.musicAlbum".into(),
         uri: format!("demo-album:{a}"),
         is_container: true,
+        year: al.year,
         ..Default::default()
     }
 }
@@ -515,6 +524,11 @@ pub fn apply(s: &mut AppState, cmd: &Cmd) {
         Cmd::Search(term) => {
             let t = term.to_lowercase();
             let mut items: Vec<Item> = vec![];
+            // A search that is only a year, decade or range lists what came out then.
+            if let Some(r) = crate::years::YearRange::parse(term) {
+                items.extend((0..ALBUMS.len()).map(album).filter(|a| r.contains(a.year)));
+                items.extend(all_tracks().into_iter().filter(|i| r.contains(i.year)));
+            }
             items.extend(artists().into_iter().filter(|a| a.to_lowercase().contains(&t)).map(artist));
             items.extend((0..ALBUMS.len()).map(album).filter(|a| a.title.to_lowercase().contains(&t) || a.artist.to_lowercase().contains(&t)));
             items.extend(all_tracks().into_iter().filter(|i| i.title.to_lowercase().contains(&t) || i.artist.to_lowercase().contains(&t)));

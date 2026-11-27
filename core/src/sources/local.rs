@@ -27,6 +27,8 @@ pub struct Track {
     pub album: String,
     pub genre: String,
     pub track_no: u32,
+    /// From the file's tags (0: not tagged).
+    pub year: u32,
     pub duration: f32,
     pub ext: String,
 }
@@ -227,7 +229,7 @@ fn read_track(p: &Path) -> Track {
     let ext = p.extension().map(|x| x.to_string_lossy().to_lowercase()).unwrap_or_default();
     let stem = p.file_stem().map(|x| x.to_string_lossy().to_string()).unwrap_or_default();
     let parent = p.parent().and_then(|d| d.file_name()).map(|x| x.to_string_lossy().to_string()).unwrap_or_default();
-    let mut t = Track { id: hash_id(p), path: p.to_path_buf(), title: stem, artist: String::new(), album: parent, genre: String::new(), track_no: 0, duration: 0.0, ext };
+    let mut t = Track { id: hash_id(p), path: p.to_path_buf(), title: stem, artist: String::new(), album: parent, genre: String::new(), track_no: 0, year: 0, duration: 0.0, ext };
     if let Ok(f) = lofty::read_from_path(p) {
         t.duration = f.properties().duration().as_secs_f32();
         if let Some(tag) = f.primary_tag().or_else(|| f.first_tag()) {
@@ -248,6 +250,7 @@ fn read_track(p: &Path) -> Track {
                 t.genre = v.trim().to_string();
             }
             t.track_no = tag.track().unwrap_or(0);
+            t.year = tag.date().map(|d| u32::from(d.year)).filter(|y| (1900..=2099).contains(y)).unwrap_or(0);
         }
     }
     if t.artist.is_empty() {
@@ -396,6 +399,7 @@ pub fn known_track(key: &str) -> Option<super::memory::Known> {
         art: Some(format!("{b}/a/{}", t.id)),
         duration: t.duration,
         genre: t.genre.clone(),
+        year: t.year,
         source: "local".into(),
     })
 }
@@ -415,6 +419,7 @@ fn track_item(t: &Track) -> Item {
         source: "local".into(),
         genre: t.genre.clone(),
         track_no: t.track_no,
+        year: t.year,
         ..Default::default()
     }
 }
@@ -431,6 +436,7 @@ fn container(id: String, title: &str, class: &str, artist: &str, art_from: Optio
         art: art_from.map(|t| format!("{b}/a/{}", t.id)),
         source: "local".into(),
         genre: art_from.map(|t| t.genre.clone()).unwrap_or_default(),
+        year: if class.contains("Album") { art_from.map(|t| t.year).unwrap_or(0) } else { 0 },
         ..Default::default()
     }
 }
@@ -529,8 +535,17 @@ fn folder_listing(l: &Library, dir: &Path) -> Vec<Item> {
 
 pub fn search(term: &str) -> Vec<Item> {
     let Ok(l) = lib().read() else { return vec![] };
+    search_in(&l, term)
+}
+
+fn search_in(l: &Library, term: &str) -> Vec<Item> {
     let t = term.to_lowercase();
     let mut out = vec![];
+    // A search that is only a year ("1985", "1980s", "1985-89") lists what came out then.
+    if let Some(r) = crate::years::YearRange::parse(term) {
+        out.extend(albums_of(l.tracks.iter().filter(|x| r.contains(x.year))).into_iter().take(40));
+        out.extend(l.tracks.iter().filter(|x| r.contains(x.year)).take(80).map(track_item));
+    }
     let artists: BTreeSet<&str> = l.tracks.iter().map(|x| x.artist.as_str()).filter(|a| a.to_lowercase().contains(&t)).collect();
     for a in artists.into_iter().take(30) {
         out.push(container(format!("LOCAL:ARTIST/{a}"), a, "object.container.person.musicArtist", "", None));
@@ -815,6 +830,7 @@ mod playlist_files {
                 album: "Low Tide".into(),
                 genre: String::new(),
                 track_no: 1,
+                year: 0,
                 duration: 200.0,
                 ext: "flac".into(),
             };
@@ -832,6 +848,33 @@ mod playlist_files {
         assert!(item_for_path(Path::new("Morning Fog.flac")).is_none(), "a bare file name is too loose to trust");
         assert_eq!(item_for_name("morning fog", "MARLOW QUARTET").map(|i| i.title), Some("Morning Fog".into()));
         assert!(item_for_name("Morning Fog", "Someone Else").is_none() && item_for_name("", "").is_none());
+    }
+}
+
+#[cfg(test)]
+mod years {
+    use super::*;
+
+    #[test]
+    fn a_search_that_is_only_a_year_lists_what_came_out_then() {
+        let mut l = Library::default();
+        l.tracks.push(Track {
+            id: "year-test-0001".into(),
+            path: PathBuf::from("/Users/me/Music/Year Test/Song.mp3"),
+            title: "Song From 1961".into(),
+            artist: "Year Tester".into(),
+            album: "Year Test Album".into(),
+            genre: String::new(),
+            track_no: 1,
+            year: 1961,
+            duration: 100.0,
+            ext: "mp3".into(),
+        });
+        let by = |t: &str| search_in(&l, t).into_iter().filter(|i| i.artist == "Year Tester").map(|i| (i.title, i.year)).collect::<Vec<_>>();
+        assert!(by("1961").contains(&("Year Test Album".into(), 1961)) && by("1961").contains(&("Song From 1961".into(), 1961)), "{:?}", by("1961"));
+        assert!(by("1960s").iter().any(|(t, _)| t == "Year Test Album"));
+        assert!(by("1962").is_empty(), "another year finds nothing of it");
+        assert!(by("Year Tester").iter().any(|(t, _)| t == "Year Test Album"), "an ordinary search still works");
     }
 }
 

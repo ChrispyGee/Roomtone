@@ -27,6 +27,8 @@ pub struct Known {
     #[serde(default)]
     pub genre: String,
     #[serde(default)]
+    pub year: u32,
+    #[serde(default)]
     pub source: String,
 }
 
@@ -86,6 +88,7 @@ pub fn remember(items: &[Item]) {
             art: it.art.clone(),
             duration: it.duration,
             genre: it.genre.clone(),
+            year: it.year,
             source: it.source.clone(),
         };
         let same = s.songs.get(&k).is_some_and(|o| o.title == known.title && o.artist == known.artist);
@@ -147,6 +150,9 @@ pub fn enrich(items: &mut [Item]) {
             }
             if it.genre.is_empty() {
                 it.genre = m.genre;
+            }
+            if it.year == 0 {
+                it.year = m.year;
             }
         } else if looks_unnamed(it) {
             // At least show something readable: the file name without its code-like parts.

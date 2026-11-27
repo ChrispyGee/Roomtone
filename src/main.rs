@@ -38,7 +38,7 @@ use roomtone_core::test_support;
 #[allow(unused_imports)]
 use roomtone_core::{
     backend, backup, config, csv, demo, diagnose, frame, help, history, i18n, known, layout, limits, lyrics, m3u, mcp, model, net, pls_xspf, quality, s2, scene, sources, status,
-    stream_probe, update, version,
+    stream_probe, update, version, years,
 };
 #[allow(unused_imports)]
 pub(crate) use roomtone_core::{n_, t, tn};

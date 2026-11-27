@@ -11,6 +11,7 @@ use super::widgets::*;
 use super::{paint_text, App, View};
 use crate::backend::Cmd;
 use crate::model::*;
+use crate::years::YearRange;
 
 /// An item's second line; podcast episodes start it with whether they're played or how much is left
 /// (first, so it isn't the part cut off on a narrow tile).
@@ -1287,6 +1288,10 @@ impl App {
                     }
                 });
             }
+            ui.add(egui::TextEdit::singleline(&mut self.search_year).hint_text(t!("Year: 1985, 1980s, 1985-89")).desired_width(230.0));
+            if !self.search_year.trim().is_empty() && YearRange::parse(&self.search_year).is_none() {
+                ui.label(RichText::new(t!("Not a year")).size(12.0).color(TEXT_FAINT()));
+            }
             if !waiting.is_empty() {
                 spinner_dots(ui, TEXT_DIM());
                 let names: Vec<&str> = waiting.iter().map(|w| crate::sources::source_label(w)).collect();
@@ -1304,6 +1309,18 @@ impl App {
             .filter(|i| self.search_types.is_empty() || self.search_types.contains(item_type(i)))
             .filter(|i| self.search_genre.as_ref().is_none_or(|g| &i.genre == g))
             .collect();
+        // A year typed in the box wins; a search that is only a year ("1985") filters by it too.
+        let years = YearRange::parse(&self.search_year).or_else(|| YearRange::parse(&self.searched));
+        let without_year;
+        (shown, without_year) = crate::years::keep(shown, years);
+        if let (Some(r), true) = (years, without_year > 0) {
+            ui.label(
+                RichText::new(t!("Only showing {year}. {n} results are hidden because their source doesn't say when they came out.", year = r.label(), n = without_year))
+                    .size(12.0)
+                    .color(TEXT_FAINT()),
+            );
+            ui.add_space(4.0);
+        }
         if self.search_sort == 0 {
             // Best match: exact titles, then titles that start with the words, otherwise each source's own order.
             shown.sort_by_key(|i| {

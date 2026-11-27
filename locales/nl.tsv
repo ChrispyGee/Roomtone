@@ -1004,3 +1004,6 @@ Software update	Software-update
 Not started on {rooms}. A speaker that isn't registered in the Sonos app can ignore the update: register it there, then update again.	Niet gestart op {rooms}. Een speaker die niet is geregistreerd in de Sonos-app kan de update negeren: registreer hem daar en werk daarna opnieuw bij.
 “{title}” comes from {service}, which isn't set up on this system yet. Add {service} in the Sonos app, then try again.	‘{title}’ komt van {service}, dat nog niet is ingesteld op dit systeem. Voeg {service} toe in de Sonos-app en probeer het opnieuw.
 “{title}” comes from a music service that isn't set up on this system yet. Add it in the Sonos app, then try again.	‘{title}’ komt van een muziekdienst die nog niet is ingesteld op dit systeem. Voeg hem toe in de Sonos-app en probeer het opnieuw.
+Year: 1985, 1980s, 1985-89	Jaar: 1985, 1980s, 1985-89
+Not a year	Geen jaartal
+Only showing {year}. {n} results are hidden because their source doesn't say when they came out.	Alleen {year} wordt getoond. {n} resultaten zijn verborgen omdat hun bron niet zegt wanneer ze uitkwamen.

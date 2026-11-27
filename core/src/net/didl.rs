@@ -41,6 +41,7 @@ fn item_from(n: roxmltree::Node, base: &str) -> Item {
                 }
             }
             "album" => it.album = text,
+            "date" => it.year = crate::years::year_in(&text),
             "class" => it.class = text,
             "res" => {
                 if it.uri.is_empty() {
@@ -152,7 +153,7 @@ mod unit {
     use super::*;
 
     const LIST: &str = r#"<DIDL-Lite xmlns:dc="http://purl.org/dc/elements/1.1/" xmlns:upnp="urn:schemas-upnp-org:metadata-1-0/upnp/" xmlns:r="urn:schemas-rinconnetworks-com:metadata-1-0/" xmlns="urn:schemas-upnp-org:metadata-1-0/DIDL-Lite/">
-<item id="Q:0/1" parentID="Q:0" restricted="true"><res protocolInfo="x-file-cifs:*:audio/flac:*" duration="0:03:21.000">x-file-cifs://nas/Music/a.flac</res><upnp:albumArtURI>/getaa?u=x</upnp:albumArtURI><dc:title>Morning Fog</dc:title><upnp:class>object.item.audioItem.musicTrack</upnp:class><dc:creator>Marlow Quartet</dc:creator><upnp:album>Low Tide</upnp:album></item>
+<item id="Q:0/1" parentID="Q:0" restricted="true"><res protocolInfo="x-file-cifs:*:audio/flac:*" duration="0:03:21.000">x-file-cifs://nas/Music/a.flac</res><upnp:albumArtURI>/getaa?u=x</upnp:albumArtURI><dc:title>Morning Fog</dc:title><upnp:class>object.item.audioItem.musicTrack</upnp:class><dc:creator>Marlow Quartet</dc:creator><upnp:album>Low Tide</upnp:album><dc:date>1987-03-02</dc:date></item>
 <container id="A:ALBUM/Low Tide" parentID="A:ALBUM" restricted="true"><dc:title>Low Tide</dc:title><upnp:class>object.container.album.musicAlbum</upnp:class><upnp:albumArtURI>https://art.example/x.jpg</upnp:albumArtURI></container>
 </DIDL-Lite>"#;
 
@@ -166,6 +167,7 @@ mod unit {
         assert_eq!(t.duration, 201.0);
         assert_eq!(t.art.as_deref(), Some("http://10.0.0.5:1400/getaa?u=x"), "relative art becomes absolute");
         assert!(!t.is_container);
+        assert_eq!(t.year, 1987, "the date is read as a year");
         let c = &items[1];
         assert!(c.is_container);
         assert_eq!(c.art.as_deref(), Some("https://art.example/x.jpg"));
