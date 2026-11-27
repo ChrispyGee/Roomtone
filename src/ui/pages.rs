@@ -11,6 +11,7 @@ use super::widgets::*;
 use super::{paint_text, App, View};
 use crate::backend::Cmd;
 use crate::model::*;
+use crate::years::YearRange;
 
 /// An item's second line; podcast episodes start it with whether they're played or how much is left
 /// (first, so it isn't the part cut off on a narrow tile).
@@ -854,13 +855,54 @@ impl App {
         }
     }
 
+    /// The experimental look-up (Settings › Album years): gives results with no year the one found
+    /// for their album, asks Apple about the rest and shows progress. Returns whether it is still
+    /// looking, so a list that is empty for now doesn't say "nothing matched".
+    fn year_lookup_pass(&mut self, ui: &mut Ui, s: &AppState, shown: &mut [Item], years: Option<YearRange>) -> bool {
+        let mut looking = false;
+        if s.config.look_up_years && years.is_some() {
+            use crate::sources::yearlookup as lookup;
+            lookup::apply(shown);
+            for it in shown.iter_mut().filter(|i| i.year == 0) {
+                if let Some(y) = lookup::subject(it).and_then(|(a, b)| s.year_lookups.get(&lookup::key(&a, &b)).copied()) {
+                    it.year = y;
+                }
+            }
+            let todo: Vec<(String, String)> = lookup::wanted(shown, 20).into_iter().filter(|(a, b)| self.years_asked.insert(lookup::key(a, b))).collect();
+            let just_sent = todo.len();
+            if !todo.is_empty() {
+                self.years_total += just_sent;
+                self.send(Cmd::LookUpYears(todo));
+            }
+            // The backend counts what is still to ask; right after sending it hasn't heard yet.
+            let left = s.year_lookups_left.max(just_sent);
+            looking = left > 0;
+            if looking {
+                let total = self.years_total.max(left);
+                let done = total - left;
+                ui.horizontal(|ui| {
+                    spinner_dots(ui, TEXT_DIM());
+                    ui.add(egui::ProgressBar::new(done as f32 / total as f32).desired_width(180.0).desired_height(8.0));
+                    ui.label(RichText::new(t!("Looking up years from Apple… {done} of {total} albums", done = done, total = total)).size(12.0).color(TEXT_DIM()));
+                    ui.label(RichText::new(t!("About {s} seconds left", s = (left as f32 * 3.2).ceil() as u32)).size(12.0).color(TEXT_FAINT()));
+                });
+                ui.add_space(4.0);
+                ui.ctx().request_repaint_after(Duration::from_millis(500));
+            } else {
+                self.years_total = 0;
+            }
+        }
+        looking
+    }
+
     /// Text filter, sort and genre controls for a list; returns the filtered, sorted items.
-    fn filter_bar(&mut self, ui: &mut Ui, key: &str, items: &[Item]) -> Vec<Item> {
+    fn filter_bar(&mut self, ui: &mut Ui, s: &AppState, key: &str, items: &[Item]) -> Vec<Item> {
         if self.list_key != key {
             self.list_key = key.to_string();
             self.list_filter.clear();
             self.list_sort = 0;
             self.list_genre = None;
+            self.list_year.clear();
         }
         let genres: std::collections::BTreeSet<String> = items.iter().map(|i| i.genre.clone()).filter(|g| !g.is_empty()).collect();
         let sorts: [&str; 7] = [t!("Default order"), t!("Title A–Z"), t!("Artist A–Z"), t!("Longest first"), t!("Title Z–A"), t!("Album A–Z"), t!("Shortest first")];
@@ -878,6 +920,15 @@ impl App {
                         ui.selectable_value(&mut self.list_sort, i, *l);
                     }
                 });
+                // Years: a decade from the list, or a year (1985) or range (1985-89) typed in the filter box.
+                let year_name = |d: &str| if d == "1900-1959" { t!("Before 1960").to_string() } else { YearRange::parse(d).map(|r| r.label()).unwrap_or_default() };
+                let any_year = if self.list_year.is_empty() { t!("All years").to_string() } else { year_name(&self.list_year) };
+                egui::ComboBox::from_id_salt(("year", key)).width(130.0).selected_text(any_year).show_ui(ui, |ui| {
+                    ui.selectable_value(&mut self.list_year, String::new(), t!("All years"));
+                    for d in ["2020s", "2010s", "2000s", "1990s", "1980s", "1970s", "1960s", "1900-1959"] {
+                        ui.selectable_value(&mut self.list_year, d.to_string(), year_name(d));
+                    }
+                });
                 if !genres.is_empty() {
                     let label = self.list_genre.clone().unwrap_or_else(|| t!("All genres").into());
                     egui::ComboBox::from_id_salt(("genre", key)).width(150.0).selected_text(label).show_ui(ui, |ui| {
@@ -890,13 +941,31 @@ impl App {
             });
             ui.add_space(8.0);
         }
-        let f = self.list_filter.to_lowercase();
+        // A filter that is only a year ("1990s") filters by year, as it does in Search.
+        let typed_year = YearRange::parse(&self.list_filter);
+        let years = typed_year.or_else(|| YearRange::parse(&self.list_year));
+        let f = if typed_year.is_some() { String::new() } else { self.list_filter.to_lowercase() };
         let mut out: Vec<Item> = items
             .iter()
             .filter(|i| f.is_empty() || i.title.to_lowercase().contains(&f) || i.artist.to_lowercase().contains(&f) || i.album.to_lowercase().contains(&f))
             .filter(|i| self.list_genre.as_ref().is_none_or(|g| &i.genre == g))
             .cloned()
             .collect();
+        self.year_lookup_pass(ui, s, &mut out, years);
+        let without_year;
+        (out, without_year) = crate::years::keep(out, years);
+        if let (Some(r), true) = (years, without_year > 0) {
+            ui.label(
+                RichText::new(t!("Only showing {year}. {n} results are hidden because their source doesn't say when they came out.", year = r.label(), n = without_year))
+                    .size(12.0)
+                    .color(TEXT_FAINT()),
+            );
+            if !s.config.look_up_years {
+                ui.label(
+                    RichText::new(t!("To find years for streaming-service albums, switch on Look up missing years in Settings (experimental).")).size(12.0).color(TEXT_FAINT()),
+                );
+            }
+        }
         lists::sort_items(&mut out, self.list_sort);
         if out.len() != items.len() {
             ui.label(RichText::new(t!("Showing {shown} of {total}", shown = out.len(), total = items.len())).size(12.0).color(TEXT_FAINT()));
@@ -995,7 +1064,7 @@ impl App {
                 (a.artist.to_lowercase(), a.album.to_lowercase(), a.title.to_lowercase()).cmp(&(b.artist.to_lowercase(), b.album.to_lowercase(), b.title.to_lowercase()))
             });
         }
-        let shown = self.filter_bar(ui, id, &items);
+        let shown = self.filter_bar(ui, s, id, &items);
         let all_albums = shown.len() > 3 && shown.iter().all(|i| i.class.contains("musicAlbum"));
         if all_albums {
             self.tile_grid(ui, &shown, gid.as_deref(), id);
@@ -1144,7 +1213,7 @@ impl App {
             ui.label(RichText::new(msg).color(TEXT_DIM()));
             return;
         }
-        let shown = self.filter_bar(ui, &id, &items);
+        let shown = self.filter_bar(ui, s, &id, &items);
         let all_albums = shown.len() > 3 && shown.iter().all(|i| i.class.contains("musicAlbum"));
         if all_albums {
             self.tile_grid(ui, &shown, gid.as_deref(), &id);
@@ -1237,6 +1306,34 @@ impl App {
                 }
             }
         });
+        // Years sit with the other filters, so source, type, genre and year all narrow one search.
+        ui.add_space(4.0);
+        ui.horizontal_wrapped(|ui| {
+            ui.label(RichText::new(t!("Years")).size(12.0).color(TEXT_FAINT()));
+            let chosen = YearRange::parse(&self.search_year);
+            if filter_chip(ui, t!("All"), self.search_year.trim().is_empty()).clicked() {
+                self.search_year.clear();
+            }
+            for (label, text) in [
+                ("2020s", "2020s"),
+                ("2010s", "2010s"),
+                ("2000s", "2000s"),
+                ("1990s", "1990s"),
+                ("1980s", "1980s"),
+                ("1970s", "1970s"),
+                ("1960s", "1960s"),
+                (t!("Before 1960"), "1900-1959"),
+            ] {
+                let on = chosen.is_some() && chosen == YearRange::parse(text);
+                if filter_chip(ui, label, on).clicked() {
+                    self.search_year = if on { String::new() } else { text.to_string() };
+                }
+            }
+            ui.add(egui::TextEdit::singleline(&mut self.search_year).hint_text(t!("Year: 1985, 1980s, 1985-89")).desired_width(200.0));
+            if !self.search_year.trim().is_empty() && chosen.is_none() {
+                ui.label(RichText::new(t!("Not a year")).size(12.0).color(TEXT_FAINT()));
+            }
+        });
         ui.add_space(10.0);
 
         if self.searched.is_empty() {
@@ -1304,6 +1401,19 @@ impl App {
             .filter(|i| self.search_types.is_empty() || self.search_types.contains(item_type(i)))
             .filter(|i| self.search_genre.as_ref().is_none_or(|g| &i.genre == g))
             .collect();
+        // A year typed in the box wins; a search that is only a year ("1985") filters by it too.
+        let years = YearRange::parse(&self.search_year).or_else(|| YearRange::parse(&self.searched));
+        let looking = self.year_lookup_pass(ui, s, &mut shown, years);
+        let without_year;
+        (shown, without_year) = crate::years::keep(shown, years);
+        if let (Some(r), true) = (years, without_year > 0) {
+            ui.label(
+                RichText::new(t!("Only showing {year}. {n} results are hidden because their source doesn't say when they came out.", year = r.label(), n = without_year))
+                    .size(12.0)
+                    .color(TEXT_FAINT()),
+            );
+            ui.add_space(4.0);
+        }
         if self.search_sort == 0 {
             // Best match: exact titles, then titles that start with the words, otherwise each source's own order.
             shown.sort_by_key(|i| {
@@ -1320,7 +1430,18 @@ impl App {
             lists::sort_items(&mut shown, self.search_sort);
         }
         if shown.is_empty() && waiting.is_empty() {
-            ui.label(RichText::new(t!("Nothing matched “{query}” with these filters.", query = self.searched)).color(TEXT_DIM()));
+            if looking {
+                // Not "nothing matched": the years are still being found.
+                let year = years.map(|r| r.label()).unwrap_or_default();
+                ui.label(RichText::new(t!("Looking for {year}…", year = year)).size(16.0).color(TEXT()));
+                ui.label(
+                    RichText::new(t!("Streaming services don't say when an album came out, so Roomtone is asking Apple about each one. Results appear here as they are found."))
+                        .size(13.0)
+                        .color(TEXT_DIM()),
+                );
+            } else {
+                ui.label(RichText::new(t!("Nothing matched “{query}” with these filters.", query = self.searched)).color(TEXT_DIM()));
+            }
             return;
         }
         for t in ITEM_TYPES {
@@ -1429,7 +1550,7 @@ impl App {
         };
         let b = if self.radio_searched.is_empty() { self.browse(s, &key) } else { s.browse.get(&key) };
         self.loading_or(ui, &key, b, t!("No stations found."), |me, ui, items| {
-            let shown = me.filter_bar(ui, &key, items);
+            let shown = me.filter_bar(ui, s, &key, items);
             for (i, it) in shown.iter().take(120).enumerate() {
                 me.apply_jump(ui, i);
                 me.row(ui, it, gid.as_deref(), ("radio_dir", i), None);
@@ -2327,6 +2448,8 @@ impl App {
                 self.frame_card(ui, s);
                 ui.add_space(14.0);
                 self.lyrics_card(ui, s);
+                ui.add_space(14.0);
+                self.look_up_years_card(ui, s);
                 ui.add_space(14.0);
                 self.probe_streams_card(ui, s);
             }
@@ -3450,6 +3573,35 @@ impl App {
         });
         if on != s.config.show_lyrics {
             self.send(Cmd::SetLyrics(on));
+        }
+    }
+
+    /// The switch for looking up the years of albums that have none.
+    fn look_up_years_card(&mut self, ui: &mut Ui, s: &AppState) {
+        experimental_title(ui, t!("Album years"));
+        let mut on = s.config.look_up_years;
+        card_frame().show(ui, |ui| {
+            ui.set_width(ui.available_width());
+            ui.horizontal(|ui| {
+                ui.set_min_height(40.0);
+                ui.vertical(|ui| {
+                    ui.set_max_width((ui.available_width() - 64.0).max(120.0));
+                    ui.label(RichText::new(t!("Look up missing years")).color(TEXT()));
+                    ui.label(
+                        RichText::new(t!(
+                            "Streaming services don't say when an album came out, so a year search hides them. With this on, Roomtone sends each album's artist and album name to Apple's iTunes Search (itunes.apple.com) to find the year, one at a time, and remembers the answer on this computer. Nothing else is sent. The match is by name, so a reissue can show a later year. This is experimental and may change."
+                        ))
+                        .size(12.0)
+                        .color(TEXT_DIM()),
+                    );
+                });
+                ui.with_layout(Layout::right_to_left(Align::Center), |ui| {
+                    toggle(ui, &mut on, t!("Look up missing years"));
+                });
+            });
+        });
+        if on != s.config.look_up_years {
+            self.send(Cmd::SetLookUpYears(on));
         }
     }
 

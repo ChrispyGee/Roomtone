@@ -1004,3 +1004,18 @@ Software update	Actualización de software
 Not started on {rooms}. A speaker that isn't registered in the Sonos app can ignore the update: register it there, then update again.	No se ha iniciado en {rooms}. Un altavoz que no está registrado en la app de Sonos puede ignorar la actualización: regístralo allí y vuelve a actualizar.
 “{title}” comes from {service}, which isn't set up on this system yet. Add {service} in the Sonos app, then try again.	«{title}» viene de {service}, que aún no está configurado en este sistema. Añade {service} en la app de Sonos y vuelve a intentarlo.
 “{title}” comes from a music service that isn't set up on this system yet. Add it in the Sonos app, then try again.	«{title}» viene de un servicio de música que aún no está configurado en este sistema. Añádelo en la app de Sonos y vuelve a intentarlo.
+Year: 1985, 1980s, 1985-89	Año: 1985, 1980s, 1985-89
+Not a year	No es un año
+Only showing {year}. {n} results are hidden because their source doesn't say when they came out.	Solo se muestra {year}. {n} resultados están ocultos porque su fuente no indica cuándo salieron.
+Album years	Años de los álbumes
+Look up missing years	Buscar los años que faltan
+Streaming services don't say when an album came out, so a year search hides them. With this on, Roomtone sends each album's artist and album name to Apple's iTunes Search (itunes.apple.com) to find the year, one at a time, and remembers the answer on this computer. Nothing else is sent. The match is by name, so a reissue can show a later year. This is experimental and may change.	Los servicios de streaming no dicen cuándo salió un álbum, así que una búsqueda por año los oculta. Con esto activado, Roomtone envía el artista y el nombre de cada álbum a la búsqueda de iTunes de Apple (itunes.apple.com) para encontrar el año, uno a uno, y guarda la respuesta en este ordenador. No se envía nada más. La coincidencia es por nombre, así que una reedición puede mostrar un año posterior. Es experimental y puede cambiar.
+Some years were looked up from Apple's catalog by name, so a reissue may show a later year.	Algunos años se buscaron por nombre en el catálogo de Apple, así que una reedición puede mostrar un año posterior.
+Looking up years from Apple… {done} of {total} albums	Buscando años en Apple… {done} de {total} álbumes
+About {s} seconds left	Unos {s} segundos más
+Looking for {year}…	Buscando {year}…
+Streaming services don't say when an album came out, so Roomtone is asking Apple about each one. Results appear here as they are found.	Los servicios de streaming no dicen cuándo salió un álbum, así que Roomtone pregunta a Apple por cada uno. Los resultados aparecen aquí según se encuentran.
+Years	Años
+Before 1960	Antes de 1960
+All years	Todos los años
+To find years for streaming-service albums, switch on Look up missing years in Settings (experimental).	Para encontrar los años de álbumes de servicios de streaming, activa «Buscar los años que faltan» en Ajustes (experimental).

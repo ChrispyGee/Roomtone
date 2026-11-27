@@ -25,6 +25,8 @@ fn query(q: &str) -> Result<Vec<Item>, String> {
         .query("fl[]", "title")
         .query("fl[]", "creator")
         .query("fl[]", "subject")
+        .query("fl[]", "year")
+        .query("fl[]", "date")
         .query("sort[]", "downloads desc")
         .query("rows", "40")
         .query("output", "json")
@@ -39,6 +41,7 @@ fn query(q: &str) -> Result<Vec<Item>, String> {
             let title = text_of(d.get("title").unwrap_or(&serde_json::Value::Null));
             let creator = text_of(d.get("creator").unwrap_or(&serde_json::Value::Null));
             let genre = text_of(d.get("subject").unwrap_or(&serde_json::Value::Null));
+            let year = ["year", "date"].iter().map(|k| crate::years::year_in(&text_of(d.get(*k).unwrap_or(&serde_json::Value::Null)))).find(|y| *y > 0).unwrap_or(0);
             Some(Item {
                 id: format!("IA:ITEM/{id}"),
                 parent_id: "IA:".into(),
@@ -51,6 +54,7 @@ fn query(q: &str) -> Result<Vec<Item>, String> {
                 art: Some(format!("https://archive.org/services/img/{id}")),
                 source: "archive".into(),
                 genre: genre.split([';', ',']).next().unwrap_or("").trim().to_string(),
+                year,
                 ..Default::default()
             })
         })

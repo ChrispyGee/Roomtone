@@ -96,11 +96,19 @@ pub struct App {
     /// What's typed in the queue's search box.
     queue_filter: String,
     list_genre: Option<String>,
+    /// A decade from the list's year menu ("1990s"), or empty.
+    list_year: String,
     list_key: String,
     search_sources: std::collections::HashSet<String>,
     search_types: std::collections::HashSet<String>,
     search_sort: usize,
     search_genre: Option<String>,
+    /// What was typed in the year box: 1985, 1980s, 1985-89.
+    search_year: String,
+    /// Albums already sent for a year look-up this run.
+    years_asked: std::collections::HashSet<String>,
+    /// Albums sent for a year look-up since the last time none were waiting (for the progress bar).
+    years_total: usize,
     station_editor: Option<crate::config::Station>,
     radio_tag: String,
     radio_search: String,
@@ -253,11 +261,15 @@ impl App {
             jump_to: None,
             queue_filter: String::new(),
             list_genre: None,
+            list_year: String::new(),
             list_key: String::new(),
             search_sources: Default::default(),
             search_types: Default::default(),
             search_sort: 0,
             search_genre: None,
+            search_year: String::new(),
+            years_asked: Default::default(),
+            years_total: 0,
             station_editor: None,
             radio_tag: String::from("TOP"),
             radio_search: String::new(),

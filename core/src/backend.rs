@@ -134,6 +134,10 @@ pub enum Cmd {
     CheckConnections,
     /// Switch lyrics (experimental) on or off.
     SetLyrics(bool),
+    /// Switch the year look-up (experimental) on or off.
+    SetLookUpYears(bool),
+    /// Look up the years of these albums (artist, album) from Apple, slowly, in the background.
+    LookUpYears(Vec<(String, String)>),
     /// Switch the stream look-up (bitrate and rate from the stream's own headers) on or off.
     SetProbeStreams(bool),
     /// Ask a stream's address what it says about its sound.
@@ -1289,6 +1293,8 @@ fn run_live(b: &Backend, ctx: &Waker, cmd: Cmd) -> Result<(), String> {
         | Cmd::CheckConnections
         | Cmd::SetVersionCheck(_)
         | Cmd::SetLyrics(_)
+        | Cmd::SetLookUpYears(_)
+        | Cmd::LookUpYears(_)
         | Cmd::SetProbeStreams(_)
         | Cmd::ProbeStream(_)
         | Cmd::SetVolumeStep(_)
@@ -2365,6 +2371,27 @@ fn run_common(b: &Backend, ctx: &Waker, cmd: Cmd) -> Result<Option<Cmd>, String>
         Cmd::SetLyrics(on) => {
             b.lock().config.show_lyrics = on;
             save(b);
+            Ok(None)
+        }
+        Cmd::SetLookUpYears(on) => {
+            b.lock().config.look_up_years = on;
+            save(b);
+            Ok(None)
+        }
+        Cmd::LookUpYears(pairs) => {
+            let pairs: Vec<(String, String)> = pairs.into_iter().take(40).collect();
+            b.lock().year_lookups_left += pairs.len();
+            let (b2, ctx2) = (b.clone(), ctx.clone());
+            thread::spawn(move || {
+                crate::sources::yearlookup::resolve(&pairs, Duration::from_secs(150), |k, y| {
+                    b2.lock().year_lookups.insert(k.to_string(), y);
+                    ctx2.request_repaint();
+                });
+                let mut s = b2.lock();
+                s.year_lookups_left = s.year_lookups_left.saturating_sub(pairs.len());
+                drop(s);
+                ctx2.request_repaint();
+            });
             Ok(None)
         }
         Cmd::SetProbeStreams(on) => {

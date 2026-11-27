@@ -479,6 +479,8 @@ pub struct Item {
     pub source: String,
     pub genre: String,
     pub track_no: u32,
+    /// The year it came out, when the source says (0: unknown).
+    pub year: u32,
 }
 
 impl Item {
@@ -492,6 +494,9 @@ impl Item {
         }
         if !self.album.is_empty() && self.album != self.title {
             parts.push(self.album.clone());
+        }
+        if self.year > 0 && !parts.is_empty() {
+            parts.push(self.year.to_string());
         }
         if parts.is_empty() {
             kind_label(&self.class).to_string()
@@ -787,6 +792,10 @@ pub struct AppState {
     pub updates: HashMap<String, UpdateState>,
     /// Which rooms of a system the last update check found behind the offered software (names), by system.
     pub update_behind: HashMap<String, Vec<String>>,
+    /// Years looked up for albums with none (experimental), by `yearlookup::key`.
+    pub year_lookups: HashMap<String, u32>,
+    /// How many albums are still being looked up.
+    pub year_lookups_left: usize,
     /// The speakers (by address) an update was sent to, by system: only these are followed and counted.
     pub update_targets: HashMap<String, Vec<String>>,
     /// What the *Can it move to S2?* look found, by system.
@@ -886,6 +895,8 @@ impl Default for AppState {
             link_sync: HashMap::new(),
             updates: HashMap::new(),
             update_behind: HashMap::new(),
+            year_lookups: HashMap::new(),
+            year_lookups_left: 0,
             update_targets: HashMap::new(),
             s2: HashMap::new(),
             diagnosis: None,

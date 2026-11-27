@@ -45,6 +45,7 @@ The code is a Cargo workspace of two crates. **`core/` (`roomtone-core`)** holds
 | `scene.rs` | Doing a scene: the same steps an assistant would take, in order, stopping at the first that fails |
 | `backup.rs` | The backup file (favorites, playlists, alarms and Roomtone's own lists): building, reading, restoring, and the playlist export path |
 | `m3u.rs`, `csv.rs`, `pls_xspf.rs` | Playlist files: writing and reading M3U/M3U8, CSV, PLS and XSPF |
+| `sources/yearlookup.rs` | The experimental year look-up (iTunes Search): name matching, earliest year, 3.2 s pacing, cache in `year-lookups.json` |
 | `lyrics.rs` | The experimental lyrics look-up (lrclib.net): parser for timed lines, exact-then-search order, in-memory store key |
 | `history.rs` | The listening history (`history.json`) and the tracker that decides what counts as played |
 | `window.rs` | The remembered window size and position |

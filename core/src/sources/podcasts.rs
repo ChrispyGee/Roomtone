@@ -91,6 +91,7 @@ pub(crate) fn parse_feed(text: &str, feed: &str) -> Result<Vec<Item>, String> {
             art,
             duration: duration.unwrap_or(0.0),
             source: "podcasts".into(),
+            year: crate::years::year_in(date),
             ..Default::default()
         });
     }
@@ -116,6 +117,7 @@ mod unit {
         assert_eq!(eps[0].artist, "Sample Show");
         assert_eq!(eps[0].duration, 3723.0);
         assert_eq!(eps[0].description, "Episode · 10 Nov 2026");
+        assert_eq!((eps[0].year, eps[1].year), (2026, 0), "the year comes from the date, when there is one");
         assert_eq!(eps[0].art.as_deref(), Some("https://img.example/show.jpg"), "the show's art when the episode has none");
         assert_eq!(eps[1].duration, 754.0);
         assert_eq!(eps[1].art.as_deref(), Some("https://img.example/1.jpg"));
