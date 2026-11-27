@@ -4648,7 +4648,19 @@ mod unit {
             let (sid, term) = spec.split_once(':').expect("sid:term");
             let cfg = b.lock().config.clone();
             let hits = crate::sources::search(&format!("svc:{sid}"), term, &cfg).unwrap();
-            let hit = hits.iter().find(|i| !i.is_container && !i.uri.is_empty()).expect("a playable hit").clone();
+            // The first playable hit, or the first thing inside the first folder (an album) that plays.
+            let direct = hits.iter().find(|i| !i.is_container && !i.uri.is_empty()).cloned();
+            let hit = direct.unwrap_or_else(|| {
+                let mut next = hits.iter().find(|i| i.is_container).cloned().expect("a hit to open");
+                for _ in 0..3 {
+                    let inside = crate::sources::browse(&next.id, &cfg).unwrap();
+                    if let Some(p) = inside.iter().find(|i| !i.is_container && !i.uri.is_empty()) {
+                        return p.clone();
+                    }
+                    next = inside.into_iter().find(|i| i.is_container).expect("something to open");
+                }
+                panic!("nothing playable within three levels")
+            });
             (hit, format!("search {term}"))
         } else {
             b.send_and_wait(Cmd::ConnectService(254), wait).unwrap();

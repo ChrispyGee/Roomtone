@@ -112,7 +112,12 @@ pub fn finish_link(svc: &MusicService, household: &str, device_id: &str, link: &
             _ => Err("The service didn't return a sign-in".into()),
         },
         Err(Fault::Refresh(t, k)) => Ok(Some((t, k))),
-        Err(Fault::Other(e)) if still_waiting(&e) => Ok(None),
+        Err(Fault::Other(e)) if still_waiting(&e) => {
+            if std::env::var_os("ROOMTONE_DEBUG_LINK").is_some() {
+                eprintln!("[link] {} says: {e}", svc.name);
+            }
+            Ok(None)
+        }
         Err(Fault::Other(e)) => Err(e),
     }
 }
@@ -508,6 +513,49 @@ mod survey_tests {
         rows.sort();
         for (name, auth, line) in rows {
             println!("{name} [{auth}]: {line}");
+        }
+    }
+}
+
+#[cfg(test)]
+mod walk_tests {
+    /// Opt in with ROOMTONE_RAW_SID=<sid>: from the saved sign-in's home page, open the first folder of each level
+    /// (or the one named in ROOMTONE_WALK, a comma list of titles) and print what is inside. Nothing is played.
+    #[test]
+    #[ignore = "needs a saved sign-in: set ROOMTONE_RAW_SID"]
+    fn walk_a_saved_service() {
+        let Ok(sid) = std::env::var("ROOMTONE_RAW_SID") else { return };
+        let cfg = crate::config::Config::load_readonly();
+        let acc = cfg.account(sid.parse().unwrap()).expect("a saved sign-in").clone();
+        let path: Vec<String> = std::env::var("ROOMTONE_WALK").map(|w| w.split(',').map(String::from).collect()).unwrap_or_default();
+        let mut id = "root".to_string();
+        for depth in 0..6 {
+            let items = match super::browse(&acc, &id) {
+                Ok(i) => i,
+                Err(e) => {
+                    println!("level {depth} ({id}): {e}");
+                    return;
+                }
+            };
+            println!(
+                "level {depth}: {} entries: {:?}",
+                items.len(),
+                items.iter().take(8).map(|i| format!("{}{}", i.title, if i.is_container { "/" } else { "" })).collect::<Vec<_>>()
+            );
+            if let Some(p) = items.iter().find(|i| !i.is_container && !i.uri.is_empty()) {
+                println!("  playable: {:?} {:?} class {}", p.title, p.uri, p.class);
+                return;
+            }
+            let next = match path.get(depth) {
+                Some(t) => items.iter().find(|i| i.is_container && i.title.contains(t.as_str())),
+                None => items.iter().find(|i| i.is_container),
+            };
+            let Some(next) = next else {
+                println!("  (nothing to open)");
+                return;
+            };
+            println!("  opening {:?}", next.title);
+            id = next.id.trim_start_matches(&format!("SVC:{}/", acc.sid)).to_string();
         }
     }
 }
