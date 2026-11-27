@@ -998,3 +998,5 @@ What would be added	Cosa verrebbe aggiunto
 Would get: {counts}	Riceverebbe: {counts}
 {favorites} favorites · {playlists} playlists · {alarms} alarms	{favorites} preferiti · {playlists} playlist · {alarms} sveglie
 …and {n} more	…e altri {n}
+Update speakers that need it	Aggiorna i diffusori che ne hanno bisogno
+These speakers download version {version} and restart: {rooms}. The others already have it and aren't touched. Music stops for a few minutes. Keep the speakers plugged in until they're back.	Questi diffusori scaricano la versione {version} e si riavviano: {rooms}. Gli altri ce l'hanno già e non vengono toccati. La musica si ferma per qualche minuto. Tieni i diffusori collegati finché non tornano.

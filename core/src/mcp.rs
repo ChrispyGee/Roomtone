@@ -247,7 +247,7 @@ fn base_tools() -> Vec<(&'static str, &'static str, Value, bool)> {
         ("check_for_updates", "Whether newer speaker software is available for each system (S1 systems are only offered S1 updates).", json!({"type": "object", "properties": {}}), false),
         (
             "install_update",
-            "Install the available software update on every speaker of a room's system. Speakers restart and music stops for a few minutes. Only call this when the person has clearly asked for it, and pass confirm: true.",
+            "Install the available software update on the speakers of a room's system that are behind (ones already on it are left alone). Speakers restart and music stops for a few minutes. Only call this when the person has clearly asked for it, and pass confirm: true.",
             json!({"type": "object", "properties": {"room": room, "confirm": {"type": "boolean"}}, "required": ["confirm"]}),
             true,
         ),
@@ -1006,7 +1006,13 @@ impl Mcp {
                     };
                     lines.push(match state {
                         Some(UpdateState::UpToDate) => format!("{label}: up to date"),
-                        Some(UpdateState::Available(o)) => format!("{label}: version {} is available ({} MB)", o.version, o.size / 1_000_000),
+                        Some(UpdateState::Available(o)) => {
+                            let st = self.b.lock();
+                            let behind = st.update_behind.get(&hid).cloned().unwrap_or_default();
+                            let total = st.households.iter().find(|h| h.id == hid).map_or(0, |h| h.rooms.len());
+                            let who = if !behind.is_empty() && behind.len() < total { format!(", needed by {}", behind.join(", ")) } else { String::new() };
+                            format!("{label}: version {} is available ({} MB){who}", o.version, o.size / 1_000_000)
+                        }
                         Some(UpdateState::Failed(e)) => format!("{label}: couldn't check ({e})"),
                         Some(UpdateState::Progress(p)) => format!("{label}: updating to {}, {} of {} speakers done, {} restarting", p.version, p.done, p.total, p.restarting),
                         Some(UpdateState::Finished(v)) => format!("{label}: updated to {v}"),
@@ -1018,7 +1024,7 @@ impl Mcp {
             }
             "install_update" => {
                 if bool_arg("confirm") != Some(true) {
-                    return Err("Installing restarts every speaker in the system. Ask the person first, then call again with confirm: true.".into());
+                    return Err("Installing restarts every speaker that is behind. Ask the person first, then call again with confirm: true.".into());
                 }
                 let (uuid, _) = self.room(a)?;
                 let hid = self.b.lock().find_room(&uuid).map(|(h, _)| h.id.clone()).ok_or("That room isn't available right now")?;
@@ -1035,7 +1041,7 @@ impl Mcp {
                     _ => return Ok("This system is already up to date.".into()),
                 }
                 self.wait(Cmd::InstallUpdate(hid))?;
-                Ok("Update started: every speaker downloads it and restarts; they're back in about 10 minutes.".into())
+                Ok("Update started: the speakers that are behind download it and restart; they're back in about 10 minutes.".into())
             }
             "list_alarms" => {
                 self.wait(Cmd::LoadAlarms)?;

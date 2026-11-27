@@ -2765,8 +2765,12 @@ impl App {
                     ui.with_layout(Layout::right_to_left(Align::Center), |ui| match state {
                         Some(UpdateState::Available(_)) if !s.config.allow_update_install => {}
                         Some(UpdateState::Available(o)) => {
-                            if pill(ui, None, t!("Update all speakers"), true).clicked() {
-                                self.update_confirm = Some((h.id.clone(), h.system, o.version.clone()));
+                            // When only some speakers are behind, say so and update only those.
+                            let behind = s.update_behind.get(&h.id).cloned().unwrap_or_default();
+                            let some = !behind.is_empty() && behind.len() < h.rooms.len();
+                            let label = if some { t!("Update speakers that need it") } else { t!("Update all speakers") };
+                            if pill(ui, None, label, true).clicked() {
+                                self.update_confirm = Some((h.id.clone(), h.system, o.version.clone(), if some { behind } else { vec![] }));
                             }
                         }
                         Some(UpdateState::Checking) | Some(UpdateState::Installing(..)) | Some(UpdateState::Progress(_)) => spinner_dots(ui, TEXT_DIM()),

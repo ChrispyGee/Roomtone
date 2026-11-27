@@ -998,3 +998,5 @@ What would be added	Wat er toegevoegd zou worden
 Would get: {counts}	Zou krijgen: {counts}
 {favorites} favorites · {playlists} playlists · {alarms} alarms	{favorites} favorieten · {playlists} afspeellijsten · {alarms} wekkers
 …and {n} more	…en {n} meer
+Update speakers that need it	Speakers bijwerken die het nodig hebben
+These speakers download version {version} and restart: {rooms}. The others already have it and aren't touched. Music stops for a few minutes. Keep the speakers plugged in until they're back.	Deze speakers downloaden versie {version} en starten opnieuw op: {rooms}. De andere hebben hem al en blijven ongemoeid. De muziek stopt een paar minuten. Laat de speakers aangesloten tot ze terug zijn.

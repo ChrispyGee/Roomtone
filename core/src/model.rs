@@ -785,6 +785,8 @@ pub struct AppState {
     pub link_sync: HashMap<String, LinkSync>,
     /// Software update status by system (household id).
     pub updates: HashMap<String, UpdateState>,
+    /// Which rooms of a system the last update check found behind the offered software (names), by system.
+    pub update_behind: HashMap<String, Vec<String>>,
     /// What the *Can it move to S2?* look found, by system.
     pub s2: HashMap<String, S2State>,
     /// The latest *Can't find my speakers?* check.
@@ -878,6 +880,7 @@ impl Default for AppState {
             links: vec![],
             link_sync: HashMap::new(),
             updates: HashMap::new(),
+            update_behind: HashMap::new(),
             s2: HashMap::new(),
             diagnosis: None,
             connections: HashMap::new(),

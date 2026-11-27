@@ -536,17 +536,21 @@ fn keep_links_in_step(b: &Backend) {
 /// Ask one speaker of the system for an update, and only accept one for the same generation:
 /// an S1 system must never be offered S2 software here (that change can't be undone).
 fn check_updates(b: &Backend, hid: &str) -> UpdateState {
-    let (system, ips, demo_mode, demo_current) = {
+    let (system, ips, names, demo_mode, demo_current) = {
         let s = b.lock();
         let Some(h) = s.households.iter().find(|h| h.id == hid) else { return UpdateState::Failed(crate::t!("That system isn't available right now").into()) };
         if !h.is_set_up() {
             return UpdateState::Failed(crate::t!("Not set up yet. Set this speaker up in the Sonos app, then check again.").into());
         }
         let ips: Vec<String> = h.rooms.iter().map(|r| r.ip.clone()).filter(|i| !i.is_empty()).collect();
-        (h.system, ips, s.phase == Phase::Demo, h.rooms.iter().all(|r| r.version == "16.5"))
+        let names: Vec<String> = h.rooms.iter().filter(|r| !r.ip.is_empty()).map(|r| r.name.clone()).collect();
+        (h.system, ips, names, s.phase == Phase::Demo, h.rooms.iter().all(|r| r.version == "16.5"))
     };
     if demo_mode {
         thread::sleep(Duration::from_millis(900));
+        let behind: Vec<String> =
+            b.lock().households.iter().find(|h| h.id == hid).map(|h| h.rooms.iter().filter(|r| r.version != "16.5").map(|r| r.name.clone()).collect()).unwrap_or_default();
+        b.lock().update_behind.insert(hid.to_string(), if system == System::S2 { behind } else { vec![] });
         return match system {
             System::S2 if !demo_current => UpdateState::Available(speaker::UpdateOffer { version: "86.4-62010".into(), url: "demo://update".into(), size: 190_000_000 }),
             _ => UpdateState::UpToDate,
@@ -557,7 +561,9 @@ fn check_updates(b: &Backend, hid: &str) -> UpdateState {
     }
     // Every speaker is asked: one that has already been updated says nothing about one that hasn't.
     let looks: Vec<UpdateLook> = ips.iter().map(|ip| UpdateLook { offer: speaker::check_for_update(ip), build: speaker::software_version(ip) }).collect();
-    decide_update(system, looks)
+    let (state, behind) = decide_update(system, looks);
+    b.lock().update_behind.insert(hid.to_string(), behind.into_iter().filter_map(|i| names.get(i).cloned()).collect());
+    state
 }
 
 /// What one speaker said about updates, and which software build it is on.
@@ -569,10 +575,12 @@ struct UpdateLook {
 /// From what every speaker of a system said: an update is available when any speaker was offered a
 /// build for the same generation that it hasn't reached yet (an S1 system is never offered S2
 /// software here: that change can't be undone). If none could be asked, say why.
-fn decide_update(system: System, looks: Vec<UpdateLook>) -> UpdateState {
+fn decide_update(system: System, looks: Vec<UpdateLook>) -> (UpdateState, Vec<usize>) {
     let mut first_error = None;
     let mut asked = 0;
-    for look in looks {
+    let mut offer_for_all = None;
+    let mut behind = vec![];
+    for (i, look) in looks.into_iter().enumerate() {
         match look.offer {
             Err(e) => {
                 first_error.get_or_insert(e);
@@ -583,26 +591,38 @@ fn decide_update(system: System, looks: Vec<UpdateLook>) -> UpdateState {
                 if offer.system() != system || look.build.as_deref().is_some_and(|v| build_reached(v, &offer.version)) {
                     continue;
                 }
-                return UpdateState::Available(offer);
+                behind.push(i);
+                offer_for_all.get_or_insert(offer);
             }
         }
     }
-    match first_error {
-        Some(e) if asked == 0 => UpdateState::Failed(e),
-        _ => UpdateState::UpToDate,
+    match (offer_for_all, first_error) {
+        (Some(offer), _) => (UpdateState::Available(offer), behind),
+        (None, Some(e)) if asked == 0 => (UpdateState::Failed(e), behind),
+        _ => (UpdateState::UpToDate, behind),
     }
 }
 
 /// Tell every speaker of the system to install the update. They download it and restart.
 fn install_update(b: &Backend, ctx: &Waker, hid: &str, offer: &speaker::UpdateOffer) -> UpdateState {
-    let (system, rooms, demo_mode) = {
+    let (system, all_rooms, demo_mode) = {
         let s = b.lock();
         let Some(h) = s.households.iter().find(|h| h.id == hid) else { return UpdateState::Failed(crate::t!("That system isn't available right now").into()) };
-        (h.system, h.rooms.iter().map(|r| (r.uuid.clone(), r.ip.clone(), r.name.clone())).collect::<Vec<_>>(), s.phase == Phase::Demo)
+        (h.system, h.rooms.iter().map(|r| (r.uuid.clone(), r.ip.clone(), r.name.clone(), r.version.clone())).collect::<Vec<_>>(), s.phase == Phase::Demo)
     };
     // The same guard again, right before anything changes.
     if offer.system() != system {
         return UpdateState::Failed(crate::t!("That update is for the other kind of system, so it wasn't installed.").into());
+    }
+    // Only speakers that are behind are told: each is asked for its software right now (one that
+    // doesn't say is told too, and reported if it can't take it).
+    let rooms: Vec<(String, String, String)> = all_rooms
+        .iter()
+        .filter(|(_, ip, _, version)| if demo_mode { version != "16.5" } else { !speaker::software_version(ip).is_some_and(|v| build_reached(&v, &offer.version)) })
+        .map(|(u, ip, n, _)| (u.clone(), ip.clone(), n.clone()))
+        .collect();
+    if rooms.is_empty() {
+        return UpdateState::UpToDate;
     }
     let total = rooms.len();
     let mut failed = vec![];
@@ -627,7 +647,7 @@ fn install_update(b: &Backend, ctx: &Waker, hid: &str, offer: &speaker::UpdateOf
         s.toast(crate::t!("Some speakers didn't take the update: {rooms}", rooms = failed.join("; ")), true);
     }
     s.toast(crate::t!("Update started. Speakers download it and restart one by one; they're back in about 10 minutes."), false);
-    UpdateState::Progress(UpdateProgress { version: offer.version.clone(), total, done: 0, restarting: 0 })
+    UpdateState::Progress(UpdateProgress { version: offer.version.clone(), total: all_rooms.len(), done: all_rooms.len() - total, restarting: 0 })
 }
 
 /// The build id of a build such as "98.0-82170" (`None`: not in that form). Only the id after
@@ -5037,30 +5057,32 @@ mod unit {
     fn one_speaker_behind_makes_the_update_available_even_if_the_first_is_current() {
         // The first speaker already has the offered build; the second is on an older one.
         let looks = vec![look(Ok(Some("98.0-82170")), Some("86.11-82170")), look(Ok(Some("98.0-82170")), Some("86.4-73290"))];
-        assert!(matches!(decide_update(System::S2, looks), UpdateState::Available(o) if o.version == "98.0-82170"));
+        let (state, behind) = decide_update(System::S2, looks);
+        assert!(matches!(state, UpdateState::Available(o) if o.version == "98.0-82170"));
+        assert_eq!(behind, vec![1], "only the second speaker is behind");
     }
 
     #[test]
     fn every_speaker_on_the_offered_build_or_newer_is_up_to_date() {
         let looks = vec![look(Ok(Some("98.0-82170")), Some("86.11-82170")), look(Ok(Some("98.0-82170")), Some("86.12-90000")), look(Ok(None), None)];
-        assert!(matches!(decide_update(System::S2, looks), UpdateState::UpToDate));
+        assert!(matches!(decide_update(System::S2, looks).0, UpdateState::UpToDate));
     }
 
     #[test]
     fn an_s1_system_is_never_offered_s2_software() {
         // S2 builds start at 58: an offer of one is ignored for an S1 system, whatever the speaker is on.
         let looks = vec![look(Ok(Some("98.0-82170")), Some("11.2-40000"))];
-        assert!(matches!(decide_update(System::S1, looks), UpdateState::UpToDate));
+        assert!(matches!(decide_update(System::S1, looks).0, UpdateState::UpToDate));
     }
 
     #[test]
     fn a_speaker_that_does_not_answer_does_not_hide_one_that_has_an_update() {
         let looks = vec![look(Err("no answer"), None), look(Ok(Some("98.0-82170")), Some("86.4-73290"))];
-        assert!(matches!(decide_update(System::S2, looks), UpdateState::Available(_)));
+        assert!(matches!(decide_update(System::S2, looks).0, UpdateState::Available(_)));
         // Nobody answered at all: say why, don't claim "up to date".
-        assert!(matches!(decide_update(System::S2, vec![look(Err("no answer"), None), look(Err("other"), None)]), UpdateState::Failed(e) if e == "no answer"));
+        assert!(matches!(decide_update(System::S2, vec![look(Err("no answer"), None), look(Err("other"), None)]).0, UpdateState::Failed(e) if e == "no answer"));
         // Some answered with nothing newer, one didn't: the ones that answered decide.
-        assert!(matches!(decide_update(System::S2, vec![look(Ok(None), None), look(Err("no answer"), None)]), UpdateState::UpToDate));
+        assert!(matches!(decide_update(System::S2, vec![look(Ok(None), None), look(Err("no answer"), None)]).0, UpdateState::UpToDate));
     }
 
     #[test]
@@ -5096,6 +5118,27 @@ mod unit {
         assert!(wait_for(20, || matches!(b.lock().updates.get(&s2), Some(UpdateState::Finished(_)))), "the update is followed to its end");
         let s = b.lock();
         assert!(s.households.iter().find(|h| h.id == s2).unwrap().rooms.iter().all(|r| r.version == "16.5"));
+    }
+
+    #[test]
+    fn only_the_speakers_that_are_behind_are_listed_and_updated() {
+        let b = demo_backend();
+        let (s2, current, others) = {
+            let mut s = b.lock();
+            let i = s.households.iter().position(|h| h.system == System::S2).unwrap();
+            // One speaker is already on the offered software.
+            s.households[i].rooms[0].version = "16.5".into();
+            let h = &s.households[i];
+            (h.id.clone(), h.rooms[0].name.clone(), h.rooms.iter().skip(1).map(|r| r.name.clone()).collect::<Vec<_>>())
+        };
+        b.send_and_wait(Cmd::CheckUpdates(s2.clone()), Duration::from_secs(5)).unwrap();
+        assert!(wait_for(5, || matches!(b.lock().updates.get(&s2), Some(UpdateState::Available(_)))));
+        let behind = b.lock().update_behind.get(&s2).cloned().unwrap();
+        assert!(!behind.contains(&current), "the speaker that is up to date isn't listed");
+        assert_eq!(behind, others);
+        b.send_and_wait(Cmd::InstallUpdate(s2.clone()), Duration::from_secs(5)).unwrap();
+        assert!(wait_for(20, || matches!(b.lock().updates.get(&s2), Some(UpdateState::Finished(_)))));
+        assert!(b.lock().households.iter().find(|h| h.id == s2).unwrap().rooms.iter().all(|r| r.version == "16.5"));
     }
 
     #[test]
