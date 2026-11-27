@@ -2735,6 +2735,14 @@ impl App {
                             Some(UpdateState::UpToDate) => (t!("Up to date").to_string(), GOOD()),
                             Some(UpdateState::Available(o)) => (t!("Version {version} is available", version = o.version), ACCENT()),
                             Some(UpdateState::Installing(done, total)) => (t!("Sending the update to speaker {n} of {total}…", n = done + 1, total = total), ACCENT()),
+                            // Sent the update but it hasn't started (still answering on the old software): say so.
+                            Some(UpdateState::Progress(p)) | Some(UpdateState::Unfinished(p)) if !p.stuck.is_empty() => (
+                                t!(
+                                    "Not started on {rooms}. A speaker that isn't registered in the Sonos app can ignore the update: register it there, then update again.",
+                                    rooms = p.stuck.join(", ")
+                                ),
+                                BAD(),
+                            ),
                             Some(UpdateState::Progress(p)) if p.restarting > 0 => (
                                 t!(
                                     "Updating to {version}: {done} of {total} speakers done, {restarting} restarting",

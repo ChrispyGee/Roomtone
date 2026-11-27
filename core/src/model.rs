@@ -823,6 +823,9 @@ pub struct UpdateProgress {
     pub done: usize,
     /// Rooms that aren't answering just now (most likely restarting).
     pub restarting: usize,
+    /// Rooms that were sent the update but haven't started it: still answering on the old software
+    /// and never seen restarting after a few minutes (a speaker that isn't registered can ignore it).
+    pub stuck: Vec<String>,
 }
 
 /// A sign-in to a streaming service in progress.

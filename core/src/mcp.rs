@@ -1014,7 +1014,14 @@ impl Mcp {
                             format!("{label}: version {} is available ({} MB){who}", o.version, o.size / 1_000_000)
                         }
                         Some(UpdateState::Failed(e)) => format!("{label}: couldn't check ({e})"),
-                        Some(UpdateState::Progress(p)) => format!("{label}: updating to {}, {} of {} speakers done, {} restarting", p.version, p.done, p.total, p.restarting),
+                        Some(UpdateState::Progress(p)) => {
+                            let stuck = if p.stuck.is_empty() {
+                                String::new()
+                            } else {
+                                format!(". Not started on {}: a speaker that isn't registered in the Sonos app can ignore the update", p.stuck.join(", "))
+                            };
+                            format!("{label}: updating to {}, {} of {} speakers done, {} restarting{stuck}", p.version, p.done, p.total, p.restarting)
+                        }
                         Some(UpdateState::Finished(v)) => format!("{label}: updated to {v}"),
                         Some(UpdateState::Unfinished(p)) => format!("{label}: the update hasn't finished, {} of {} speakers are on {}", p.done, p.total, p.version),
                         _ => format!("{label}: no answer yet"),

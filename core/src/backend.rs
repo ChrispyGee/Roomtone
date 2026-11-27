@@ -648,7 +648,7 @@ fn install_update(b: &Backend, ctx: &Waker, hid: &str, offer: &speaker::UpdateOf
         s.toast(crate::t!("Some speakers didn't take the update: {rooms}", rooms = failed.join("; ")), true);
     }
     s.toast(crate::t!("Update started. Speakers download it and restart one by one; they're back in about 10 minutes."), false);
-    UpdateState::Progress(UpdateProgress { version: offer.version.clone(), total, done: 0, restarting: 0 })
+    UpdateState::Progress(UpdateProgress { version: offer.version.clone(), total, done: 0, restarting: 0, stuck: vec![] })
 }
 
 /// The build id of a build such as "98.0-82170" (`None`: not in that form). Only the id after
@@ -677,35 +677,49 @@ fn tally(builds: &[Option<String>], target: &str) -> (usize, usize) {
 /// Follow an update the speakers were told to install: look at each room's own software build
 /// every few seconds, show how many are on the new one and how many are restarting, and end
 /// when all are (or after `give_up`). The speakers offer no progress figure of their own.
-fn track_update(
-    b: &Backend,
-    ctx: &Waker,
-    hid: &str,
-    version: &str,
-    probe: &(dyn Fn(usize, usize, &str) -> Option<String> + Sync),
+/// How often to look at an update, when to give up on it and when to say a speaker hasn't started it.
+#[derive(Clone, Copy)]
+struct Timing {
     every: Duration,
     give_up: Duration,
-) -> UpdateState {
-    let rooms: Vec<String> = {
+    stall_after: Duration,
+}
+
+fn track_update(b: &Backend, ctx: &Waker, hid: &str, version: &str, probe: &(dyn Fn(usize, usize, &str) -> Option<String> + Sync), timing: Timing) -> UpdateState {
+    let Timing { every, give_up, stall_after } = timing;
+    let (rooms, names): (Vec<String>, Vec<String>) = {
         let s = b.lock();
         match s.households.iter().find(|h| h.id == hid) {
             // Only the speakers the update was sent to are followed and counted (the others were already on it).
             Some(h) => match s.update_targets.get(hid) {
-                Some(t) if !t.is_empty() => t.clone(),
-                _ => h.rooms.iter().map(|r| r.ip.clone()).collect(),
+                Some(t) if !t.is_empty() => (t.clone(), t.iter().map(|ip| h.rooms.iter().find(|r| &r.ip == ip).map_or(ip.clone(), |r| r.name.clone())).collect()),
+                _ => (h.rooms.iter().map(|r| r.ip.clone()).collect(), h.rooms.iter().map(|r| r.name.clone()).collect()),
             },
             None => return UpdateState::Failed(crate::t!("That system isn't available right now").into()),
         }
     };
     let total = rooms.len();
     let start = Instant::now();
+    let mut seen_down = vec![false; total];
     for round in 0.. {
         let builds: Vec<Option<String>> = thread::scope(|scope| {
             let looks: Vec<_> = rooms.iter().enumerate().map(|(i, ip)| scope.spawn(move || probe(round, i, ip))).collect();
             looks.into_iter().map(|l| l.join().unwrap_or(None)).collect()
         });
         let (done, restarting) = tally(&builds, version);
-        let progress = UpdateProgress { version: version.to_string(), total, done, restarting };
+        // A speaker that answers on the old software and has never been seen restarting, a few
+        // minutes after being sent the update, hasn't started it.
+        for (i, build) in builds.iter().enumerate() {
+            if build.is_none() {
+                seen_down[i] = true;
+            }
+        }
+        let stuck: Vec<String> = if start.elapsed() >= stall_after {
+            builds.iter().enumerate().filter(|(i, b)| !seen_down[*i] && b.as_deref().is_some_and(|v| !build_reached(v, version))).map(|(i, _)| names[i].clone()).collect()
+        } else {
+            vec![]
+        };
+        let progress = UpdateProgress { version: version.to_string(), total, done, restarting, stuck };
         if done == total {
             return UpdateState::Finished(version.to_string());
         }
@@ -733,10 +747,10 @@ fn follow_update(b: &Backend, ctx: &Waker, hid: &str, version: &str) -> UpdateSt
                 _ => Some(v.clone()),
             }
         };
-        track_update(b, ctx, hid, version, &demo, Duration::from_millis(400), Duration::from_secs(60))
+        track_update(b, ctx, hid, version, &demo, Timing { every: Duration::from_millis(400), give_up: Duration::from_secs(60), stall_after: Duration::from_secs(3600) })
     } else {
         let real = |_round: usize, _i: usize, ip: &str| speaker::software_version(ip);
-        track_update(b, ctx, hid, version, &real, Duration::from_secs(5), Duration::from_secs(45 * 60))
+        track_update(b, ctx, hid, version, &real, Timing { every: Duration::from_secs(5), give_up: Duration::from_secs(45 * 60), stall_after: Duration::from_secs(3 * 60) })
     };
     if let UpdateState::Finished(v) = &state {
         if demo_mode {
@@ -4942,7 +4956,16 @@ mod unit {
             }
         };
         let end = std::thread::scope(|scope| {
-            let h = scope.spawn(|| track_update(&b, &Waker::none(), &hid, "new", &probe, Duration::from_millis(60), Duration::from_secs(10)));
+            let h = scope.spawn(|| {
+                track_update(
+                    &b,
+                    &Waker::none(),
+                    &hid,
+                    "new",
+                    &probe,
+                    Timing { every: Duration::from_millis(60), give_up: Duration::from_secs(10), stall_after: Duration::from_secs(3600) },
+                )
+            });
             for _ in 0..30 {
                 if let Some(UpdateState::Progress(p)) = b.lock().updates.get(&hid).cloned() {
                     seen.lock().unwrap().push((p.done, p.restarting, p.total));
@@ -4962,8 +4985,57 @@ mod unit {
         let b = demo_backend();
         let hid = b.lock().households[0].id.clone();
         let probe = |_: usize, _: usize, _: &str| Some("old".to_string());
-        match track_update(&b, &Waker::none(), &hid, "new", &probe, Duration::from_millis(5), Duration::from_millis(30)) {
+        match track_update(
+            &b,
+            &Waker::none(),
+            &hid,
+            "new",
+            &probe,
+            Timing { every: Duration::from_millis(5), give_up: Duration::from_millis(30), stall_after: Duration::from_secs(3600) },
+        ) {
             UpdateState::Unfinished(p) => assert_eq!((p.done, p.version.as_str()), (0, "new")),
+            other => panic!("expected Unfinished, got {other:?}"),
+        }
+    }
+
+    #[test]
+    fn a_speaker_that_never_restarts_is_reported_as_not_started() {
+        let b = demo_backend();
+        let (hid, first) = {
+            let s = b.lock();
+            (s.households[0].id.clone(), s.households[0].rooms[0].name.clone())
+        };
+        // Room 0 answers on the old software throughout (it never started); the others restart and finish.
+        let probe = |round: usize, i: usize, _: &str| -> Option<String> {
+            match (i, round) {
+                (0, _) => Some("old".to_string()),
+                (_, 0) => None,
+                _ => Some("new".to_string()),
+            }
+        };
+        match track_update(
+            &b,
+            &Waker::none(),
+            &hid,
+            "new",
+            &probe,
+            Timing { every: Duration::from_millis(5), give_up: Duration::from_millis(80), stall_after: Duration::from_millis(20) },
+        ) {
+            UpdateState::Unfinished(p) => assert_eq!(p.stuck, vec![first], "only the speaker that never restarted is named"),
+            other => panic!("expected Unfinished, got {other:?}"),
+        }
+        // Before the waiting time is up nobody is named.
+        let hid2 = hid.clone();
+        let probe2 = |_: usize, _: usize, _: &str| Some("old".to_string());
+        match track_update(
+            &b,
+            &Waker::none(),
+            &hid2,
+            "new",
+            &probe2,
+            Timing { every: Duration::from_millis(5), give_up: Duration::from_millis(30), stall_after: Duration::from_secs(3600) },
+        ) {
+            UpdateState::Unfinished(p) => assert!(p.stuck.is_empty()),
             other => panic!("expected Unfinished, got {other:?}"),
         }
     }

@@ -1001,3 +1001,4 @@ Would get: {counts}	Riceverebbe: {counts}
 Update speakers that need it	Aggiorna i diffusori che ne hanno bisogno
 These speakers download version {version} and restart: {rooms}. The others already have it and aren't touched. Music stops for a few minutes. Keep the speakers plugged in until they're back.	Questi diffusori scaricano la versione {version} e si riavviano: {rooms}. Gli altri ce l'hanno già e non vengono toccati. La musica si ferma per qualche minuto. Tieni i diffusori collegati finché non tornano.
 Software update	Aggiornamento software
+Not started on {rooms}. A speaker that isn't registered in the Sonos app can ignore the update: register it there, then update again.	Non avviato su {rooms}. Un diffusore non registrato nell'app Sonos può ignorare l'aggiornamento: registralo lì, poi aggiorna di nuovo.

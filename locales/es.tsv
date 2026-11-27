@@ -1001,3 +1001,4 @@ Would get: {counts}	Recibiría: {counts}
 Update speakers that need it	Actualizar los altavoces que lo necesitan
 These speakers download version {version} and restart: {rooms}. The others already have it and aren't touched. Music stops for a few minutes. Keep the speakers plugged in until they're back.	Estos altavoces descargan la versión {version} y se reinician: {rooms}. Los demás ya la tienen y no se tocan. La música se detiene unos minutos. Mantén los altavoces enchufados hasta que vuelvan.
 Software update	Actualización de software
+Not started on {rooms}. A speaker that isn't registered in the Sonos app can ignore the update: register it there, then update again.	No se ha iniciado en {rooms}. Un altavoz que no está registrado en la app de Sonos puede ignorar la actualización: regístralo allí y vuelve a actualizar.
