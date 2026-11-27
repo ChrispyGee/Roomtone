@@ -1010,5 +1010,8 @@ Only showing {year}. {n} results are hidden because their source doesn't say whe
 Album years	Albumjaren
 Look up missing years	Ontbrekende jaren opzoeken
 Streaming services don't say when an album came out, so a year search hides them. With this on, Roomtone sends each album's artist and album name to Apple's iTunes Search (itunes.apple.com) to find the year, one at a time, and remembers the answer on this computer. Nothing else is sent. The match is by name, so a reissue can show a later year. This is experimental and may change.	Streamingdiensten geven niet aan wanneer een album uitkwam, dus een zoekopdracht op jaar verbergt ze. Als dit aanstaat, stuurt Roomtone de artiest en albumnaam van elk album naar de iTunes-zoekdienst van Apple (itunes.apple.com) om het jaar te vinden, een voor een, en onthoudt het antwoord op deze computer. Er wordt verder niets verstuurd. De match gaat op naam, dus een heruitgave kan een later jaar tonen. Dit is experimenteel en kan veranderen.
-Looking up years from Apple… {n} albums left	Jaren opzoeken bij Apple… nog {n} albums
 Some years were looked up from Apple's catalog by name, so a reissue may show a later year.	Sommige jaren zijn op naam opgezocht in de catalogus van Apple, dus een heruitgave kan een later jaar tonen.
+Looking up years from Apple… {done} of {total} albums	Jaren opzoeken bij Apple… {done} van {total} albums
+About {s} seconds left	Nog ongeveer {s} seconden
+Looking for {year}…	Zoeken naar {year}…
+Streaming services don't say when an album came out, so Roomtone is asking Apple about each one. Results appear here as they are found.	Streamingdiensten geven niet aan wanneer een album uitkwam, dus Roomtone vraagt Apple naar elk album. De resultaten verschijnen hier zodra ze gevonden zijn.

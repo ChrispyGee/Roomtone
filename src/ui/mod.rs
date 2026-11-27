@@ -105,6 +105,8 @@ pub struct App {
     search_year: String,
     /// Albums already sent for a year look-up this run.
     years_asked: std::collections::HashSet<String>,
+    /// Albums sent for a year look-up since the last time none were waiting (for the progress bar).
+    years_total: usize,
     station_editor: Option<crate::config::Station>,
     radio_tag: String,
     radio_search: String,
@@ -264,6 +266,7 @@ impl App {
             search_genre: None,
             search_year: String::new(),
             years_asked: Default::default(),
+            years_total: 0,
             station_editor: None,
             radio_tag: String::from("TOP"),
             radio_search: String::new(),

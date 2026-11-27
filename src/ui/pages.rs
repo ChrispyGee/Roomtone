@@ -1311,6 +1311,7 @@ impl App {
             .collect();
         // A year typed in the box wins; a search that is only a year ("1985") filters by it too.
         let years = YearRange::parse(&self.search_year).or_else(|| YearRange::parse(&self.searched));
+        let mut looking = false;
         if s.config.look_up_years && years.is_some() {
             // The experimental look-up: years for albums that come with none, from Apple.
             use crate::sources::yearlookup as lookup;
@@ -1321,12 +1322,27 @@ impl App {
                 }
             }
             let todo: Vec<(String, String)> = lookup::wanted(&shown, 20).into_iter().filter(|(a, b)| self.years_asked.insert(lookup::key(a, b))).collect();
+            let just_sent = todo.len();
             if !todo.is_empty() {
+                self.years_total += just_sent;
                 self.send(Cmd::LookUpYears(todo));
             }
-            if s.year_lookups_left > 0 {
-                ui.label(RichText::new(t!("Looking up years from Apple… {n} albums left", n = s.year_lookups_left)).size(12.0).color(TEXT_FAINT()));
-                ui.ctx().request_repaint_after(Duration::from_millis(1500));
+            // The backend counts what is still to ask; right after sending it hasn't heard yet.
+            let left = s.year_lookups_left.max(just_sent);
+            looking = left > 0;
+            if looking {
+                let total = self.years_total.max(left);
+                let done = total - left;
+                ui.horizontal(|ui| {
+                    spinner_dots(ui, TEXT_DIM());
+                    ui.add(egui::ProgressBar::new(done as f32 / total as f32).desired_width(180.0).desired_height(8.0));
+                    ui.label(RichText::new(t!("Looking up years from Apple… {done} of {total} albums", done = done, total = total)).size(12.0).color(TEXT_DIM()));
+                    ui.label(RichText::new(t!("About {s} seconds left", s = (left as f32 * 3.2).ceil() as u32)).size(12.0).color(TEXT_FAINT()));
+                });
+                ui.add_space(4.0);
+                ui.ctx().request_repaint_after(Duration::from_millis(500));
+            } else {
+                self.years_total = 0;
             }
         }
         let without_year;
@@ -1355,7 +1371,18 @@ impl App {
             lists::sort_items(&mut shown, self.search_sort);
         }
         if shown.is_empty() && waiting.is_empty() {
-            ui.label(RichText::new(t!("Nothing matched “{query}” with these filters.", query = self.searched)).color(TEXT_DIM()));
+            if looking {
+                // Not "nothing matched": the years are still being found.
+                let year = years.map(|r| r.label()).unwrap_or_default();
+                ui.label(RichText::new(t!("Looking for {year}…", year = year)).size(16.0).color(TEXT()));
+                ui.label(
+                    RichText::new(t!("Streaming services don't say when an album came out, so Roomtone is asking Apple about each one. Results appear here as they are found."))
+                        .size(13.0)
+                        .color(TEXT_DIM()),
+                );
+            } else {
+                ui.label(RichText::new(t!("Nothing matched “{query}” with these filters.", query = self.searched)).color(TEXT_DIM()));
+            }
             return;
         }
         for t in ITEM_TYPES {

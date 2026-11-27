@@ -1010,5 +1010,8 @@ Only showing {year}. {n} results are hidden because their source doesn't say whe
 Album years	Años de los álbumes
 Look up missing years	Buscar los años que faltan
 Streaming services don't say when an album came out, so a year search hides them. With this on, Roomtone sends each album's artist and album name to Apple's iTunes Search (itunes.apple.com) to find the year, one at a time, and remembers the answer on this computer. Nothing else is sent. The match is by name, so a reissue can show a later year. This is experimental and may change.	Los servicios de streaming no dicen cuándo salió un álbum, así que una búsqueda por año los oculta. Con esto activado, Roomtone envía el artista y el nombre de cada álbum a la búsqueda de iTunes de Apple (itunes.apple.com) para encontrar el año, uno a uno, y guarda la respuesta en este ordenador. No se envía nada más. La coincidencia es por nombre, así que una reedición puede mostrar un año posterior. Es experimental y puede cambiar.
-Looking up years from Apple… {n} albums left	Buscando años en Apple… quedan {n} álbumes
 Some years were looked up from Apple's catalog by name, so a reissue may show a later year.	Algunos años se buscaron por nombre en el catálogo de Apple, así que una reedición puede mostrar un año posterior.
+Looking up years from Apple… {done} of {total} albums	Buscando años en Apple… {done} de {total} álbumes
+About {s} seconds left	Unos {s} segundos más
+Looking for {year}…	Buscando {year}…
+Streaming services don't say when an album came out, so Roomtone is asking Apple about each one. Results appear here as they are found.	Los servicios de streaming no dicen cuándo salió un álbum, así que Roomtone pregunta a Apple por cada uno. Los resultados aparecen aquí según se encuentran.
