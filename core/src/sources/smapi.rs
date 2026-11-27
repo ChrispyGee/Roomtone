@@ -446,6 +446,73 @@ mod anonymous_tests {
 }
 
 #[cfg(test)]
+mod survey_tests {
+    use std::sync::Mutex;
+
+    /// Opt in with ROOMTONE_SPEAKER=<an address>: every service the system offers that we have no card for.
+    /// Ones with no sign-in are browsed and searched; ones that sign in are only asked for their sign-in page.
+    /// Nothing is played and no account is made.
+    #[test]
+    #[ignore = "needs a speaker: set ROOMTONE_SPEAKER"]
+    fn survey_of_the_other_services() {
+        let Ok(ip) = std::env::var("ROOMTONE_SPEAKER") else { return };
+        let list = crate::net::speaker::music_services(&ip).unwrap();
+        let household = crate::net::soap::call(&ip, crate::net::soap::DEVICE_PROPS, "GetHouseholdID", &[]).unwrap()["CurrentHouseholdID"].clone();
+        let device = crate::net::speaker::device_id(&ip).unwrap();
+        let extras: Vec<_> = crate::sources::extra_services(&list);
+        let rows = Mutex::new(vec![]);
+        std::thread::scope(|scope| {
+            for chunk in extras.chunks(extras.len().div_ceil(10)) {
+                let (rows, household, device) = (&rows, &household, &device);
+                scope.spawn(move || {
+                    for svc in chunk {
+                        let line = if svc.auth == "Anonymous" {
+                            let acc = crate::config::Account {
+                                sid: svc.sid,
+                                name: svc.name.clone(),
+                                uri: svc.uri.clone(),
+                                manifest: svc.manifest.clone(),
+                                household: household.clone(),
+                                device_id: device.clone(),
+                                auth: svc.auth.clone(),
+                                ..Default::default()
+                            };
+                            match super::browse(&acc, "root") {
+                                Ok(root) => {
+                                    let inner = root.iter().find(|i| i.is_container).map(|f| super::browse(&acc, f.id.trim_start_matches(&format!("SVC:{}/", svc.sid))));
+                                    let playable = root
+                                        .iter()
+                                        .chain(inner.iter().flat_map(|r| r.iter().flatten()))
+                                        .find(|i| !i.is_container && !i.uri.is_empty())
+                                        .map(|i| i.uri.split('?').next().unwrap_or("").chars().take(28).collect::<String>());
+                                    let search = match super::search(&acc, "music") {
+                                        Ok(r) => format!("search {}", r.len()),
+                                        Err(_) => "search err".into(),
+                                    };
+                                    format!("OPEN   root {} · playable {} · {search}", root.len(), playable.map(|p| format!("yes ({p})")).unwrap_or("no".into()))
+                                }
+                                Err(e) => format!("BROWSE-FAIL {}", e.chars().take(70).collect::<String>()),
+                            }
+                        } else {
+                            match super::start_link(svc, household, device) {
+                                Ok(l) => format!("SIGNIN-OK  page {} · code {}", l.url.split('/').nth(2).unwrap_or(""), if l.code.is_empty() { "none" } else { "shown" }),
+                                Err(e) => format!("SIGNIN-REFUSED {}", e.chars().take(70).collect::<String>()),
+                            }
+                        };
+                        rows.lock().unwrap().push((svc.name.clone(), svc.auth.clone(), line));
+                    }
+                });
+            }
+        });
+        let mut rows = rows.into_inner().unwrap();
+        rows.sort();
+        for (name, auth, line) in rows {
+            println!("{name} [{auth}]: {line}");
+        }
+    }
+}
+
+#[cfg(test)]
 mod saved_account_tests {
     /// Opt in with ROOMTONE_RAW_SID=<sid> (the sign-in saved by the link test): print what the service
     /// answers for its home page, to see what the parser makes of it.
