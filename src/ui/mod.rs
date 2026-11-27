@@ -140,7 +140,7 @@ pub struct App {
     /// For each group playing along with one in another system: "S1 · Office".
     along: HashMap<String, String>,
     /// A software update waiting for the person to confirm: (household id, system, version).
-    update_confirm: Option<(String, System, String)>,
+    update_confirm: Option<(String, System, String, Vec<String>)>,
     /// Forgetting a system that isn't answering, waiting for the person to confirm: (household id, system).
     forget_confirm: Option<(String, System)>,
     /// A change to how speakers are bonded, waiting for the person to confirm: (title, what it does, the command).
@@ -204,7 +204,7 @@ impl App {
             "history" => View::History,
             "scenes" => View::Scenes,
             "speakers" => View::Home,
-            "room" => View::Room("D-LIVING".into()),
+            "room" => View::Room(std::env::var("ROOMTONE_TEST_ROOM").unwrap_or_else(|_| "D-LIVING".into())),
             _ => View::Home,
         };
         theme::apply(&cc.egui_ctx);
@@ -1974,19 +1974,25 @@ impl App {
 
     /// "Update all speakers?" before anything is installed.
     fn update_modal(&mut self, ctx: &egui::Context) {
-        let Some((hid, system, version)) = self.update_confirm.clone() else { return };
+        let Some((hid, system, version, behind)) = self.update_confirm.clone() else { return };
         let mut keep = true;
         let modal = egui::Modal::new(egui::Id::unique("update_confirm")).frame(modal_frame()).show(ctx, |ui| {
             ui.set_width(420.0);
             ui.label(RichText::new(t!("Update your {system} system?", system = system.label())).size(20.0).strong().color(TEXT()));
             ui.add_space(6.0);
-            ui.label(
-                RichText::new(t!(
+            let text = if behind.is_empty() {
+                t!(
                     "Every speaker in this system downloads version {version} and restarts. Music stops for a few minutes. Keep the speakers plugged in until they're back.",
                     version = version
-                ))
-                .color(TEXT_DIM()),
-            );
+                )
+            } else {
+                t!(
+                    "These speakers download version {version} and restart: {rooms}. The others already have it and aren't touched. Music stops for a few minutes. Keep the speakers plugged in until they're back.",
+                    version = version,
+                    rooms = behind.join(", ")
+                )
+            };
+            ui.label(RichText::new(text).color(TEXT_DIM()));
             if system == System::S1 {
                 ui.add_space(4.0);
                 ui.label(RichText::new(t!("This is an S1 update, so your speakers stay on S1.")).size(12.5).color(TEXT_FAINT()));

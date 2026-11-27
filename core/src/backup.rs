@@ -212,7 +212,7 @@ impl Backup {
         // A service's songs only play where that service is connected.
         let service = self.sonos_favorites.iter().filter(|f| f.uri.contains("sid=") && r.would.iter().any(|w| *w == format!("Favorite “{}”", f.title))).count();
         if service > 0 {
-            r.notes.push(format!("{service} of these favorites come from music services; they only play on a system where that service is connected."));
+            r.notes.push(format!("{service} of these favorites come from music services; they only play once that service has been added on a system in the Sonos app."));
         }
         r
     }
@@ -353,6 +353,7 @@ impl Backup {
                 return;
             }
         };
+        let mut from_services = 0;
         for f in &self.sonos_favorites {
             if have.iter().any(|(t, u)| *t == f.title.to_lowercase() && *u == f.uri) {
                 r.skipped.favorites += 1;
@@ -361,12 +362,23 @@ impl Backup {
             let mut item = f.clone();
             item.id.clear();
             match sys.add_favorite(&item) {
-                Ok(()) => r.added.favorites += 1,
+                Ok(()) => {
+                    r.added.favorites += 1;
+                    if f.uri.contains("sid=") {
+                        from_services += 1;
+                    }
+                }
                 Err(e) => {
                     r.failed.favorites += 1;
                     r.notes.push(format!("Favorite “{}”: {e}", f.title));
                 }
             }
+        }
+        // A favorite from a music service carries the account numbers of the system it was saved on.
+        if from_services > 0 {
+            r.notes.push(format!(
+                "{from_services} of the favorites added come from music services. They only play once that service has been added on this system in the Sonos app; until then the speaker refuses them."
+            ));
         }
     }
 
@@ -676,6 +688,20 @@ mod unit {
         assert_eq!(r.added, Counts { favorites: 1, playlists: 1, alarms: 1, app: 3 }, "{r:?}");
         assert_eq!(r.failed.total(), 0);
         assert_eq!(new_system.playlists.borrow()[0].tracks.len(), 2, "the playlist's songs came with it");
+    }
+
+    #[test]
+    fn restoring_favorites_from_music_services_says_they_need_the_service_set_up() {
+        let source = stocked();
+        source.favorites.borrow_mut().push(Item { title: "Service song".into(), uri: "x-sonosapi-hls:abc?sid=325&flags=288&sn=4".into(), ..Default::default() });
+        let (b, _) = Backup::build(Some(&source), &config(), Sections { app: false, ..Sections::default() }, 0);
+        let r = b.restore(Some(&Fake::default()), &mut Config::default(), Sections { app: false, ..Sections::default() }, "NEWHOUSE");
+        assert!(r.notes.iter().any(|n| n.contains("1 of the favorites added come from music services") && n.contains("Sonos app")), "{:?}", r.notes);
+        // A system with no service favorites to restore gets no such note.
+        let plain =
+            Backup { sonos_favorites: vec![Item { title: "Radio".into(), uri: "x-rincon-mp3radio://example.com/stream".into(), ..Default::default() }], ..Default::default() };
+        let r = plain.restore(Some(&Fake::default()), &mut Config::default(), Sections { app: false, ..Sections::default() }, "NEWHOUSE");
+        assert!(r.notes.iter().all(|n| !n.contains("music services")), "{:?}", r.notes);
     }
 
     #[test]

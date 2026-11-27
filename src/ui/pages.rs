@@ -2735,6 +2735,14 @@ impl App {
                             Some(UpdateState::UpToDate) => (t!("Up to date").to_string(), GOOD()),
                             Some(UpdateState::Available(o)) => (t!("Version {version} is available", version = o.version), ACCENT()),
                             Some(UpdateState::Installing(done, total)) => (t!("Sending the update to speaker {n} of {total}…", n = done + 1, total = total), ACCENT()),
+                            // Sent the update but it hasn't started (still answering on the old software): say so.
+                            Some(UpdateState::Progress(p)) | Some(UpdateState::Unfinished(p)) if !p.stuck.is_empty() => (
+                                t!(
+                                    "Not started on {rooms}. A speaker that isn't registered in the Sonos app can ignore the update: register it there, then update again.",
+                                    rooms = p.stuck.join(", ")
+                                ),
+                                BAD(),
+                            ),
                             Some(UpdateState::Progress(p)) if p.restarting > 0 => (
                                 t!(
                                     "Updating to {version}: {done} of {total} speakers done, {restarting} restarting",
@@ -2765,8 +2773,12 @@ impl App {
                     ui.with_layout(Layout::right_to_left(Align::Center), |ui| match state {
                         Some(UpdateState::Available(_)) if !s.config.allow_update_install => {}
                         Some(UpdateState::Available(o)) => {
-                            if pill(ui, None, t!("Update all speakers"), true).clicked() {
-                                self.update_confirm = Some((h.id.clone(), h.system, o.version.clone()));
+                            // When only some speakers are behind, say so and update only those.
+                            let behind = s.update_behind.get(&h.id).cloned().unwrap_or_default();
+                            let some = !behind.is_empty() && behind.len() < h.rooms.len();
+                            let label = if some { t!("Update speakers that need it") } else { t!("Update all speakers") };
+                            if pill(ui, None, label, true).clicked() {
+                                self.update_confirm = Some((h.id.clone(), h.system, o.version.clone(), if some { behind } else { vec![] }));
                             }
                         }
                         Some(UpdateState::Checking) | Some(UpdateState::Installing(..)) | Some(UpdateState::Progress(_)) => spinner_dots(ui, TEXT_DIM()),
@@ -3972,6 +3984,11 @@ impl App {
         if r.settings.is_none() {
             self.ask_once(&format!("room:{uuid}"), Duration::from_secs(8), Cmd::LoadRoomSettings(uuid.to_string()));
         }
+        // Ask the speakers' update service once if this system hasn't been checked yet, so the
+        // "Software update" line below can say whether this speaker has one waiting.
+        if h.is_set_up() && !s.updates.contains_key(&h.id) {
+            self.ask_once(&format!("update:{}", h.id), Duration::from_secs(600), Cmd::CheckUpdates(h.id.clone()));
+        }
         ui.horizontal(|ui| {
             if icon_button(ui, Icon::Back, 18.0, TEXT()).clicked() {
                 self.go(View::Settings);
@@ -4080,6 +4097,19 @@ impl App {
                 ] {
                     ui.label(RichText::new(k).color(TEXT_DIM()));
                     ui.label(RichText::new(if v.is_empty() { "—".to_string() } else { v }).color(TEXT()));
+                    ui.end_row();
+                }
+                // Whether this speaker has a software update waiting (from the last check of its system).
+                let behind = s.update_behind.get(&h.id);
+                let mine = behind.is_none_or(|b| b.is_empty() || b.contains(&r.name));
+                let update = match s.updates.get(&h.id) {
+                    Some(UpdateState::Available(o)) if mine => Some((t!("Version {version} is available", version = o.version), ACCENT())),
+                    Some(UpdateState::Available(_)) | Some(UpdateState::UpToDate) => Some((t!("Up to date").to_string(), GOOD())),
+                    _ => None,
+                };
+                if let Some((text, color)) = update {
+                    ui.label(RichText::new(t!("Software update")).color(TEXT_DIM()));
+                    ui.label(RichText::new(text).color(color));
                     ui.end_row();
                 }
             });

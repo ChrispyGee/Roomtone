@@ -380,6 +380,35 @@ pub struct Household {
 pub const UNSET_PREFIX: &str = "unset-";
 
 impl Household {
+    /// Add what another speaker's view of the same system has and this one lacks. Speakers don't
+    /// always agree (a speaker added recently can be missing from an older one's list), so what
+    /// one lists is not the whole system. Only adds: rooms already here and groups that overlap
+    /// ones already here are left as they are, and a room last seen not answering isn't added.
+    /// Returns how many rooms were added.
+    pub fn absorb(&mut self, other: Household) -> usize {
+        let mut added = 0;
+        for r in &other.rooms {
+            if self.room(&r.uuid).is_none() && r.online != Some(false) {
+                self.rooms.push(r.clone());
+                added += 1;
+            }
+        }
+        for g in other.groups {
+            let overlaps = self.groups.iter().any(|x| x.id == g.id || x.members.iter().any(|m| g.members.contains(m)));
+            if !overlaps && g.members.iter().all(|m| self.room(m).is_some()) {
+                self.groups.push(g);
+            }
+        }
+        // A room the other view grouped with a room we already had is on its own here.
+        let ungrouped: Vec<String> = self.rooms.iter().filter(|r| !self.groups.iter().any(|g| g.members.contains(&r.uuid))).map(|r| r.uuid.clone()).collect();
+        for uuid in ungrouped {
+            self.groups.push(Group { id: uuid.clone(), coordinator: uuid.clone(), members: vec![uuid], ..Default::default() });
+        }
+        self.rooms.sort_by_key(|a| a.name.to_lowercase());
+        let rooms = &self.rooms;
+        self.groups.sort_by_key(|g| rooms.iter().position(|r| r.uuid == g.coordinator).unwrap_or(usize::MAX));
+        added
+    }
     /// False for a speaker that belongs to no system yet: its household id is empty.
     pub fn is_set_up(&self) -> bool {
         !self.id.is_empty() && !self.id.starts_with(UNSET_PREFIX)
@@ -756,6 +785,10 @@ pub struct AppState {
     pub link_sync: HashMap<String, LinkSync>,
     /// Software update status by system (household id).
     pub updates: HashMap<String, UpdateState>,
+    /// Which rooms of a system the last update check found behind the offered software (names), by system.
+    pub update_behind: HashMap<String, Vec<String>>,
+    /// The speakers (by address) an update was sent to, by system: only these are followed and counted.
+    pub update_targets: HashMap<String, Vec<String>>,
     /// What the *Can it move to S2?* look found, by system.
     pub s2: HashMap<String, S2State>,
     /// The latest *Can't find my speakers?* check.
@@ -790,6 +823,9 @@ pub struct UpdateProgress {
     pub done: usize,
     /// Rooms that aren't answering just now (most likely restarting).
     pub restarting: usize,
+    /// Rooms that were sent the update but haven't started it: still answering on the old software
+    /// and never seen restarting after a few minutes (a speaker that isn't registered can ignore it).
+    pub stuck: Vec<String>,
 }
 
 /// A sign-in to a streaming service in progress.
@@ -849,6 +885,8 @@ impl Default for AppState {
             links: vec![],
             link_sync: HashMap::new(),
             updates: HashMap::new(),
+            update_behind: HashMap::new(),
+            update_targets: HashMap::new(),
             s2: HashMap::new(),
             diagnosis: None,
             connections: HashMap::new(),

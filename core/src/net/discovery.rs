@@ -235,6 +235,28 @@ fn choose_id(announced: Option<String>, asked: impl FnOnce() -> Option<String>, 
     }
 }
 
+/// What another speaker of a system lists that `known` doesn't have yet (`None`: nothing, or it
+/// didn't answer). Speakers can disagree about who is in the system, so one speaker's list is not
+/// taken as the whole.
+pub fn unknown_to(ip: &str, known: &Household) -> Option<Household> {
+    let reply = soap::call(ip, soap::ZONE_TOPOLOGY, "GetZoneGroupState", &[]).ok()?;
+    let state = reply.get("ZoneGroupState").cloned().unwrap_or_default();
+    let (mut rooms, groups, _) = parse_zone_groups(&state).ok()?;
+    rooms.retain(|r| known.room(&r.uuid).is_none());
+    if rooms.is_empty() {
+        return None;
+    }
+    for room in rooms.iter_mut() {
+        if let Some(d) = describe(&room.ip) {
+            room.online = Some(true);
+            room.last_seen = Some(Instant::now());
+            room.model = d.model;
+            room.version = if d.display_version.is_empty() { d.software_version.clone() } else { d.display_version.clone() };
+        }
+    }
+    Some(Household { id: known.id.clone(), system: known.system, rooms, groups })
+}
+
 fn household_with(ip: &str, announced: Option<String>, remembered: Option<&str>) -> Result<Household, String> {
     let reply = soap::call(ip, soap::ZONE_TOPOLOGY, "GetZoneGroupState", &[])?;
     let state = reply.get("ZoneGroupState").cloned().unwrap_or_default();

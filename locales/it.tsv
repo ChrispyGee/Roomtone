@@ -998,3 +998,9 @@ What would be added	Cosa verrebbe aggiunto
 Would get: {counts}	Riceverebbe: {counts}
 {favorites} favorites · {playlists} playlists · {alarms} alarms	{favorites} preferiti · {playlists} playlist · {alarms} sveglie
 …and {n} more	…e altri {n}
+Update speakers that need it	Aggiorna i diffusori che ne hanno bisogno
+These speakers download version {version} and restart: {rooms}. The others already have it and aren't touched. Music stops for a few minutes. Keep the speakers plugged in until they're back.	Questi diffusori scaricano la versione {version} e si riavviano: {rooms}. Gli altri ce l'hanno già e non vengono toccati. La musica si ferma per qualche minuto. Tieni i diffusori collegati finché non tornano.
+Software update	Aggiornamento software
+Not started on {rooms}. A speaker that isn't registered in the Sonos app can ignore the update: register it there, then update again.	Non avviato su {rooms}. Un diffusore non registrato nell'app Sonos può ignorare l'aggiornamento: registralo lì, poi aggiorna di nuovo.
+“{title}” comes from {service}, which isn't set up on this system yet. Add {service} in the Sonos app, then try again.	«{title}» proviene da {service}, che non è ancora configurato su questo sistema. Aggiungi {service} nell'app Sonos, poi riprova.
+“{title}” comes from a music service that isn't set up on this system yet. Add it in the Sonos app, then try again.	«{title}» proviene da un servizio musicale che non è ancora configurato su questo sistema. Aggiungilo nell'app Sonos, poi riprova.
