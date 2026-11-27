@@ -486,6 +486,10 @@ pub struct Config {
     /// on). Opens the stream's own address once per stream, reading only its reply headers.
     #[serde(default)]
     pub probe_streams: bool,
+    /// Look up the year of albums that come with none, from Apple's iTunes Search (experimental;
+    /// off until switched on). Sends artist and album names.
+    #[serde(default)]
+    pub look_up_years: bool,
     /// How much the volume keyboard shortcut (Ctrl or Cmd with the up and down arrows) changes the
     /// volume: 1, 2, 5 or 10.
     #[serde(default = "default_volume_step")]
@@ -548,6 +552,7 @@ impl Default for Config {
             media_keys: true,
             show_lyrics: false,
             probe_streams: false,
+            look_up_years: false,
             volume_step: 5,
             show_alarms: None,
             show_scenes: None,

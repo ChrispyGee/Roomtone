@@ -1311,6 +1311,24 @@ impl App {
             .collect();
         // A year typed in the box wins; a search that is only a year ("1985") filters by it too.
         let years = YearRange::parse(&self.search_year).or_else(|| YearRange::parse(&self.searched));
+        if s.config.look_up_years && years.is_some() {
+            // The experimental look-up: years for albums that come with none, from Apple.
+            use crate::sources::yearlookup as lookup;
+            lookup::apply(&mut shown);
+            for it in shown.iter_mut().filter(|i| i.year == 0) {
+                if let Some(y) = lookup::subject(it).and_then(|(a, b)| s.year_lookups.get(&lookup::key(&a, &b)).copied()) {
+                    it.year = y;
+                }
+            }
+            let todo: Vec<(String, String)> = lookup::wanted(&shown, 20).into_iter().filter(|(a, b)| self.years_asked.insert(lookup::key(a, b))).collect();
+            if !todo.is_empty() {
+                self.send(Cmd::LookUpYears(todo));
+            }
+            if s.year_lookups_left > 0 {
+                ui.label(RichText::new(t!("Looking up years from Apple… {n} albums left", n = s.year_lookups_left)).size(12.0).color(TEXT_FAINT()));
+                ui.ctx().request_repaint_after(Duration::from_millis(1500));
+            }
+        }
         let without_year;
         (shown, without_year) = crate::years::keep(shown, years);
         if let (Some(r), true) = (years, without_year > 0) {
@@ -2344,6 +2362,8 @@ impl App {
                 self.frame_card(ui, s);
                 ui.add_space(14.0);
                 self.lyrics_card(ui, s);
+                ui.add_space(14.0);
+                self.look_up_years_card(ui, s);
                 ui.add_space(14.0);
                 self.probe_streams_card(ui, s);
             }
@@ -3467,6 +3487,35 @@ impl App {
         });
         if on != s.config.show_lyrics {
             self.send(Cmd::SetLyrics(on));
+        }
+    }
+
+    /// The switch for looking up the years of albums that have none.
+    fn look_up_years_card(&mut self, ui: &mut Ui, s: &AppState) {
+        experimental_title(ui, t!("Album years"));
+        let mut on = s.config.look_up_years;
+        card_frame().show(ui, |ui| {
+            ui.set_width(ui.available_width());
+            ui.horizontal(|ui| {
+                ui.set_min_height(40.0);
+                ui.vertical(|ui| {
+                    ui.set_max_width((ui.available_width() - 64.0).max(120.0));
+                    ui.label(RichText::new(t!("Look up missing years")).color(TEXT()));
+                    ui.label(
+                        RichText::new(t!(
+                            "Streaming services don't say when an album came out, so a year search hides them. With this on, Roomtone sends each album's artist and album name to Apple's iTunes Search (itunes.apple.com) to find the year, one at a time, and remembers the answer on this computer. Nothing else is sent. The match is by name, so a reissue can show a later year. This is experimental and may change."
+                        ))
+                        .size(12.0)
+                        .color(TEXT_DIM()),
+                    );
+                });
+                ui.with_layout(Layout::right_to_left(Align::Center), |ui| {
+                    toggle(ui, &mut on, t!("Look up missing years"));
+                });
+            });
+        });
+        if on != s.config.look_up_years {
+            self.send(Cmd::SetLookUpYears(on));
         }
     }
 

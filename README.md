@@ -35,6 +35,7 @@ There are no ads, no call-homes and you can run it completely offline.
 - **Backup and restore** of favorites, playlists and alarms, and playlists as M3U, PLS, XSPF or CSV files, to move between S1 and S2 or between apps.
 - **Keep systems in step**: with an S1 and an S2 system, one card adds the favorites, playlists and alarms each has to the other, after showing exactly what would be added (it never removes anything).
 - **Stream details (experimental)**: an optional switch shows an internet radio stream's bitrate and sample rate, or a podcast episode's average bitrate, in Technical details, read from the stream or file itself (off by default).
+- **Album years (experimental)**: an optional switch looks up the year of streaming-service albums (which come with none) from Apple's iTunes Search, so a year search can include them; off by default.
 - **Lyrics (experimental)**: an optional switch shows the words of the song that's playing, following along when they're timed (fetched from lrclib.net; off by default).
 - **Podcasts that remember**: skip back and forward, where you stopped, *Continue listening*. **Listening history** kept on this computer only, with a History page.
 - A window that remembers its size and position.

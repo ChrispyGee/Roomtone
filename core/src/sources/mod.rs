@@ -9,6 +9,7 @@ pub mod podcasts;
 pub mod progress;
 pub mod radio;
 pub mod smapi;
+pub mod yearlookup;
 
 use crate::config::Config;
 use crate::model::Item;

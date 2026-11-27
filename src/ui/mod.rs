@@ -103,6 +103,8 @@ pub struct App {
     search_genre: Option<String>,
     /// What was typed in the year box: 1985, 1980s, 1985-89.
     search_year: String,
+    /// Albums already sent for a year look-up this run.
+    years_asked: std::collections::HashSet<String>,
     station_editor: Option<crate::config::Station>,
     radio_tag: String,
     radio_search: String,
@@ -261,6 +263,7 @@ impl App {
             search_sort: 0,
             search_genre: None,
             search_year: String::new(),
+            years_asked: Default::default(),
             station_editor: None,
             radio_tag: String::from("TOP"),
             radio_search: String::new(),

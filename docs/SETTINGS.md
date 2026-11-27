@@ -96,6 +96,8 @@ File: `check_new_versions` (`true` / `false`), default `false`; `last_version_ch
 
 ### Lyrics (experimental)
 
+*Look up missing years* (**off by default**, tagged *Experimental*; in an *Album years* section): streaming services don't say when an album came out, so searching by year hides them. With this on, Roomtone sends each such album's **artist and album name** to Apple's iTunes Search (itunes.apple.com), one at a time, and remembers the answer on this computer (`year-lookups.json`). Nothing else is sent. The match is by name and the earliest year is used, but a reissue can still give a later year.
+
 *Show lyrics for the song that's playing* (**off by default**, tagged *Experimental*): a *Lyrics* section on the Now Playing page. While the page is open, Roomtone sends the song's **title, artist, album and length** to [lrclib.net](https://lrclib.net), a free lyrics site run by volunteers (one or two plain requests per new song; no account, nothing else is sent). Lyrics with times highlight the current line and follow the song; others are shown as plain text. Nothing is saved: lyrics are kept in memory until you quit. Live radio isn't looked up. Lyrics are shared by the site's community, so some songs have none and some are wrong. This is a trial feature and may change or be removed.
 File: `show_lyrics` (`true` / `false`), default `false`.
 ### Volume
@@ -249,6 +251,7 @@ Complete `config.json`, with every field at its default (the access key is made 
 | `volume_limits` | object | none | Volume safeguards: `rooms` (room id and `max`), `quiet` (`enabled`, `from`, `to`, `max`) and `keep_down`. |
 | `alarm_timers` | list | `[]` | The one-off timers Roomtone made (each: `household`, `id`, `due`), so it can tidy their alarms away after they ring. Kept by the app; leave it alone. |
 | `alarm_fades` | list | `[]` | The alarms that fade in (each: `household`, `id`, `minutes`, `volume`): the speaker holds such an alarm at a quiet volume, and Roomtone raises it to `volume` over `minutes` when it rings. Kept by the app; leave it alone. |
+| `look_up_years` | true/false | `false` | Experimental: look up the year of albums that come with none from Apple's iTunes Search, when searching by year. |
 | `show_lyrics` | true/false | `false` | Experimental: show lyrics on Now Playing, fetched from lrclib.net. |
 | `probe_streams` | true/false | `false` | Experimental: show the bitrate and sample rate of an internet stream, or an average bitrate for a podcast episode, in Now Playing › Technical details, read from its own reply headers. |
 | `show_alarms` | true/false | not set (off) | Show the Alarms page in the sidebar. |

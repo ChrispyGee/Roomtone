@@ -775,15 +775,30 @@ impl Mcp {
                 }
                 let mut found: Vec<Item> = vec![];
                 let mut no_year = 0;
+                let mut per_source: Vec<Vec<Item>> = vec![];
+                let lookup = years.is_some() && self.b.lock().config.look_up_years;
                 {
                     let s = self.b.lock();
                     for src in &sources {
                         if let Some(Browse::Ready(v)) = s.browse.get(&format!("search:{src}:{q}")) {
-                            let (kept, unknown) = crate::years::keep(v.clone(), years);
-                            no_year += unknown;
-                            found.extend(kept.into_iter().take(limit));
+                            per_source.push(v.clone());
                         }
                     }
+                }
+                if lookup {
+                    // The experimental look-up: years for albums that come with none, from Apple.
+                    use crate::sources::yearlookup as lookup_years;
+                    per_source.iter_mut().for_each(|v| lookup_years::apply(v));
+                    let todo = lookup_years::wanted(&per_source.concat(), 8);
+                    if !todo.is_empty() {
+                        lookup_years::resolve(&todo, Duration::from_secs(20), |_, _| {});
+                        per_source.iter_mut().for_each(|v| lookup_years::apply(v));
+                    }
+                }
+                for v in per_source {
+                    let (kept, unknown) = crate::years::keep(v, years);
+                    no_year += unknown;
+                    found.extend(kept.into_iter().take(limit));
                 }
                 found.truncate(limit);
                 let mut text = match years {
@@ -1793,6 +1808,33 @@ mod unit {
         assert!(err && bad.contains("1985, 1980s or 1985-1989"), "{bad}");
         // Without a year, nothing is filtered and a title that contains digits is left alone.
         assert!(ok(&m, "search", json!({"query": "Marlow"})).contains("Low Tide Sessions"));
+    }
+
+    #[test]
+    fn the_year_lookup_is_off_until_switched_on_and_then_fills_in_missing_years() {
+        use crate::sources::yearlookup::seed;
+        assert!(!crate::config::Config::default().look_up_years, "experimental: off by default");
+        let m = link();
+        m.b.lock().config.services.clear();
+        // A saved playlist-style favorite with no year of its own, but an album Apple already answered for.
+        let album = Item {
+            id: "x".into(),
+            title: "Lookup Mcp Album".into(),
+            artist: "Lookup Mcp Artist".into(),
+            album: "Lookup Mcp Album".into(),
+            class: "object.container.album.musicAlbum".into(),
+            is_container: true,
+            ..Default::default()
+        };
+        seed("Lookup Mcp Artist", "Lookup Mcp Album", 1993);
+        let mut found = vec![album];
+        crate::sources::yearlookup::apply(&mut found);
+        assert_eq!(found[0].year, 1993);
+        assert_eq!(crate::years::keep(found.clone(), crate::years::YearRange::parse("1990s")).0.len(), 1);
+        // With the switch off a search never goes to Apple (nothing in a test may), and with it on the
+        // demo's own years still decide, because they need no look-up.
+        m.b.lock().config.look_up_years = true;
+        assert!(ok(&m, "search", json!({"query": "Marlow", "year": "1980s"})).contains("Low Tide Sessions"));
     }
 
     #[test]

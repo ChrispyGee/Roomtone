@@ -1007,3 +1007,8 @@ Not started on {rooms}. A speaker that isn't registered in the Sonos app can ign
 Year: 1985, 1980s, 1985-89	Jahr: 1985, 1980s, 1985-89
 Not a year	Kein Jahr
 Only showing {year}. {n} results are hidden because their source doesn't say when they came out.	Es werden nur {year} gezeigt. {n} Ergebnisse sind ausgeblendet, weil ihre Quelle das Erscheinungsjahr nicht nennt.
+Album years	Albumjahre
+Look up missing years	Fehlende Jahre nachschlagen
+Streaming services don't say when an album came out, so a year search hides them. With this on, Roomtone sends each album's artist and album name to Apple's iTunes Search (itunes.apple.com) to find the year, one at a time, and remembers the answer on this computer. Nothing else is sent. The match is by name, so a reissue can show a later year. This is experimental and may change.	Streamingdienste nennen das Erscheinungsjahr eines Albums nicht, deshalb blendet eine Jahressuche sie aus. Ist dies eingeschaltet, sendet Roomtone Interpret und Albumname jedes Albums an die iTunes-Suche von Apple (itunes.apple.com), um das Jahr zu finden, eines nach dem anderen, und merkt sich die Antwort auf diesem Computer. Sonst wird nichts gesendet. Die Zuordnung erfolgt über den Namen, daher kann eine Neuauflage ein späteres Jahr zeigen. Dies ist experimentell und kann sich ändern.
+Looking up years from Apple… {n} albums left	Jahre werden bei Apple nachgeschlagen … noch {n} Alben
+Some years were looked up from Apple's catalog by name, so a reissue may show a later year.	Einige Jahre wurden anhand des Namens im Apple-Katalog nachgeschlagen, daher kann eine Neuauflage ein späteres Jahr zeigen.
