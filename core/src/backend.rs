@@ -4473,29 +4473,41 @@ mod unit {
             eprintln!("Set ROOMTONE_PAIR_TEST=1 to run this (it changes real speakers).");
             return;
         }
+        let t0 = Instant::now();
+        let step = |what: &str| eprintln!("[{:>5.1}s] {what}", t0.elapsed().as_secs_f32());
+        step("starting");
         let b = Backend::start_with(Waker::none(), false, Options { serve_local_music: false, search_network: true });
         let wait = Duration::from_secs(60);
         assert!(wait_for(40, || b.lock().phase == Phase::Live && b.lock().households.iter().any(|h| h.system == System::S2)), "found the speakers");
+        step("speakers found");
         b.lock().config.allow_layout = true;
         let rooms =
             |b: &Backend| b.lock().households.iter().filter(|h| h.system == System::S2).flat_map(|h| h.rooms.iter().map(|r| format!("{} ({})", r.name, r.ip))).collect::<Vec<_>>();
         b.send_and_wait(Cmd::LoadLayout, wait).unwrap();
+        let listed = rooms(&b);
         let pair = {
             let s = b.lock();
             let l = s.layout.as_ref().expect("layout read");
-            eprintln!("start: pairs={:?} rooms={:?}", l.pairs.iter().map(|p| (&p.name, &p.left, &p.right)).collect::<Vec<_>>(), rooms(&b));
+            eprintln!("start: pairs={:?} rooms={:?}", l.pairs.iter().map(|p| (&p.name, &p.left, &p.right)).collect::<Vec<_>>(), listed);
             l.pairs.first().cloned().expect("a stereo pair to start from")
         };
+        step("splitting");
         b.send_and_wait(Cmd::SplitPair(pair.left.clone()), wait).unwrap();
+        step("split sent");
         b.send_and_wait(Cmd::LoadLayout, wait).unwrap();
-        eprintln!("after split: pairs={} rooms={:?}", b.lock().layout.as_ref().unwrap().pairs.len(), rooms(&b));
-        assert!(b.lock().layout.as_ref().unwrap().pairs.is_empty(), "the pair is gone");
         let split_rooms = rooms(&b);
+        let pairs_now = b.lock().layout.as_ref().unwrap().pairs.len();
+        eprintln!("after split: pairs={pairs_now} rooms={split_rooms:?}");
+        assert_eq!(pairs_now, 0, "the pair is gone");
+        step("making the pair again");
         b.send_and_wait(Cmd::CreatePair(pair.left.clone(), pair.right.clone()), wait).unwrap();
+        step("pair sent");
         b.send_and_wait(Cmd::LoadLayout, wait).unwrap();
-        eprintln!("after making it again: pairs={} rooms={:?}", b.lock().layout.as_ref().unwrap().pairs.len(), rooms(&b));
-        assert_eq!(b.lock().layout.as_ref().unwrap().pairs.len(), 1, "the pair is back");
-        assert!(split_rooms.len() > rooms(&b).len(), "the right speaker is hidden again");
+        let back = rooms(&b);
+        let pairs_now = b.lock().layout.as_ref().unwrap().pairs.len();
+        eprintln!("after making it again: pairs={pairs_now} rooms={back:?}");
+        assert_eq!(pairs_now, 1, "the pair is back");
+        assert!(split_rooms.len() > back.len(), "the right speaker is hidden again");
     }
 
     /// Read-only check of the S2 report against real speakers (prints models and verdicts only):
