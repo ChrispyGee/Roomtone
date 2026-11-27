@@ -536,13 +536,14 @@ fn keep_links_in_step(b: &Backend) {
 /// Ask one speaker of the system for an update, and only accept one for the same generation:
 /// an S1 system must never be offered S2 software here (that change can't be undone).
 fn check_updates(b: &Backend, hid: &str) -> UpdateState {
-    let (system, ip, demo_mode, demo_current) = {
+    let (system, ips, demo_mode, demo_current) = {
         let s = b.lock();
         let Some(h) = s.households.iter().find(|h| h.id == hid) else { return UpdateState::Failed(crate::t!("That system isn't available right now").into()) };
         if !h.is_set_up() {
             return UpdateState::Failed(crate::t!("Not set up yet. Set this speaker up in the Sonos app, then check again.").into());
         }
-        (h.system, h.rooms.first().map(|r| r.ip.clone()), s.phase == Phase::Demo, h.rooms.iter().all(|r| r.version == "16.5"))
+        let ips: Vec<String> = h.rooms.iter().map(|r| r.ip.clone()).filter(|i| !i.is_empty()).collect();
+        (h.system, ips, s.phase == Phase::Demo, h.rooms.iter().all(|r| r.version == "16.5"))
     };
     if demo_mode {
         thread::sleep(Duration::from_millis(900));
@@ -551,13 +552,44 @@ fn check_updates(b: &Backend, hid: &str) -> UpdateState {
             _ => UpdateState::UpToDate,
         };
     }
-    let Some(ip) = ip.filter(|i| !i.is_empty()) else { return UpdateState::Failed(crate::t!("That system isn't available right now").into()) };
-    match speaker::check_for_update(&ip) {
-        Ok(None) => UpdateState::UpToDate,
-        Ok(Some(offer)) if offer.system() != system => UpdateState::UpToDate,
-        Ok(Some(offer)) if speaker::software_version(&ip).is_some_and(|v| build_reached(&v, &offer.version)) => UpdateState::UpToDate,
-        Ok(Some(offer)) => UpdateState::Available(offer),
-        Err(e) => UpdateState::Failed(e),
+    if ips.is_empty() {
+        return UpdateState::Failed(crate::t!("That system isn't available right now").into());
+    }
+    // Every speaker is asked: one that has already been updated says nothing about one that hasn't.
+    let looks: Vec<UpdateLook> = ips.iter().map(|ip| UpdateLook { offer: speaker::check_for_update(ip), build: speaker::software_version(ip) }).collect();
+    decide_update(system, looks)
+}
+
+/// What one speaker said about updates, and which software build it is on.
+struct UpdateLook {
+    offer: Result<Option<speaker::UpdateOffer>, String>,
+    build: Option<String>,
+}
+
+/// From what every speaker of a system said: an update is available when any speaker was offered a
+/// build for the same generation that it hasn't reached yet (an S1 system is never offered S2
+/// software here: that change can't be undone). If none could be asked, say why.
+fn decide_update(system: System, looks: Vec<UpdateLook>) -> UpdateState {
+    let mut first_error = None;
+    let mut asked = 0;
+    for look in looks {
+        match look.offer {
+            Err(e) => {
+                first_error.get_or_insert(e);
+            }
+            Ok(None) => asked += 1,
+            Ok(Some(offer)) => {
+                asked += 1;
+                if offer.system() != system || look.build.as_deref().is_some_and(|v| build_reached(v, &offer.version)) {
+                    continue;
+                }
+                return UpdateState::Available(offer);
+            }
+        }
+    }
+    match first_error {
+        Some(e) if asked == 0 => UpdateState::Failed(e),
+        _ => UpdateState::UpToDate,
     }
 }
 
@@ -2751,6 +2783,19 @@ fn watch_announcements(b: &Backend, ctx: &Waker) {
     });
 }
 
+/// Whether a speaker that isn't one of a system's listed rooms is due to be asked about the
+/// system again (at most every five minutes each, so the scans stay light).
+fn probe_due(ip: &str) -> bool {
+    use std::sync::{Mutex, OnceLock};
+    static LAST: OnceLock<Mutex<std::collections::HashMap<String, Instant>>> = OnceLock::new();
+    let mut last = LAST.get_or_init(Default::default).lock().unwrap_or_else(|e| e.into_inner());
+    let due = last.get(ip).is_none_or(|t| t.elapsed() > Duration::from_secs(300));
+    if due {
+        last.insert(ip.to_string(), Instant::now());
+    }
+    due
+}
+
 /// Look for speakers that are new, moved or weren't answering, without disturbing the rest.
 fn background_scan(b: &Backend, ctx: &Waker) {
     if b.lock().phase != Phase::Live {
@@ -2771,6 +2816,21 @@ fn background_scan(b: &Backend, ctx: &Waker) {
             continue;
         }
         if index.is_some() && !needs_refresh {
+            // A speaker of a system we know that isn't one of its rooms: it may list a room the
+            // others don't (a speaker added recently). Ask it now and then, not on every scan.
+            let is_room = b.lock().households.iter().any(|h| h.rooms.iter().any(|r| r.ip == f.ip));
+            if is_room || !probe_due(&f.ip) {
+                continue;
+            }
+            let Ok(fresh) = discovery::household_from(&f.ip, f.household.clone()) else { continue };
+            let mut s = b.lock();
+            if let Some(i) = s.households.iter().position(|h| h.id == fresh.id) {
+                let n = s.households[i].absorb(fresh);
+                if n > 0 {
+                    added += n;
+                    changed = true;
+                }
+            }
             continue;
         }
         let Ok(fresh) = discovery::household_from(&f.ip, f.household.clone()) else { continue };
@@ -2778,7 +2838,9 @@ fn background_scan(b: &Backend, ctx: &Waker) {
         match s.households.iter().position(|h| h.id == fresh.id) {
             Some(i) => {
                 let before = s.households[i].rooms.len();
-                let merged = merge_household(&s.households[i], fresh);
+                let mut merged = merge_household(&s.households[i], fresh);
+                // What this speaker doesn't list isn't gone: keep the rooms that were answering.
+                merged.absorb(s.households[i].clone());
                 added += merged.rooms.len().saturating_sub(before);
                 s.households[i] = merged;
             }
@@ -2818,11 +2880,12 @@ fn discover(b: &Backend, ctx: &Waker) -> Result<(), String> {
         }
     }
     let mut households: Vec<Household> = vec![];
-    let mut seen_hh = HashSet::new();
     let mut seen_ips = HashSet::new();
     let mut last_err = None;
     for f in found {
-        if seen_ips.contains(&f.ip) || f.household.as_ref().is_some_and(|h| seen_hh.contains(h)) {
+        // A speaker one we've read already lists is covered. One it doesn't list is asked too:
+        // speakers don't always agree who is in the system, and what one says isn't the whole.
+        if seen_ips.contains(&f.ip) {
             continue;
         }
         match discovery::household_from(&f.ip, f.household.clone()) {
@@ -2830,8 +2893,11 @@ fn discover(b: &Backend, ctx: &Waker) -> Result<(), String> {
                 for r in &h.rooms {
                     seen_ips.insert(r.ip.clone());
                 }
-                if seen_hh.insert(h.id.clone()) {
-                    households.push(h);
+                match households.iter_mut().find(|x| x.id == h.id) {
+                    Some(x) => {
+                        x.absorb(h);
+                    }
+                    None => households.push(h),
                 }
             }
             Err(e) => last_err = Some(e),
@@ -2905,12 +2971,18 @@ fn merge_household(old: &Household, mut new: Household) -> Household {
 }
 
 fn refresh_topology(b: &Backend) -> Result<(), String> {
-    let targets: Vec<(usize, String, String)> = {
+    let targets: Vec<(usize, Vec<String>, String)> = {
         let s = b.lock();
-        s.households.iter().enumerate().filter_map(|(i, h)| h.rooms.first().map(|r| (i, r.ip.clone(), h.id.clone()))).collect()
+        s.households.iter().enumerate().filter(|(_, h)| !h.rooms.is_empty()).map(|(i, h)| (i, h.rooms.iter().map(|r| r.ip.clone()).collect(), h.id.clone())).collect()
     };
-    for (i, ip, id) in targets {
-        let new = discovery::household_again(&ip, &id)?;
+    for (i, ips, id) in targets {
+        let mut new = discovery::household_again(&ips[0], &id)?;
+        // The other speakers are asked too: what the first lists is not always the whole system.
+        for ip in ips.iter().skip(1) {
+            if let Some(more) = discovery::unknown_to(ip, &new) {
+                new.absorb(more);
+            }
+        }
         let mut s = b.lock();
         if let Some(old) = s.households.get(i) {
             let merged = merge_household(old, new);
@@ -4897,6 +4969,98 @@ mod unit {
         assert!(!is_other_system("", Some("Sonos_S2")), "an old sign-in without a system is not blamed");
         assert!(!is_other_system("Sonos_S1", None));
         assert!(!is_other_system("Sonos_S1", Some("")));
+    }
+
+    fn bare_room(uuid: &str, name: &str, ip: &str) -> crate::model::Room {
+        crate::model::Room {
+            uuid: uuid.into(),
+            name: name.into(),
+            ip: ip.into(),
+            model: String::new(),
+            version: String::new(),
+            volume: 0,
+            muted: false,
+            settings: None,
+            online: Some(true),
+            last_seen: None,
+            problem: String::new(),
+        }
+    }
+
+    fn solo(uuid: &str) -> Group {
+        Group { id: uuid.into(), coordinator: uuid.into(), members: vec![uuid.into()], ..Default::default() }
+    }
+
+    #[test]
+    fn a_speaker_the_first_one_does_not_list_is_added_when_another_lists_it() {
+        // "Den" doesn't know about "Den 2"; "Den 2" lists both. Either way the system has both rooms.
+        let mut den_view = Household { id: "hh".into(), system: System::S2, rooms: vec![bare_room("A", "Den", "10.0.0.1")], groups: vec![solo("A")] };
+        let den2_view = Household {
+            id: "hh".into(),
+            system: System::S2,
+            rooms: vec![bare_room("B", "Den 2", "10.0.0.2"), bare_room("A", "Den", "10.0.0.1")],
+            groups: vec![solo("B"), solo("A")],
+        };
+        assert_eq!(den_view.absorb(den2_view), 1);
+        assert_eq!(den_view.rooms.iter().map(|r| r.name.as_str()).collect::<Vec<_>>(), ["Den", "Den 2"]);
+        assert_eq!(den_view.groups.len(), 2);
+        // Doing it again changes nothing, and a room that was last seen not answering isn't brought back.
+        assert_eq!(den_view.absorb(Household { id: "hh".into(), system: System::S2, rooms: vec![bare_room("B", "Den 2", "10.0.0.2")], groups: vec![solo("B")] }), 0);
+        let mut gone = bare_room("C", "Gone", "10.0.0.3");
+        gone.online = Some(false);
+        assert_eq!(den_view.absorb(Household { id: "hh".into(), system: System::S2, rooms: vec![gone], groups: vec![solo("C")] }), 0);
+        assert_eq!(den_view.rooms.len(), 2);
+    }
+
+    #[test]
+    fn a_new_room_the_other_view_grouped_with_one_we_have_is_kept_on_its_own() {
+        let mut mine = Household { id: "hh".into(), system: System::S2, rooms: vec![bare_room("A", "Den", "10.0.0.1")], groups: vec![solo("A")] };
+        let theirs = Household {
+            id: "hh".into(),
+            system: System::S2,
+            rooms: vec![bare_room("A", "Den", "10.0.0.1"), bare_room("B", "Den 2", "10.0.0.2")],
+            groups: vec![Group { id: "B".into(), coordinator: "B".into(), members: vec!["B".into(), "A".into()], ..Default::default() }],
+        };
+        mine.absorb(theirs);
+        assert_eq!(mine.rooms.len(), 2);
+        assert!(mine.groups.iter().all(|g| g.members.len() == 1), "both rooms appear, each in a group of its own here");
+    }
+
+    fn look(offer: Result<Option<&str>, &str>, build: Option<&str>) -> UpdateLook {
+        UpdateLook {
+            offer: offer.map(|o| o.map(|v| speaker::UpdateOffer { version: v.into(), url: "http://example/update".into(), size: 0 })).map_err(|e| e.to_string()),
+            build: build.map(String::from),
+        }
+    }
+
+    #[test]
+    fn one_speaker_behind_makes_the_update_available_even_if_the_first_is_current() {
+        // The first speaker already has the offered build; the second is on an older one.
+        let looks = vec![look(Ok(Some("98.0-82170")), Some("86.11-82170")), look(Ok(Some("98.0-82170")), Some("86.4-73290"))];
+        assert!(matches!(decide_update(System::S2, looks), UpdateState::Available(o) if o.version == "98.0-82170"));
+    }
+
+    #[test]
+    fn every_speaker_on_the_offered_build_or_newer_is_up_to_date() {
+        let looks = vec![look(Ok(Some("98.0-82170")), Some("86.11-82170")), look(Ok(Some("98.0-82170")), Some("86.12-90000")), look(Ok(None), None)];
+        assert!(matches!(decide_update(System::S2, looks), UpdateState::UpToDate));
+    }
+
+    #[test]
+    fn an_s1_system_is_never_offered_s2_software() {
+        // S2 builds start at 58: an offer of one is ignored for an S1 system, whatever the speaker is on.
+        let looks = vec![look(Ok(Some("98.0-82170")), Some("11.2-40000"))];
+        assert!(matches!(decide_update(System::S1, looks), UpdateState::UpToDate));
+    }
+
+    #[test]
+    fn a_speaker_that_does_not_answer_does_not_hide_one_that_has_an_update() {
+        let looks = vec![look(Err("no answer"), None), look(Ok(Some("98.0-82170")), Some("86.4-73290"))];
+        assert!(matches!(decide_update(System::S2, looks), UpdateState::Available(_)));
+        // Nobody answered at all: say why, don't claim "up to date".
+        assert!(matches!(decide_update(System::S2, vec![look(Err("no answer"), None), look(Err("other"), None)]), UpdateState::Failed(e) if e == "no answer"));
+        // Some answered with nothing newer, one didn't: the ones that answered decide.
+        assert!(matches!(decide_update(System::S2, vec![look(Ok(None), None), look(Err("no answer"), None)]), UpdateState::UpToDate));
     }
 
     #[test]

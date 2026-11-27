@@ -380,6 +380,35 @@ pub struct Household {
 pub const UNSET_PREFIX: &str = "unset-";
 
 impl Household {
+    /// Add what another speaker's view of the same system has and this one lacks. Speakers don't
+    /// always agree (a speaker added recently can be missing from an older one's list), so what
+    /// one lists is not the whole system. Only adds: rooms already here and groups that overlap
+    /// ones already here are left as they are, and a room last seen not answering isn't added.
+    /// Returns how many rooms were added.
+    pub fn absorb(&mut self, other: Household) -> usize {
+        let mut added = 0;
+        for r in &other.rooms {
+            if self.room(&r.uuid).is_none() && r.online != Some(false) {
+                self.rooms.push(r.clone());
+                added += 1;
+            }
+        }
+        for g in other.groups {
+            let overlaps = self.groups.iter().any(|x| x.id == g.id || x.members.iter().any(|m| g.members.contains(m)));
+            if !overlaps && g.members.iter().all(|m| self.room(m).is_some()) {
+                self.groups.push(g);
+            }
+        }
+        // A room the other view grouped with a room we already had is on its own here.
+        let ungrouped: Vec<String> = self.rooms.iter().filter(|r| !self.groups.iter().any(|g| g.members.contains(&r.uuid))).map(|r| r.uuid.clone()).collect();
+        for uuid in ungrouped {
+            self.groups.push(Group { id: uuid.clone(), coordinator: uuid.clone(), members: vec![uuid], ..Default::default() });
+        }
+        self.rooms.sort_by_key(|a| a.name.to_lowercase());
+        let rooms = &self.rooms;
+        self.groups.sort_by_key(|g| rooms.iter().position(|r| r.uuid == g.coordinator).unwrap_or(usize::MAX));
+        added
+    }
     /// False for a speaker that belongs to no system yet: its household id is empty.
     pub fn is_set_up(&self) -> bool {
         !self.id.is_empty() && !self.id.starts_with(UNSET_PREFIX)
