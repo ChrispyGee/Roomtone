@@ -4619,6 +4619,57 @@ mod unit {
         assert!(split_rooms.len() > back.len(), "the right speaker is hidden again");
     }
 
+    /// Plays a station from a service with no sign-in (TuneIn) on a real S2 room for a few seconds, quietly,
+    /// then pauses it and puts the volume back: `ROOMTONE_PLAY_TEST=Den cargo test real_tunein_plays -- --ignored --nocapture`.
+    /// It makes sound. The settings are the test home's, so nothing is saved to the real app.
+    #[test]
+    #[ignore = "makes sound on a real speaker: set ROOMTONE_PLAY_TEST to a room name"]
+    fn real_tunein_plays() {
+        let Ok(room) = std::env::var("ROOMTONE_PLAY_TEST") else { return };
+        let b = Backend::start_with(Waker::none(), false, Options { serve_local_music: false, search_network: true });
+        let wait = Duration::from_secs(60);
+        assert!(wait_for(40, || b.lock().phase == Phase::Live && b.lock().households.iter().any(|h| h.system == System::S2)), "found the speakers");
+        assert!(wait_for(20, || !b.lock().music_services.is_empty()), "the system's service list arrived");
+        let gid = {
+            let s = b.lock();
+            let h = s.households.iter().find(|h| h.rooms.iter().any(|r| r.name == room)).expect("the room");
+            let uuid = h.rooms.iter().find(|r| r.name == room).unwrap().uuid.clone();
+            h.groups.iter().find(|g| g.members.contains(&uuid)).expect("its group").id.clone()
+        };
+        let before = {
+            let s = b.lock();
+            let (_, g) = s.find_group(&gid).unwrap();
+            (g.volume, g.now.transport, g.now.title.clone())
+        };
+        eprintln!("before: volume {} {:?} {:?}", before.0, before.1, before.2);
+        b.send_and_wait(Cmd::ConnectService(254), wait).unwrap();
+        let cfg = b.lock().config.clone();
+        let acc = cfg.account(254).expect("TuneIn connected without a sign-in").clone();
+        eprintln!("connected: {} auth {} account number {}", acc.name, acc.auth, acc.number());
+        let top = crate::sources::browse("SVC:254/root", &cfg).unwrap();
+        let folder = top.iter().find(|i| i.is_container).expect("a folder").clone();
+        let stations = crate::sources::browse(&folder.id, &cfg).unwrap();
+        let station = stations.iter().find(|i| !i.is_container && !i.uri.is_empty()).expect("a station").clone();
+        eprintln!("playing {:?} from {:?}: {}", station.title, folder.title, station.uri);
+        b.send_and_wait(Cmd::GroupVolume(gid.clone(), 12), wait).unwrap();
+        b.send_and_wait(Cmd::PlayItem(gid.clone(), station.clone(), PlayHow::Now), wait).unwrap();
+        let playing = wait_for(25, || {
+            let s = b.lock();
+            s.find_group(&gid).is_some_and(|(_, g)| g.now.transport == Transport::Playing)
+        });
+        thread::sleep(Duration::from_secs(6));
+        {
+            let s = b.lock();
+            let (_, g) = s.find_group(&gid).unwrap();
+            eprintln!("during: playing={playing} transport {:?} title {:?} artist {:?} uri {:?}", g.now.transport, g.now.title, g.now.artist, g.now.uri);
+            eprintln!("account number now {:?}", s.config.account(254).map(|a| a.sn));
+        }
+        // Put it back as it was.
+        b.send_and_wait(Cmd::Pause(gid.clone()), wait).unwrap();
+        b.send_and_wait(Cmd::GroupVolume(gid.clone(), before.0), wait).unwrap();
+        assert!(playing, "the station started playing");
+    }
+
     /// Read-only check of the S2 report against real speakers (prints models and verdicts only):
     /// `ROOMTONE_SPEAKER=<ip> cargo test real_speaker_s2_report -- --ignored --nocapture`.
     #[test]
