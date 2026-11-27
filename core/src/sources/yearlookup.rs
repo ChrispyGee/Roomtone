@@ -53,8 +53,8 @@ fn save(s: &Store) {
     }
 }
 
-/// Lower case, letters and digits only, and without "(Deluxe Edition)", "[Remastered]" or a
-/// trailing "- Remastered 2011".
+/// Lower case, letters and digits only, and without a bracketed "(Deluxe Edition)" or
+/// "(Remastered)" part or a trailing "- Remastered 2011".
 pub fn normal(text: &str) -> String {
     let mut out = String::new();
     let mut depth = 0;
