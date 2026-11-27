@@ -96,6 +96,8 @@ pub struct App {
     /// What's typed in the queue's search box.
     queue_filter: String,
     list_genre: Option<String>,
+    /// A decade from the list's year menu ("1990s"), or empty.
+    list_year: String,
     list_key: String,
     search_sources: std::collections::HashSet<String>,
     search_types: std::collections::HashSet<String>,
@@ -259,6 +261,7 @@ impl App {
             jump_to: None,
             queue_filter: String::new(),
             list_genre: None,
+            list_year: String::new(),
             list_key: String::new(),
             search_sources: Default::default(),
             search_types: Default::default(),

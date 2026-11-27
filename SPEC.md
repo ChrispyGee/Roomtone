@@ -128,7 +128,7 @@ Sign-in happens on the service's own web page, with a code when the service uses
 - Settings › Services shows each service as *Connected*, *Ready to connect*, *Favorites only* or *Not offered on this system*.
 
 ### 4.5a Long lists
-- Lists of songs, albums, playlists, favorites and stations have a filter box, a sort (*Default order*, *Title A–Z*, *Title Z–A*, *Artist A–Z*, *Album A–Z*, *Longest first*, *Shortest first*; songs with no known length go last) and, where tagged, a genre filter.
+- Lists of songs, albums, playlists, favorites and stations have a filter box, a sort (*Default order*, *Title A–Z*, *Title Z–A*, *Artist A–Z*, *Album A–Z*, *Longest first*, *Shortest first*; songs with no known length go last) a **year** menu (*All years*, the decades and *Before 1960*; a filter typed as only a year, such as `1990s`, filters by year instead of matching titles) and, where tagged, a genre filter. The year menu uses the experimental look-up (§4.8) in the same way as Search, and says how many items are hidden for having no year.
 - A list of 40 or more entries that is alphabetical (by the chosen sort, or in its own order if that is by title or artist) shows an **A–Z strip** of the letters that occur (`#` for numbers and symbols, leading punctuation ignored); clicking a letter scrolls to the first entry under it. Not shown for orders that aren't alphabetical (longest first and so on).
 - The queue has a search box (title, artist, album) when it holds more than 8 songs; the rows keep their real positions, so playing, moving and removing act on the right song.
 - *Rescan* (Music Library, when music folders are added) reads the folders again.
