@@ -130,6 +130,96 @@ fn parse_reply(text: &str, ip: String) -> Option<Found> {
     is_player.then(|| Found { ip, household: headers.get("X-RINCON-HOUSEHOLD").cloned() })
 }
 
+/// The most addresses one scan tries.
+pub const MAX_SCAN: usize = 1024;
+
+fn home_address(ip: Ipv4Addr) -> bool {
+    let o = ip.octets();
+    ip.is_private() || (o[0] == 100 && (64..128).contains(&o[1]))
+}
+
+fn address(text: &str) -> Option<Ipv4Addr> {
+    text.trim().parse().ok()
+}
+
+/// The addresses a person means by "192.168.20.0/24", "192.168.20" (the whole network),
+/// "192.168.20.10-50", "192.168.20.10-192.168.20.50" or one address. Only home-network
+/// addresses (10.x, 172.16–31.x, 192.168.x, 100.64–127.x) and at most `MAX_SCAN` of them.
+pub fn parse_range(text: &str) -> Result<Vec<Ipv4Addr>, String> {
+    let t = text.trim().trim_end_matches('.');
+    let bad = || "That doesn't look like a network range. Try something like 192.168.20.0/24.".to_string();
+    let (from, to): (u32, u32) = if let Some((net, bits)) = t.split_once('/') {
+        let ip = u32::from(address(net).ok_or_else(bad)?);
+        let bits: u32 = bits.trim().parse().map_err(|_| bad())?;
+        if bits > 32 {
+            return Err(bad());
+        }
+        let size: u64 = 1 << (32 - bits);
+        if size > MAX_SCAN as u64 {
+            return Err(format!("That range is too big ({size} addresses). Try /22 or smaller, like {net}/24."));
+        }
+        let mask = !((size as u32).wrapping_sub(1));
+        let (first, last) = (ip & mask, (ip & mask) | !mask);
+        // A network's own and broadcast addresses aren't speakers.
+        if bits <= 30 {
+            (first + 1, last - 1)
+        } else {
+            (first, last)
+        }
+    } else if let Some((a, b)) = t.split_once('-') {
+        let first = address(a).ok_or_else(bad)?;
+        let last = match address(b) {
+            Some(l) => l,
+            None => {
+                let end: u8 = b.trim().parse().map_err(|_| bad())?;
+                let o = first.octets();
+                Ipv4Addr::new(o[0], o[1], o[2], end)
+            }
+        };
+        (u32::from(first), u32::from(last))
+    } else if t.split('.').count() == 3 && t.split('.').all(|p| p.parse::<u8>().is_ok()) {
+        let base = u32::from(address(&format!("{t}.0")).ok_or_else(bad)?);
+        (base + 1, base + 254)
+    } else {
+        let one = u32::from(address(t).ok_or_else(bad)?);
+        (one, one)
+    };
+    if to < from {
+        return Err(bad());
+    }
+    if (to - from) as usize + 1 > MAX_SCAN {
+        return Err(format!("That range is too big ({} addresses). Try {MAX_SCAN} or fewer.", to - from + 1));
+    }
+    let all: Vec<Ipv4Addr> = (from..=to).map(Ipv4Addr::from).collect();
+    if all.iter().any(|a| !home_address(*a)) {
+        return Err("Roomtone only scans home-network addresses (10.x.x.x, 172.16–31.x.x, 192.168.x.x).".into());
+    }
+    Ok(all)
+}
+
+/// Is a speaker at this address? Opens its port (1400) and checks the description it serves.
+pub fn is_speaker(ip: Ipv4Addr) -> bool {
+    let to = std::time::Duration::from_millis(600);
+    if std::net::TcpStream::connect_timeout(&SocketAddr::from((ip, 1400)), to).is_err() {
+        return false;
+    }
+    soap::get_text(&format!("http://{ip}:1400/xml/device_description.xml")).is_ok_and(|x| x.to_ascii_lowercase().contains("sonos"))
+}
+
+/// Try these addresses (many at once) and call `step(address, is_speaker)` as each is done.
+pub fn scan(addrs: &[Ipv4Addr], step: impl Fn(Ipv4Addr, bool) + Sync) {
+    let next = std::sync::atomic::AtomicUsize::new(0);
+    std::thread::scope(|scope| {
+        for _ in 0..addrs.len().min(64) {
+            scope.spawn(|| loop {
+                let i = next.fetch_add(1, std::sync::atomic::Ordering::Relaxed);
+                let Some(ip) = addrs.get(i) else { return };
+                step(*ip, is_speaker(*ip));
+            });
+        }
+    });
+}
+
 pub(crate) struct Description {
     pub model: String,
     pub display_version: String,
@@ -343,6 +433,67 @@ mod tests {
 
 #[cfg(test)]
 mod unit {
+    #[test]
+    fn ranges_are_read_the_way_people_write_them() {
+        let r = |t: &str| parse_range(t).map(|v| (v.len(), v.first().copied(), v.last().copied()));
+        let ip = |a, b, c, d| Some(Ipv4Addr::new(a, b, c, d));
+        assert_eq!(r("192.168.20.0/24"), Ok((254, ip(192, 168, 20, 1), ip(192, 168, 20, 254))));
+        assert_eq!(r("192.168.20.77/24"), Ok((254, ip(192, 168, 20, 1), ip(192, 168, 20, 254))), "any address in the network will do");
+        assert_eq!(r("192.168.20"), Ok((254, ip(192, 168, 20, 1), ip(192, 168, 20, 254))));
+        assert_eq!(r("192.168.20."), Ok((254, ip(192, 168, 20, 1), ip(192, 168, 20, 254))));
+        assert_eq!(r("192.168.20.10-50"), Ok((41, ip(192, 168, 20, 10), ip(192, 168, 20, 50))));
+        assert_eq!(r("192.168.20.10 - 192.168.21.4"), Ok((251, ip(192, 168, 20, 10), ip(192, 168, 21, 4))));
+        assert_eq!(r("192.168.20.31"), Ok((1, ip(192, 168, 20, 31), ip(192, 168, 20, 31))));
+        assert_eq!(r("10.0.0.0/22").map(|(n, _, _)| n), Ok(1022));
+        assert_eq!(r("192.168.20.8/30").map(|(n, _, _)| n), Ok(2));
+        assert_eq!(r("192.168.20.8/31").map(|(n, _, _)| n), Ok(2));
+    }
+
+    #[test]
+    fn ranges_that_are_wrong_big_or_not_at_home_are_refused() {
+        for t in ["", "hello", "192.168.20.0/33", "192.168.20.0/x", "192.168.20.50-10", "192.168.20.300", "192.168.20.1-x"] {
+            assert!(parse_range(t).unwrap_err().contains("doesn't look like"), "{t:?}");
+        }
+        assert!(parse_range("10.0.0.0/16").unwrap_err().contains("too big"));
+        assert!(parse_range("10.0.0.0-10.0.9.0").unwrap_err().contains("too big"));
+        for t in ["8.8.8.0/24", "1.2.3.4", "192.169.0.0/24", "172.32.0.0/24"] {
+            assert!(parse_range(t).unwrap_err().contains("home-network"), "{t:?}");
+        }
+        assert!(parse_range("172.16.5.0/24").is_ok() && parse_range("100.64.1.0/24").is_ok());
+    }
+
+    /// Opt in with ROOMTONE_SCAN_TEST=10.12.21.0/24 (a network with real speakers): the scan finds them.
+    #[test]
+    #[ignore = "needs speakers: set ROOMTONE_SCAN_TEST to a range"]
+    fn real_scan_finds_the_speakers() {
+        let Ok(range) = std::env::var("ROOMTONE_SCAN_TEST") else { return };
+        let addrs = parse_range(&range).unwrap();
+        let hits = std::sync::Mutex::new(vec![]);
+        let start = std::time::Instant::now();
+        scan(&addrs, |ip, hit| {
+            if hit {
+                hits.lock().unwrap().push(ip);
+            }
+        });
+        let mut hits = hits.into_inner().unwrap();
+        hits.sort();
+        eprintln!("{} addresses in {:.1}s; speakers at {:?}", addrs.len(), start.elapsed().as_secs_f32(), hits);
+        assert!(!hits.is_empty());
+    }
+
+    #[test]
+    fn a_scan_tries_every_address_once_and_reports_each() {
+        // Nothing here answers on port 1400, so every address is reported as "not a speaker".
+        let addrs: Vec<Ipv4Addr> = (1..=20).map(|d| Ipv4Addr::new(127, 0, 0, d)).collect();
+        let seen = std::sync::Mutex::new(vec![]);
+        scan(&addrs, |ip, hit| seen.lock().unwrap().push((ip, hit)));
+        let mut seen = seen.into_inner().unwrap();
+        seen.sort();
+        assert_eq!(seen.len(), 20);
+        assert!(seen.iter().all(|(_, hit)| !hit));
+        assert_eq!(seen.iter().map(|(ip, _)| *ip).collect::<Vec<_>>(), addrs);
+    }
+
     use super::*;
 
     #[test]

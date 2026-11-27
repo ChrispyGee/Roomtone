@@ -1019,3 +1019,9 @@ Years	Jahre
 Before 1960	Vor 1960
 All years	Alle Jahre
 To find years for streaming-service albums, switch on Look up missing years in Settings (experimental).	Um Jahre für Alben von Streamingdiensten zu finden, schalte „Fehlende Jahre nachschlagen“ in den Einstellungen ein (experimentell).
+Scan another network	Anderes Netzwerk durchsuchen
+Speakers on a separate network, such as an IoT or guest network, can't be found by the search. Type that network's range (like 192.168.20.0/24) and Roomtone tries every address for a speaker. It only works if your router lets this computer reach them.	Lautsprecher in einem getrennten Netzwerk, etwa einem IoT- oder Gastnetz, findet die Suche nicht. Gib den Bereich dieses Netzwerks ein (z. B. 192.168.20.0/24), und Roomtone probiert jede Adresse auf einen Lautsprecher durch. Das klappt nur, wenn dein Router diesem Computer den Zugriff erlaubt.
+Scan	Suchen
+Tried {done} of {total} addresses · found {n}	{done} von {total} Adressen geprüft · {n} gefunden
+No speakers answered in {range}. Check the range, and that your router lets this computer reach port 1400 on that network.	In {range} hat kein Lautsprecher geantwortet. Prüfe den Bereich und ob dein Router diesem Computer in dem Netzwerk Zugriff auf Port 1400 erlaubt.
+Found speakers at {list}, and added them.	Lautsprecher gefunden bei {list} und hinzugefügt.

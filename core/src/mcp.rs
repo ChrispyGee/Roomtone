@@ -1517,8 +1517,8 @@ mod unit {
         m.b.lock().config.mcp.allow_updates = false;
         m.b.lock().config.mcp.allow_files = false;
         let all = rpc(&m, 1, "tools/list", json!({}))["result"]["tools"].as_array().unwrap().len();
-        assert_eq!(tools().len(), 67);
-        assert_eq!(all, 64, "installing updates and saving files are off until switched on");
+        assert_eq!(tools().len(), 68);
+        assert_eq!(all, 65, "installing updates and saving files are off until switched on");
         let mut names: Vec<&str> = tools().iter().map(|t| t.0).collect();
         names.sort();
         names.dedup();
@@ -1856,6 +1856,12 @@ mod unit {
         m.b.send_and_wait(Cmd::SetVolumeLimits(crate::config::VolumeLimits::default()), Duration::from_secs(5)).unwrap();
         assert!(tool(&m, "set_volume_limits", json!({"quiet_from": "25:00"})).1, "a time that isn't one is refused");
         assert!(tool(&m, "add_speaker", json!({"address": "not an address"})).1);
+        let (bad, err) = tool(&m, "scan_network", json!({"range": "8.8.8.0/24"}));
+        assert!(err && bad.contains("home-network"), "{bad}");
+        assert!(tool(&m, "scan_network", json!({"range": "nonsense"})).1);
+        // A tiny range nobody answers in: the scan finishes and says so, with its data.
+        let said = ok(&m, "scan_network", json!({"range": "10.254.254.8/30"}));
+        assert!(said.starts_with("No speakers answered in 10.254.254.8/30 (2 addresses tried)"), "{said}");
         let (text, _) = tool(&m, "keep_in_step", json!({}));
         assert!(!text.is_empty());
     }

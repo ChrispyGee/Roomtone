@@ -459,6 +459,20 @@ impl Household {
     }
 }
 
+/// A scan of a network range for speakers that the search can't reach.
+#[derive(Clone, Debug, Default, PartialEq)]
+pub struct ScanState {
+    /// What the person typed.
+    pub range: String,
+    pub total: usize,
+    pub done: usize,
+    /// Addresses where a speaker answered.
+    pub found: Vec<String>,
+    pub finished: bool,
+    /// Why it didn't start (a range that can't be read, or is too big).
+    pub error: Option<String>,
+}
+
 /// One entry from the speakers' content directory (favourite, playlist, track, album...).
 #[derive(Clone, Debug, Default, PartialEq, serde::Serialize, serde::Deserialize)]
 #[serde(default)]
@@ -792,6 +806,8 @@ pub struct AppState {
     pub updates: HashMap<String, UpdateState>,
     /// Which rooms of a system the last update check found behind the offered software (names), by system.
     pub update_behind: HashMap<String, Vec<String>>,
+    /// The latest *Scan another network* (addresses tried, speakers found).
+    pub scan: Option<ScanState>,
     /// Years looked up for albums with none (experimental), by `yearlookup::key`.
     pub year_lookups: HashMap<String, u32>,
     /// How many albums are still being looked up.
@@ -895,6 +911,7 @@ impl Default for AppState {
             link_sync: HashMap::new(),
             updates: HashMap::new(),
             update_behind: HashMap::new(),
+            scan: None,
             year_lookups: HashMap::new(),
             year_lookups_left: 0,
             update_targets: HashMap::new(),

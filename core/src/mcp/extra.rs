@@ -137,6 +137,12 @@ pub(super) fn tools() -> Vec<(&'static str, &'static str, Value, bool)> {
             true,
         ),
         (
+            "scan_network",
+            "Look for speakers on another network (an IoT or guest network the normal search can't reach) by trying every address of a range, like 192.168.20.0/24 (at most 1,024 home-network addresses). Speakers found are added. Only works if the router lets this computer reach them.",
+            json!({"type": "object", "properties": {"range": {"type": "string", "description": "192.168.20.0/24, 192.168.20 (a whole network) or 192.168.20.10-50"}}, "required": ["range"]}),
+            true,
+        ),
+        (
             "keep_in_step",
             "Copy favorites, playlists and alarms between systems (an S1 and an S2 system can't share them, so this keeps them alike). With apply false it only says what would be added. from names the system to copy from (S1 or S2); leave it out to copy both ways.",
             json!({"type": "object", "properties": {
@@ -766,6 +772,32 @@ impl Mcp {
                 } else {
                     Ok(format!("Asked {addr}, but no new room appeared. Check the address and that the speaker is on."))
                 }
+            }
+            "scan_network" => {
+                let range = str_arg("range").ok_or("Give the range to scan, like 192.168.20.0/24")?;
+                crate::net::discovery::parse_range(&range)?;
+                let before: usize = self.b.lock().households.iter().map(|h| h.rooms.len()).sum();
+                self.b.lock().scan = None;
+                self.b.send(Cmd::ScanRange(range.clone()));
+                let until = Instant::now() + Duration::from_secs(90);
+                while !self.b.lock().scan.as_ref().is_some_and(|s| s.finished) && Instant::now() < until {
+                    thread::sleep(Duration::from_millis(200));
+                }
+                let scan = self.b.lock().scan.clone().unwrap_or_default();
+                // The addresses are also given as data, so an app can remember them.
+                set_structured(json!({"found": scan.found, "tried": scan.done, "total": scan.total, "finished": scan.finished}));
+                if !scan.finished {
+                    return Ok(format!("Still scanning {range}: tried {} of {} addresses so far. Ask again in a moment.", scan.done, scan.total));
+                }
+                if scan.found.is_empty() {
+                    return Ok(format!(
+                        "No speakers answered in {range} ({} addresses tried). Check the range, and that the router lets this computer reach port 1400 there.",
+                        scan.total
+                    ));
+                }
+                thread::sleep(Duration::from_secs(5));
+                let after: usize = self.b.lock().households.iter().map(|h| h.rooms.len()).sum();
+                Ok(format!("Found speakers at {} ({} addresses tried). {} new room(s) appeared.", scan.found.join(", "), scan.total, after.saturating_sub(before)))
             }
             "keep_in_step" => {
                 let ids: Vec<String> = self.b.lock().households.iter().filter(|h| h.is_set_up()).map(|h| h.id.clone()).collect();
