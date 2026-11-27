@@ -1019,3 +1019,9 @@ Years	Anni
 Before 1960	Prima del 1960
 All years	Tutti gli anni
 To find years for streaming-service albums, switch on Look up missing years in Settings (experimental).	Per trovare gli anni degli album dei servizi di streaming, attiva «Cerca gli anni mancanti» nelle impostazioni (sperimentale).
+Scan another network	Scansiona un'altra rete
+Speakers on a separate network, such as an IoT or guest network, can't be found by the search. Type that network's range (like 192.168.20.0/24) and Roomtone tries every address for a speaker. It only works if your router lets this computer reach them.	La ricerca non trova i diffusori di una rete separata, come una rete IoT o ospiti. Scrivi l’intervallo di quella rete (ad esempio 192.168.20.0/24) e Roomtone prova ogni indirizzo in cerca di un diffusore. Funziona solo se il router permette a questo computer di raggiungerli.
+Scan	Scansiona
+Tried {done} of {total} addresses · found {n}	Provati {done} indirizzi su {total} · {n} trovati
+No speakers answered in {range}. Check the range, and that your router lets this computer reach port 1400 on that network.	Nessun diffusore ha risposto in {range}. Controlla l’intervallo e che il router permetta a questo computer di raggiungere la porta 1400 di quella rete.
+Found speakers at {list}, and added them.	Diffusori trovati a {list} e aggiunti.

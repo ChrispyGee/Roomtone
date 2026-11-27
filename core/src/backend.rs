@@ -20,6 +20,8 @@ pub enum Cmd {
     /// Start with the speakers from last time, then keep looking in the background.
     QuickStart,
     AddManual(String),
+    /// Try every address of a network range ("192.168.20.0/24") for speakers the search can't reach.
+    ScanRange(String),
     UseDemo,
     Play(String),
     Pause(String),
@@ -986,7 +988,7 @@ fn worker(b: Backend, rx: Receiver<(u64, Cmd)>, ctx: Waker) {
                 }
             };
             let demo_mode = matches!(b.lock().phase, Phase::Demo);
-            if demo_mode && !matches!(cmd, Cmd::Discover | Cmd::QuickStart | Cmd::AddManual(_)) {
+            if demo_mode && !matches!(cmd, Cmd::Discover | Cmd::QuickStart | Cmd::AddManual(_) | Cmd::ScanRange(_)) {
                 let mut s = b.lock();
                 demo::apply(&mut s, &cmd);
             } else if let Err(e) = run_live(&b, &ctx, cmd) {
@@ -1293,6 +1295,7 @@ fn run_live(b: &Backend, ctx: &Waker, cmd: Cmd) -> Result<(), String> {
         | Cmd::CheckConnections
         | Cmd::SetVersionCheck(_)
         | Cmd::SetLyrics(_)
+        | Cmd::ScanRange(_)
         | Cmd::SetLookUpYears(_)
         | Cmd::LookUpYears(_)
         | Cmd::SetProbeStreams(_)
@@ -2371,6 +2374,48 @@ fn run_common(b: &Backend, ctx: &Waker, cmd: Cmd) -> Result<Option<Cmd>, String>
         Cmd::SetLyrics(on) => {
             b.lock().config.show_lyrics = on;
             save(b);
+            Ok(None)
+        }
+        Cmd::ScanRange(text) => {
+            if b.lock().scan.as_ref().is_some_and(|s| !s.finished) {
+                return Ok(None);
+            }
+            let text = text.trim().to_string();
+            match crate::net::discovery::parse_range(&text) {
+                Err(e) => b.lock().scan = Some(ScanState { range: text, finished: true, error: Some(e), ..Default::default() }),
+                Ok(addrs) => {
+                    b.lock().scan = Some(ScanState { range: text, total: addrs.len(), ..Default::default() });
+                    let (b2, ctx2) = (b.clone(), ctx.clone());
+                    thread::spawn(move || {
+                        crate::net::discovery::scan(&addrs, |ip, hit| {
+                            let mut s = b2.lock();
+                            if let Some(st) = s.scan.as_mut() {
+                                st.done += 1;
+                                if hit {
+                                    st.found.push(ip.to_string());
+                                }
+                                if st.done % 8 == 0 || hit {
+                                    ctx2.request_repaint();
+                                }
+                            }
+                        });
+                        let found = {
+                            let mut s = b2.lock();
+                            s.scan.as_mut().map(|st| {
+                                st.finished = true;
+                                st.found.sort();
+                                st.found.clone()
+                            })
+                        };
+                        // Each speaker found is added the way a typed address is.
+                        for ip in found.unwrap_or_default() {
+                            b2.send(Cmd::AddManual(ip));
+                        }
+                        ctx2.request_repaint();
+                    });
+                }
+            }
+            ctx.request_repaint();
             Ok(None)
         }
         Cmd::SetLookUpYears(on) => {

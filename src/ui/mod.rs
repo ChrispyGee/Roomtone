@@ -105,6 +105,8 @@ pub struct App {
     search_genre: Option<String>,
     /// What was typed in the year box: 1985, 1980s, 1985-89.
     search_year: String,
+    /// The network range typed for *Scan another network*.
+    scan_text: String,
     /// Albums already sent for a year look-up this run.
     years_asked: std::collections::HashSet<String>,
     /// Albums sent for a year look-up since the last time none were waiting (for the progress bar).
@@ -268,6 +270,7 @@ impl App {
             search_sort: 0,
             search_genre: None,
             search_year: String::new(),
+            scan_text: String::new(),
             years_asked: Default::default(),
             years_total: 0,
             station_editor: None,
@@ -1883,6 +1886,8 @@ impl App {
                         }
                     }
                 });
+                ui.add_space(8.0);
+                self.scan_section(ui, s);
             });
             ui.add_space(12.0);
             ui.horizontal(|ui| {

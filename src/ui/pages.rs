@@ -855,6 +855,46 @@ impl App {
         }
     }
 
+    /// *Scan another network*: try every address of a range (an IoT network, say) for speakers.
+    pub(super) fn scan_section(&mut self, ui: &mut Ui, s: &AppState) {
+        ui.label(RichText::new(t!("Scan another network")).color(TEXT()));
+        ui.label(
+            RichText::new(t!(
+                "Speakers on a separate network, such as an IoT or guest network, can't be found by the search. Type that network's range (like 192.168.20.0/24) and Roomtone tries every address for a speaker. It only works if your router lets this computer reach them."
+            ))
+            .size(12.0)
+            .color(TEXT_DIM()),
+        );
+        let running = s.scan.as_ref().is_some_and(|x| !x.finished);
+        ui.horizontal(|ui| {
+            ui.add_enabled(!running, egui::TextEdit::singleline(&mut self.scan_text).hint_text("192.168.20.0/24").desired_width(200.0).margin(vec2(10.0, 7.0)));
+            if pill(ui, Some(Icon::Search), t!("Scan"), false).clicked() && !running && !self.scan_text.trim().is_empty() {
+                self.send(Cmd::ScanRange(self.scan_text.trim().to_string()));
+            }
+        });
+        let Some(scan) = &s.scan else { return };
+        if let Some(e) = &scan.error {
+            ui.label(RichText::new(e).size(12.0).color(BAD()));
+        } else if !scan.finished {
+            ui.horizontal(|ui| {
+                spinner_dots(ui, TEXT_DIM());
+                ui.add(egui::ProgressBar::new(scan.done as f32 / scan.total.max(1) as f32).desired_width(180.0).desired_height(8.0));
+                ui.label(
+                    RichText::new(t!("Tried {done} of {total} addresses · found {n}", done = scan.done, total = scan.total, n = scan.found.len())).size(12.0).color(TEXT_DIM()),
+                );
+            });
+            ui.ctx().request_repaint_after(Duration::from_millis(300));
+        } else if scan.found.is_empty() {
+            ui.label(
+                RichText::new(t!("No speakers answered in {range}. Check the range, and that your router lets this computer reach port 1400 on that network.", range = scan.range))
+                    .size(12.0)
+                    .color(TEXT_DIM()),
+            );
+        } else {
+            ui.label(RichText::new(t!("Found speakers at {list}, and added them.", list = scan.found.join(", "))).size(12.0).color(GOOD()));
+        }
+    }
+
     /// The experimental look-up (Settings › Album years): gives results with no year the one found
     /// for their album, asks Apple about the rest and shows progress. Returns whether it is still
     /// looking, so a list that is empty for now doesn't say "nothing matched".
@@ -2456,7 +2496,7 @@ impl App {
             2 => self.services_tab(ui, s),
             3 => {
                 self.rooms_lists(ui, s);
-                self.connection_card(ui);
+                self.connection_card(ui, s);
                 ui.add_space(14.0);
                 self.updates_card(ui, s);
                 ui.add_space(14.0);
@@ -2534,7 +2574,7 @@ impl App {
     }
 
     /// Find speakers, add one by address, the can't-find-them check, and the demo system.
-    fn connection_card(&mut self, ui: &mut Ui) {
+    fn connection_card(&mut self, ui: &mut Ui, s: &AppState) {
         section_title(ui, t!("Connection"));
         card_frame().show(ui, |ui| {
             ui.set_width(ui.available_width());
@@ -2567,6 +2607,10 @@ impl App {
                     self.finder_open = true;
                 }
             });
+            ui.add_space(8.0);
+            ui.separator();
+            ui.add_space(8.0);
+            self.scan_section(ui, s);
             ui.add_space(8.0);
             ui.separator();
             ui.add_space(8.0);
