@@ -204,7 +204,7 @@ impl App {
             "history" => View::History,
             "scenes" => View::Scenes,
             "speakers" => View::Home,
-            "room" => View::Room("D-LIVING".into()),
+            "room" => View::Room(std::env::var("ROOMTONE_TEST_ROOM").unwrap_or_else(|_| "D-LIVING".into())),
             _ => View::Home,
         };
         theme::apply(&cc.egui_ctx);

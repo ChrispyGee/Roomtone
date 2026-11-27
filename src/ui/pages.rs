@@ -3976,6 +3976,11 @@ impl App {
         if r.settings.is_none() {
             self.ask_once(&format!("room:{uuid}"), Duration::from_secs(8), Cmd::LoadRoomSettings(uuid.to_string()));
         }
+        // Ask the speakers' update service once if this system hasn't been checked yet, so the
+        // "Software update" line below can say whether this speaker has one waiting.
+        if h.is_set_up() && !s.updates.contains_key(&h.id) {
+            self.ask_once(&format!("update:{}", h.id), Duration::from_secs(600), Cmd::CheckUpdates(h.id.clone()));
+        }
         ui.horizontal(|ui| {
             if icon_button(ui, Icon::Back, 18.0, TEXT()).clicked() {
                 self.go(View::Settings);
@@ -4084,6 +4089,19 @@ impl App {
                 ] {
                     ui.label(RichText::new(k).color(TEXT_DIM()));
                     ui.label(RichText::new(if v.is_empty() { "—".to_string() } else { v }).color(TEXT()));
+                    ui.end_row();
+                }
+                // Whether this speaker has a software update waiting (from the last check of its system).
+                let behind = s.update_behind.get(&h.id);
+                let mine = behind.is_none_or(|b| b.is_empty() || b.contains(&r.name));
+                let update = match s.updates.get(&h.id) {
+                    Some(UpdateState::Available(o)) if mine => Some((t!("Version {version} is available", version = o.version), ACCENT())),
+                    Some(UpdateState::Available(_)) | Some(UpdateState::UpToDate) => Some((t!("Up to date").to_string(), GOOD())),
+                    _ => None,
+                };
+                if let Some((text, color)) = update {
+                    ui.label(RichText::new(t!("Software update")).color(TEXT_DIM()));
+                    ui.label(RichText::new(text).color(color));
                     ui.end_row();
                 }
             });

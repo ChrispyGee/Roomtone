@@ -1000,3 +1000,4 @@ Would get: {counts}	Recevrait : {counts}
 …and {n} more	…et {n} de plus
 Update speakers that need it	Mettre à jour les enceintes qui en ont besoin
 These speakers download version {version} and restart: {rooms}. The others already have it and aren't touched. Music stops for a few minutes. Keep the speakers plugged in until they're back.	Ces enceintes téléchargent la version {version} et redémarrent : {rooms}. Les autres l'ont déjà et ne sont pas touchées. La musique s'arrête quelques minutes. Laissez les enceintes branchées jusqu'à leur retour.
+Software update	Mise à jour logicielle
