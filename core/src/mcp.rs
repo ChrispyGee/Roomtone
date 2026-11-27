@@ -2111,8 +2111,9 @@ mod unit {
 
     fn http(port: u16, request: &str) -> String {
         let Ok(mut s) = TcpStream::connect(("127.0.0.1", port)) else { return "refused".into() };
-        s.set_read_timeout(Some(Duration::from_secs(10))).unwrap();
-        s.write_all(request.as_bytes()).unwrap();
+        // macOS refuses to set a timeout on a connection the server has already closed (a refused request).
+        let _ = s.set_read_timeout(Some(Duration::from_secs(10)));
+        let _ = s.write_all(request.as_bytes());
         let mut out = String::new();
         let _ = s.read_to_string(&mut out);
         out
