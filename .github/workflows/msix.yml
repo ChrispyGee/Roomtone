@@ -80,7 +80,7 @@ jobs:
           $have = $env:STORE_TENANT_ID -and $env:STORE_CLIENT_ID -and $env:STORE_CLIENT_SECRET -and $env:STORE_SELLER_ID
           "have=$($have.ToString().ToLower())" >> $env:GITHUB_OUTPUT
           if (-not $have) { Write-Output "::notice::The Microsoft Store credentials aren't set, so nothing was sent to Partner Center. Upload the package by hand (docs/MICROSOFT_STORE.md)." }
-      - uses: actions/download-artifact@v7
+      - uses: actions/download-artifact@v8
         if: steps.creds.outputs.have == 'true'
         with:
           name: msix-check
