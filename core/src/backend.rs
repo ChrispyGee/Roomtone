@@ -1052,9 +1052,10 @@ fn play_from_service(b: &Backend, ip: &str, gid: &str, item: Item, how: PlayHow,
         let s = b.lock();
         let a = s.config.account(sid);
         let here = s.find_group(gid).map(|(h, _)| h.id.clone());
-        (a.map(|a| a.name.clone()).unwrap_or_default(), a.map(|a| a.sn.max(1)).unwrap_or(1), a.is_some_and(|a| is_other_system(&a.household, here.as_deref())))
+        (a.map(|a| a.name.clone()).unwrap_or_default(), a.map(|a| a.number()).unwrap_or(1), a.is_some_and(|a| is_other_system(&a.household, here.as_deref())))
     };
     let mut tries = vec![current];
+    // A service with no sign-in starts with account 0, then the others are tried as usual.
     tries.extend((1..=6).filter(|n| *n != current));
     let mut first_error = None;
     for sn in tries {
@@ -2568,6 +2569,31 @@ fn connect_service(b: &Backend, ctx: &Waker, sid: u32) -> Result<(), String> {
         let ip = h.rooms.first().map(|r| r.ip.clone()).ok_or("No speaker")?;
         (svc, ip, h.id.clone())
     };
+    if svc.auth == "Anonymous" {
+        // Nothing to sign in to: the service is simply switched on.
+        let device_id = speaker::device_id(&ip).unwrap_or_else(|| format!("Roomtone-{:x}", crate::sources::hash(&household)));
+        let account = crate::config::Account {
+            sid,
+            name: svc.name.clone(),
+            uri: svc.uri.clone(),
+            manifest: svc.manifest.clone(),
+            household,
+            device_id,
+            sn: 0,
+            auth: svc.auth.clone(),
+            ..Default::default()
+        };
+        let cfg = {
+            let mut s = b.lock();
+            s.config.accounts.retain(|a| a.sid != sid);
+            s.config.accounts.push(account);
+            s.toast(crate::t!("{service} connected", service = svc.name), false);
+            s.config.clone()
+        };
+        let _ = cfg.save();
+        ctx.request_repaint();
+        return Ok(());
+    }
     b.lock().link = Some(LinkState {
         sid,
         name: svc.name.clone(),
@@ -2617,6 +2643,7 @@ fn connect_service(b: &Backend, ctx: &Waker, sid: u32) -> Result<(), String> {
                         token,
                         key,
                         sn,
+                        auth: svc.auth.clone(),
                     };
                     let cfg = {
                         let mut s = b2.lock();
@@ -2879,11 +2906,21 @@ fn remember_speakers(b: &Backend) {
 }
 
 fn fetch_music_services(b: &Backend) {
+    // Saved sign-ins already have their names, so search and the library can label them at once.
+    let saved: Vec<crate::sources::smapi::MusicService> = b
+        .lock()
+        .config
+        .accounts
+        .iter()
+        .map(|a| crate::sources::smapi::MusicService { sid: a.sid, name: a.name.clone(), uri: String::new(), auth: String::new(), manifest: String::new() })
+        .collect();
+    crate::sources::learn_service_names(&saved);
     let ip = b.lock().any_ip();
     if let Some(ip) = ip {
         let b2 = b.clone();
         thread::spawn(move || {
             if let Ok(list) = speaker::music_services(&ip) {
+                crate::sources::learn_service_names(&list);
                 b2.lock().music_services = list;
             }
         });
@@ -4580,6 +4617,163 @@ mod unit {
         eprintln!("after making it again: pairs={pairs_now} rooms={back:?}");
         assert_eq!(pairs_now, 1, "the pair is back");
         assert!(split_rooms.len() > back.len(), "the right speaker is hidden again");
+    }
+
+    /// Plays a station from a service with no sign-in (TuneIn) on a real S2 room for a few seconds, quietly,
+    /// then pauses it and puts the volume back: `ROOMTONE_PLAY_TEST=Den cargo test real_tunein_plays -- --ignored --nocapture`.
+    /// It makes sound. The settings are the test home's, so nothing is saved to the real app.
+    #[test]
+    #[ignore = "makes sound on a real speaker: set ROOMTONE_PLAY_TEST to a room name"]
+    fn real_tunein_plays() {
+        let Ok(room) = std::env::var("ROOMTONE_PLAY_TEST") else { return };
+        let b = Backend::start_with(Waker::none(), false, Options { serve_local_music: false, search_network: true });
+        let wait = Duration::from_secs(60);
+        assert!(wait_for(40, || b.lock().phase == Phase::Live && b.lock().households.iter().any(|h| h.system == System::S2)), "found the speakers");
+        assert!(wait_for(20, || !b.lock().music_services.is_empty()), "the system's service list arrived");
+        let gid = {
+            let s = b.lock();
+            let h = s.households.iter().find(|h| h.rooms.iter().any(|r| r.name == room)).expect("the room");
+            let uuid = h.rooms.iter().find(|r| r.name == room).unwrap().uuid.clone();
+            h.groups.iter().find(|g| g.members.contains(&uuid)).expect("its group").id.clone()
+        };
+        let before = {
+            let s = b.lock();
+            let (_, g) = s.find_group(&gid).unwrap();
+            (g.volume, g.now.transport, g.now.title.clone())
+        };
+        eprintln!("before: volume {} {:?} {:?}", before.0, before.1, before.2);
+        // ROOMTONE_PLAY_SEARCH="325:Radio 2" plays the first playable search hit of a service already signed
+        // in to (by the link test) instead of connecting TuneIn.
+        let (station, folder) = if let Ok(spec) = std::env::var("ROOMTONE_PLAY_SEARCH") {
+            let (sid, term) = spec.split_once(':').expect("sid:term");
+            let cfg = b.lock().config.clone();
+            let hits = crate::sources::search(&format!("svc:{sid}"), term, &cfg).unwrap();
+            // The first playable hit, or the first thing inside the first folder (an album) that plays.
+            let direct = hits.iter().find(|i| !i.is_container && !i.uri.is_empty()).cloned();
+            let hit = direct.unwrap_or_else(|| {
+                let mut next = hits.iter().find(|i| i.is_container).cloned().expect("a hit to open");
+                for _ in 0..3 {
+                    let inside = crate::sources::browse(&next.id, &cfg).unwrap();
+                    if let Some(p) = inside.iter().find(|i| !i.is_container && !i.uri.is_empty()) {
+                        return p.clone();
+                    }
+                    next = inside.into_iter().find(|i| i.is_container).expect("something to open");
+                }
+                panic!("nothing playable within three levels")
+            });
+            (hit, format!("search {term}"))
+        } else {
+            b.send_and_wait(Cmd::ConnectService(254), wait).unwrap();
+            let cfg = b.lock().config.clone();
+            let acc = cfg.account(254).expect("TuneIn connected without a sign-in").clone();
+            eprintln!("connected: {} auth {} account number {}", acc.name, acc.auth, acc.number());
+            let top = crate::sources::browse("SVC:254/root", &cfg).unwrap();
+            let folder = top.iter().find(|i| i.is_container).expect("a folder").clone();
+            let stations = crate::sources::browse(&folder.id, &cfg).unwrap();
+            let station = stations.iter().find(|i| !i.is_container && !i.uri.is_empty()).expect("a station").clone();
+            (station, folder.title)
+        };
+        let sid_playing: u32 = station.source.strip_prefix("svc:").and_then(|x| x.parse().ok()).unwrap_or(254);
+        eprintln!("playing {:?} from {:?}: {}", station.title, folder, station.uri);
+        b.send_and_wait(Cmd::GroupVolume(gid.clone(), 12), wait).unwrap();
+        b.send_and_wait(Cmd::PlayItem(gid.clone(), station.clone(), PlayHow::Now), wait).unwrap();
+        let playing = wait_for(25, || {
+            let s = b.lock();
+            s.find_group(&gid).is_some_and(|(_, g)| g.now.transport == Transport::Playing)
+        });
+        thread::sleep(Duration::from_secs(6));
+        {
+            let s = b.lock();
+            let (_, g) = s.find_group(&gid).unwrap();
+            eprintln!("during: playing={playing} transport {:?} title {:?} artist {:?} uri {:?}", g.now.transport, g.now.title, g.now.artist, g.now.uri);
+            eprintln!("account number now {:?}", s.config.account(sid_playing).map(|a| a.sn));
+        }
+        // Put it back as it was.
+        b.send_and_wait(Cmd::Pause(gid.clone()), wait).unwrap();
+        b.send_and_wait(Cmd::GroupVolume(gid.clone(), before.0), wait).unwrap();
+        assert!(playing, "the station started playing");
+    }
+
+    /// Signs in to a service that needs it (BBC Sounds is 325) on a real system, waiting up to 5 minutes for the
+    /// person to approve on the service's page (the address is printed), then browses, searches and plays one
+    /// item quietly for a few seconds: `ROOMTONE_LINK_TEST=325 ROOMTONE_PLAY_TEST=Den cargo test real_service_link -- --ignored --nocapture`.
+    /// It makes sound. The sign-in is saved only to the test home's settings.
+    #[test]
+    #[ignore = "needs a person to approve a sign-in, and makes sound: set ROOMTONE_LINK_TEST and ROOMTONE_PLAY_TEST"]
+    fn real_service_link_and_play() {
+        let (Ok(sid), Ok(room)) = (std::env::var("ROOMTONE_LINK_TEST"), std::env::var("ROOMTONE_PLAY_TEST")) else { return };
+        let sid: u32 = sid.parse().unwrap();
+        let b = Backend::start_with(Waker::none(), false, Options { serve_local_music: false, search_network: true });
+        let wait = Duration::from_secs(60);
+        assert!(wait_for(40, || b.lock().phase == Phase::Live && b.lock().households.iter().any(|h| h.system == System::S2)), "found the speakers");
+        assert!(wait_for(20, || !b.lock().music_services.is_empty()), "the system's service list arrived");
+        let gid = {
+            let s = b.lock();
+            let h = s.households.iter().find(|h| h.rooms.iter().any(|r| r.name == room)).expect("the room");
+            let uuid = h.rooms.iter().find(|r| r.name == room).unwrap().uuid.clone();
+            h.groups.iter().find(|g| g.members.contains(&uuid)).expect("its group").id.clone()
+        };
+        let volume = b.lock().find_group(&gid).map(|(_, g)| g.volume).unwrap();
+        b.send_and_wait(Cmd::ConnectService(sid), wait).unwrap();
+        let mut said = false;
+        let end = Instant::now() + Duration::from_secs(300);
+        loop {
+            let link = b.lock().link.clone();
+            if let Some(l) = &link {
+                if !said && !l.url.is_empty() {
+                    said = true;
+                    eprintln!("SIGN-IN PAGE: {} code {:?}", l.url, l.code);
+                }
+                if l.done || l.failed {
+                    eprintln!("link: {} done={} failed={}", l.status, l.done, l.failed);
+                    break;
+                }
+            }
+            assert!(Instant::now() < end, "no approval within 5 minutes");
+            thread::sleep(Duration::from_millis(500));
+        }
+        let cfg = b.lock().config.clone();
+        let acc = cfg.account(sid).expect("connected").clone();
+        eprintln!("connected: {} ({}) account number {}", acc.name, acc.auth, acc.number());
+        let top = crate::sources::browse(&format!("SVC:{sid}/root"), &cfg).unwrap();
+        eprintln!("root: {:?}", top.iter().take(8).map(|i| i.title.clone()).collect::<Vec<_>>());
+        for term in ["news", "jazz"] {
+            match crate::sources::search(&format!("svc:{sid}"), term, &cfg) {
+                Ok(r) => eprintln!("search {term}: {} results, first {:?}", r.len(), r.first().map(|i| (i.title.clone(), i.class.clone()))),
+                Err(e) => eprintln!("search {term} failed: {e}"),
+            }
+        }
+        let playable = {
+            let mut found = None;
+            'outer: for folder in top.iter().filter(|i| i.is_container).take(4) {
+                let Ok(items) = crate::sources::browse(&folder.id, &cfg) else { continue };
+                for it in items.iter().take(30) {
+                    if !it.is_container && !it.uri.is_empty() {
+                        found = Some((folder.title.clone(), it.clone()));
+                        break 'outer;
+                    }
+                }
+            }
+            found
+        };
+        let Some((folder, item)) = playable else {
+            eprintln!("nothing directly playable in the first folders");
+            return;
+        };
+        eprintln!("playing {:?} from {:?}: {}", item.title, folder, item.uri);
+        b.send_and_wait(Cmd::GroupVolume(gid.clone(), 12), wait).unwrap();
+        let result = b.send_and_wait(Cmd::PlayItem(gid.clone(), item.clone(), PlayHow::Now), wait);
+        eprintln!("play request: {result:?}");
+        let playing = wait_for(25, || b.lock().find_group(&gid).is_some_and(|(_, g)| g.now.transport == Transport::Playing));
+        thread::sleep(Duration::from_secs(6));
+        {
+            let s = b.lock();
+            let (_, g) = s.find_group(&gid).unwrap();
+            eprintln!("during: playing={playing} transport {:?} title {:?} artist {:?} uri {:?}", g.now.transport, g.now.title, g.now.artist, g.now.uri);
+            eprintln!("account number now {:?}", s.config.account(sid).map(|a| a.sn));
+        }
+        b.send_and_wait(Cmd::Pause(gid.clone()), wait).unwrap();
+        b.send_and_wait(Cmd::GroupVolume(gid.clone(), volume), wait).unwrap();
     }
 
     /// Read-only check of the S2 report against real speakers (prints models and verdicts only):

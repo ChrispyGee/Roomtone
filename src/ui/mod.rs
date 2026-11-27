@@ -107,6 +107,8 @@ pub struct App {
     search_year: String,
     /// The network range typed for *Scan another network*.
     scan_text: String,
+    /// The box that narrows the *More services* list.
+    more_filter: String,
     /// Albums already sent for a year look-up this run.
     years_asked: std::collections::HashSet<String>,
     /// Albums sent for a year look-up since the last time none were waiting (for the progress bar).
@@ -235,7 +237,8 @@ impl App {
             searched: String::new(),
             search_edit_at: preset_search.map(|_| Instant::now() - Duration::from_secs(2)),
             right_tab: 0,
-            settings_tab: 0,
+            // Picture checks: ROOMTONE_TEST_SETTINGS_TAB=2 opens Settings on its Services tab.
+            settings_tab: std::env::var("ROOMTONE_TEST_SETTINGS_TAB").ok().and_then(|v| v.parse().ok()).unwrap_or(0),
             arranging: false,
             window_watcher: crate::window::Watcher::new(if shot.is_some() { None } else { crate::window::load() }),
             group_editor: None,
@@ -271,6 +274,7 @@ impl App {
             search_genre: None,
             search_year: String::new(),
             scan_text: String::new(),
+            more_filter: String::new(),
             years_asked: Default::default(),
             years_total: 0,
             station_editor: None,

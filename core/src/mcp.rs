@@ -1462,6 +1462,10 @@ mod unit {
             let mut s = b.lock();
             s.config.mcp.enabled = true;
             s.config.mcp.allow_control = true;
+            // The unit tests share one settings folder, so an earlier run (or test) may have left these on.
+            s.config.mcp.allow_updates = false;
+            s.config.mcp.allow_files = false;
+            s.config.mcp.files_folder = String::new();
         }
         Mcp::new(b)
     }
@@ -2107,8 +2111,9 @@ mod unit {
 
     fn http(port: u16, request: &str) -> String {
         let Ok(mut s) = TcpStream::connect(("127.0.0.1", port)) else { return "refused".into() };
-        s.set_read_timeout(Some(Duration::from_secs(10))).unwrap();
-        s.write_all(request.as_bytes()).unwrap();
+        // macOS refuses to set a timeout on a connection the server has already closed (a refused request).
+        let _ = s.set_read_timeout(Some(Duration::from_secs(10)));
+        let _ = s.write_all(request.as_bytes());
         let mut out = String::new();
         let _ = s.read_to_string(&mut out);
         out

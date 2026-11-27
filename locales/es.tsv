@@ -1025,3 +1025,11 @@ Scan	Buscar
 Tried {done} of {total} addresses · found {n}	Probadas {done} de {total} direcciones · {n} encontrados
 No speakers answered in {range}. Check the range, and that your router lets this computer reach port 1400 on that network.	Ningún altavoz respondió en {range}. Comprueba el rango y que tu router deja a este ordenador llegar al puerto 1400 de esa red.
 Found speakers at {list}, and added them.	Se encontraron altavoces en {list} y se han añadido.
+More services	Más servicios
+Your speakers offer these too. Roomtone signs in to each the way it does for the services above, but a service may only let the speaker maker's own app in, so some won't work. Ones marked No sign-in can be used straight away. Use Check after connecting to see what works.	Tus altavoces ofrecen también estos. Roomtone inicia sesión en cada uno como en los servicios de arriba, pero un servicio puede dejar entrar solo a la app del fabricante, así que algunos no funcionarán. Los marcados como «Sin inicio de sesión» se pueden usar enseguida. Usa Comprobar tras conectar para ver qué funciona.
+Find a service	Buscar un servicio
+No sign-in	Sin inicio de sesión
+Sign in with a code	Inicio de sesión con código
+Sign in on a web page	Inicio de sesión en una web
+No service matches that.	Ningún servicio coincide.
+This service doesn't list a home page to browse. Use Search to find stations, shows and music from it.	Este servicio no tiene una página de inicio para explorar. Usa la búsqueda para encontrar emisoras, programas y música.

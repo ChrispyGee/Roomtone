@@ -1025,3 +1025,11 @@ Scan	Suchen
 Tried {done} of {total} addresses · found {n}	{done} von {total} Adressen geprüft · {n} gefunden
 No speakers answered in {range}. Check the range, and that your router lets this computer reach port 1400 on that network.	In {range} hat kein Lautsprecher geantwortet. Prüfe den Bereich und ob dein Router diesem Computer in dem Netzwerk Zugriff auf Port 1400 erlaubt.
 Found speakers at {list}, and added them.	Lautsprecher gefunden bei {list} und hinzugefügt.
+More services	Weitere Dienste
+Your speakers offer these too. Roomtone signs in to each the way it does for the services above, but a service may only let the speaker maker's own app in, so some won't work. Ones marked No sign-in can be used straight away. Use Check after connecting to see what works.	Deine Lautsprecher bieten auch diese an. Roomtone meldet sich bei jedem so an wie bei den Diensten oben, aber ein Dienst lässt womöglich nur die App des Lautsprecherherstellers hinein, daher funktionieren manche nicht. Dienste mit „Keine Anmeldung“ sind sofort nutzbar. Mit „Prüfen“ siehst du nach dem Verbinden, was funktioniert.
+Find a service	Dienst suchen
+No sign-in	Keine Anmeldung
+Sign in with a code	Anmeldung mit Code
+Sign in on a web page	Anmeldung auf einer Webseite
+No service matches that.	Kein Dienst passt dazu.
+This service doesn't list a home page to browse. Use Search to find stations, shows and music from it.	Dieser Dienst zeigt keine Startseite zum Durchstöbern. Finde Sender, Sendungen und Musik darüber mit der Suche.

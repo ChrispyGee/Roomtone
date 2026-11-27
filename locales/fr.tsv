@@ -1025,3 +1025,11 @@ Scan	Analyser
 Tried {done} of {total} addresses · found {n}	{done} adresses sur {total} essayées · {n} trouvée(s)
 No speakers answered in {range}. Check the range, and that your router lets this computer reach port 1400 on that network.	Aucune enceinte n’a répondu dans {range}. Vérifiez la plage et que votre routeur laisse cet ordinateur joindre le port 1400 de ce réseau.
 Found speakers at {list}, and added them.	Enceintes trouvées à {list} et ajoutées.
+More services	Autres services
+Your speakers offer these too. Roomtone signs in to each the way it does for the services above, but a service may only let the speaker maker's own app in, so some won't work. Ones marked No sign-in can be used straight away. Use Check after connecting to see what works.	Vos enceintes proposent aussi ceux-ci. Roomtone se connecte à chacun comme aux services ci-dessus, mais un service peut n’autoriser que l’app du fabricant, donc certains ne fonctionneront pas. Ceux marqués « Sans connexion » sont utilisables tout de suite. Utilisez Vérifier après la connexion pour voir ce qui marche.
+Find a service	Trouver un service
+No sign-in	Sans connexion
+Sign in with a code	Connexion avec un code
+Sign in on a web page	Connexion sur une page web
+No service matches that.	Aucun service ne correspond.
+This service doesn't list a home page to browse. Use Search to find stations, shows and music from it.	Ce service n’a pas de page d’accueil à parcourir. Utilisez la recherche pour trouver des stations, des émissions et de la musique.

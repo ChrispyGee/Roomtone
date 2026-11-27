@@ -11,6 +11,9 @@ pub mod radio;
 pub mod smapi;
 pub mod yearlookup;
 
+use std::collections::HashMap;
+use std::sync::{Mutex, OnceLock};
+
 use crate::config::Config;
 use crate::model::Item;
 
@@ -26,9 +29,42 @@ pub fn hash(s: &str) -> u64 {
 /// Every place search can look, in the order results are shown.
 pub const SEARCH_SOURCES: &[&str] = &["library", "favorites", "playlists", "local", "mystations", "radio", "podcasts", "archive"];
 
+/// Names of the services the system offers that Roomtone has no card of its own for (BBC Sounds,
+/// Audible, TuneIn...), learned from the system's list. The few dozen names are kept for the run.
+fn extra_names() -> &'static Mutex<HashMap<u32, &'static str>> {
+    static N: OnceLock<Mutex<HashMap<u32, &'static str>>> = OnceLock::new();
+    N.get_or_init(Default::default)
+}
+
+pub fn learn_service_names(list: &[smapi::MusicService]) {
+    let Ok(mut names) = extra_names().lock() else { return };
+    for m in list.iter().filter(|m| m.sid > 0 && !m.name.is_empty() && !SERVICES.iter().any(|s| s.sid == m.sid)) {
+        names.entry(m.sid).or_insert_with(|| Box::leak(m.name.clone().into_boxed_str()));
+    }
+}
+
+/// The name of a streaming service by its number.
+pub fn service_name(sid: u32) -> Option<&'static str> {
+    SERVICES.iter().find(|s| s.sid == sid).map(|s| s.name).or_else(|| extra_names().lock().ok().and_then(|n| n.get(&sid).copied()))
+}
+
+/// Everything else the system offers: services Roomtone has no card of its own for, by name.
+/// Each signs in on a web page, with a code, or not at all. Whether one works with a third-party
+/// app is up to the service.
+pub fn extra_services(offered: &[smapi::MusicService]) -> Vec<&smapi::MusicService> {
+    let mut v: Vec<&smapi::MusicService> = offered
+        .iter()
+        .filter(|m| {
+            m.sid > 0 && !m.uri.is_empty() && !m.name.is_empty() && !SERVICES.iter().any(|s| s.sid == m.sid) && ["Anonymous", "AppLink", "DeviceLink"].contains(&m.auth.as_str())
+        })
+        .collect();
+    v.sort_by_key(|m| m.name.to_lowercase());
+    v
+}
+
 pub fn source_label(id: &str) -> &'static str {
     if let Some(sid) = id.strip_prefix("svc:").and_then(|x| x.parse::<u32>().ok()) {
-        return SERVICES.iter().find(|s| s.sid == sid).map(|s| s.name).unwrap_or(crate::i18n::tr(n_!("Streaming service")));
+        return service_name(sid).unwrap_or(crate::i18n::tr(n_!("Streaming service")));
     }
     match id {
         "library" => crate::i18n::tr(n_!("System library")),
@@ -229,6 +265,42 @@ pub fn all_search_sources(config: &Config) -> Vec<String> {
 
 #[cfg(test)]
 mod unit {
+    fn offered(sid: u32, name: &str, auth: &str, uri: &str) -> smapi::MusicService {
+        smapi::MusicService { sid, name: name.into(), uri: uri.into(), auth: auth.into(), manifest: String::new() }
+    }
+
+    #[test]
+    fn the_other_services_a_system_offers_are_listed_by_name_without_the_ones_we_have() {
+        let list = vec![
+            offered(9, "Spotify", "AppLink", "https://s"),
+            offered(325, "BBC Sounds", "AppLink", "https://b"),
+            offered(254, "TuneIn", "Anonymous", "https://t"),
+            offered(239, "audible", "AppLink", "https://a"),
+            offered(900, "No address", "AppLink", ""),
+            offered(901, "Odd sign-in", "Mystery", "https://o"),
+            offered(0, "Zero", "AppLink", "https://z"),
+        ];
+        let names: Vec<&str> = extra_services(&list).iter().map(|m| m.name.as_str()).collect();
+        assert_eq!(names, ["audible", "BBC Sounds", "TuneIn"], "ours, address-less and unknown sign-ins are left out, and it is sorted by name");
+    }
+
+    #[test]
+    fn names_of_other_services_are_learned_for_labels() {
+        assert_eq!(source_label("svc:4321"), crate::i18n::tr(n_!("Streaming service")), "unknown until learned");
+        learn_service_names(&[offered(4321, "Name Test Radio", "Anonymous", "https://x")]);
+        assert_eq!(source_label("svc:4321"), "Name Test Radio");
+        assert_eq!(service_name(9), Some("Spotify"), "ours keep their own names");
+    }
+
+    #[test]
+    fn a_service_with_no_sign_in_plays_with_account_zero_and_the_others_from_one() {
+        let anon = crate::config::Account { auth: "Anonymous".into(), ..Default::default() };
+        let signed = crate::config::Account { sn: 0, auth: "AppLink".into(), ..Default::default() };
+        let old = crate::config::Account::default();
+        assert_eq!((anon.number(), signed.number(), old.number()), (0, 1, 1));
+        assert!(anon.is_anonymous() && !signed.is_anonymous() && !old.is_anonymous(), "saves from before this was recorded all signed in");
+    }
+
     use super::*;
 
     #[test]

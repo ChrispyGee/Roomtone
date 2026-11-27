@@ -112,9 +112,21 @@ pub fn finish_link(svc: &MusicService, household: &str, device_id: &str, link: &
             _ => Err("The service didn't return a sign-in".into()),
         },
         Err(Fault::Refresh(t, k)) => Ok(Some((t, k))),
-        Err(Fault::Other(e)) if e.contains("NOT_LINKED_RETRY") || e.to_lowercase().contains("retry") => Ok(None),
+        Err(Fault::Other(e)) if still_waiting(&e) => {
+            if std::env::var_os("ROOMTONE_DEBUG_LINK").is_some() {
+                eprintln!("[link] {} says: {e}", svc.name);
+            }
+            Ok(None)
+        }
         Err(Fault::Other(e)) => Err(e),
     }
+}
+
+/// Is this a service saying the person hasn't approved yet? Services word it their own way: "NOT_LINKED_RETRY",
+/// "Authorisation Pending" (BBC Sounds)...
+fn still_waiting(fault: &str) -> bool {
+    let f = fault.to_lowercase();
+    ["retry", "pending", "not_linked", "not linked", "slow_down", "slow down"].iter().any(|w| f.contains(w))
 }
 
 /// Tokens the services hand back when they renew a sign-in, to be saved by the caller.
@@ -130,7 +142,8 @@ pub fn take_renewed() -> Vec<(u32, String, String)> {
 fn call(acc: &Account, action: &str, args: &[(&str, &str)]) -> Result<String, String> {
     let (mut token, mut key) = (acc.token.clone(), acc.key.clone());
     for _ in 0..2 {
-        let env = envelope(&acc.device_id, Some((&token, &key, &acc.household)), action, args);
+        let login = if acc.is_anonymous() { None } else { Some((token.as_str(), key.as_str(), acc.household.as_str())) };
+        let env = envelope(&acc.device_id, login, action, args);
         match post(&acc.uri, action, &env) {
             Ok(t) => return Ok(t),
             Err(Fault::Refresh(t, k)) => {
@@ -186,7 +199,7 @@ fn to_item(acc: &Account, n: roxmltree::Node) -> Option<Item> {
     let is_collection = n.tag_name().name() == "mediaCollection";
     let can_play = text_of(n, "canPlay") != "false";
     let q = quote(&id);
-    let sn = acc.sn.max(1);
+    let sn = acc.number();
     let sid = acc.sid;
     let mut item = Item {
         id: format!("SVC:{sid}/{id}"),
@@ -297,18 +310,26 @@ fn categories(acc: &Account) -> Vec<String> {
         .ok()
         .and_then(|r| r.into_json::<serde_json::Value>().ok())
         .and_then(|v| v.pointer("/presentationMap/uri").and_then(|u| u.as_str()).map(String::from));
+    let mut read = false;
     if let Some(map) = map_uri.and_then(|u| agent().get(&u).call().ok()).and_then(|r| r.into_string().ok()) {
         if let Ok(doc) = roxmltree::Document::parse(&map) {
-            for c in doc.descendants().filter(|n| matches!(n.tag_name().name(), "Category" | "CustomCategory")) {
-                if let Some(m) = c.attribute("mappedId") {
-                    if !cats.iter().any(|x| x == m) {
-                        cats.push(m.to_string());
+            read = true;
+            // Only the categories of the *search* section: other sections list browse folders, which a
+            // search doesn't know (TuneIn searches "search:station", not the folders it shows).
+            for section in doc.descendants().filter(|n| n.tag_name().name() == "PresentationMap" && n.attribute("type") == Some("Search")) {
+                for c in section.descendants().filter(|n| matches!(n.tag_name().name(), "Category" | "CustomCategory")) {
+                    if let Some(m) = c.attribute("mappedId") {
+                        if !cats.iter().any(|x| x == m) {
+                            cats.push(m.to_string());
+                        }
                     }
                 }
             }
         }
     }
-    if cats.is_empty() {
+    // A service whose map was read and has no search section can't be searched; one whose map
+    // couldn't be read gets the usual guesses.
+    if cats.is_empty() && !read {
         cats = ["artists", "albums", "tracks", "playlists"].iter().map(|s| s.to_string()).collect();
     }
     if let Ok(mut m) = cache.lock() {
@@ -374,6 +395,190 @@ mod tests {
         }
         let fav_sn: Vec<String> = [9u32, 204, 201, 2].iter().map(|s| format!("{s}->{:?}", crate::net::speaker::account_number(&ip, *s))).collect();
         println!("account numbers from favorites: {}", fav_sn.join(" "));
+    }
+}
+
+#[cfg(test)]
+mod anonymous_tests {
+    /// Opt in with ROOMTONE_SPEAKER=<an address>: browse and search services that need no sign-in.
+    /// Nothing is played and nothing is changed.
+    #[test]
+    #[ignore = "needs a speaker: set ROOMTONE_SPEAKER"]
+    fn services_without_a_sign_in_browse_and_search() {
+        let Ok(ip) = std::env::var("ROOMTONE_SPEAKER") else { return };
+        let list = crate::net::speaker::music_services(&ip).unwrap();
+        let household = crate::net::soap::call(&ip, crate::net::soap::DEVICE_PROPS, "GetHouseholdID", &[]).unwrap()["CurrentHouseholdID"].clone();
+        let device = crate::net::speaker::device_id(&ip).unwrap();
+        for name in std::env::var("ROOMTONE_SERVICES").unwrap_or_else(|_| "TuneIn,SomaFM Radio,NTS Radio,Hype Machine".into()).split(',') {
+            let Some(svc) = list.iter().find(|m| m.name == name) else {
+                println!("{name}: not offered");
+                continue;
+            };
+            let acc = crate::config::Account {
+                sid: svc.sid,
+                name: svc.name.clone(),
+                uri: svc.uri.clone(),
+                manifest: svc.manifest.clone(),
+                household: household.clone(),
+                device_id: device.clone(),
+                auth: svc.auth.clone(),
+                ..Default::default()
+            };
+            match super::browse(&acc, "root") {
+                Ok(items) => {
+                    println!("{name} ({}, {}): root has {} entries: {:?}", svc.sid, svc.auth, items.len(), items.iter().take(5).map(|i| i.title.clone()).collect::<Vec<_>>());
+                    if let Some(first) = items.iter().find(|i| i.is_container) {
+                        match super::browse(&acc, first.id.trim_start_matches(&format!("SVC:{}/", svc.sid))) {
+                            Ok(sub) => println!(
+                                "   inside {:?}: {} entries, first {:?} uri {:?}",
+                                first.title,
+                                sub.len(),
+                                sub.first().map(|i| i.title.clone()),
+                                sub.first().map(|i| i.uri.clone())
+                            ),
+                            Err(e) => println!("   inside {:?}: {e}", first.title),
+                        }
+                    }
+                }
+                Err(e) => println!("{name}: browse failed: {e}"),
+            }
+            match super::search(&acc, "jazz") {
+                Ok(r) => println!("   search jazz: {} results, first {:?}", r.len(), r.first().map(|i| (i.title.clone(), i.uri.clone()))),
+                Err(e) => println!("   search failed: {e}"),
+            }
+        }
+    }
+}
+
+#[cfg(test)]
+mod survey_tests {
+    use std::sync::Mutex;
+
+    /// Opt in with ROOMTONE_SPEAKER=<an address>: every service the system offers that we have no card for.
+    /// Ones with no sign-in are browsed and searched; ones that sign in are only asked for their sign-in page.
+    /// Nothing is played and no account is made.
+    #[test]
+    #[ignore = "needs a speaker: set ROOMTONE_SPEAKER"]
+    fn survey_of_the_other_services() {
+        let Ok(ip) = std::env::var("ROOMTONE_SPEAKER") else { return };
+        let list = crate::net::speaker::music_services(&ip).unwrap();
+        let household = crate::net::soap::call(&ip, crate::net::soap::DEVICE_PROPS, "GetHouseholdID", &[]).unwrap()["CurrentHouseholdID"].clone();
+        let device = crate::net::speaker::device_id(&ip).unwrap();
+        let extras: Vec<_> = crate::sources::extra_services(&list);
+        let rows = Mutex::new(vec![]);
+        std::thread::scope(|scope| {
+            for chunk in extras.chunks(extras.len().div_ceil(10)) {
+                let (rows, household, device) = (&rows, &household, &device);
+                scope.spawn(move || {
+                    for svc in chunk {
+                        let line = if svc.auth == "Anonymous" {
+                            let acc = crate::config::Account {
+                                sid: svc.sid,
+                                name: svc.name.clone(),
+                                uri: svc.uri.clone(),
+                                manifest: svc.manifest.clone(),
+                                household: household.clone(),
+                                device_id: device.clone(),
+                                auth: svc.auth.clone(),
+                                ..Default::default()
+                            };
+                            match super::browse(&acc, "root") {
+                                Ok(root) => {
+                                    let inner = root.iter().find(|i| i.is_container).map(|f| super::browse(&acc, f.id.trim_start_matches(&format!("SVC:{}/", svc.sid))));
+                                    let playable = root
+                                        .iter()
+                                        .chain(inner.iter().flat_map(|r| r.iter().flatten()))
+                                        .find(|i| !i.is_container && !i.uri.is_empty())
+                                        .map(|i| i.uri.split('?').next().unwrap_or("").chars().take(28).collect::<String>());
+                                    let search = match super::search(&acc, "music") {
+                                        Ok(r) => format!("search {}", r.len()),
+                                        Err(_) => "search err".into(),
+                                    };
+                                    format!("OPEN   root {} · playable {} · {search}", root.len(), playable.map(|p| format!("yes ({p})")).unwrap_or("no".into()))
+                                }
+                                Err(e) => format!("BROWSE-FAIL {}", e.chars().take(70).collect::<String>()),
+                            }
+                        } else {
+                            match super::start_link(svc, household, device) {
+                                Ok(l) => format!("SIGNIN-OK  page {} · code {}", l.url.split('/').nth(2).unwrap_or(""), if l.code.is_empty() { "none" } else { "shown" }),
+                                Err(e) => format!("SIGNIN-REFUSED {}", e.chars().take(70).collect::<String>()),
+                            }
+                        };
+                        rows.lock().unwrap().push((svc.name.clone(), svc.auth.clone(), line));
+                    }
+                });
+            }
+        });
+        let mut rows = rows.into_inner().unwrap();
+        rows.sort();
+        for (name, auth, line) in rows {
+            println!("{name} [{auth}]: {line}");
+        }
+    }
+}
+
+#[cfg(test)]
+mod walk_tests {
+    /// Opt in with ROOMTONE_RAW_SID=<sid>: from the saved sign-in's home page, open the first folder of each level
+    /// (or the one named in ROOMTONE_WALK, a comma list of titles) and print what is inside. Nothing is played.
+    #[test]
+    #[ignore = "needs a saved sign-in: set ROOMTONE_RAW_SID"]
+    fn walk_a_saved_service() {
+        let Ok(sid) = std::env::var("ROOMTONE_RAW_SID") else { return };
+        let cfg = crate::config::Config::load_readonly();
+        let acc = cfg.account(sid.parse().unwrap()).expect("a saved sign-in").clone();
+        let path: Vec<String> = std::env::var("ROOMTONE_WALK").map(|w| w.split(',').map(String::from).collect()).unwrap_or_default();
+        let mut id = "root".to_string();
+        for depth in 0..6 {
+            let items = match super::browse(&acc, &id) {
+                Ok(i) => i,
+                Err(e) => {
+                    println!("level {depth} ({id}): {e}");
+                    return;
+                }
+            };
+            println!(
+                "level {depth}: {} entries: {:?}",
+                items.len(),
+                items.iter().take(8).map(|i| format!("{}{}", i.title, if i.is_container { "/" } else { "" })).collect::<Vec<_>>()
+            );
+            if let Some(p) = items.iter().find(|i| !i.is_container && !i.uri.is_empty()) {
+                println!("  playable: {:?} {:?} class {}", p.title, p.uri, p.class);
+                return;
+            }
+            let next = match path.get(depth) {
+                Some(t) => items.iter().find(|i| i.is_container && i.title.contains(t.as_str())),
+                None => items.iter().find(|i| i.is_container),
+            };
+            let Some(next) = next else {
+                println!("  (nothing to open)");
+                return;
+            };
+            println!("  opening {:?}", next.title);
+            id = next.id.trim_start_matches(&format!("SVC:{}/", acc.sid)).to_string();
+        }
+    }
+}
+
+#[cfg(test)]
+mod saved_account_tests {
+    /// Opt in with ROOMTONE_RAW_SID=<sid> (the sign-in saved by the link test): print what the service
+    /// answers for its home page, to see what the parser makes of it.
+    #[test]
+    #[ignore = "needs a saved sign-in: set ROOMTONE_RAW_SID"]
+    fn raw_home_of_a_saved_service() {
+        let Ok(sid) = std::env::var("ROOMTONE_RAW_SID") else { return };
+        let cfg = crate::config::Config::load_readonly();
+        let acc = cfg.account(sid.parse().unwrap()).expect("a saved sign-in").clone();
+        let id = std::env::var("ROOMTONE_RAW_ID").unwrap_or_else(|_| "root".into());
+        let text = super::call(&acc, "getMetadata", &[("id", id.as_str()), ("index", "0"), ("count", "20"), ("recursive", "false")]).unwrap();
+        println!("{}", &text[..text.len().min(3500)]);
+        println!("parsed: {:?}", super::items_from(&acc, &text).iter().map(|i| (i.title.clone(), i.class.clone(), i.uri.clone())).take(5).collect::<Vec<_>>());
+        if let Ok(found) = super::search(&acc, "radio 2") {
+            for i in found.iter().take(8) {
+                println!("search hit: {:?} id {} class {} playable-uri {:?}", i.title, i.id, i.class, i.uri);
+            }
+        }
     }
 }
 
@@ -480,6 +685,16 @@ mod home_tests {
 
 #[cfg(test)]
 mod unit {
+    #[test]
+    fn a_service_that_is_still_waiting_for_approval_is_told_from_one_that_refused() {
+        for waiting in ["NOT_LINKED_RETRY", "Authorisation Pending", "authorization_pending", "SlowDown: slow down", "Device is not linked yet"] {
+            assert!(super::still_waiting(waiting), "{waiting}");
+        }
+        for refused in ["The service refused the request", "Access denied", "Expired code", "unexpected reply"] {
+            assert!(!super::still_waiting(refused), "{refused}");
+        }
+    }
+
     use super::*;
 
     fn spotify() -> Account {
