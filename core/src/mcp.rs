@@ -1800,7 +1800,7 @@ mod unit {
         let eighties = ok(&m, "search", json!({"query": "Marlow", "year": "1980s"}));
         assert!(eighties.contains("Low Tide Sessions"), "{eighties}");
         let other = ok(&m, "search", json!({"query": "Marlow", "year": "2010s"}));
-        assert!(other.starts_with("Nothing from 2010–2019 found."), "{other}");
+        assert!(other.starts_with("Nothing from 2010s found."), "{other}");
         // A search that is only a year works without the year field, and a range reads too.
         assert!(ok(&m, "search", json!({"query": "1987"})).contains("Low Tide Sessions"));
         assert!(ok(&m, "search", json!({"query": "1970-1990"})).contains("Northern Soul Kitchen"));

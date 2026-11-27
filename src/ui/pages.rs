@@ -921,12 +921,12 @@ impl App {
                     }
                 });
                 // Years: a decade from the list, or a year (1985) or range (1985-89) typed in the filter box.
-                let any_year = if self.list_year.is_empty() { t!("All years").to_string() } else { YearRange::parse(&self.list_year).map(|r| r.label()).unwrap_or_default() };
+                let year_name = |d: &str| if d == "1900-1959" { t!("Before 1960").to_string() } else { YearRange::parse(d).map(|r| r.label()).unwrap_or_default() };
+                let any_year = if self.list_year.is_empty() { t!("All years").to_string() } else { year_name(&self.list_year) };
                 egui::ComboBox::from_id_salt(("year", key)).width(130.0).selected_text(any_year).show_ui(ui, |ui| {
                     ui.selectable_value(&mut self.list_year, String::new(), t!("All years"));
                     for d in ["2020s", "2010s", "2000s", "1990s", "1980s", "1970s", "1960s", "1900-1959"] {
-                        let label = YearRange::parse(d).map(|r| r.label()).unwrap_or_default();
-                        ui.selectable_value(&mut self.list_year, d.to_string(), label);
+                        ui.selectable_value(&mut self.list_year, d.to_string(), year_name(d));
                     }
                 });
                 if !genres.is_empty() {

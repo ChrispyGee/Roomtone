@@ -82,6 +82,8 @@ impl YearRange {
     pub fn label(&self) -> String {
         if self.from == self.to {
             self.from.to_string()
+        } else if self.from.is_multiple_of(10) && self.to == self.from + 9 {
+            format!("{}s", self.from)
         } else {
             format!("{}–{}", self.from, self.to)
         }
@@ -148,7 +150,8 @@ mod unit {
 
     #[test]
     fn labels_read_back_what_was_asked() {
-        assert_eq!(YearRange::parse("80s").unwrap().label(), "1980–1989");
+        assert_eq!(YearRange::parse("80s").unwrap().label(), "1980s");
+        assert_eq!(YearRange::parse("1985-89").unwrap().label(), "1985–1989");
         assert_eq!(YearRange::parse("1969").unwrap().label(), "1969");
     }
 
