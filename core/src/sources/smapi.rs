@@ -130,7 +130,8 @@ pub fn take_renewed() -> Vec<(u32, String, String)> {
 fn call(acc: &Account, action: &str, args: &[(&str, &str)]) -> Result<String, String> {
     let (mut token, mut key) = (acc.token.clone(), acc.key.clone());
     for _ in 0..2 {
-        let env = envelope(&acc.device_id, Some((&token, &key, &acc.household)), action, args);
+        let login = if acc.is_anonymous() { None } else { Some((token.as_str(), key.as_str(), acc.household.as_str())) };
+        let env = envelope(&acc.device_id, login, action, args);
         match post(&acc.uri, action, &env) {
             Ok(t) => return Ok(t),
             Err(Fault::Refresh(t, k)) => {
@@ -186,7 +187,7 @@ fn to_item(acc: &Account, n: roxmltree::Node) -> Option<Item> {
     let is_collection = n.tag_name().name() == "mediaCollection";
     let can_play = text_of(n, "canPlay") != "false";
     let q = quote(&id);
-    let sn = acc.sn.max(1);
+    let sn = acc.number();
     let sid = acc.sid;
     let mut item = Item {
         id: format!("SVC:{sid}/{id}"),
@@ -297,18 +298,26 @@ fn categories(acc: &Account) -> Vec<String> {
         .ok()
         .and_then(|r| r.into_json::<serde_json::Value>().ok())
         .and_then(|v| v.pointer("/presentationMap/uri").and_then(|u| u.as_str()).map(String::from));
+    let mut read = false;
     if let Some(map) = map_uri.and_then(|u| agent().get(&u).call().ok()).and_then(|r| r.into_string().ok()) {
         if let Ok(doc) = roxmltree::Document::parse(&map) {
-            for c in doc.descendants().filter(|n| matches!(n.tag_name().name(), "Category" | "CustomCategory")) {
-                if let Some(m) = c.attribute("mappedId") {
-                    if !cats.iter().any(|x| x == m) {
-                        cats.push(m.to_string());
+            read = true;
+            // Only the categories of the *search* section: other sections list browse folders, which a
+            // search doesn't know (TuneIn searches "search:station", not the folders it shows).
+            for section in doc.descendants().filter(|n| n.tag_name().name() == "PresentationMap" && n.attribute("type") == Some("Search")) {
+                for c in section.descendants().filter(|n| matches!(n.tag_name().name(), "Category" | "CustomCategory")) {
+                    if let Some(m) = c.attribute("mappedId") {
+                        if !cats.iter().any(|x| x == m) {
+                            cats.push(m.to_string());
+                        }
                     }
                 }
             }
         }
     }
-    if cats.is_empty() {
+    // A service whose map was read and has no search section can't be searched; one whose map
+    // couldn't be read gets the usual guesses.
+    if cats.is_empty() && !read {
         cats = ["artists", "albums", "tracks", "playlists"].iter().map(|s| s.to_string()).collect();
     }
     if let Ok(mut m) = cache.lock() {
@@ -374,6 +383,58 @@ mod tests {
         }
         let fav_sn: Vec<String> = [9u32, 204, 201, 2].iter().map(|s| format!("{s}->{:?}", crate::net::speaker::account_number(&ip, *s))).collect();
         println!("account numbers from favorites: {}", fav_sn.join(" "));
+    }
+}
+
+#[cfg(test)]
+mod anonymous_tests {
+    /// Opt in with ROOMTONE_SPEAKER=<an address>: browse and search services that need no sign-in.
+    /// Nothing is played and nothing is changed.
+    #[test]
+    #[ignore = "needs a speaker: set ROOMTONE_SPEAKER"]
+    fn services_without_a_sign_in_browse_and_search() {
+        let Ok(ip) = std::env::var("ROOMTONE_SPEAKER") else { return };
+        let list = crate::net::speaker::music_services(&ip).unwrap();
+        let household = crate::net::soap::call(&ip, crate::net::soap::DEVICE_PROPS, "GetHouseholdID", &[]).unwrap()["CurrentHouseholdID"].clone();
+        let device = crate::net::speaker::device_id(&ip).unwrap();
+        for name in std::env::var("ROOMTONE_SERVICES").unwrap_or_else(|_| "TuneIn,SomaFM Radio,NTS Radio,Hype Machine".into()).split(',') {
+            let Some(svc) = list.iter().find(|m| m.name == name) else {
+                println!("{name}: not offered");
+                continue;
+            };
+            let acc = crate::config::Account {
+                sid: svc.sid,
+                name: svc.name.clone(),
+                uri: svc.uri.clone(),
+                manifest: svc.manifest.clone(),
+                household: household.clone(),
+                device_id: device.clone(),
+                auth: svc.auth.clone(),
+                ..Default::default()
+            };
+            match super::browse(&acc, "root") {
+                Ok(items) => {
+                    println!("{name} ({}, {}): root has {} entries: {:?}", svc.sid, svc.auth, items.len(), items.iter().take(5).map(|i| i.title.clone()).collect::<Vec<_>>());
+                    if let Some(first) = items.iter().find(|i| i.is_container) {
+                        match super::browse(&acc, first.id.trim_start_matches(&format!("SVC:{}/", svc.sid))) {
+                            Ok(sub) => println!(
+                                "   inside {:?}: {} entries, first {:?} uri {:?}",
+                                first.title,
+                                sub.len(),
+                                sub.first().map(|i| i.title.clone()),
+                                sub.first().map(|i| i.uri.clone())
+                            ),
+                            Err(e) => println!("   inside {:?}: {e}", first.title),
+                        }
+                    }
+                }
+                Err(e) => println!("{name}: browse failed: {e}"),
+            }
+            match super::search(&acc, "jazz") {
+                Ok(r) => println!("   search jazz: {} results, first {:?}", r.len(), r.first().map(|i| (i.title.clone(), i.uri.clone()))),
+                Err(e) => println!("   search failed: {e}"),
+            }
+        }
     }
 }
 

@@ -1748,6 +1748,100 @@ impl App {
             });
             ui.add_space(10.0);
         }
+        self.more_services(ui, s, live);
+    }
+
+    /// Every other service the system offers (BBC Sounds, Audible, TuneIn...), to connect and use
+    /// the way the ones above are. Whether a service lets this app in is up to the service.
+    fn more_services(&mut self, ui: &mut Ui, s: &AppState, live: bool) {
+        let extras = crate::sources::extra_services(&s.music_services);
+        if extras.is_empty() {
+            return;
+        }
+        ui.add_space(6.0);
+        section_title(ui, t!("More services"));
+        ui.label(
+            RichText::new(t!("Your speakers offer these too. Roomtone signs in to each the way it does for the services above, but a service may only let the speaker maker's own app in, so some won't work. Ones marked No sign-in can be used straight away. Use Check after connecting to see what works."))
+                .size(12.5)
+                .color(TEXT_DIM()),
+        );
+        ui.add_space(6.0);
+        ui.add(egui::TextEdit::singleline(&mut self.more_filter).hint_text(t!("Find a service")).desired_width(240.0).margin(vec2(10.0, 7.0)));
+        ui.add_space(8.0);
+        let f = self.more_filter.trim().to_lowercase();
+        let mut shown = 0;
+        // Connected ones first, then the rest by name.
+        let mut ordered: Vec<&crate::sources::smapi::MusicService> = extras.iter().copied().filter(|m| s.config.account(m.sid).is_some()).collect();
+        ordered.extend(extras.iter().copied().filter(|m| s.config.account(m.sid).is_none()));
+        for svc in ordered.into_iter().filter(|m| f.is_empty() || m.name.to_lowercase().contains(&f)) {
+            shown += 1;
+            let account = s.config.account(svc.sid).cloned();
+            card_frame().show(ui, |ui| {
+                ui.set_width(ui.available_width());
+                ui.horizontal(|ui| {
+                    service_badge(ui, &svc.name, account.is_some());
+                    ui.vertical(|ui| {
+                        ui.horizontal(|ui| {
+                            ui.label(RichText::new(&svc.name).size(15.0).color(TEXT()));
+                            if account.is_some() {
+                                chip(ui, t!("Connected"), GOOD());
+                            }
+                            chip(
+                                ui,
+                                match svc.auth.as_str() {
+                                    "Anonymous" => t!("No sign-in"),
+                                    "DeviceLink" => t!("Sign in with a code"),
+                                    _ => t!("Sign in on a web page"),
+                                },
+                                TEXT_FAINT(),
+                            );
+                        });
+                        if let Some(result) = account.as_ref().and_then(|a| s.service_checks.get(&a.sid)).filter(|r| !r.is_empty()) {
+                            let failed = result.starts_with('!');
+                            ui.add(egui::Label::new(RichText::new(result.trim_start_matches('!')).size(11.5).color(if failed { BAD() } else { GOOD() })).wrap());
+                        }
+                    });
+                    ui.with_layout(Layout::right_to_left(Align::Center), |ui| match &account {
+                        Some(a) => {
+                            if pill(ui, None, t!("Disconnect"), false).clicked() {
+                                self.send(Cmd::DisconnectService(a.sid));
+                            }
+                            let checking = s.service_checks.get(&a.sid).is_some_and(|r| r.is_empty());
+                            if pill(ui, Some(Icon::Refresh), if checking { t!("Checking…") } else { t!("Check") }, false)
+                                .on_hover_text(t!("Tries browsing, searching and finding the right account, without playing anything"))
+                                .clicked()
+                                && !checking
+                                && live
+                            {
+                                self.send(Cmd::CheckService(a.sid));
+                            }
+                            if pill(ui, None, t!("Open"), false).clicked() {
+                                self.go(View::Library);
+                                self.library_scope = 3;
+                                self.open(&Item {
+                                    id: format!("SVC:{}/", a.sid),
+                                    title: a.name.clone(),
+                                    class: "object.container".into(),
+                                    is_container: true,
+                                    ..Default::default()
+                                });
+                            }
+                        }
+                        None => {
+                            let r = ui.add_enabled_ui(live, |ui| pill(ui, Some(Icon::Plus), t!("Connect"), true)).inner;
+                            if r.clicked() && live {
+                                self.link_dismissed = false;
+                                self.send(Cmd::ConnectService(svc.sid));
+                            }
+                        }
+                    });
+                });
+            });
+            ui.add_space(6.0);
+        }
+        if shown == 0 {
+            ui.label(RichText::new(t!("No service matches that.")).color(TEXT_DIM()));
+        }
     }
 
     fn inputs_page(&mut self, ui: &mut Ui, s: &AppState) {

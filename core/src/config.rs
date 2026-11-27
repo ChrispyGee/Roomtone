@@ -184,6 +184,27 @@ pub struct Account {
     /// Which of the speakers' accounts for this service plays the music (usually 1).
     #[serde(default)]
     pub sn: u32,
+    /// How the service signs in (`Anonymous`, `AppLink` or `DeviceLink`; empty on older saves, which
+    /// all signed in). An `Anonymous` service has no sign-in: its token and key stay empty.
+    #[serde(default)]
+    pub auth: String,
+}
+
+impl Account {
+    /// A service with no sign-in at all (most free radio services).
+    pub fn is_anonymous(&self) -> bool {
+        self.auth == "Anonymous"
+    }
+
+    /// The account number the speakers are told to play with: 1 or more for a service that signs
+    /// in, and 0 for one that doesn't.
+    pub fn number(&self) -> u32 {
+        if self.is_anonymous() {
+            self.sn
+        } else {
+            self.sn.max(1)
+        }
+    }
 }
 
 /// The now-playing display: a read-only web address that shows the playing cover and song, for a

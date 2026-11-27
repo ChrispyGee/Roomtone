@@ -275,6 +275,26 @@ impl Mcp {
             })
             .collect::<Vec<_>>()
             .join("\n")
+            + &self.more_services_status(&s)
+    }
+
+    /// The other services the system offers (BBC Sounds, Audible, TuneIn...), which can be connected
+    /// from Roomtone's Settings › Services.
+    fn more_services_status(&self, s: &AppState) -> String {
+        let extras = crate::sources::extra_services(&s.music_services);
+        if extras.is_empty() {
+            return String::new();
+        }
+        let (on, off): (Vec<_>, Vec<_>) = extras.iter().partition(|m| s.config.account(m.sid).is_some());
+        let names = |v: &[&&crate::sources::smapi::MusicService]| {
+            v.iter().map(|m| if m.auth == "Anonymous" { format!("{} (no sign-in)", m.name) } else { m.name.clone() }).collect::<Vec<_>>().join(", ")
+        };
+        let mut out = String::from("\nMore services this system offers:");
+        if !on.is_empty() {
+            out.push_str(&format!("\n  connected: {}", names(&on)));
+        }
+        out.push_str(&format!("\n  not connected (connect from Roomtone's Settings › Services; a service may not allow apps other than the speaker maker's): {}", names(&off)));
+        out
     }
 
     /// Run one of the extra tools; `None` if `name` isn't one of them.

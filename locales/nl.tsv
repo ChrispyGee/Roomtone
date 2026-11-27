@@ -1025,3 +1025,10 @@ Scan	Scannen
 Tried {done} of {total} addresses · found {n}	{done} van {total} adressen geprobeerd · {n} gevonden
 No speakers answered in {range}. Check the range, and that your router lets this computer reach port 1400 on that network.	Geen speaker antwoordde in {range}. Controleer het bereik en of je router deze computer poort 1400 op dat netwerk laat bereiken.
 Found speakers at {list}, and added them.	Speakers gevonden op {list} en toegevoegd.
+More services	Meer diensten
+Your speakers offer these too. Roomtone signs in to each the way it does for the services above, but a service may only let the speaker maker's own app in, so some won't work. Ones marked No sign-in can be used straight away. Use Check after connecting to see what works.	Je speakers bieden deze ook aan. Roomtone meldt zich bij elk aan zoals bij de diensten hierboven, maar een dienst laat misschien alleen de app van de fabrikant toe, dus sommige werken niet. Diensten met ‘Geen aanmelding’ kun je meteen gebruiken. Gebruik Controleren na het verbinden om te zien wat werkt.
+Find a service	Zoek een dienst
+No sign-in	Geen aanmelding
+Sign in with a code	Aanmelden met een code
+Sign in on a web page	Aanmelden op een webpagina
+No service matches that.	Geen dienst komt overeen.

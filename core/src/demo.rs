@@ -399,6 +399,25 @@ fn station_now(n: usize) -> NowPlaying {
 }
 
 pub fn load(s: &mut AppState) {
+    // A few of the other services a system offers, so the *More services* list can be explored.
+    let svc = |sid: u32, name: &str, auth: &str| crate::sources::smapi::MusicService {
+        sid,
+        name: name.into(),
+        uri: format!("https://demo.invalid/{sid}"),
+        auth: auth.into(),
+        manifest: String::new(),
+    };
+    s.music_services = vec![
+        svc(254, "TuneIn", "Anonymous"),
+        svc(325, "BBC Sounds", "AppLink"),
+        svc(239, "Audible", "AppLink"),
+        svc(230, "NTS Radio", "Anonymous"),
+        svc(44, "Hype Machine", "Anonymous"),
+        svc(4, "Bandcamp", "DeviceLink"),
+        svc(212, "Pocket Casts", "AppLink"),
+        svc(212 + 1, "Plex", "AppLink"),
+    ];
+    crate::sources::learn_service_names(&s.music_services);
     let s2 = Household {
         id: "demo-s2".into(),
         system: System::S2,

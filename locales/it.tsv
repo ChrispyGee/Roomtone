@@ -1025,3 +1025,10 @@ Scan	Scansiona
 Tried {done} of {total} addresses · found {n}	Provati {done} indirizzi su {total} · {n} trovati
 No speakers answered in {range}. Check the range, and that your router lets this computer reach port 1400 on that network.	Nessun diffusore ha risposto in {range}. Controlla l’intervallo e che il router permetta a questo computer di raggiungere la porta 1400 di quella rete.
 Found speakers at {list}, and added them.	Diffusori trovati a {list} e aggiunti.
+More services	Altri servizi
+Your speakers offer these too. Roomtone signs in to each the way it does for the services above, but a service may only let the speaker maker's own app in, so some won't work. Ones marked No sign-in can be used straight away. Use Check after connecting to see what works.	I tuoi diffusori offrono anche questi. Roomtone accede a ciascuno come ai servizi qui sopra, ma un servizio potrebbe far entrare solo l’app del produttore, quindi alcuni non funzioneranno. Quelli con «Nessun accesso» si possono usare subito. Usa Verifica dopo il collegamento per vedere cosa funziona.
+Find a service	Trova un servizio
+No sign-in	Nessun accesso
+Sign in with a code	Accesso con un codice
+Sign in on a web page	Accesso su una pagina web
+No service matches that.	Nessun servizio corrisponde.

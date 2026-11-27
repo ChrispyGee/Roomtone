@@ -1052,9 +1052,10 @@ fn play_from_service(b: &Backend, ip: &str, gid: &str, item: Item, how: PlayHow,
         let s = b.lock();
         let a = s.config.account(sid);
         let here = s.find_group(gid).map(|(h, _)| h.id.clone());
-        (a.map(|a| a.name.clone()).unwrap_or_default(), a.map(|a| a.sn.max(1)).unwrap_or(1), a.is_some_and(|a| is_other_system(&a.household, here.as_deref())))
+        (a.map(|a| a.name.clone()).unwrap_or_default(), a.map(|a| a.number()).unwrap_or(1), a.is_some_and(|a| is_other_system(&a.household, here.as_deref())))
     };
     let mut tries = vec![current];
+    // A service with no sign-in starts with account 0, then the others are tried as usual.
     tries.extend((1..=6).filter(|n| *n != current));
     let mut first_error = None;
     for sn in tries {
@@ -2568,6 +2569,31 @@ fn connect_service(b: &Backend, ctx: &Waker, sid: u32) -> Result<(), String> {
         let ip = h.rooms.first().map(|r| r.ip.clone()).ok_or("No speaker")?;
         (svc, ip, h.id.clone())
     };
+    if svc.auth == "Anonymous" {
+        // Nothing to sign in to: the service is simply switched on.
+        let device_id = speaker::device_id(&ip).unwrap_or_else(|| format!("Roomtone-{:x}", crate::sources::hash(&household)));
+        let account = crate::config::Account {
+            sid,
+            name: svc.name.clone(),
+            uri: svc.uri.clone(),
+            manifest: svc.manifest.clone(),
+            household,
+            device_id,
+            sn: 0,
+            auth: svc.auth.clone(),
+            ..Default::default()
+        };
+        let cfg = {
+            let mut s = b.lock();
+            s.config.accounts.retain(|a| a.sid != sid);
+            s.config.accounts.push(account);
+            s.toast(crate::t!("{service} connected", service = svc.name), false);
+            s.config.clone()
+        };
+        let _ = cfg.save();
+        ctx.request_repaint();
+        return Ok(());
+    }
     b.lock().link = Some(LinkState {
         sid,
         name: svc.name.clone(),
@@ -2617,6 +2643,7 @@ fn connect_service(b: &Backend, ctx: &Waker, sid: u32) -> Result<(), String> {
                         token,
                         key,
                         sn,
+                        auth: svc.auth.clone(),
                     };
                     let cfg = {
                         let mut s = b2.lock();
@@ -2879,11 +2906,21 @@ fn remember_speakers(b: &Backend) {
 }
 
 fn fetch_music_services(b: &Backend) {
+    // Saved sign-ins already have their names, so search and the library can label them at once.
+    let saved: Vec<crate::sources::smapi::MusicService> = b
+        .lock()
+        .config
+        .accounts
+        .iter()
+        .map(|a| crate::sources::smapi::MusicService { sid: a.sid, name: a.name.clone(), uri: String::new(), auth: String::new(), manifest: String::new() })
+        .collect();
+    crate::sources::learn_service_names(&saved);
     let ip = b.lock().any_ip();
     if let Some(ip) = ip {
         let b2 = b.clone();
         thread::spawn(move || {
             if let Ok(list) = speaker::music_services(&ip) {
+                crate::sources::learn_service_names(&list);
                 b2.lock().music_services = list;
             }
         });
