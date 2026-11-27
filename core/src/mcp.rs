@@ -1859,6 +1859,9 @@ mod unit {
         let (bad, err) = tool(&m, "scan_network", json!({"range": "8.8.8.0/24"}));
         assert!(err && bad.contains("home-network"), "{bad}");
         assert!(tool(&m, "scan_network", json!({"range": "nonsense"})).1);
+        // A tiny range nobody answers in: the scan finishes and says so, with its data.
+        let said = ok(&m, "scan_network", json!({"range": "10.254.254.8/30"}));
+        assert!(said.starts_with("No speakers answered in 10.254.254.8/30 (2 addresses tried)"), "{said}");
         let (text, _) = tool(&m, "keep_in_step", json!({}));
         assert!(!text.is_empty());
     }

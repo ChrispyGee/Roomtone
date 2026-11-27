@@ -314,7 +314,7 @@ Tools that list things (`list_favorites`, `list_playlists`, `list_recent`, `sear
 | `create_alarm`, `delete_alarm` | `time` "HH:MM", `days` (daily, weekdays, weekends, once, or day names), `volume`, `minutes`, optional `ref` to play (otherwise the chime) |
 | `get_volume_limits`, `set_volume_limits` | Read and change the volume safeguards (each room's highest volume, quiet hours as HH:MM and a highest volume, *keep down*). Changing them is in *Names and sound*. Same rules as the Volume safeguards setting |
 | `add_speaker` | Add a speaker by its IPv4 address when it isn't found; says whether a new room appeared |
-| `scan_network` | Try every address of a network range (`192.168.20.0/24`, `192.168.20`, `192.168.20.10-50`; home-network addresses only, at most 1,024) for speakers on another network, and add what answers; says what was found |
+| `scan_network` | Try every address of a network range (`192.168.20.0/24`, `192.168.20`, `192.168.20.10-50`; home-network addresses only, at most 1,024) for speakers on another network, and add what answers; says what was found, and gives `found` (addresses), `tried`, `total` and `finished` as data |
 | `keep_in_step` | Preview (default) or `apply` copying favorites, playlists and alarms between systems, one way (`from` S1 or S2) or both; only adds. Applying is in *Saved items* |
 | `save_group`, `delete_saved_group` | Named groups for `use_saved_group` (rooms of one system) |
 | `list_services` *(read)*, `check_service` *(read)* | Each service's state; an end-to-end check of a connected one without playing anything |

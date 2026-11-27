@@ -784,6 +784,8 @@ impl Mcp {
                     thread::sleep(Duration::from_millis(200));
                 }
                 let scan = self.b.lock().scan.clone().unwrap_or_default();
+                // The addresses are also given as data, so an app can remember them.
+                set_structured(json!({"found": scan.found, "tried": scan.done, "total": scan.total, "finished": scan.finished}));
                 if !scan.finished {
                     return Ok(format!("Still scanning {range}: tried {} of {} addresses so far. Ask again in a moment.", scan.done, scan.total));
                 }
