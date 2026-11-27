@@ -625,6 +625,7 @@ fn install_update(b: &Backend, ctx: &Waker, hid: &str, offer: &speaker::UpdateOf
         return UpdateState::UpToDate;
     }
     let total = rooms.len();
+    b.lock().update_targets.insert(hid.to_string(), rooms.iter().map(|(_, ip, _)| ip.clone()).collect());
     let mut failed = vec![];
     for (i, (uuid, ip, name)) in rooms.iter().enumerate() {
         b.lock().updates.insert(hid.to_string(), UpdateState::Installing(i, total));
@@ -647,7 +648,7 @@ fn install_update(b: &Backend, ctx: &Waker, hid: &str, offer: &speaker::UpdateOf
         s.toast(crate::t!("Some speakers didn't take the update: {rooms}", rooms = failed.join("; ")), true);
     }
     s.toast(crate::t!("Update started. Speakers download it and restart one by one; they're back in about 10 minutes."), false);
-    UpdateState::Progress(UpdateProgress { version: offer.version.clone(), total: all_rooms.len(), done: all_rooms.len() - total, restarting: 0 })
+    UpdateState::Progress(UpdateProgress { version: offer.version.clone(), total, done: 0, restarting: 0 })
 }
 
 /// The build id of a build such as "98.0-82170" (`None`: not in that form). Only the id after
@@ -685,9 +686,16 @@ fn track_update(
     every: Duration,
     give_up: Duration,
 ) -> UpdateState {
-    let rooms: Vec<String> = match b.lock().households.iter().find(|h| h.id == hid) {
-        Some(h) => h.rooms.iter().map(|r| r.ip.clone()).collect(),
-        None => return UpdateState::Failed(crate::t!("That system isn't available right now").into()),
+    let rooms: Vec<String> = {
+        let s = b.lock();
+        match s.households.iter().find(|h| h.id == hid) {
+            // Only the speakers the update was sent to are followed and counted (the others were already on it).
+            Some(h) => match s.update_targets.get(hid) {
+                Some(t) if !t.is_empty() => t.clone(),
+                _ => h.rooms.iter().map(|r| r.ip.clone()).collect(),
+            },
+            None => return UpdateState::Failed(crate::t!("That system isn't available right now").into()),
+        }
     };
     let total = rooms.len();
     let start = Instant::now();
@@ -5137,7 +5145,15 @@ mod unit {
         assert!(!behind.contains(&current), "the speaker that is up to date isn't listed");
         assert_eq!(behind, others);
         b.send_and_wait(Cmd::InstallUpdate(s2.clone()), Duration::from_secs(5)).unwrap();
-        assert!(wait_for(20, || matches!(b.lock().updates.get(&s2), Some(UpdateState::Finished(_)))));
+        // The count is of the speakers being updated, not of the whole system.
+        let seen_total = std::cell::Cell::new(None);
+        assert!(wait_for(20, || {
+            if let Some(UpdateState::Progress(p)) = b.lock().updates.get(&s2) {
+                seen_total.set(Some(p.total));
+            }
+            matches!(b.lock().updates.get(&s2), Some(UpdateState::Finished(_)))
+        }));
+        assert_eq!(seen_total.get(), Some(others.len()), "only the speakers that were behind are counted");
         assert!(b.lock().households.iter().find(|h| h.id == s2).unwrap().rooms.iter().all(|r| r.version == "16.5"));
     }
 
