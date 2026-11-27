@@ -112,9 +112,16 @@ pub fn finish_link(svc: &MusicService, household: &str, device_id: &str, link: &
             _ => Err("The service didn't return a sign-in".into()),
         },
         Err(Fault::Refresh(t, k)) => Ok(Some((t, k))),
-        Err(Fault::Other(e)) if e.contains("NOT_LINKED_RETRY") || e.to_lowercase().contains("retry") => Ok(None),
+        Err(Fault::Other(e)) if still_waiting(&e) => Ok(None),
         Err(Fault::Other(e)) => Err(e),
     }
+}
+
+/// Is this a service saying the person hasn't approved yet? Services word it their own way: "NOT_LINKED_RETRY",
+/// "Authorisation Pending" (BBC Sounds)...
+fn still_waiting(fault: &str) -> bool {
+    let f = fault.to_lowercase();
+    ["retry", "pending", "not_linked", "not linked", "slow_down", "slow down"].iter().any(|w| f.contains(w))
 }
 
 /// Tokens the services hand back when they renew a sign-in, to be saved by the caller.
@@ -439,6 +446,28 @@ mod anonymous_tests {
 }
 
 #[cfg(test)]
+mod saved_account_tests {
+    /// Opt in with ROOMTONE_RAW_SID=<sid> (the sign-in saved by the link test): print what the service
+    /// answers for its home page, to see what the parser makes of it.
+    #[test]
+    #[ignore = "needs a saved sign-in: set ROOMTONE_RAW_SID"]
+    fn raw_home_of_a_saved_service() {
+        let Ok(sid) = std::env::var("ROOMTONE_RAW_SID") else { return };
+        let cfg = crate::config::Config::load_readonly();
+        let acc = cfg.account(sid.parse().unwrap()).expect("a saved sign-in").clone();
+        let id = std::env::var("ROOMTONE_RAW_ID").unwrap_or_else(|_| "root".into());
+        let text = super::call(&acc, "getMetadata", &[("id", id.as_str()), ("index", "0"), ("count", "20"), ("recursive", "false")]).unwrap();
+        println!("{}", &text[..text.len().min(3500)]);
+        println!("parsed: {:?}", super::items_from(&acc, &text).iter().map(|i| (i.title.clone(), i.class.clone(), i.uri.clone())).take(5).collect::<Vec<_>>());
+        if let Ok(found) = super::search(&acc, "radio 2") {
+            for i in found.iter().take(8) {
+                println!("search hit: {:?} id {} class {} playable-uri {:?}", i.title, i.id, i.class, i.uri);
+            }
+        }
+    }
+}
+
+#[cfg(test)]
 mod debug_tests {
     #[test]
     #[ignore]
@@ -541,6 +570,16 @@ mod home_tests {
 
 #[cfg(test)]
 mod unit {
+    #[test]
+    fn a_service_that_is_still_waiting_for_approval_is_told_from_one_that_refused() {
+        for waiting in ["NOT_LINKED_RETRY", "Authorisation Pending", "authorization_pending", "SlowDown: slow down", "Device is not linked yet"] {
+            assert!(super::still_waiting(waiting), "{waiting}");
+        }
+        for refused in ["The service refused the request", "Access denied", "Expired code", "unexpected reply"] {
+            assert!(!super::still_waiting(refused), "{refused}");
+        }
+    }
+
     use super::*;
 
     fn spotify() -> Account {

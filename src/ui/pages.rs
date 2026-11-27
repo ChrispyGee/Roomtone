@@ -1249,7 +1249,14 @@ impl App {
                 );
                 return;
             }
-            let msg = if is_folders { t!("No folders yet. Use Add folder to choose music on this computer.") } else { t!("Nothing here yet.") };
+            let service_home = top.id.strip_prefix("SVC:").and_then(|r| r.strip_suffix('/')).and_then(|n| n.parse::<u32>().ok());
+            let msg = if is_folders {
+                t!("No folders yet. Use Add folder to choose music on this computer.")
+            } else if service_home.is_some() {
+                t!("This service doesn't list a home page to browse. Use Search to find stations, shows and music from it.")
+            } else {
+                t!("Nothing here yet.")
+            };
             ui.label(RichText::new(msg).color(TEXT_DIM()));
             return;
         }
